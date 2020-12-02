@@ -141,13 +141,13 @@ struct mtrx {
   std::initializer_list<VarType> type_list;
   std::initializer_list<Variable> var_list;
 
-//  mtrx(std::initializer_list<VarType> types, std::initializer_list<Variable> vars)
-//    : type_list(types), var_list(vars)
-//  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid matrix initer");}
+  mtrx(std::initializer_list<VarType> types, std::initializer_list<Variable> vars)
+    : type_list(types), var_list(vars)
+  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid matrix initer");}
 
   ui64 getNeededMemory() {return type_list.size() + var_list.size() * PTR_SZ;}
   ui64 getColumnCount() {return type_list.size();}
-  ui64 getRowCount() {return type_list.size() / var_list.size();}
+  ui64 getRowCount() {return var_list.size() / type_list.size();}
 
   private:
   bool isValid() {
@@ -169,8 +169,13 @@ struct tbl {
   std::initializer_list<ColumnInfo> column_list;
   std::initializer_list<Variable> var_list;
 
+  tbl(std::initializer_list<ColumnInfo> columns, std::initializer_list<Variable> vars)
+    : column_list(columns), var_list(vars)
+  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid table initer");}
 
-  ui64 getNeededMemory() {}
+  ui64 getNeededMemory() {return column_list.size() * sizeof (ColumnInfo) + var_list.size() + PTR_SZ;}
+  ui64 getColumnCount() {return column_list.size();}
+  ui64 getRowCount() {return var_list.size() / column_list.size();}
 
 private:
   bool isValid() {

@@ -332,7 +332,8 @@ binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(17 + matrix.getNe
   data.type[0] = VarType::matrix;
   *reinterpret_cast<ui64*>(data.bytes + 1) = matrix.getRowCount();
   *reinterpret_cast<ui64*>(data.bytes + 9) = matrix.getColumnCount();
-  {
+
+  { // Init matrix type list
     VarType* it = data.type + 17;
     for(VarType type : matrix.type_list) {
       *it = type;
@@ -340,9 +341,35 @@ binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(17 + matrix.getNe
     }
   }
 
-  {
+  { // Init variable values
     void** it = reinterpret_cast<void**>(data.bytes + 17 + matrix.type_list.size());
     for(const Variable& var : matrix.var_list) {
+      *it = var.getDataPointer();
+      const_cast<Variable&>(var).data.ptr = nullptr;
+      ++it;
+    }
+  }
+
+}
+
+binom::Variable::Variable(binom::tbl table) : data(tryMalloc(17 + table.getNeededMemory())) {
+  data.type[0] = VarType::table;
+  *reinterpret_cast<ui64*>(data.bytes + 1) = table.getRowCount();
+  *reinterpret_cast<ui64*>(data.bytes + 9) = table.getColumnCount();
+
+  { // Init table columns
+    tbl::ColumnInfo* it = reinterpret_cast<tbl::ColumnInfo*>(data.bytes + 17);
+    for(const tbl::ColumnInfo& column : table.column_list) {
+      it->type = column.type;
+      it->name.ptr = column.name.ptr;
+      const_cast<tbl::ColumnInfo&>(column).name.ptr = nullptr;
+      ++it;
+    }
+  }
+
+  {
+    void** it = reinterpret_cast<void**>(data.bytes + 17 + table.column_list.size() * sizeof (tbl::ColumnInfo));
+    for(const Variable& var : table.var_list) {
       *it = var.getDataPointer();
       const_cast<Variable&>(var).data.ptr = nullptr;
       ++it;
