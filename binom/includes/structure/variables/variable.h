@@ -3,7 +3,6 @@
 
 #include "../types.h"
 
-#include "boolean.h"
 #include "primitive.h"
 #include "buffer_array.h"
 #include "array.h"
@@ -20,7 +19,6 @@ class Variable {
     VarType* type;
     byte* bytes;
 
-    Boolean boolean;
     Primitive primitive;
     BufferArray buffer_array;
     Array array;
@@ -30,6 +28,8 @@ class Variable {
 
     types(void* ptr) : ptr(ptr) {}
   } data;
+
+  void* clone() const;
 
 public:
 
@@ -108,7 +108,6 @@ public:
   inline VarTypeClass typeClass() const noexcept   {return (data.type == nullptr)? VarTypeClass::invalid_type :toTypeClass(*data.type);}
   inline bool isNull() const noexcept              {return data.type == nullptr;}
 
-  inline bool isBoolean() const noexcept           {return typeClass() == VarTypeClass::boolean;}
   inline bool isPrimitive() const noexcept         {return typeClass() == VarTypeClass::primitive;}
   inline bool isBufferArray() const noexcept       {return typeClass() == VarTypeClass::buffer_array;}
   inline bool isArray() const noexcept             {return typeClass() == VarTypeClass::array;}
@@ -116,7 +115,6 @@ public:
   inline bool isMatrix() const noexcept            {return typeClass() == VarTypeClass::matrix;}
   inline bool isTable() const noexcept             {return typeClass() == VarTypeClass::table;}
 
-  inline Boolean& toBoolean() noexcept           {return data.boolean;}
   inline Primitive& toPrimitive() noexcept       {return data.primitive;}
   inline BufferArray& toBufferArray() noexcept   {return data.buffer_array;}
   inline Array& toArray() noexcept               {return data.array;}
@@ -143,25 +141,47 @@ struct mtrx {
   std::initializer_list<VarType> type_list;
   std::initializer_list<Variable> var_list;
 
-  mtrx(std::initializer_list<VarType> types, std::initializer_list<Variable> vars)
-    : type_list(types), var_list(vars)
-  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid matrix initer");}
+//  mtrx(std::initializer_list<VarType> types, std::initializer_list<Variable> vars)
+//    : type_list(types), var_list(vars)
+//  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid matrix initer");}
 
-  ui64 getNeededMemory() {return type_list.size() + 1 + var_list.size() * PTR_SZ;}
+  ui64 getNeededMemory() {return type_list.size() + var_list.size() * PTR_SZ;}
+  ui64 getColumnCount() {return type_list.size();}
   ui64 getRowCount() {return type_list.size() / var_list.size();}
 
   private:
   bool isValid() {
     std::initializer_list<VarType>::iterator type(type_list.begin());
     std::initializer_list<Variable>::iterator var(var_list.begin());
-    for(;var == var_list.end();(++type, ++var)) {
+    for(;var != var_list.end();(++type, ++var)) {
       if(type == type_list.end()) type = type_list.begin();
       if(var->type() != *type) return false;
     }
     return type == type_list.end();
   }
+};
+
+struct tbl {
+  struct ColumnInfo {
+    VarType type;
+    BufferArray name;
+  };
+  std::initializer_list<ColumnInfo> column_list;
+  std::initializer_list<Variable> var_list;
 
 
+  ui64 getNeededMemory() {}
+
+private:
+  bool isValid() {
+    std::initializer_list<ColumnInfo>::iterator column(column_list.begin());
+    std::initializer_list<Variable>::iterator var(var_list.begin());
+    for(;var != var_list.end();(++column, ++var)) {
+      if(column == column_list.end()) column = column_list.begin();
+      if(var->type() != column->type) return false;
+    }
+    return column == column_list.end();
+  }
 };
 
 }

@@ -2,7 +2,10 @@
 
 // Constructor
 
-binom::Variable::Variable(bool value) : data(new VarType((value)? VarType::bool_true : VarType::bool_false)) {}
+binom::Variable::Variable(bool value) : data(tryMalloc(2)) {
+  data.type[0] = VarType::byte;
+  reinterpret_cast<bool*>(data.bytes)[1] = value;
+}
 
 binom::Variable::Variable(binom::ui8 value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
@@ -325,20 +328,20 @@ binom::Variable::Variable(binom::obj object) : data(tryMalloc(9 + object.size()*
   }
 }
 
-binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(9 + matrix.getNeededMemory())) {
+binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(17 + matrix.getNeededMemory())) {
   data.type[0] = VarType::matrix;
   *reinterpret_cast<ui64*>(data.bytes + 1) = matrix.getRowCount();
+  *reinterpret_cast<ui64*>(data.bytes + 9) = matrix.getColumnCount();
   {
-    VarType* it = data.type + 9;
+    VarType* it = data.type + 17;
     for(VarType type : matrix.type_list) {
       *it = type;
       ++it;
     }
-    *it = VarType::end;
   }
 
   {
-    void** it = reinterpret_cast<void**>(data.bytes + 10 + matrix.type_list.size());
+    void** it = reinterpret_cast<void**>(data.bytes + 17 + matrix.type_list.size());
     for(const Variable& var : matrix.var_list) {
       *it = var.getDataPointer();
       const_cast<Variable&>(var).data.ptr = nullptr;
@@ -349,3 +352,4 @@ binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(9 + matrix.getNee
 }
 
 binom::Variable::Variable(binom::Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
+binom::Variable::Variable(binom::Variable& other) : data(other.clone()) {}

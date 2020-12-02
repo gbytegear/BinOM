@@ -24,26 +24,23 @@
 namespace binom {
   enum class VarType : byte {
     end                 = 0x00,
-    bool_false          = 0x01,
-    bool_true           = 0x02,
-    byte                = 0x03,
-    word                = 0x04,
-    dword               = 0x05,
-    qword               = 0x06,
-    byte_array          = 0x07,
-    word_array          = 0x08,
-    dword_array         = 0x09,
-    qword_array         = 0x0A,
-    array               = 0x0B,
-    object              = 0x0C,
-    matrix              = 0x0D,
-    table               = 0x0E,
+    byte                = 0x01,
+    word                = 0x02,
+    dword               = 0x03,
+    qword               = 0x04,
+    byte_array          = 0x05,
+    word_array          = 0x06,
+    dword_array         = 0x07,
+    qword_array         = 0x08,
+    array               = 0x09,
+    object              = 0x0A,
+    matrix              = 0x0B,
+    table               = 0x0C,
 
     invlid_type         = 0xFF
   };
 
   enum class VarTypeClass : byte {
-    boolean             = 0x00,
     primitive           = 0x01,
     buffer_array        = 0x02,
     array               = 0x03,
@@ -54,27 +51,8 @@ namespace binom {
     invalid_type        = 0xFF
   };
 
-  enum class VarTemplateType : byte {
-    end                 = 0x00,
-    boolean             = 0x01,
-    byte                = 0x02,
-    word                = 0x03,
-    dword               = 0x04,
-    qword               = 0x05,
-    byte_array          = 0x06,
-    word_array          = 0x07,
-    dword_array         = 0x08,
-    qword_array         = 0x09,
-    array               = 0x0A,
-    object              = 0x0B,
-    matrix              = 0x0C,
-    table               = 0x0D
-  };
-
   inline VarTypeClass toTypeClass(VarType type) {
     switch(type) {
-      case VarType::bool_false: case VarType::bool_true:
-        return VarTypeClass::boolean;
       case VarType::byte: case VarType::word: case VarType::dword: case VarType::qword:
         return VarTypeClass::primitive;
       case VarType::byte_array: case VarType::word_array: case VarType::dword_array: case VarType::qword_array:
@@ -93,7 +71,6 @@ namespace binom {
   }
 
   class Variable;
-  class Boolean;
   class Primitive;
   class BufferArray;
   class Array;

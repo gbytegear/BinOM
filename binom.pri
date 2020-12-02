@@ -1,5 +1,4 @@
 SOURCES += \
-  binom/sources/structure/variables/boolean.cpp \
   binom/sources/structure/file/f_node_visitor.cpp \
   binom/sources/structure/variables/variable.cpp \
   binom/sources/structure/variables/primitive.cpp \
@@ -17,7 +16,6 @@ HEADERS += \
   binom/includes/exception.h \
   binom/includes/structure/types.h \
   binom/includes/structure/variables/variable.h \
-  binom/includes/structure/variables/boolean.h \
   binom/includes/structure/variables/primitive.h \
   binom/includes/structure/variables/buffer_array.h \
   binom/includes/structure/variables/array.h \
