@@ -24,7 +24,7 @@ void* tryMalloc(size_t size) {
 }
 
 template <typename Type>
-Type* tryArrMalloc(size_t count) {
+void* tryMalloc(size_t count) {
   Type* ptr = reinterpret_cast<Type*>(malloc(sizeof (Type) * count));
   if(ptr == nullptr) throw binom::SException(binom::ErrCode::memory_allocation_error, "Memory array allocation error!");
   else return ptr;

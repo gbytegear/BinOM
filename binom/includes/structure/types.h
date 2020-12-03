@@ -40,6 +40,13 @@ namespace binom {
     invlid_type         = 0xFF
   };
 
+  enum class ValType : byte {
+      byte                = 0x00,
+      word                = 0x01,
+      dword               = 0x02,
+      qword               = 0x03,
+  };
+
   enum class VarTypeClass : byte {
     primitive           = 0x01,
     buffer_array        = 0x02,
@@ -70,6 +77,20 @@ namespace binom {
     }
   }
 
+  inline ValType toValueType(VarType type) {
+      switch (type) {
+          case VarType::byte: return ValType::byte;
+          case VarType::word: return ValType::word;
+          case VarType::dword: return ValType::dword;
+          case VarType::qword: return ValType::qword;
+          case VarType::byte_array: return ValType::byte;
+          case VarType::word_array: return ValType::word;
+          case VarType::dword_array: return ValType::dword;
+          case VarType::qword_array: return ValType::qword;
+          default: throw SException(ErrCode::binom_invalid_type, "Variable type can't be convert to value type!");
+      }
+  }
+
   class Variable;
   class Primitive;
   class BufferArray;
@@ -95,17 +116,6 @@ namespace binom {
 
   typedef std::initializer_list<Variable> varr;
   typedef std::initializer_list<NamedVariable> obj;
-
-
 }
-
-//#include "variables/variable.h"
-//#include "variables/boolean.h"
-//#include "variables/primitive.h"
-//#include "variables/buffer_array.h"
-//#include "variables/array.h"
-//#include "variables/object.h"
-//#include "variables/matrix.h"
-//#include "variables/table.h"
 
 #endif
