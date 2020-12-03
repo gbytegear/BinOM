@@ -15,14 +15,24 @@ class Primitive {
       types(void* ptr) : ptr(ptr) {}
   } data;
 
-//  byte* ptr = nullptr;
+  ui64 msize() const {
+    switch (*data.type) {
+      case VarType::byte: return 2;
+      case VarType::word: return 3;
+      case VarType::dword: return 5;
+      case VarType::qword: return 9;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
+
+  void destroy() {free(data.ptr);data.ptr = nullptr;}
+
   friend class Variable;
 public:
   // Bool init
   Primitive(bool value);
 
   // Primitive init
-
   Primitive(ui8 value);
   Primitive(ui16 value);
   Primitive(ui32 value);
@@ -38,7 +48,14 @@ public:
   Primitive(Primitive&& other);
   Primitive(Primitive& other);
 
+  ~Primitive() {destroy();}
+
   ValuePtr getValue() const {return ValuePtr(*data.type, data.bytes + 1);}
+
+  Primitive& operator=(Primitive& other) {
+    getValue() = other.getValue();
+    return *this;
+  }
 };
 
 }

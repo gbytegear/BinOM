@@ -2,6 +2,9 @@
 
 using namespace binom;
 
+ValuePtr::ValuePtr(ValueIterator& it) : type(it->type), ptr(it->ptr.ptr) {}
+ValuePtr::ValuePtr(ValueIterator&& it) : type(it->type), ptr(it->ptr.ptr) {}
+
 bool ValuePtr::asBool() const {
   switch (type) {
     case ValType::byte: return *ptr.boolptr;
@@ -72,4 +75,22 @@ f64 ValuePtr::setFloat(const f64 value) {
     case ValType::dword: return *ptr.i32ptr = value;
     case ValType::qword: return *ptr.i64ptr = value;
   }
+}
+
+ValueIterator& ValuePtr::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}
+
+ValuePtr& ValuePtr::operator=(const ValuePtr& other) {
+  type = other.type;
+  ptr.ptr = other.ptr.ptr;
+  return *this;
+}
+
+ValuePtr& ValuePtr::operator<<(const ValuePtr& other) {
+  setUnsigned(other.asUnsigned());
+  return *this;
+}
+
+ValuePtr& ValuePtr::operator>>(ValuePtr& other) const {
+  other.setUnsigned(asUnsigned());
+  return *const_cast<ValuePtr*>(this);
 }

@@ -10,6 +10,7 @@ enum ErrCode : ui8 {
   memory_free_error,
   binom_invalid_type,
   binom_invalid_initer,
+  binom_out_of_range
 };
 
 class SException {

@@ -98,6 +98,8 @@ namespace binom {
   class Matrix;
   class Table;
 
+  class ValuePtr;
+  class ValueIterator;
   struct NamedVariable;
   class MatrixRowIterator;
   class TableRowIterator;

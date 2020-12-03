@@ -1,28 +1,30 @@
 #include "binom/includes/structure/variables/variable.h"
 
+
+using namespace binom;
 // Constructor
 
-binom::Variable::Variable(bool value) : data(tryMalloc(2)) {
+Variable::Variable(bool value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
   reinterpret_cast<bool*>(data.bytes)[1] = value;
 }
 
-binom::Variable::Variable(binom::ui8 value) : data(tryMalloc(2)) {
+Variable::Variable(ui8 value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
   data.bytes[1] = value;
 }
 
-binom::Variable::Variable(binom::ui16 value) : data(tryMalloc(3)) {
+Variable::Variable(ui16 value) : data(tryMalloc(3)) {
   data.type[0] = VarType::word;
   *reinterpret_cast<ui16*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::ui32 value) : data(tryMalloc(5)) {
+Variable::Variable(ui32 value) : data(tryMalloc(5)) {
   data.type[0] = VarType::dword;
   *reinterpret_cast<ui32*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::ui64 value) : data(tryMalloc(9)) {
+Variable::Variable(ui64 value) : data(tryMalloc(9)) {
   data.type[0] = VarType::qword;
   *reinterpret_cast<ui64*>(data.bytes + 1) = value;
 }
@@ -30,32 +32,32 @@ binom::Variable::Variable(binom::ui64 value) : data(tryMalloc(9)) {
 
 
 
-binom::Variable::Variable(binom::i8 value) : data(tryMalloc(2)) {
+Variable::Variable(i8 value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
   *reinterpret_cast<i8*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::i16 value) : data(tryMalloc(3)) {
+Variable::Variable(i16 value) : data(tryMalloc(3)) {
   data.type[0] = VarType::word;
   *reinterpret_cast<i16*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::i32 value) : data(tryMalloc(5)) {
+Variable::Variable(i32 value) : data(tryMalloc(5)) {
   data.type[0] = VarType::dword;
   *reinterpret_cast<i32*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::i64 value) : data(tryMalloc(9)) {
+Variable::Variable(i64 value) : data(tryMalloc(9)) {
   data.type[0] = VarType::qword;
   *reinterpret_cast<i64*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::f32 value) : data(tryMalloc(5)) {
+Variable::Variable(f32 value) : data(tryMalloc(5)) {
   data.type[0] = VarType::dword;
   *reinterpret_cast<f32*>(data.bytes + 1) = value;
 }
 
-binom::Variable::Variable(binom::f64 value) : data(tryMalloc(9)) {
+Variable::Variable(f64 value) : data(tryMalloc(9)) {
   data.type[0] = VarType::qword;
   *reinterpret_cast<f64*>(data.bytes + 1) = value;
 }
@@ -63,14 +65,14 @@ binom::Variable::Variable(binom::f64 value) : data(tryMalloc(9)) {
 
 
 
-binom::Variable::Variable(const char* str) : data(tryMalloc(9 + strlen(str))) {
+Variable::Variable(const char* str) : data(tryMalloc(9 + strlen(str))) {
   data.type[0] = VarType::byte_array;
   ui64 size = strlen(str);
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
   memcpy(reinterpret_cast<char*>(data.bytes + 9), str, size);
 }
 
-binom::Variable::Variable(const std::string str) : data(tryMalloc(9 + str.length())) {
+Variable::Variable(const std::string str) : data(tryMalloc(9 + str.length())) {
   data.type[0] = VarType::byte_array;
   ui64 size = str.length();
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
@@ -80,13 +82,13 @@ binom::Variable::Variable(const std::string str) : data(tryMalloc(9 + str.length
 
 
 
-binom::Variable::Variable(binom::size_t size, binom::ui8 value) : data(tryMalloc(9 + size)) {
+Variable::Variable(size_t size, ui8 value) : data(tryMalloc(9 + size)) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
   memset(data.bytes + 9, value, size);
 }
 
-binom::Variable::Variable(binom::size_t size, binom::ui16 value) : data(tryMalloc(9 + size*2)) {
+Variable::Variable(size_t size, ui16 value) : data(tryMalloc(9 + size*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -95,7 +97,7 @@ binom::Variable::Variable(binom::size_t size, binom::ui16 value) : data(tryMallo
     *it = value;
 }
 
-binom::Variable::Variable(binom::size_t size, binom::ui32 value) : data(tryMalloc(9 + size*4)) {
+Variable::Variable(size_t size, ui32 value) : data(tryMalloc(9 + size*4)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -104,7 +106,7 @@ binom::Variable::Variable(binom::size_t size, binom::ui32 value) : data(tryMallo
     *it = value;
 }
 
-binom::Variable::Variable(binom::size_t size, binom::ui64 value) : data(tryMalloc(9 + size*8)) {
+Variable::Variable(size_t size, ui64 value) : data(tryMalloc(9 + size*8)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -117,13 +119,13 @@ binom::Variable::Variable(binom::size_t size, binom::ui64 value) : data(tryMallo
 
 
 
-binom::Variable::Variable(binom::size_t size, binom::i8 value) : data(tryMalloc(9 + size)) {
+Variable::Variable(size_t size, i8 value) : data(tryMalloc(9 + size)) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
   memset(data.bytes + 9, value, size);
 }
 
-binom::Variable::Variable(binom::size_t size, binom::i16 value) : data(tryMalloc(9 + size*2)) {
+Variable::Variable(size_t size, i16 value) : data(tryMalloc(9 + size*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -133,7 +135,7 @@ binom::Variable::Variable(binom::size_t size, binom::i16 value) : data(tryMalloc
 
 }
 
-binom::Variable::Variable(binom::size_t size, binom::i32 value) : data(tryMalloc(9 + size*4)) {
+Variable::Variable(size_t size, i32 value) : data(tryMalloc(9 + size*4)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -143,7 +145,7 @@ binom::Variable::Variable(binom::size_t size, binom::i32 value) : data(tryMalloc
 
 }
 
-binom::Variable::Variable(binom::size_t size, binom::i64 value) : data(tryMalloc(9 + size*8)) {
+Variable::Variable(size_t size, i64 value) : data(tryMalloc(9 + size*8)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -156,13 +158,13 @@ binom::Variable::Variable(binom::size_t size, binom::i64 value) : data(tryMalloc
 
 
 
-binom::Variable::Variable(binom::ui8* values, binom::size_t size) : data(tryMalloc(9 + size)) {
+Variable::Variable(ui8* values, size_t size) : data(tryMalloc(9 + size)) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
   memcpy(data.bytes + 9, values, size);
 }
 
-binom::Variable::Variable(binom::ui16* values, binom::size_t size) : data(tryMalloc(9 + size*2)) {
+Variable::Variable(ui16* values, size_t size) : data(tryMalloc(9 + size*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -172,7 +174,7 @@ binom::Variable::Variable(binom::ui16* values, binom::size_t size) : data(tryMal
 
 }
 
-binom::Variable::Variable(binom::ui32* values, binom::size_t size) : data(tryMalloc(9 + size*4)) {
+Variable::Variable(ui32* values, size_t size) : data(tryMalloc(9 + size*4)) {
   data.type[0] = VarType::dword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -182,7 +184,7 @@ binom::Variable::Variable(binom::ui32* values, binom::size_t size) : data(tryMal
 
 }
 
-binom::Variable::Variable(binom::ui64* values, binom::size_t size) : data(tryMalloc(9 + size*8)) {
+Variable::Variable(ui64* values, size_t size) : data(tryMalloc(9 + size*8)) {
   data.type[0] = VarType::qword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -195,13 +197,13 @@ binom::Variable::Variable(binom::ui64* values, binom::size_t size) : data(tryMal
 
 
 
-binom::Variable::Variable(binom::i8* values, binom::size_t size) : data(tryMalloc(9 + size)) {
+Variable::Variable(i8* values, size_t size) : data(tryMalloc(9 + size)) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
   memcpy(data.bytes + 9, values, size);
 }
 
-binom::Variable::Variable(binom::i16* values, binom::size_t size) : data(tryMalloc(9 + size*2)) {
+Variable::Variable(i16* values, size_t size) : data(tryMalloc(9 + size*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -211,7 +213,7 @@ binom::Variable::Variable(binom::i16* values, binom::size_t size) : data(tryMall
 
 }
 
-binom::Variable::Variable(binom::i32* values, binom::size_t size) : data(tryMalloc(9 + size*4)) {
+Variable::Variable(i32* values, size_t size) : data(tryMalloc(9 + size*4)) {
   data.type[0] = VarType::dword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -221,7 +223,7 @@ binom::Variable::Variable(binom::i32* values, binom::size_t size) : data(tryMall
 
 }
 
-binom::Variable::Variable(binom::i64* values, binom::size_t size) : data(tryMalloc(9 + size*8)) {
+Variable::Variable(i64* values, size_t size) : data(tryMalloc(9 + size*8)) {
   data.type[0] = VarType::qword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = size;
 
@@ -235,7 +237,7 @@ binom::Variable::Variable(binom::i64* values, binom::size_t size) : data(tryMall
 
 
 
-binom::Variable::Variable(binom::ui8arr array) : data(tryMalloc(9 + array.size())) {
+Variable::Variable(ui8arr array) : data(tryMalloc(9 + array.size())) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui8* it = data.bytes + 9;
@@ -243,7 +245,7 @@ binom::Variable::Variable(binom::ui8arr array) : data(tryMalloc(9 + array.size()
     *it = value;
 }
 
-binom::Variable::Variable(binom::ui16arr array) : data(tryMalloc(9 + array.size()*2)) {
+Variable::Variable(ui16arr array) : data(tryMalloc(9 + array.size()*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui16* it = reinterpret_cast<ui16*>(data.bytes + 9);
@@ -251,7 +253,7 @@ binom::Variable::Variable(binom::ui16arr array) : data(tryMalloc(9 + array.size(
     *it = value;
 }
 
-binom::Variable::Variable(binom::ui32arr array) : data(tryMalloc(9 + array.size()*4)) {
+Variable::Variable(ui32arr array) : data(tryMalloc(9 + array.size()*4)) {
   data.type[0] = VarType::dword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui32* it = reinterpret_cast<ui32*>(data.bytes + 9);
@@ -259,7 +261,7 @@ binom::Variable::Variable(binom::ui32arr array) : data(tryMalloc(9 + array.size(
     *it = value;
 }
 
-binom::Variable::Variable(binom::ui64arr array) : data(tryMalloc(9 + array.size()*8)) {
+Variable::Variable(ui64arr array) : data(tryMalloc(9 + array.size()*8)) {
   data.type[0] = VarType::qword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui64* it = reinterpret_cast<ui64*>(data.bytes + 9);
@@ -271,7 +273,7 @@ binom::Variable::Variable(binom::ui64arr array) : data(tryMalloc(9 + array.size(
 
 
 
-binom::Variable::Variable(binom::i8arr array) : data(tryMalloc(9 + array.size())) {
+Variable::Variable(i8arr array) : data(tryMalloc(9 + array.size())) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i16* it = reinterpret_cast<i16*>(data.bytes + 9);
@@ -279,7 +281,7 @@ binom::Variable::Variable(binom::i8arr array) : data(tryMalloc(9 + array.size())
     *it = value;
 }
 
-binom::Variable::Variable(binom::i16arr array) : data(tryMalloc(9 + array.size()*2)) {
+Variable::Variable(i16arr array) : data(tryMalloc(9 + array.size()*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i16* it = reinterpret_cast<i16*>(data.bytes + 9);
@@ -287,7 +289,7 @@ binom::Variable::Variable(binom::i16arr array) : data(tryMalloc(9 + array.size()
     *it = value;
 }
 
-binom::Variable::Variable(binom::i32arr array) : data(tryMalloc(9 + array.size()*4)) {
+Variable::Variable(i32arr array) : data(tryMalloc(9 + array.size()*4)) {
   data.type[0] = VarType::dword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i32* it = reinterpret_cast<i32*>(data.bytes + 9);
@@ -295,7 +297,7 @@ binom::Variable::Variable(binom::i32arr array) : data(tryMalloc(9 + array.size()
     *it = value;
 }
 
-binom::Variable::Variable(binom::i64arr array) : data(tryMalloc(9 + array.size()*8)) {
+Variable::Variable(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
   data.type[0] = VarType::qword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i64* it = reinterpret_cast<i64*>(data.bytes + 9);
@@ -306,7 +308,7 @@ binom::Variable::Variable(binom::i64arr array) : data(tryMalloc(9 + array.size()
 
 
 
-binom::Variable::Variable(binom::varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {
+Variable::Variable(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {
   data.type[0] = VarType::array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   void** it = reinterpret_cast<void**>(data.bytes + 9);
@@ -316,19 +318,19 @@ binom::Variable::Variable(binom::varr array) : data(tryMalloc(9 + array.size()*s
   }
 }
 
-binom::Variable::Variable(binom::obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
+Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
   data.type[0] = VarType::array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = object.size();
   NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
   for(const NamedVariable& value : object) {
     it->name = value.name;
     it->variable.data.ptr = value.variable.data.ptr;
-    const_cast<NamedVariable&>(value).name.ptr = nullptr;
+    const_cast<NamedVariable&>(value).name.data.ptr = nullptr;
     const_cast<NamedVariable&>(value).variable.data.ptr = nullptr;
   }
 }
 
-binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(17 + matrix.getNeededMemory())) {
+Variable::Variable(mtrx matrix) : data(tryMalloc(17 + matrix.getNeededMemory())) {
   data.type[0] = VarType::matrix;
   *reinterpret_cast<ui64*>(data.bytes + 1) = matrix.getRowCount();
   *reinterpret_cast<ui64*>(data.bytes + 9) = matrix.getColumnCount();
@@ -352,7 +354,7 @@ binom::Variable::Variable(binom::mtrx matrix) : data(tryMalloc(17 + matrix.getNe
 
 }
 
-binom::Variable::Variable(binom::tbl table) : data(tryMalloc(17 + table.getNeededMemory())) {
+Variable::Variable(tbl table) : data(tryMalloc(17 + table.getNeededMemory())) {
   data.type[0] = VarType::table;
   *reinterpret_cast<ui64*>(data.bytes + 1) = table.getRowCount();
   *reinterpret_cast<ui64*>(data.bytes + 9) = table.getColumnCount();
@@ -361,8 +363,8 @@ binom::Variable::Variable(binom::tbl table) : data(tryMalloc(17 + table.getNeede
     tbl::ColumnInfo* it = reinterpret_cast<tbl::ColumnInfo*>(data.bytes + 17);
     for(const tbl::ColumnInfo& column : table.column_list) {
       it->type = column.type;
-      it->name.ptr = column.name.ptr;
-      const_cast<tbl::ColumnInfo&>(column).name.ptr = nullptr;
+      it->name.data.ptr = column.name.data.ptr;
+      const_cast<tbl::ColumnInfo&>(column).name.data.ptr = nullptr;
       ++it;
     }
   }
@@ -378,5 +380,5 @@ binom::Variable::Variable(binom::tbl table) : data(tryMalloc(17 + table.getNeede
 
 }
 
-binom::Variable::Variable(binom::Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
-binom::Variable::Variable(binom::Variable& other) : data(other.clone()) {}
+Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
+Variable::Variable(Variable& other) : data(other.clone()) {}
