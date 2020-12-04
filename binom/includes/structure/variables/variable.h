@@ -27,9 +27,11 @@ class Variable {
     Table table;
 
     types(void* ptr) : ptr(ptr) {}
+    ~types() {}
   } data;
 
   void* clone() const;
+  void destroy();
 
 public:
 

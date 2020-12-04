@@ -23,6 +23,29 @@ class BufferArray {
     }
   }
 
+
+  void mch(size_t new_size) {
+    data.ptr = tryRealloc(data.ptr, new_size);
+  }
+
+  void* madd(size_t add_size) {
+    size_t shift = msize();
+    mch(shift + add_size);
+    return data.bytes + shift;
+  }
+
+  void msub(size_t sub_size) {
+    mch(msize() - sub_size);
+  }
+
+  void* maddto(void* to, size_t size) {
+    size_t pos = reinterpret_cast<byte*>(to) - data.bytes;
+    size_t old_size = msize();
+    madd(size);
+    memmove(data.bytes + pos + size, data.bytes + pos, old_size - pos);
+    return data.bytes + pos;
+  }
+
   void destroy() {free(data.ptr);data.ptr = nullptr;}
 
   friend class Variable;
@@ -65,22 +88,50 @@ public:
 
   ~BufferArray() {destroy();}
 
-
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
+  inline ui8 getMemberSize() const {
+    switch (*data.type) {
+      case VarType::byte: return 1;
+      case VarType::word: return 2;
+      case VarType::dword: return 4;
+      case VarType::qword: return 8;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
 
   inline ValuePtr getValue(ui64 index) const {
     if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     return begin()[index];
   }
 
+  ValuePtr pushBack(const ui64 value);
+  ValuePtr pushBack(const i64 value);
+  ValuePtr pushBack(const f64 value);
+  iterator pushBack(const BufferArray& other);
+  ValuePtr pushFront(const ui64 value);
+  ValuePtr pushFront(const i64 value);
+  ValuePtr pushFront(const f64 value);
+  iterator pushFront(const BufferArray& other);
+  ValuePtr insert(const ui64 index, const ui64 value);
+  ValuePtr insert(const ui64 index, const i64 value);
+  ValuePtr insert(const ui64 index, const f64 value);
+  iterator insert(const ui64 index, const BufferArray& other);
+
   inline ValuePtr operator[](ui64 index) const {return getValue(index);}
+  inline BufferArray& operator+=(const ui64 value) {pushBack(value); return *this;}
+  inline BufferArray& operator+=(const i64 value) {pushBack(value); return *this;}
+  inline BufferArray& operator+=(const f64 value) {pushBack(value); return *this;}
+  inline BufferArray& operator+=(const BufferArray& other) {pushBack(other); return *this;}
 
   inline ValueIterator begin() const {return ValueIterator(*data.type, data.bytes + 9);}
   inline ValueIterator end() const {return ValueIterator(*data.type, data.bytes + msize());}
   inline const ValueIterator cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
   inline const ValueIterator cend() const {return ValueIterator(*data.type, data.bytes + msize());}
-
 };
+
+
+std::ostream& operator<<(std::ostream& os, BufferArray& buffer);
+
 }
 
 #endif

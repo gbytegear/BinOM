@@ -29,6 +29,7 @@ class Primitive {
 
   friend class Variable;
 public:
+  Primitive() : data(nullptr) {}
   // Bool init
   Primitive(bool value);
 

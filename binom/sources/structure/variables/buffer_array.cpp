@@ -242,3 +242,96 @@ BufferArray::BufferArray(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
   for(i64 value : array)
     *it = value;
 }
+
+ValuePtr BufferArray::pushBack(const ui64 value) {
+  ValuePtr val(*data.type, madd(getMemberSize()));
+  val.setUnsigned(value);
+  return val;
+}
+
+ValuePtr BufferArray::pushBack(const i64 value) {
+  ValuePtr val(*data.type, madd(getMemberSize()));
+  val.setSigned(value);
+  return val;
+}
+
+ValuePtr BufferArray::pushBack(const f64 value) {
+  ValuePtr val(*data.type, madd(getMemberSize()));
+  val.setFloat(value);
+  return val;
+}
+
+BufferArray::iterator BufferArray::pushBack(const BufferArray& other) {
+  ui64 shift = getMemberCount();
+  madd(other.getMemberCount() * getMemberSize());
+  iterator it(*data.type, data.bytes + 9 + shift), ret(it);
+  for(ValuePtr val : other) {
+    *it << val;
+    ++it;
+  }
+  return ret;
+}
+
+ValuePtr BufferArray::pushFront(const ui64 value) {
+  ValuePtr val(*data.type, maddto(data.bytes + 9, getMemberSize()));
+  val.setUnsigned(value);
+  return val;
+}
+
+ValuePtr BufferArray::pushFront(const i64 value) {
+  ValuePtr val(*data.type, maddto(data.bytes + 9, getMemberSize()));
+  val.setSigned(value);
+  return val;
+}
+
+ValuePtr BufferArray::pushFront(const f64 value) {
+  ValuePtr val(*data.type, maddto(data.bytes + 9, getMemberSize()));
+  val.setFloat(value);
+  return val;
+}
+
+BufferArray::iterator BufferArray::pushFront(const BufferArray& other) {
+  iterator it(*data.type, maddto(data.bytes + 9, other.getMemberCount() * getMemberSize()));
+  for(ValuePtr val : other) {
+    *it << val;
+    ++it;
+  }
+  return begin();
+}
+
+ValuePtr BufferArray::insert(const ui64 index, const ui64 value) {
+  if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+  ValuePtr val(*data.type, maddto(data.bytes + 9 + index, getMemberSize()));
+  val.setUnsigned(value);
+  return val;
+}
+
+ValuePtr BufferArray::insert(const ui64 index, const i64 value) {
+  if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+  ValuePtr val(*data.type, maddto(data.bytes + 9 + index, getMemberSize()));
+  val.setSigned(value);
+  return val;
+}
+
+ValuePtr BufferArray::insert(const ui64 index, const f64 value) {
+  if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+  ValuePtr val(*data.type, maddto(data.bytes + 9 + index, getMemberSize()));
+  val.setFloat(value);
+  return val;
+}
+
+BufferArray::iterator BufferArray::insert(const ui64 index, const BufferArray& other) {
+  if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+  iterator it(*data.type, maddto(data.bytes + 9 + index, other.getMemberCount() * getMemberSize())), ret(it);
+  for(ValuePtr val : other) {
+    *it << val;
+    ++it;
+  }
+  return ret;
+}
+
+std::ostream& operator<<(std::ostream& os, BufferArray& buffer) {
+  for(ValuePtr val : buffer)
+    os << val << ' ';
+  return os;
+}

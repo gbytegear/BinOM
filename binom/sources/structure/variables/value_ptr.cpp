@@ -94,3 +94,7 @@ ValuePtr& ValuePtr::operator>>(ValuePtr& other) const {
   other.setUnsigned(asUnsigned());
   return *const_cast<ValuePtr*>(this);
 }
+
+std::ostream& operator<<(std::ostream& os, const ValuePtr val) {
+  return os << std::right << std::setw(16) << std::hex << std::uppercase << val.asUnsigned();
+}

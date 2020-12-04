@@ -2,6 +2,8 @@
 #define VALUEPTR_H
 
 #include "../types.h"
+#include <iostream>
+#include <iomanip>
 
 namespace binom {
 
@@ -113,8 +115,9 @@ public:
 
   inline bool operator==(const ValueIterator& other) const {return pointer.ptr.ptr == other.pointer.ptr.ptr;}
   inline bool operator!=(const ValueIterator& other) const {return pointer.ptr.ptr != other.pointer.ptr.ptr;}
-
 };
+
+std::ostream& operator<<(std::ostream& os, const ValuePtr val);
 
 }
 

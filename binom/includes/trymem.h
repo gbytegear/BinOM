@@ -30,4 +30,10 @@ void* tryMalloc(size_t count) {
   else return ptr;
 }
 
+void* tryRealloc(void* ptr, size_t size) {
+  void* new_ptr = realloc(ptr, size);
+  if(new_ptr == nullptr) throw binom::SException(binom::ErrCode::memory_allocation_error, "Memory reallocation error!");
+  else return new_ptr;
+}
+
 #endif // TRYMEM_H
