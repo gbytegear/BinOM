@@ -23,6 +23,17 @@ public:
   ErrCode code() {return _code;}
   const char* what() {return error_string;}
   [[noreturn]] inline void throwUp() {throw *this;}
+
+  static const char* ectos(ErrCode code) {
+    switch (code) {
+      case ErrCode::memory_allocation_error: return   "Memory allocation error";
+      case ErrCode::memory_free_error: return         "Memory free error";
+      case ErrCode::binom_invalid_type: return        "Invalid BinOM type";
+      case ErrCode::binom_invalid_initer: return      "Invalid BinOM init struct";
+      case ErrCode::binom_out_of_range: return        "Out of range";
+    }
+  }
+
 };
 
 class Exception {
@@ -35,6 +46,9 @@ public:
   ErrCode code() {return _code;}
   std::string what() {return error_string;}
   [[noreturn]] inline void throwUp() {throw *this;}
+
+  static inline const char* ectos(ErrCode code) {return SException::ectos(code);}
+
 };
 
 class ErrLogger {
@@ -53,14 +67,6 @@ class ErrLogger {
     return *this;
   }
 
-  const char* ectos(ErrCode code) {
-    switch (code) {
-      case ErrCode::memory_allocation_error: return   "Memory allocation error";
-      case ErrCode::memory_free_error: return         "Memory free error";
-      case ErrCode::binom_invalid_type: return        "Invalid BinOM type";
-    }
-  }
-
 public:
 
   ErrLogger& operator<<(std::string str) {return out(str);}
@@ -68,13 +74,13 @@ public:
 
   ErrLogger& operator<<(SException except) {
     return
-         out(ectos(except.code()))
+         out(SException::ectos(except.code()))
         .out(except.what()?": ":" ")
         .out(except.what()?except.what():"");
   }
 
   ErrLogger& operator<<(Exception except) {
-    out(ectos(except.code()));
+    out(SException::ectos(except.code()));
     std::string msg = except.what();
     if(msg.empty()) return *this;
     else return out(":").out(msg);

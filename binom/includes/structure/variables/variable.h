@@ -30,7 +30,7 @@ class Variable {
     ~types() {}
   } data;
 
-  void* clone() const;
+  void* clone() const {return nullptr;}
   void destroy();
 
 public:

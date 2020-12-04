@@ -95,6 +95,12 @@ ValuePtr& ValuePtr::operator>>(ValuePtr& other) const {
   return *const_cast<ValuePtr*>(this);
 }
 
-std::ostream& operator<<(std::ostream& os, const ValuePtr val) {
-  return os << std::right << std::setw(16) << std::hex << std::uppercase << val.asUnsigned();
+std::ostream& operator<<(std::ostream& os, const binom::ValuePtr val) {
+
+  ui8 sym_count = (val.getType() == ValType::byte) ? 2
+                 :(val.getType() == ValType::word) ? 4
+                 :(val.getType() == ValType::dword) ? 8
+                 : 16;
+
+  return os << std::right << std::setw(sym_count) << std::setfill('0') << std::hex << std::uppercase << val.asUnsigned();
 }

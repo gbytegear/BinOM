@@ -6,7 +6,7 @@
 #include <cstring>
 #include <string>
 #include "../ctypes.h"
-#include "../trymem.h"
+#include "../mem.h"
 
 
 //Arch dependebce

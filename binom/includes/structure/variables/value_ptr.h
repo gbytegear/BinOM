@@ -34,6 +34,8 @@ public:
   ValuePtr(ValueIterator& it);
   ValuePtr(ValueIterator&& it);
 
+  ValType getType() const {return type;}
+
   bool asBool() const;
   ui64 asUnsigned() const;
   i64 asSigned() const;
@@ -117,8 +119,8 @@ public:
   inline bool operator!=(const ValueIterator& other) const {return pointer.ptr.ptr != other.pointer.ptr.ptr;}
 };
 
-std::ostream& operator<<(std::ostream& os, const ValuePtr val);
-
 }
+
+std::ostream& operator<<(std::ostream& os, const binom::ValuePtr val);
 
 #endif // VALUEPTR_H

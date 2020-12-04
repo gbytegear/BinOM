@@ -241,32 +241,40 @@ Variable::Variable(ui8arr array) : data(tryMalloc(9 + array.size())) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui8* it = data.bytes + 9;
-  for(ui8 value : array)
+  for(ui8 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 Variable::Variable(ui16arr array) : data(tryMalloc(9 + array.size()*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui16* it = reinterpret_cast<ui16*>(data.bytes + 9);
-  for(ui16 value : array)
+  for(ui16 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 Variable::Variable(ui32arr array) : data(tryMalloc(9 + array.size()*4)) {
   data.type[0] = VarType::dword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui32* it = reinterpret_cast<ui32*>(data.bytes + 9);
-  for(ui32 value : array)
+  for(ui32 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 Variable::Variable(ui64arr array) : data(tryMalloc(9 + array.size()*8)) {
   data.type[0] = VarType::qword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   ui64* it = reinterpret_cast<ui64*>(data.bytes + 9);
-  for(ui64 value : array)
+  for(ui64 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 
@@ -277,32 +285,40 @@ Variable::Variable(i8arr array) : data(tryMalloc(9 + array.size())) {
   data.type[0] = VarType::byte_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i16* it = reinterpret_cast<i16*>(data.bytes + 9);
-  for(i8 value : array)
+  for(i8 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 Variable::Variable(i16arr array) : data(tryMalloc(9 + array.size()*2)) {
   data.type[0] = VarType::word_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i16* it = reinterpret_cast<i16*>(data.bytes + 9);
-  for(i16 value : array)
+  for(i16 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 Variable::Variable(i32arr array) : data(tryMalloc(9 + array.size()*4)) {
   data.type[0] = VarType::dword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i32* it = reinterpret_cast<i32*>(data.bytes + 9);
-  for(i32 value : array)
+  for(i32 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 Variable::Variable(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
   data.type[0] = VarType::qword_array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
   i64* it = reinterpret_cast<i64*>(data.bytes + 9);
-  for(i64 value : array)
+  for(i64 value : array) {
     *it = value;
+    ++it;
+  }
 }
 
 

@@ -15,10 +15,10 @@ class BufferArray {
 
   ui64 msize() const {
     switch (*data.type) {
-      case VarType::byte: return 9 + getMemberCount();
-      case VarType::word: return 9 + getMemberCount()*2;
-      case VarType::dword: return 9 + getMemberCount()*4;
-      case VarType::qword: return 9 + getMemberCount()*8;
+      case VarType::byte_array: return 9 + getMemberCount();
+      case VarType::word_array: return 9 + getMemberCount()*2;
+      case VarType::dword_array: return 9 + getMemberCount()*4;
+      case VarType::qword_array: return 9 + getMemberCount()*8;
       default: throw SException(ErrCode::binom_invalid_type);
     }
   }
@@ -46,7 +46,16 @@ class BufferArray {
     return data.bytes + pos;
   }
 
+  inline ui64& length() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
+
   void destroy() {free(data.ptr);data.ptr = nullptr;}
+
+  void* clone() const {
+    size_t size = msize();
+    void* ptr = tryMalloc(size);
+    memcpy(data.ptr, ptr, size);
+    return ptr;
+  }
 
   friend class Variable;
     
@@ -86,15 +95,18 @@ public:
   BufferArray(i32arr array);
   BufferArray(i64arr array);
 
+  BufferArray(BufferArray& other);
+  BufferArray(BufferArray&& other);
+
   ~BufferArray() {destroy();}
 
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
   inline ui8 getMemberSize() const {
     switch (*data.type) {
-      case VarType::byte: return 1;
-      case VarType::word: return 2;
-      case VarType::dword: return 4;
-      case VarType::qword: return 8;
+      case VarType::byte_array: return 1;
+      case VarType::word_array: return 2;
+      case VarType::dword_array: return 4;
+      case VarType::qword_array: return 8;
       default: throw SException(ErrCode::binom_invalid_type);
     }
   }
@@ -123,15 +135,18 @@ public:
   inline BufferArray& operator+=(const f64 value) {pushBack(value); return *this;}
   inline BufferArray& operator+=(const BufferArray& other) {pushBack(other); return *this;}
 
-  inline ValueIterator begin() const {return ValueIterator(*data.type, data.bytes + 9);}
-  inline ValueIterator end() const {return ValueIterator(*data.type, data.bytes + msize());}
-  inline const ValueIterator cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
-  inline const ValueIterator cend() const {return ValueIterator(*data.type, data.bytes + msize());}
+  BufferArray& operator=(const BufferArray& other);
+
+  ValueIterator begin() const {return ValueIterator(*data.type, data.bytes + 9);}
+  ValueIterator end() const {return ValueIterator(*data.type, data.bytes + msize());}
+  const ValueIterator cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
+  const ValueIterator cend() const {return ValueIterator(*data.type, data.bytes + msize());}
 };
 
 
-std::ostream& operator<<(std::ostream& os, BufferArray& buffer);
 
 }
+
+std::ostream& operator<<(std::ostream& os, binom::BufferArray& buffer);
 
 #endif
