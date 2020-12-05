@@ -53,6 +53,8 @@ public:
 
   ValuePtr getValue() const {return ValuePtr(*data.type, data.bytes + 1);}
 
+  inline ValuePtr operator*() const {return getValue();}
+
   Primitive& operator=(Primitive& other) {
     getValue() = other.getValue();
     return *this;
@@ -60,5 +62,7 @@ public:
 };
 
 }
+
+std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive);
 
 #endif

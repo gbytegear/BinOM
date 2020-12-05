@@ -33,6 +33,11 @@ class Variable {
   void* clone() const {return nullptr;}
   void destroy();
 
+  friend class Array;
+  friend class Object;
+  friend class Matrix;
+  friend class Table;
+
 public:
 
   Variable() : data(nullptr) {}
@@ -117,12 +122,12 @@ public:
   inline bool isMatrix() const noexcept            {return typeClass() == VarTypeClass::matrix;}
   inline bool isTable() const noexcept             {return typeClass() == VarTypeClass::table;}
 
-  inline Primitive& toPrimitive() noexcept       {return data.primitive;}
-  inline BufferArray& toBufferArray() noexcept   {return data.buffer_array;}
-  inline Array& toArray() noexcept               {return data.array;}
-  inline Object& toObject() noexcept             {return data.object;}
-  inline Matrix& toMatrix() noexcept             {return data.matrix;}
-  inline Table& toTable() noexcept               {return data.table;}
+  inline Primitive& toPrimitive() noexcept         {return data.primitive;}
+  inline BufferArray& toBufferArray() noexcept     {return data.buffer_array;}
+  inline Array& toArray() noexcept                 {return data.array;}
+  inline Object& toObject() noexcept               {return data.object;}
+  inline Matrix& toMatrix() noexcept               {return data.matrix;}
+  inline Table& toTable() noexcept                 {return data.table;}
 
   inline ui64 length() {
     return (isBufferArray() || isArray() || isObject() || isMatrix() || isTable())?

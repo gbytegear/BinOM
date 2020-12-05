@@ -13,12 +13,14 @@ class BufferArray {
       types(void* ptr) : ptr(ptr) {}
   } data;
 
+  inline ui64& length() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
+
   ui64 msize() const {
     switch (*data.type) {
-      case VarType::byte_array: return 9 + getMemberCount();
-      case VarType::word_array: return 9 + getMemberCount()*2;
-      case VarType::dword_array: return 9 + getMemberCount()*4;
-      case VarType::qword_array: return 9 + getMemberCount()*8;
+      case VarType::byte_array: return 9 + length();
+      case VarType::word_array: return 9 + length()*2;
+      case VarType::dword_array: return 9 + length()*4;
+      case VarType::qword_array: return 9 + length()*8;
       default: throw SException(ErrCode::binom_invalid_type);
     }
   }
@@ -45,8 +47,6 @@ class BufferArray {
     memmove(data.bytes + pos + size, data.bytes + pos, old_size - pos);
     return data.bytes + pos;
   }
-
-  inline ui64& length() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
 
   void destroy() {free(data.ptr);data.ptr = nullptr;}
 

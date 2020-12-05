@@ -57,3 +57,5 @@ binom::Primitive::Primitive(binom::f64 value) : data(tryMalloc(9)) {
   data.type[0] = VarType::qword;
   *reinterpret_cast<f64*>(data.bytes + 1) = value;
 }
+
+std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive) {return os << *primitive;}
