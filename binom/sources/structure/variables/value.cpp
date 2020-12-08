@@ -1,11 +1,11 @@
-#include "binom/includes/structure/variables/value_ptr.h"
+#include "binom/includes/structure/variables/value.h"
 
 using namespace binom;
 
-ValuePtr::ValuePtr(ValueIterator& it) : type(it->type), ptr(it->ptr.ptr) {}
-ValuePtr::ValuePtr(ValueIterator&& it) : type(it->type), ptr(it->ptr.ptr) {}
+Value::Value(ValueIterator& it) : type(it->type), ptr(it->ptr.ptr) {}
+Value::Value(ValueIterator&& it) : type(it->type), ptr(it->ptr.ptr) {}
 
-bool ValuePtr::asBool() const {
+bool Value::asBool() const {
   switch (type) {
     case ValType::byte: return *ptr.boolptr;
     case ValType::word: return *ptr.ui16ptr;
@@ -14,7 +14,7 @@ bool ValuePtr::asBool() const {
   }
 }
 
-ui64 ValuePtr::asUnsigned() const {
+ui64 Value::asUnsigned() const {
   switch (type) {
     case ValType::byte: return *ptr.ui8ptr;
     case ValType::word: return *ptr.ui16ptr;
@@ -23,7 +23,7 @@ ui64 ValuePtr::asUnsigned() const {
   }
 }
 
-i64 ValuePtr::asSigned() const {
+i64 Value::asSigned() const {
   switch (type) {
     case ValType::byte: return *ptr.i8ptr;
     case ValType::word: return *ptr.i16ptr;
@@ -32,7 +32,7 @@ i64 ValuePtr::asSigned() const {
   }
 }
 
-f64 ValuePtr::asFloat() const {
+f64 Value::asFloat() const {
   switch (type) {
     case ValType::byte: return *ptr.ui8ptr;
     case ValType::word: return *ptr.ui16ptr;
@@ -41,7 +41,7 @@ f64 ValuePtr::asFloat() const {
   }
 }
 
-bool ValuePtr::setBool(const bool value) {
+bool Value::setBool(const bool value) {
   switch (type) {
     case ValType::byte: return *ptr.boolptr = value;
     case ValType::word: return *ptr.ui16ptr = value;
@@ -50,7 +50,7 @@ bool ValuePtr::setBool(const bool value) {
   }
 }
 
-ui64 ValuePtr::setUnsigned(const ui64 value) {
+ui64 Value::setUnsigned(const ui64 value) {
   switch (type) {
     case ValType::byte: return *ptr.ui8ptr = value;
     case ValType::word: return *ptr.ui16ptr = value;
@@ -59,7 +59,7 @@ ui64 ValuePtr::setUnsigned(const ui64 value) {
   }
 }
 
-i64 ValuePtr::setSigned(const i64 value) {
+i64 Value::setSigned(const i64 value) {
   switch (type) {
     case ValType::byte: return *ptr.i8ptr = value;
     case ValType::word: return *ptr.i16ptr = value;
@@ -68,7 +68,7 @@ i64 ValuePtr::setSigned(const i64 value) {
   }
 }
 
-f64 ValuePtr::setFloat(const f64 value) {
+f64 Value::setFloat(const f64 value) {
   switch (type) {
     case ValType::byte: return *ptr.i8ptr = value;
     case ValType::word: return *ptr.i16ptr = value;
@@ -77,25 +77,25 @@ f64 ValuePtr::setFloat(const f64 value) {
   }
 }
 
-ValueIterator& ValuePtr::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}
+ValueIterator& Value::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}
 
-ValuePtr& ValuePtr::operator=(const ValuePtr& other) {
+Value& Value::operator=(const Value& other) {
   type = other.type;
   ptr.ptr = other.ptr.ptr;
   return *this;
 }
 
-ValuePtr& ValuePtr::operator<<(const ValuePtr& other) {
+Value& Value::operator<<(const Value& other) {
   setUnsigned(other.asUnsigned());
   return *this;
 }
 
-ValuePtr& ValuePtr::operator>>(ValuePtr& other) const {
+Value& Value::operator>>(Value& other) const {
   other.setUnsigned(asUnsigned());
-  return *const_cast<ValuePtr*>(this);
+  return *const_cast<Value*>(this);
 }
 
-std::ostream& operator<<(std::ostream& os, const binom::ValuePtr val) {
+std::ostream& operator<<(std::ostream& os, const binom::Value val) {
 
   ui8 sym_count = (val.getType() == ValType::byte) ? 2
                  :(val.getType() == ValType::word) ? 4

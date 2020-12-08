@@ -2,7 +2,7 @@
 #define PRIMITIVE_H
 
 #include "../types.h"
-#include "value_ptr.h"
+#include "value.h"
 
 namespace binom {
 
@@ -51,12 +51,17 @@ public:
 
   ~Primitive() {destroy();}
 
-  ValuePtr getValue() const {return ValuePtr(*data.type, data.bytes + 1);}
+  inline Value getValue() const {return Value(*data.type, data.bytes + 1);}
 
-  inline ValuePtr operator*() const {return getValue();}
+  inline Value operator*() const {return getValue();}
+
+  inline bool operator=(const bool value) {return (**this).setBool(value);}
+  inline ui64 operator=(const ui64 value) {return (**this).setUnsigned(value);}
+  inline i64 operator=(const i64 value) {return (**this).setSigned(value);}
+  inline f64 operator=(const f64 value) {return (**this).setFloat(value);}
 
   Primitive& operator=(Primitive& other) {
-    getValue() = other.getValue();
+    getValue() << other.getValue();
     return *this;
   }
 };

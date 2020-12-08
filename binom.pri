@@ -1,6 +1,6 @@
 SOURCES += \
   $$PWD/binom/sources/structure/mem.cpp \
-  $$PWD/binom/sources/structure/variables/value_ptr.cpp \
+  $$PWD/binom/sources/structure/variables/value.cpp \
   binom/sources/structure/file/f_node_visitor.cpp \
   binom/sources/structure/variables/variable.cpp \
   binom/sources/structure/variables/primitive.cpp \
@@ -13,7 +13,7 @@ SOURCES += \
 
 HEADERS += \
   $$PWD/binom/includes/mem.h \
-  $$PWD/binom/includes/structure/variables/value_ptr.h \
+  $$PWD/binom/includes/structure/variables/value.h \
   binom/includes/structure/file/f_node_visitor.h \
   binom/includes/ctypes.h \
   binom/includes/exception.h \

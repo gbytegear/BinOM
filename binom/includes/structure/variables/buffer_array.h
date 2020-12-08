@@ -2,7 +2,7 @@
 #define BUFFER_ARRAY_H
 
 #include "../types.h"
-#include "value_ptr.h"
+#include "value.h"
 
 namespace binom {
 class BufferArray {
@@ -111,25 +111,25 @@ public:
     }
   }
 
-  inline ValuePtr getValue(ui64 index) const {
+  inline Value getValue(ui64 index) const {
     if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     return begin()[index];
   }
 
-  ValuePtr pushBack(const ui64 value);
-  ValuePtr pushBack(const i64 value);
-  ValuePtr pushBack(const f64 value);
+  Value pushBack(const ui64 value);
+  Value pushBack(const i64 value);
+  Value pushBack(const f64 value);
   iterator pushBack(const BufferArray& other);
-  ValuePtr pushFront(const ui64 value);
-  ValuePtr pushFront(const i64 value);
-  ValuePtr pushFront(const f64 value);
+  Value pushFront(const ui64 value);
+  Value pushFront(const i64 value);
+  Value pushFront(const f64 value);
   iterator pushFront(const BufferArray& other);
-  ValuePtr insert(const ui64 index, const ui64 value);
-  ValuePtr insert(const ui64 index, const i64 value);
-  ValuePtr insert(const ui64 index, const f64 value);
+  Value insert(const ui64 index, const ui64 value);
+  Value insert(const ui64 index, const i64 value);
+  Value insert(const ui64 index, const f64 value);
   iterator insert(const ui64 index, const BufferArray& other);
 
-  inline ValuePtr operator[](ui64 index) const {return getValue(index);}
+  inline Value operator[](ui64 index) const {return getValue(index);}
   inline BufferArray& operator+=(const ui64 value) {pushBack(value); return *this;}
   inline BufferArray& operator+=(const i64 value) {pushBack(value); return *this;}
   inline BufferArray& operator+=(const f64 value) {pushBack(value); return *this;}
@@ -141,6 +141,14 @@ public:
   ValueIterator end() const {return ValueIterator(*data.type, data.bytes + msize());}
   const ValueIterator cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
   const ValueIterator cend() const {return ValueIterator(*data.type, data.bytes + msize());}
+
+
+  std::string toString() {
+    std::string str;
+    for(Value val : *this)
+      str += char(val.asSigned());
+    return str;
+  }
 };
 
 

@@ -91,6 +91,7 @@ namespace binom {
       }
   }
 
+  // Basic
   class Variable;
   class Primitive;
   class BufferArray;
@@ -98,13 +99,18 @@ namespace binom {
   class Matrix;
   class Table;
 
-  class ValuePtr;
-  class ValueIterator;
+  // Helpers
+  class Value;
   struct NamedVariable;
+
+  // Iterators
+  class ValueIterator;
+  typedef Variable* ArrayIterator;
+  typedef NamedVariable* ObjectIterator;
   class MatrixRowIterator;
   class TableRowIterator;
 
-  // 
+  // Initilizers
   typedef std::initializer_list<ui8> ui8arr;
   typedef std::initializer_list<i8> i8arr;
   typedef std::initializer_list<ui16> ui16arr;
