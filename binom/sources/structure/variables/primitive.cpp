@@ -1,5 +1,15 @@
 #include "binom/includes/structure/variables/variable.h"
 
+void binom::Primitive::destroy() {free(data.ptr);data.ptr = nullptr;}
+
+void* binom::Primitive::clone() {
+  ui64 size = msize();
+  void* ptr = tryMalloc(size);
+  memcpy(ptr, data.ptr, size);
+  return ptr;
+}
+
+
 binom::Primitive::Primitive(bool value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
   reinterpret_cast<ui8*>(data.bytes)[1] = value;
@@ -56,6 +66,16 @@ binom::Primitive::Primitive(binom::f32 value) : data(tryMalloc(5)) {
 binom::Primitive::Primitive(binom::f64 value) : data(tryMalloc(9)) {
   data.type[0] = VarType::qword;
   *reinterpret_cast<f64*>(data.bytes + 1) = value;
+}
+
+binom::Primitive::Primitive(binom::Primitive&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
+binom::Primitive::Primitive(binom::Primitive& other) : data(other.clone()) {}
+
+binom::Primitive::~Primitive() {destroy();}
+
+binom::Primitive& binom::Primitive::operator=(binom::Primitive& other) {
+  getValue() << other.getValue();
+  return *this;
 }
 
 std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive) {return os << *primitive;}

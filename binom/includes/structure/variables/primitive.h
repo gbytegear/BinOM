@@ -15,7 +15,7 @@ class Primitive {
       types(void* ptr) : ptr(ptr) {}
   } data;
 
-  ui64 msize() const {
+  inline ui64 msize() const {
     switch (*data.type) {
       case VarType::byte: return 2;
       case VarType::word: return 3;
@@ -25,7 +25,8 @@ class Primitive {
     }
   }
 
-  void destroy() {free(data.ptr);data.ptr = nullptr;}
+  void destroy();
+  void* clone();
 
   friend class Variable;
 public:
@@ -49,7 +50,7 @@ public:
   Primitive(Primitive&& other);
   Primitive(Primitive& other);
 
-  ~Primitive() {destroy();}
+  ~Primitive();
 
   inline Value getValue() const {return Value(*data.type, data.bytes + 1);}
 
@@ -60,10 +61,7 @@ public:
   inline i64 operator=(const i64 value) {return (**this).setSigned(value);}
   inline f64 operator=(const f64 value) {return (**this).setFloat(value);}
 
-  Primitive& operator=(Primitive& other) {
-    getValue() << other.getValue();
-    return *this;
-  }
+  Primitive& operator=(Primitive& other);
 };
 
 }

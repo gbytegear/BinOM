@@ -3,11 +3,50 @@
 using namespace binom;
 
 
+ui64 BufferArray::msize() const {
+  switch (*data.type) {
+    case VarType::byte_array: return 9 + length();
+    case VarType::word_array: return 9 + length()*2;
+    case VarType::dword_array: return 9 + length()*4;
+    case VarType::qword_array: return 9 + length()*8;
+    default: throw SException(ErrCode::binom_invalid_type);
+  }
+}
+
+void BufferArray::mch(size_t new_size) {data.ptr = tryRealloc(data.ptr, new_size);}
+
+void* BufferArray::madd(size_t add_size) {
+  size_t shift = msize();
+  mch(shift + add_size);
+  return data.bytes + shift;
+}
+
+void BufferArray::msub(size_t sub_size) {
+  mch(msize() - sub_size);
+}
+
+void* BufferArray::maddto(void* to, size_t size) {
+  size_t pos = reinterpret_cast<byte*>(to) - data.bytes;
+  size_t old_size = msize();
+  madd(size);
+  memmove(data.bytes + pos + size, data.bytes + pos, old_size - pos);
+  return data.bytes + pos;
+}
+
+void BufferArray::destroy() {free(data.ptr);data.ptr = nullptr;}
+
+void* BufferArray::clone() const {
+  size_t size = msize();
+  void* ptr = tryMalloc(size);
+  memcpy(data.ptr, ptr, size);
+  return ptr;
+}
+
 BufferArray::BufferArray(const char* str) : data(tryMalloc(9 + strlen(str))) {
-    data.type[0] = VarType::byte_array;
-    ui64 size = strlen(str);
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-    memcpy(reinterpret_cast<char*>(data.bytes + 9), str, size);
+  data.type[0] = VarType::byte_array;
+  ui64 size = strlen(str);
+  *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  memcpy(reinterpret_cast<char*>(data.bytes + 9), str, size);
 }
 
 BufferArray::BufferArray(const std::string str) : data(tryMalloc(9 + str.length())) {
@@ -260,7 +299,6 @@ BufferArray::BufferArray(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
 }
 
 BufferArray::BufferArray(BufferArray& other) : data(other.clone()) {}
-
 BufferArray::BufferArray(BufferArray&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
 Value BufferArray::pushBack(const ui64 value) {
@@ -375,8 +413,21 @@ BufferArray& BufferArray::operator=(const BufferArray& other) {
     return *this;
 }
 
+ValueIterator BufferArray::begin() const {return ValueIterator(*data.type, data.bytes + 9);}
+ValueIterator BufferArray::end() const {return ValueIterator(*data.type, data.bytes + msize());}
+
+const ValueIterator BufferArray::cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
+const ValueIterator BufferArray::cend() const {return ValueIterator(*data.type, data.bytes + msize());}
+
+std::string BufferArray::toString() {
+  std::string str;
+  for(Value val : *this)
+    str += char(val.asSigned());
+  return str;
+}
+
 std::ostream& operator<<(std::ostream& os, binom::BufferArray& buffer) {
-    for(binom::Value val : buffer)
-        os << val << ' ';
-    return os;
+  for(binom::Value val : buffer)
+    os << val << ' ';
+  return os;
 }
