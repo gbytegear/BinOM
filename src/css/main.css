@@ -19,6 +19,11 @@
     }
 }
 
+@font-face {
+    font-family: courier_prime;
+    src: url(./src/fnt/courier_prime.ttf) format("truetype");
+} 
+
 .blink {animation: blinking 1s infinite;}
 
 
@@ -99,7 +104,7 @@ header>h2 {
     height: 43px;
     text-align: center;
     background-color: var(--bg2);
-    color: #f44336;
+    color: #2196f3;
 }
 
 .download-links>.place-holder {
@@ -140,7 +145,7 @@ body>.content>section>h1 {
     height: 43px;
     text-align: center;
     background-color: var(--bg2);
-    color: #f44336;
+    color: #2196f3;
 }
 
 body>.content>section>h2 {
@@ -148,7 +153,7 @@ body>.content>section>h2 {
     margin: 10px;
     border-radius: 20px;
     text-align: center;
-    color: #f44336;
+    color: #004481;
 }
 
 body>.content>section>video {

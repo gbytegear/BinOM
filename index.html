@@ -20,87 +20,14 @@
     </header>
     <div class="content">
         <section>
-            <h1>CLI usage example:</h1>
-            <video src="./src/etc/console.webm" type='video/webm; codecs="vp8, vorbis"' autoplay controls loop></video>
-        </section>
-        <section>
-            <h1>BNQL</h1>
-            <center><i>BinOM Node Query Language</i></center>
-            <h2>Example:</h2>
-            <code>[member_select_command]/+[add_command]/-[remove_command]/=[set_command]/?[selector_command]/&lt;[get_command];</code>
-            <br><br>
-            <code>name/0/+obj{a:arr[arr8[1,2,3],arr16[1,2,3],arr32[1,2,3],arr64[1,2,3]],b:8[1],c:16[2],d:32[3],e:64[4]}/-0/-name/=arr8[1,2,3]/?name.0=8|name.1=$obj{8(127),(255)}/&lt;0/&lt;name/&lt;</code>
-            <h2>Command symbols:</h2>
+            <h1>Definitions</h1>
             <ul>
-                <li> <b>without symbol</b> - member select command. Varieties: 
-                    <ul>
-                        <li><code>name</code> - select member with name <code>name</code></li>
-                        <li><code>0</code> - select member with index <code>0</code></li>
-                    </ul>
-                </li>
-
-                <li> <b>+</b> - add member command. Varieties:
-                    <ul>
-                        <li><code>+obj{id:64(0),login:arr8[admin],password:arr8[admin],access_lvl:8(0)}</code> - add to array structure: <br>
-                        <code><pre>
-[array]{
-| ...
-|[object]:{
-||"id":[qword]:0 
-||"login":[byte array]:97 100 109 105 110  
-||"password":[byte array]:97 100 109 105 110  
-||"access_lvl":[byte]:0 
-|}
-}</pre></code></li>
-                        <li><code>+file_name:arr8[Hello_world]</code> - add to object structure: <br>
-                        <code><pre>
-[object]{
-| ...
-| "file_name":[byte array]:72 101 108 108 111 95 119 111 114 108 100
-}</pre></code></li>
-                        
-                        <li><code>+1,2,3</code> - add elements <code>1,2,3</code> to primitive array</li>
-                    </ul>
-                </li>
-
-
-                <li><b>-</b> - remove command. Varieties:
-                <ul>
-                    <li><code>-name</code> - remove member with name <code>name</code></li>
-                    <li><code>-0</code> - remove member with index <code>0</code></li>
-                </ul>
-                </li>
-                <li><b>=</b> - set command. Varieties:
-                    <ul>
-                        <li><code>=obj{id:64(1),login:arr8[guest],password:arr8[guest],access_lvl:8(255)}</code> - set to variable structure: <br>
-                            <code><pre>
-[object]:{
-|"id":[qword]:1 
-|"login":[byte array]:103 117 101 115 116  
-|"password":[byte array]:103 117 101 115 116  
-|"access_lvl":[byte]:-1 
-}</pre></code></li>
-                            <li><code>=127</code> - set value to primitive variable</li>
-                            <li><code>=1,2,3</code> - set values to primitive array <b>(Warning: type casting is used based on the size of numbers!)</b></li>
-                    </ul>
-                </li>
-
-                <li><b>&lt;</b> -  get command. Varieties:
-                    <ul>
-                        <li><code>&lt;</code> - get current selected variable</li>
-                        <li><code>&lt;0</code> - get member with index <code>0</code> of current selected variable</li>
-                        <li><code>&lt;name</code> - get member with name <code>name</code> of current selected variable</li>
-                    </ul>
-                </li>
+                <li><b>BinOM</b> <i>(Binary Object Model)</i> - format of serialization, deserialization of data</li>
+                <li><b>BinOMDB</b> <i>(Binary Object Model DataBase)</i> - hierarchical database management system in BinOM format</li>
+                <li><b>BinOMQL</b> <i>(Binary Object Model Query Language)</i> - declarative programming language for modifying and manipulating BinOM data</li>
             </ul>
         </section>
     </div>
-
-    <footer>
-            <a href="https://github.com/sh13max/LibBinOM/tree/master">
-                <img src="./src/BinOM.ico" alt="GitHub" class="binom-ico">
-                <svg class="github-octocat" viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path fill="#0e0e0e" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-            </a>
-    </footer>
+    <footer></footer>
 </body>
 </html>
