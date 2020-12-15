@@ -4,6 +4,30 @@
 using namespace binom;
 // Constructor
 
+void* Variable::clone() const {
+  switch (toTypeClass(*data.type)) {
+    case VarTypeClass::primitive: return toPrimitive().clone();
+    case VarTypeClass::buffer_array: return toBufferArray().clone();
+    case VarTypeClass::array: return toArray().clone();
+    case VarTypeClass::object: return toObject().clone();
+    case VarTypeClass::matrix: return toMatrix().clone();
+    case VarTypeClass::table: return toTable().clone();
+    case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
+  }
+}
+
+void Variable::destroy() {
+  switch (toTypeClass(*data.type)) {
+    case VarTypeClass::primitive: return toPrimitive().destroy();
+    case VarTypeClass::buffer_array: return toBufferArray().destroy();
+    case VarTypeClass::array: return toArray().destroy();
+    case VarTypeClass::object: return toObject().destroy();
+    case VarTypeClass::matrix: return toMatrix().destroy();
+    case VarTypeClass::table: return toTable().destroy();
+    case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
+  }
+}
+
 Variable::Variable(bool value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
   reinterpret_cast<bool*>(data.bytes)[1] = value;
@@ -335,7 +359,7 @@ Variable::Variable(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable
 }
 
 Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
-  data.type[0] = VarType::array;
+  data.type[0] = VarType::object;
   *reinterpret_cast<ui64*>(data.bytes + 1) = object.size();
   NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
   for(const NamedVariable& value : object) {

@@ -105,10 +105,17 @@ public:
 
   BufferArray& operator=(const BufferArray& other);
 
-  ValueIterator begin() const;
-  ValueIterator end() const;
-  const ValueIterator cbegin() const;
-  const ValueIterator cend() const;
+  bool operator==(const BufferArray& other) const;
+  inline bool operator!=(const BufferArray& other) const {return !(*this == other);}
+  bool operator>(const BufferArray& other) const;
+  bool operator<(const BufferArray& other) const;
+  bool operator>=(const BufferArray& other) const;
+  bool operator<=(const BufferArray& other) const;
+
+  iterator begin() const;
+  iterator end() const;
+  const_iterator cbegin() const;
+  const_iterator cend() const;
 
   std::string toString();
 };
@@ -117,6 +124,7 @@ public:
 
 }
 
-std::ostream& operator<<(std::ostream& os, binom::BufferArray& buffer);
+std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer);
+const binom::BufferArray operator "" _buffer(const char* c_str, const size_t);
 
 #endif

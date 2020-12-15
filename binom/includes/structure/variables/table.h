@@ -10,7 +10,11 @@ class Table {
   byte* ptr = nullptr;
   friend class Variable;
     
+  void* clone() {}
+  void destroy() {}
 };
+
+
 }
 
 #endif

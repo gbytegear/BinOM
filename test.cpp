@@ -47,6 +47,24 @@ void testBufferArray() {
   std::cout << "|Dword array:  " << dword_array.toBufferArray() << std::endl;
   qword_array.toBufferArray() += qword_array.toBufferArray();
   std::cout << "|Qword array:  " << qword_array.toBufferArray() << std::endl;
+
+  std::cout << "|Buffer compare test:\n"
+               "|test == test: " << ("test"_buffer == "test"_buffer) << "\n"
+               "|test == _test: " << ("test"_buffer == "_test"_buffer) << "\n"
+               "|test != test: " << ("test"_buffer != "test"_buffer) << "\n"
+               "|test != _test: " << ("test"_buffer != "_test"_buffer) << "\n"
+               "|1 > 0: " << ("1"_buffer > "0"_buffer) << "\n"
+               "|0 > 0: " << ("0"_buffer > "0"_buffer) << "\n"
+               "|0 > 1: " << ("0"_buffer > "1"_buffer) << "\n"
+               "|1 < 0: " << ("1"_buffer < "0"_buffer) << "\n"
+               "|0 < 0: " << ("0"_buffer < "0"_buffer) << "\n"
+               "|0 < 1: " << ("0"_buffer < "1"_buffer) << "\n"
+               "|1 >= 0: " << ("1"_buffer >= "0"_buffer) << "\n"
+               "|0 >= 0: " << ("0"_buffer >= "0"_buffer) << "\n"
+               "|0 >= 1: " << ("0"_buffer >= "1"_buffer) << "\n"
+               "|1 <= 0: " << ("1"_buffer <= "0"_buffer) << "\n"
+               "|0 <= 0: " << ("0"_buffer <= "0"_buffer) << "\n"
+               "|0 <= 1: " << ("0"_buffer <= "1"_buffer) << "\n";
 }
 
 

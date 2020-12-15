@@ -12,6 +12,7 @@ bool Value::asBool() const {
     case ValType::dword: return *ptr.ui32ptr;
     case ValType::qword: return *ptr.ui64ptr;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 ui64 Value::asUnsigned() const {
@@ -21,6 +22,7 @@ ui64 Value::asUnsigned() const {
     case ValType::dword: return *ptr.ui32ptr;
     case ValType::qword: return *ptr.ui64ptr;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 i64 Value::asSigned() const {
@@ -30,6 +32,7 @@ i64 Value::asSigned() const {
     case ValType::dword: return *ptr.i32ptr;
     case ValType::qword: return *ptr.i64ptr;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 f64 Value::asFloat() const {
@@ -39,6 +42,7 @@ f64 Value::asFloat() const {
     case ValType::dword: return *ptr.f32ptr;
     case ValType::qword: return *ptr.f64ptr;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 bool Value::setBool(const bool value) {
@@ -48,6 +52,7 @@ bool Value::setBool(const bool value) {
     case ValType::dword: return *ptr.ui32ptr = value;
     case ValType::qword: return *ptr.ui64ptr = value;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 ui64 Value::setUnsigned(const ui64 value) {
@@ -57,6 +62,7 @@ ui64 Value::setUnsigned(const ui64 value) {
     case ValType::dword: return *ptr.ui32ptr = value;
     case ValType::qword: return *ptr.ui64ptr = value;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 i64 Value::setSigned(const i64 value) {
@@ -66,6 +72,7 @@ i64 Value::setSigned(const i64 value) {
     case ValType::dword: return *ptr.i32ptr = value;
     case ValType::qword: return *ptr.i64ptr = value;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 f64 Value::setFloat(const f64 value) {
@@ -75,6 +82,7 @@ f64 Value::setFloat(const f64 value) {
     case ValType::dword: return *ptr.i32ptr = value;
     case ValType::qword: return *ptr.i64ptr = value;
   }
+  throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 ValueIterator& Value::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}

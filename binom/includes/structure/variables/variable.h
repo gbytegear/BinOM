@@ -30,7 +30,7 @@ class Variable {
     ~types() {}
   } data;
 
-  void* clone() const {return nullptr;}
+  void* clone() const;
   void destroy();
 
   friend class Array;
@@ -107,7 +107,7 @@ public:
   Variable(Variable&& other);
   Variable(Variable& other);
 
-  ~Variable() {if(data.ptr) free(data.ptr);}
+  ~Variable() {destroy();}
 
   inline void* getDataPointer() const {return data.ptr;}
 
@@ -122,19 +122,36 @@ public:
   inline bool isMatrix() const noexcept            {return typeClass() == VarTypeClass::matrix;}
   inline bool isTable() const noexcept             {return typeClass() == VarTypeClass::table;}
 
-  inline Primitive& toPrimitive() noexcept         {return data.primitive;}
-  inline BufferArray& toBufferArray() noexcept     {return data.buffer_array;}
-  inline Array& toArray() noexcept                 {return data.array;}
-  inline Object& toObject() noexcept               {return data.object;}
-  inline Matrix& toMatrix() noexcept               {return data.matrix;}
-  inline Table& toTable() noexcept                 {return data.table;}
+  inline Primitive& toPrimitive() const noexcept         {return const_cast<Primitive&>(data.primitive);}
+  inline BufferArray& toBufferArray() const noexcept     {return const_cast<BufferArray&>(data.buffer_array);}
+  inline Array& toArray() const noexcept                 {return const_cast<Array&>(data.array);}
+  inline Object& toObject() const noexcept               {return const_cast<Object&>(data.object);}
+  inline Matrix& toMatrix() const noexcept               {return const_cast<Matrix&>(data.matrix);}
+  inline Table& toTable() const noexcept                 {return const_cast<Table&>(data.table);}
+
+  inline Variable& operator=(const Variable& other) {
+    if(isNull())destroy();
+    data.ptr = other.clone();
+    return *this;
+  }
 
   inline ui64 length() {
-    return (isBufferArray() || isArray() || isObject() || isMatrix() || isTable())?
-          *reinterpret_cast<ui64*>(data.bytes + 1)
+    return
+          (isNull())
+        ? 0
+        : (isBufferArray() || isArray() || isObject() || isMatrix() || isTable())
+        ? *reinterpret_cast<ui64*>(data.bytes + 1)
         : 1;
   }
+
+
 };
+
+
+
+
+
+
 
 
 // Initers or other

@@ -39,12 +39,9 @@ void* Array::clone() {
 }
 
 void Array::destroy() {
-  for(Variable* it = reinterpret_cast<Variable*>(data.bytes + 9),
-      *const end = reinterpret_cast<Variable*>(data.bytes + 9 + length()*PTR_SZ);
-      it != end;
-      ++it) {
-    it->destroy();
-  }
+  for(Variable& var : *this) var.destroy();
+  free(data.ptr);
+  data.ptr = nullptr;
 }
 
 Array::Array(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {

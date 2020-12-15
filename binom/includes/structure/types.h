@@ -107,8 +107,8 @@ namespace binom {
   class ValueIterator;
   typedef Variable* ArrayIterator;
   typedef NamedVariable* ObjectIterator;
-  class MatrixRowIterator;
-  class TableRowIterator;
+  class MatrixRow;
+  class TableRow;
 
   // Initilizers
   typedef std::initializer_list<ui8> ui8arr;

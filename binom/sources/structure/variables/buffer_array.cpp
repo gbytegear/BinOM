@@ -413,11 +413,89 @@ BufferArray& BufferArray::operator=(const BufferArray& other) {
     return *this;
 }
 
-ValueIterator BufferArray::begin() const {return ValueIterator(*data.type, data.bytes + 9);}
-ValueIterator BufferArray::end() const {return ValueIterator(*data.type, data.bytes + msize());}
+bool BufferArray::operator==(const binom::BufferArray& other) const {
+  if(*data.type != *other.data.type || length() != other.length()) return false;
+  ValueIterator this_it = begin();
+  ValueIterator other_it = other.begin();
+  const ValueIterator this_end_it = end();
+  for(;this_it != this_end_it;(++this_it, ++other_it))
+    if(this_it->asUnsigned() != other_it->asUnsigned()) return false;
+  return true;
+}
 
-const ValueIterator BufferArray::cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
-const ValueIterator BufferArray::cend() const {return ValueIterator(*data.type, data.bytes + msize());}
+bool BufferArray::operator>(const binom::BufferArray& other) const {
+  {
+    ui64 this_size = length(),
+        other_size = other.length();
+    if(this_size > other_size) return true;
+    else if(this_size < other_size) return false;
+  }
+
+  ValueIterator this_it = begin();
+  ValueIterator other_it = other.begin();
+  const ValueIterator this_end_it = end();
+  for(;this_it != this_end_it;(++this_it, ++other_it))
+    if(this_it->asUnsigned() > other_it->asUnsigned()) return true;
+    else if(this_it->asUnsigned() < other_it->asUnsigned()) return false;
+  return false;
+}
+
+bool BufferArray::operator<(const BufferArray& other) const {
+  {
+    ui64 this_size = length(),
+        other_size = other.length();
+    if(this_size < other_size) return true;
+    else if(this_size > other_size) return false;
+  }
+
+  ValueIterator this_it = begin();
+  ValueIterator other_it = other.begin();
+  const ValueIterator this_end_it = end();
+  for(;this_it != this_end_it;(++this_it, ++other_it))
+    if(this_it->asUnsigned() < other_it->asUnsigned()) return true;
+    else if(this_it->asUnsigned() > other_it->asUnsigned()) return false;
+  return false;
+}
+
+bool BufferArray::operator>=(const BufferArray& other) const {
+  {
+    ui64 this_size = length(),
+        other_size = other.length();
+    if(this_size > other_size) return true;
+    else if(this_size < other_size) return false;
+  }
+
+  ValueIterator this_it = begin();
+  ValueIterator other_it = other.begin();
+  const ValueIterator this_end_it = end();
+  for(;this_it != this_end_it;(++this_it, ++other_it))
+    if(this_it->asUnsigned() > other_it->asUnsigned()) return true;
+    else if(this_it->asUnsigned() < other_it->asUnsigned()) return false;
+  return true;
+}
+
+bool BufferArray::operator<=(const BufferArray& other) const {
+  {
+    ui64 this_size = length(),
+        other_size = other.length();
+    if(this_size < other_size) return true;
+    else if(this_size > other_size) return false;
+  }
+
+  ValueIterator this_it = begin();
+  ValueIterator other_it = other.begin();
+  const ValueIterator this_end_it = end();
+  for(;this_it != this_end_it;(++this_it, ++other_it))
+    if(this_it->asUnsigned() < other_it->asUnsigned()) return true;
+    else if(this_it->asUnsigned() > other_it->asUnsigned()) return false;
+  return true;
+}
+
+BufferArray::iterator BufferArray::begin() const {return ValueIterator(*data.type, data.bytes + 9);}
+BufferArray::iterator BufferArray::end() const {return ValueIterator(*data.type, data.bytes + msize());}
+
+BufferArray::const_iterator BufferArray::cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
+BufferArray::const_iterator BufferArray::cend() const {return ValueIterator(*data.type, data.bytes + msize());}
 
 std::string BufferArray::toString() {
   std::string str;
@@ -426,8 +504,10 @@ std::string BufferArray::toString() {
   return str;
 }
 
-std::ostream& operator<<(std::ostream& os, binom::BufferArray& buffer) {
+std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
   for(binom::Value val : buffer)
     os << val << ' ';
   return os;
 }
+
+const binom::BufferArray operator "" _buffer(const char* c_str, const size_t) {return c_str;}
