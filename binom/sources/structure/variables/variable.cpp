@@ -17,6 +17,7 @@ void* Variable::clone() const {
 }
 
 void Variable::destroy() {
+  if(isNull()) return;
   switch (toTypeClass(*data.type)) {
     case VarTypeClass::primitive: return toPrimitive().destroy();
     case VarTypeClass::buffer_array: return toBufferArray().destroy();
@@ -355,6 +356,7 @@ Variable::Variable(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable
   for(const Variable& value : array) {
     *it = value.getDataPointer();
     const_cast<Variable&>(value).data.ptr = nullptr;
+    ++it;
   }
 }
 
@@ -422,3 +424,16 @@ Variable::Variable(tbl table) : data(tryMalloc(17 + table.getNeededMemory())) {
 
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Variable::Variable(Variable& other) : data(other.clone()) {}
+
+
+
+std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {
+  switch (var.typeClass()) {
+    case VarTypeClass::primitive: return os << var.toPrimitive();
+    case VarTypeClass::buffer_array: return os << var.toBufferArray();
+    case VarTypeClass::array: return os << var.toArray();
+
+    default: throw SException(ErrCode::binom_invalid_type, "Not implemented!");
+  }
+}
+

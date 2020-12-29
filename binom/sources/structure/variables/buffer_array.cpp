@@ -33,7 +33,15 @@ void* BufferArray::maddto(void* to, size_t size) {
   return data.bytes + pos;
 }
 
-void BufferArray::destroy() {free(data.ptr);data.ptr = nullptr;}
+void BufferArray::msubfrom(void* from, size_t size) {
+  if(from < data.ptr) throw SException(ErrCode::binom_out_of_range);
+  size_t old_size = msize();
+  memmove(from, reinterpret_cast<byte*>(from) + size,
+          old_size - (reinterpret_cast<byte*>(from) - data.bytes) - size);
+  mch(old_size - size);
+}
+
+void BufferArray::destroy() {tryFree(data.ptr);data.ptr = nullptr;}
 
 void* BufferArray::clone() const {
   size_t size = msize();
@@ -50,10 +58,14 @@ BufferArray::BufferArray(const char* str) : data(tryMalloc(9 + strlen(str))) {
 }
 
 BufferArray::BufferArray(const std::string str) : data(tryMalloc(9 + str.length())) {
-    data.type[0] = VarType::byte_array;
-    ui64 size = str.length();
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-    memcpy(reinterpret_cast<char*>(data.bytes + 9), str.c_str(), size);
+  data.type[0] = VarType::byte_array;
+  ui64 size = str.length();
+  *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  memcpy(reinterpret_cast<char*>(data.bytes + 9), str.c_str(), size);
+}
+
+BufferArray::BufferArray(const wchar_t* wstr) : data(tryMalloc(9 + wcslen(wstr))) {
+
 }
 
 
@@ -301,22 +313,22 @@ BufferArray::BufferArray(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
 BufferArray::BufferArray(BufferArray& other) : data(other.clone()) {}
 BufferArray::BufferArray(BufferArray&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
-Value BufferArray::pushBack(const ui64 value) {
-    Value val(*data.type, madd(getMemberSize()));
+ValueRef BufferArray::pushBack(ui64 value) {
+    ValueRef val(*data.type, madd(getMemberSize()));
     val.setUnsigned(value);
     ++length();
     return val;
 }
 
-Value BufferArray::pushBack(const i64 value) {
-    Value val(*data.type, madd(getMemberSize()));
+ValueRef BufferArray::pushBack(i64 value) {
+    ValueRef val(*data.type, madd(getMemberSize()));
     val.setSigned(value);
     ++length();
     return val;
 }
 
-Value BufferArray::pushBack(const f64 value) {
-    Value val(*data.type, madd(getMemberSize()));
+ValueRef BufferArray::pushBack(f64 value) {
+    ValueRef val(*data.type, madd(getMemberSize()));
     val.setFloat(value);
     ++length();
     return val;
@@ -327,7 +339,7 @@ BufferArray::iterator BufferArray::pushBack(const BufferArray& other) {
     ui8 member_size = getMemberSize();
     madd(other.getMemberCount() * member_size);
     iterator it(*data.type, data.bytes + 9 + shift*member_size), ret(it);
-    for(Value val : other) {
+    for(ValueRef val : other) {
         *it << val;
         ++it;
     }
@@ -335,22 +347,22 @@ BufferArray::iterator BufferArray::pushBack(const BufferArray& other) {
     return ret;
 }
 
-Value BufferArray::pushFront(const ui64 value) {
-    Value val(*data.type, maddto(data.bytes + 9, getMemberSize()));
+ValueRef BufferArray::pushFront(ui64 value) {
+    ValueRef val(*data.type, maddto(data.bytes + 9, getMemberSize()));
     val.setUnsigned(value);
     ++length();
     return val;
 }
 
-Value BufferArray::pushFront(const i64 value) {
-    Value val(*data.type, maddto(data.bytes + 9, getMemberSize()));
+ValueRef BufferArray::pushFront(i64 value) {
+    ValueRef val(*data.type, maddto(data.bytes + 9, getMemberSize()));
     val.setSigned(value);
     ++length();
     return val;
 }
 
-Value BufferArray::pushFront(const f64 value) {
-    Value val(*data.type, maddto(data.bytes + 9, getMemberSize()));
+ValueRef BufferArray::pushFront(f64 value) {
+    ValueRef val(*data.type, maddto(data.bytes + 9, getMemberSize()));
     val.setFloat(value);
     ++length();
     return val;
@@ -358,7 +370,7 @@ Value BufferArray::pushFront(const f64 value) {
 
 BufferArray::iterator BufferArray::pushFront(const BufferArray& other) {
     iterator it(*data.type, maddto(data.bytes + 9, other.getMemberCount() * getMemberSize()));
-    for(Value val : other) {
+    for(ValueRef val : other) {
         *it << val;
         ++it;
     }
@@ -366,28 +378,28 @@ BufferArray::iterator BufferArray::pushFront(const BufferArray& other) {
     return begin();
 }
 
-Value BufferArray::insert(const ui64 index, const ui64 value) {
+ValueRef BufferArray::insert(const ui64 index, const ui64 value) {
     if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
-    Value val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
+    ValueRef val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
     val.setUnsigned(value);
     ++length();
     return val;
 }
 
-Value BufferArray::insert(const ui64 index, const i64 value) {
+ValueRef BufferArray::insert(const ui64 index, const i64 value) {
     if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
-    Value val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
+    ValueRef val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
     val.setSigned(value);
     ++length();
     return val;
 }
 
-Value BufferArray::insert(const ui64 index, const f64 value) {
+ValueRef BufferArray::insert(const ui64 index, const f64 value) {
     if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
-    Value val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
+    ValueRef val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
     val.setFloat(value);
     ++length();
     return val;
@@ -397,13 +409,45 @@ BufferArray::iterator BufferArray::insert(const ui64 index, const BufferArray& o
     if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
     iterator it(*data.type, maddto(data.bytes + 9 + index*member_size, other.getMemberCount() * member_size)), ret(it);
-    for(Value val : other) {
+    for(const ValueRef &val : other) {
         *it << val;
         ++it;
     }
     length() += other.length();
     return ret;
 }
+
+void BufferArray::popBack(const ui64 n) {
+  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  size_t member_size = getMemberSize();
+  msubfrom(data.bytes + msize() - member_size*n, member_size*n);
+  length() -= n;
+}
+
+void BufferArray::popFront(const ui64 n) {
+  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  msubfrom(data.bytes + 9, getMemberSize()*n);
+  length() -= n;
+}
+
+void BufferArray::remove(const ui64 index, const ui64 n) {
+  if(index + n >= getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  size_t member_size = getMemberSize();
+  msubfrom(data.bytes + 9 + index*member_size, member_size*n);
+  length() -= n;
+}
+
+BufferArray BufferArray::subarr(const ui64 index, const ui64 n) {
+  if(index + n >= getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  ui8 member_size = getMemberSize();
+  byte* ptr = tryMalloc<byte>(9 + n*member_size);
+  *reinterpret_cast<VarType*>(ptr) = *data.type;
+  *reinterpret_cast<ui64*>(ptr + 1) = n;
+  memcpy(ptr + 9, data.bytes + 9 + index*member_size, n*member_size);
+  return ptr;
+}
+
+void BufferArray::clear() {mch(9);length() = 0;}
 
 BufferArray& BufferArray::operator=(const BufferArray& other) {
     size_t other_size = other.msize();
@@ -413,7 +457,7 @@ BufferArray& BufferArray::operator=(const BufferArray& other) {
     return *this;
 }
 
-bool BufferArray::operator==(const binom::BufferArray& other) const {
+bool BufferArray::operator==(const BufferArray& other) const {
   if(*data.type != *other.data.type || length() != other.length()) return false;
   ValueIterator this_it = begin();
   ValueIterator other_it = other.begin();
@@ -423,7 +467,7 @@ bool BufferArray::operator==(const binom::BufferArray& other) const {
   return true;
 }
 
-bool BufferArray::operator>(const binom::BufferArray& other) const {
+bool BufferArray::operator>(const BufferArray& other) const {
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -499,13 +543,20 @@ BufferArray::const_iterator BufferArray::cend() const {return ValueIterator(*dat
 
 std::string BufferArray::toString() {
   std::string str;
-  for(Value val : *this)
+  for(const ValueRef &val : *this)
     str += char(val.asSigned());
   return str;
 }
 
+std::wstring BufferArray::toWString() {
+  std::wstring wstr;
+  for(const ValueRef &val : *this)
+    wstr += wchar_t(val.asUnsigned());
+  return wstr;
+}
+
 std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
-  for(binom::Value val : buffer)
+  for(binom::ValueRef val : buffer)
     os << val << ' ';
   return os;
 }

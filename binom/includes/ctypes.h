@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+
 namespace binom {
 
 typedef uint8_t ui8;

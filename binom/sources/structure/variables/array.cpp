@@ -25,6 +25,14 @@ void* Array::maddto(void* to, size_t size) {
   return data.bytes + pos;
 }
 
+void Array::msubfrom(void* from, size_t size) {
+  if(from < data.ptr) throw SException(ErrCode::binom_out_of_range);
+  size_t old_size = msize();
+  memmove(from, reinterpret_cast<byte*>(from) + size,
+          old_size - (reinterpret_cast<byte*>(from) - data.bytes) - size);
+  mch(old_size - size);
+}
+
 void* Array::clone() {
   ui64 size = msize();
   void* ptr = tryMalloc(size);
@@ -51,13 +59,103 @@ Array::Array(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {
   for(const Variable& value : array) {
     *it = value.getDataPointer();
     const_cast<Variable&>(value).data.ptr = nullptr;
+    ++it;
   }
 }
 
 Array::Array(Array&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Array::Array(Array& other) : data(other.clone()) {}
 
-Variable& Array::getVariable(ui64 index) {
+Variable& Array::getVariable(ui64 index) const {
   if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of array range");
   return begin()[index];
+}
+
+Variable& Array::insert(ui64 index, Variable var) {
+  if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of array range");
+  Variable* new_var = reinterpret_cast<Variable*>(maddto(data.bytes + msize(), sizeof (Variable)));
+  ++length();
+  new_var->data.ptr = var.data.ptr;
+  var.data.ptr = nullptr;
+  return *new_var;
+}
+
+Variable& Array::pushBack(Variable var) {
+  Variable* new_var = reinterpret_cast<Variable*>(madd(sizeof (Variable)));
+  ++length();
+  new_var->data.ptr = var.data.ptr;
+  var.data.ptr = nullptr;
+  return *new_var;
+}
+
+Variable& Array::pushFront(Variable var) {
+  Variable* new_var = reinterpret_cast<Variable*>(maddto(data.bytes + 9, sizeof (Variable)));
+  ++length();
+  new_var->data.ptr = var.data.ptr;
+  var.data.ptr = nullptr;
+  return *new_var;
+}
+
+void Array::remove(ui64 index, ui64 n) {
+  if(index + n >= getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  Variable* start = reinterpret_cast<Variable*>(data.bytes + 9 + index*sizeof(Variable));
+  {
+    Variable* it = start;
+    for(ui64 i = 0;i < n;(++i,++it))
+      it->destroy();
+  }
+  msubfrom(start, n*sizeof(Variable));
+  length() -= n;
+}
+
+void Array::popBack(ui64 n) {
+  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  Variable* start = reinterpret_cast<Variable*>(data.bytes + msize() - n*sizeof(Variable));
+  {
+    Variable* it = start;
+    for(ui64 i = 0;i < n;(++i,++it))
+      it->destroy();
+  }
+  msubfrom(start, n*sizeof(Variable));
+  length() -= n;
+}
+
+void Array::popFront(ui64 n) {
+  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  Variable* start = reinterpret_cast<Variable*>(data.bytes + 9);
+  {
+    Variable* it = start;
+    for(ui64 i = 0;i < n;(++i,++it))
+      it->destroy();
+  }
+  msubfrom(start, n*sizeof(Variable));
+  length() -= n;
+}
+
+void Array::clear() {
+  for(Variable& var : *this)
+    var.destroy();
+  mch(9);
+  length() = 0;
+}
+
+Variable& Array::operator+=(Variable var) {
+  Variable* new_var = reinterpret_cast<Variable*>(madd(sizeof (Variable)));
+  ++length();
+  new_var->data.ptr = var.data.ptr;
+  var.data.ptr = nullptr;
+  return *new_var;
+}
+
+
+
+
+std::ostream& operator<<(std::ostream& os, const binom::Array& array) {
+  os << "Array(" << array.getMemberCount() << ") [\n";
+  ui64 i = 0;
+  for(Variable& var : array) {
+    os << i << ':' << var << '\n';
+    ++i;
+  }
+  return os << "]\n";
 }

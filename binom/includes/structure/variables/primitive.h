@@ -52,9 +52,9 @@ public:
 
   ~Primitive();
 
-  inline Value getValue() const {return Value(*data.type, data.bytes + 1);}
+  inline ValueRef getValue() const {return ValueRef(*data.type, data.bytes + 1);}
 
-  inline Value operator*() const {return getValue();}
+  inline ValueRef operator*() const {return getValue();}
 
   inline bool operator=(const bool value) {return (**this).setBool(value);}
   inline ui64 operator=(const ui64 value) {return (**this).setUnsigned(value);}

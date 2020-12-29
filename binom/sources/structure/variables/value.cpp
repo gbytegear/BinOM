@@ -2,10 +2,10 @@
 
 using namespace binom;
 
-Value::Value(ValueIterator& it) : type(it->type), ptr(it->ptr.ptr) {}
-Value::Value(ValueIterator&& it) : type(it->type), ptr(it->ptr.ptr) {}
+ValueRef::ValueRef(const ValueIterator& it) : type(it->type), ptr(it->ptr.ptr) {}
+ValueRef::ValueRef(const ValueIterator&& it) : type(it->type), ptr(it->ptr.ptr) {}
 
-bool Value::asBool() const {
+bool ValueRef::asBool() const {
   switch (type) {
     case ValType::byte: return *ptr.boolptr;
     case ValType::word: return *ptr.ui16ptr;
@@ -15,7 +15,7 @@ bool Value::asBool() const {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-ui64 Value::asUnsigned() const {
+ui64 ValueRef::asUnsigned() const {
   switch (type) {
     case ValType::byte: return *ptr.ui8ptr;
     case ValType::word: return *ptr.ui16ptr;
@@ -25,7 +25,7 @@ ui64 Value::asUnsigned() const {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-i64 Value::asSigned() const {
+i64 ValueRef::asSigned() const {
   switch (type) {
     case ValType::byte: return *ptr.i8ptr;
     case ValType::word: return *ptr.i16ptr;
@@ -35,7 +35,7 @@ i64 Value::asSigned() const {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-f64 Value::asFloat() const {
+f64 ValueRef::asFloat() const {
   switch (type) {
     case ValType::byte: return *ptr.ui8ptr;
     case ValType::word: return *ptr.ui16ptr;
@@ -45,7 +45,7 @@ f64 Value::asFloat() const {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-bool Value::setBool(const bool value) {
+bool ValueRef::setBool(const bool value) {
   switch (type) {
     case ValType::byte: return *ptr.boolptr = value;
     case ValType::word: return *ptr.ui16ptr = value;
@@ -55,7 +55,7 @@ bool Value::setBool(const bool value) {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-ui64 Value::setUnsigned(const ui64 value) {
+ui64 ValueRef::setUnsigned(const ui64 value) {
   switch (type) {
     case ValType::byte: return *ptr.ui8ptr = value;
     case ValType::word: return *ptr.ui16ptr = value;
@@ -65,7 +65,7 @@ ui64 Value::setUnsigned(const ui64 value) {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-i64 Value::setSigned(const i64 value) {
+i64 ValueRef::setSigned(const i64 value) {
   switch (type) {
     case ValType::byte: return *ptr.i8ptr = value;
     case ValType::word: return *ptr.i16ptr = value;
@@ -75,7 +75,7 @@ i64 Value::setSigned(const i64 value) {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-f64 Value::setFloat(const f64 value) {
+f64 ValueRef::setFloat(const f64 value) {
   switch (type) {
     case ValType::byte: return *ptr.i8ptr = value;
     case ValType::word: return *ptr.i16ptr = value;
@@ -85,25 +85,25 @@ f64 Value::setFloat(const f64 value) {
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }
 
-ValueIterator& Value::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}
+ValueIterator& ValueRef::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}
 
-Value& Value::operator=(const Value& other) {
+ValueRef& ValueRef::operator=(const ValueRef& other) {
   type = other.type;
   ptr.ptr = other.ptr.ptr;
   return *this;
 }
 
-Value& Value::operator<<(const Value& other) {
+ValueRef& ValueRef::operator<<(const ValueRef& other) {
   setUnsigned(other.asUnsigned());
   return *this;
 }
 
-Value& Value::operator>>(Value& other) const {
+ValueRef& ValueRef::operator>>(ValueRef& other) const {
   other.setUnsigned(asUnsigned());
-  return *const_cast<Value*>(this);
+  return *const_cast<ValueRef*>(this);
 }
 
-std::ostream& operator<<(std::ostream& os, const binom::Value val) {
+std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
 
   ui8 sym_count = (val.getType() == ValType::byte) ? 2
                  :(val.getType() == ValType::word) ? 4

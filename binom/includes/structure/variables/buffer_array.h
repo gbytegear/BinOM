@@ -16,17 +16,19 @@ class BufferArray {
   inline ui64& length() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
 
   ui64 msize() const;
-
-
   void mch(size_t new_size);
   void* madd(size_t add_size);
   void msub(size_t sub_size);
   void* maddto(void* to, size_t size);
+  void msubfrom(void* from, size_t size);
+
   void destroy();
   void* clone() const;
 
   friend class Variable;
     
+  BufferArray(void* buffer) : data(buffer) {}
+
 public:
 
   typedef ValueIterator iterator;
@@ -34,6 +36,9 @@ public:
 
   BufferArray(const char* str);
   BufferArray(const std::string str);
+
+  BufferArray(const wchar_t* wstr);
+  BufferArray(const std::wstring wstr);
 
   BufferArray(size_t size, ui8 value);
   BufferArray(size_t size, ui16 value);
@@ -68,6 +73,7 @@ public:
 
   ~BufferArray() {destroy();}
 
+  inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
   inline ui8 getMemberSize() const {
     switch (*data.type) {
@@ -79,29 +85,42 @@ public:
     }
   }
 
-  inline Value getValue(ui64 index) const {
+  inline ValueRef getValue(ui64 index) const {
     if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
     return begin()[index];
   }
 
-  Value pushBack(const ui64 value);
-  Value pushBack(const i64 value);
-  Value pushBack(const f64 value);
+  ValueRef pushBack(ui64 value);
+  ValueRef pushBack(i64 value);
+  ValueRef pushBack(f64 value);
   iterator pushBack(const BufferArray& other);
-  Value pushFront(const ui64 value);
-  Value pushFront(const i64 value);
-  Value pushFront(const f64 value);
+  inline ValueRef pushBack(const ValueRef value) {return pushBack(value.asUnsigned());}
+
+  ValueRef pushFront(ui64 value);
+  ValueRef pushFront(i64 value);
+  ValueRef pushFront(f64 value);
   iterator pushFront(const BufferArray& other);
-  Value insert(const ui64 index, const ui64 value);
-  Value insert(const ui64 index, const i64 value);
-  Value insert(const ui64 index, const f64 value);
+  inline ValueRef pushFront(const ValueRef value) {return pushFront(value.asUnsigned());}
+
+  ValueRef insert(const ui64 index, const ui64 value);
+  ValueRef insert(const ui64 index, const i64 value);
+  ValueRef insert(const ui64 index, const f64 value);
   iterator insert(const ui64 index, const BufferArray& other);
 
-  inline Value operator[](ui64 index) const {return getValue(index);}
+  void popBack(const ui64 n = 1);
+  void popFront(const ui64 n = 1);
+  void remove(const ui64 index, const ui64 n = 1);
+  BufferArray subarr(const ui64 index, const ui64 n);
+
+  void clear();
+
+  inline ValueRef operator[](ui64 index) const {return getValue(index);}
+
   inline BufferArray& operator+=(const ui64 value) {pushBack(value); return *this;}
   inline BufferArray& operator+=(const i64 value) {pushBack(value); return *this;}
   inline BufferArray& operator+=(const f64 value) {pushBack(value); return *this;}
   inline BufferArray& operator+=(const BufferArray& other) {pushBack(other); return *this;}
+  inline BufferArray& operator+=(const ValueRef value) {pushBack(value); return *this;}
 
   BufferArray& operator=(const BufferArray& other);
 
@@ -118,6 +137,7 @@ public:
   const_iterator cend() const;
 
   std::string toString();
+  std::wstring toWString();
 };
 
 
@@ -125,6 +145,6 @@ public:
 }
 
 std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer);
-const binom::BufferArray operator "" _buffer(const char* c_str, const size_t);
+const binom::BufferArray operator "" _buffer(const char* c_str, const std::size_t);
 
 #endif

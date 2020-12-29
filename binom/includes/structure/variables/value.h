@@ -7,7 +7,7 @@
 
 namespace binom {
 
-class Value {
+class ValueRef {
   ValType type;
   union pointer {
     void* ptr;
@@ -27,12 +27,12 @@ class Value {
 
   friend class ValueIterator;
 public:
-  Value(ValType type, void* pointer) : type(type), ptr(pointer) {}
-  Value(VarType type, void* pointer) : type(toValueType(type)), ptr(pointer) {}
-  Value(Value& other) : type(other.type), ptr(other.ptr.ptr) {}
-  Value(Value&& other) : type(other.type), ptr(other.ptr.ptr) {}
-  Value(ValueIterator& it);
-  Value(ValueIterator&& it);
+  ValueRef(ValType type, void* pointer) : type(type), ptr(pointer) {}
+  ValueRef(VarType type, void* pointer) : type(toValueType(type)), ptr(pointer) {}
+  ValueRef(const ValueRef& other) : type(other.type), ptr(other.ptr.ptr) {}
+  ValueRef(const ValueRef&& other) : type(other.type), ptr(other.ptr.ptr) {}
+  ValueRef(const ValueIterator& it);
+  ValueRef(const ValueIterator&& it);
 
   ValType getType() const {return type;}
 
@@ -52,14 +52,14 @@ public:
   inline ui64 operator=(const ui64 value) {return setUnsigned(value);}
   inline i64 operator=(const i64 value) {return setSigned(value);}
   inline f64 operator=(const f64 value) {return setFloat(value);}
-  Value& operator=(const Value& other);
-  Value& operator<<(const Value& other); //!< Set value from other to this
-  Value& operator>>(Value& other) const; //!< Set value from this to other
+  ValueRef& operator=(const ValueRef& other);
+  ValueRef& operator<<(const ValueRef& other); //!< Set value from other to this
+  ValueRef& operator>>(ValueRef& other) const; //!< Set value from this to other
 };
 
 
 class ValueIterator {
-  Value pointer;
+  ValueRef pointer;
 
   inline ui8 getShift() const {
     switch (pointer.type) {
@@ -73,16 +73,16 @@ class ValueIterator {
 public:
   ValueIterator(ValType type, void* pointer) : pointer(type, pointer) {}
   ValueIterator(VarType type, void* pointer) : pointer(type, pointer) {}
-  ValueIterator(Value& val_ptr) : pointer(val_ptr) {}
-  ValueIterator(Value&& val_ptr) : pointer(val_ptr) {}
+  ValueIterator(ValueRef& val_ptr) : pointer(val_ptr) {}
+  ValueIterator(ValueRef&& val_ptr) : pointer(val_ptr) {}
   ValueIterator(ValueIterator& other) : pointer(other.pointer) {}
   ValueIterator(ValueIterator&& other) : pointer(other.pointer) {}
 
-  inline Value& operator*() {return pointer;}
-  inline Value* operator->() {return &pointer;}
+  inline ValueRef& operator*() const {return *const_cast<ValueRef*>(&pointer);}
+  inline ValueRef* operator->() const {return const_cast<ValueRef*>(&pointer);}
 
-  Value operator[](i64 index) {
-    return Value(pointer.type, pointer.ptr.ui8ptr + getShift() * index);
+  ValueRef operator[](i64 index) {
+    return ValueRef(pointer.type, pointer.ptr.ui8ptr + getShift() * index);
   }
 
   ValueIterator& operator++() {
@@ -110,7 +110,7 @@ public:
     return *this;
   }
 
-  ValueIterator& operator=(const Value& other) {
+  ValueIterator& operator=(const ValueRef& other) {
     pointer = other;
     return *this;
   }
@@ -121,6 +121,6 @@ public:
 
 }
 
-std::ostream& operator<<(std::ostream& os, const binom::Value val);
+std::ostream& operator<<(std::ostream& os, const binom::ValueRef val);
 
 #endif // VALUEPTR_H

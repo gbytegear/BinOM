@@ -1,6 +1,6 @@
 #include "binom/includes/structure/variables/variable.h"
 
-void binom::Primitive::destroy() {free(data.ptr);data.ptr = nullptr;}
+void binom::Primitive::destroy() {tryFree(data.ptr);data.ptr = nullptr;}
 
 void* binom::Primitive::clone() {
   ui64 size = msize();

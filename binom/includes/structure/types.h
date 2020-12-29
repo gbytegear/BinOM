@@ -100,7 +100,7 @@ namespace binom {
   class Table;
 
   // Helpers
-  class Value;
+  class ValueRef;
   struct NamedVariable;
 
   // Iterators

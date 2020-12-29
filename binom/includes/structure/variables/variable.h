@@ -130,7 +130,7 @@ public:
   inline Table& toTable() const noexcept                 {return const_cast<Table&>(data.table);}
 
   inline Variable& operator=(const Variable& other) {
-    if(isNull())destroy();
+    if(!isNull())destroy();
     data.ptr = other.clone();
     return *this;
   }
@@ -214,5 +214,8 @@ private:
 };
 
 }
+
+
+std::ostream& operator<<(std::ostream& os, const binom::Variable& var);
 
 #endif
