@@ -35,6 +35,14 @@ public:
   ValueRef(const ValueIterator&& it);
 
   ValType getType() const {return type;}
+  inline ui8 getSize() const {
+    switch (type) {
+      case ValType::byte: return 1;
+      case ValType::word: return 2;
+      case ValType::dword:return 4;
+      case ValType::qword:return 8;
+    }
+  }
 
   bool asBool() const;
   ui64 asUnsigned() const;

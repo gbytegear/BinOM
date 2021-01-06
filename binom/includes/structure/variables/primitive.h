@@ -49,6 +49,7 @@ public:
 
   Primitive(Primitive&& other);
   Primitive(Primitive& other);
+  Primitive(ValueRef value);
 
   ~Primitive();
 
@@ -62,6 +63,9 @@ public:
   inline f64 operator=(const f64 value) {return (**this).setFloat(value);}
 
   Primitive& operator=(Primitive& other);
+
+
+  Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 };
 
 }

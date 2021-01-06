@@ -25,6 +25,7 @@ class Array {
 
   friend class Variable;
 public:
+  Array();
   Array(varr array);
   Array(Array&& other);
   Array(Array& other);
@@ -49,6 +50,8 @@ public:
 
   ArrayIterator begin() const {return reinterpret_cast<ArrayIterator>(data.bytes + 9);}
   ArrayIterator end() const {return reinterpret_cast<ArrayIterator>(data.bytes + msize());}
+
+  Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 };
 }
 

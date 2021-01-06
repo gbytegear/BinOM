@@ -71,6 +71,16 @@ binom::Primitive::Primitive(binom::f64 value) : data(tryMalloc(9)) {
 binom::Primitive::Primitive(binom::Primitive&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 binom::Primitive::Primitive(binom::Primitive& other) : data(other.clone()) {}
 
+binom::Primitive::Primitive(binom::ValueRef value) : data(tryMalloc(1 + value.getSize())) {
+  data.type[0] = toVarType(value.getType());
+  switch (value.getType()) {
+    case ValType::byte: data.bytes[1] = value.asUnsigned();return;
+    case ValType::word: reinterpret_cast<ui16*>(data.bytes+1)[0] = value.asUnsigned();return;
+    case ValType::dword:reinterpret_cast<ui32*>(data.bytes+1)[0] = value.asUnsigned();return;
+    case ValType::qword:reinterpret_cast<ui64*>(data.bytes+1)[0] = value.asUnsigned();return;
+  }
+}
+
 binom::Primitive::~Primitive() {destroy();}
 
 binom::Primitive& binom::Primitive::operator=(binom::Primitive& other) {

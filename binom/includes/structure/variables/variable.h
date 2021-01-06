@@ -33,10 +33,14 @@ class Variable {
   void* clone() const;
   void destroy();
 
+  friend class Primitive;
+  friend class BufferArray;
   friend class Array;
   friend class Object;
   friend class Matrix;
   friend class Table;
+
+  friend struct NamedVariable;
 
 public:
 
@@ -159,6 +163,11 @@ public:
 struct NamedVariable {
   BufferArray name;
   Variable variable;
+
+  NamedVariable& operator=(NamedVariable& other) {
+    name.data.ptr = other.name.clone();
+    variable.data.ptr = other.variable.clone();
+  }
 };
 
 struct mtrx {

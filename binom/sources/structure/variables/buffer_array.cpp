@@ -449,12 +449,17 @@ BufferArray BufferArray::subarr(const ui64 index, const ui64 n) {
 
 void BufferArray::clear() {mch(9);length() = 0;}
 
+
 BufferArray& BufferArray::operator=(const BufferArray& other) {
-    size_t other_size = other.msize();
-    if(msize() != other_size)
-        mch(other_size);
-    memcpy(data.ptr, other.data.ptr, other_size);
+  if(data.ptr == nullptr) {
+    data.ptr = other.clone();
     return *this;
+  }
+  size_t other_size = other.msize();
+  if(msize() != other_size)
+    mch(other_size);
+  memcpy(data.ptr, other.data.ptr, other_size);
+  return *this;
 }
 
 bool BufferArray::operator==(const BufferArray& other) const {
@@ -541,14 +546,14 @@ BufferArray::iterator BufferArray::end() const {return ValueIterator(*data.type,
 BufferArray::const_iterator BufferArray::cbegin() const {return ValueIterator(*data.type, data.bytes + 9);}
 BufferArray::const_iterator BufferArray::cend() const {return ValueIterator(*data.type, data.bytes + msize());}
 
-std::string BufferArray::toString() {
+std::string BufferArray::toString() const {
   std::string str;
   for(const ValueRef &val : *this)
     str += char(val.asSigned());
   return str;
 }
 
-std::wstring BufferArray::toWString() {
+std::wstring BufferArray::toWString() const {
   std::wstring wstr;
   for(const ValueRef &val : *this)
     wstr += wchar_t(val.asUnsigned());
@@ -556,7 +561,7 @@ std::wstring BufferArray::toWString() {
 }
 
 std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
-  for(binom::ValueRef val : buffer)
+  for(const binom::ValueRef &val : buffer)
     os << val << ' ';
   return os;
 }

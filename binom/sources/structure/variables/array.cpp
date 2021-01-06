@@ -52,6 +52,11 @@ void Array::destroy() {
   data.ptr = nullptr;
 }
 
+Array::Array() : data(tryMalloc(9)) {
+  *data.type = VarType::array;
+  length() = 0;
+}
+
 Array::Array(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {
   data.type[0] = VarType::array;
   *reinterpret_cast<ui64*>(data.bytes + 1) = array.size();
@@ -157,5 +162,5 @@ std::ostream& operator<<(std::ostream& os, const binom::Array& array) {
     os << i << ':' << var << '\n';
     ++i;
   }
-  return os << "]\n";
+  return os << "]";
 }

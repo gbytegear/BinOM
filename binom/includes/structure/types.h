@@ -20,6 +20,8 @@
 #error "Unsupported architecture!"
 #endif
 
+#define elif else if
+
 
 namespace binom {
   enum class VarType : byte {
@@ -89,6 +91,15 @@ namespace binom {
           case VarType::qword_array: return ValType::qword;
           default: throw SException(ErrCode::binom_invalid_type, "Variable type can't be convert to value type!");
       }
+  }
+
+  inline VarType toVarType(ValType type) {
+    switch (type) {
+      case ValType::byte: return VarType::byte;
+      case ValType::word: return VarType::word;
+      case ValType::dword:return VarType::dword;
+      case ValType::qword:return VarType::qword;
+    }
   }
 
   // Basic

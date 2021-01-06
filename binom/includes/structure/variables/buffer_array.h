@@ -26,6 +26,8 @@ class BufferArray {
   void* clone() const;
 
   friend class Variable;
+  friend class Object;
+  friend struct NamedVariable;
     
   BufferArray(void* buffer) : data(buffer) {}
 
@@ -136,8 +138,10 @@ public:
   const_iterator cbegin() const;
   const_iterator cend() const;
 
-  std::string toString();
-  std::wstring toWString();
+  std::string toString() const;
+  std::wstring toWString() const;
+
+  Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 };
 
 

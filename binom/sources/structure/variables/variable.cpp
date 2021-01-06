@@ -363,12 +363,53 @@ Variable::Variable(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable
 Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
   data.type[0] = VarType::object;
   *reinterpret_cast<ui64*>(data.bytes + 1) = object.size();
-  NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
+  i64 in_count = 0;
+
+
   for(const NamedVariable& value : object) {
-    it->name = value.name;
-    it->variable.data.ptr = value.variable.data.ptr;
-    const_cast<NamedVariable&>(value).name.data.ptr = nullptr;
-    const_cast<NamedVariable&>(value).variable.data.ptr = nullptr;
+
+    NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
+
+    if(!in_count) {
+      it->name.data.ptr = value.name.data.ptr;
+      it->variable.data.ptr = value.variable.data.ptr;
+      const_cast<NamedVariable&>(value).name.data.ptr = nullptr;
+      const_cast<NamedVariable&>(value).variable.data.ptr = nullptr;
+    } else {
+
+      i64 left = 0;
+      i64 right = in_count;
+      i64 middle = 0;
+
+      while (left <= right) {
+        middle = (left + right) / 2;
+        if(middle >= in_count) break;
+
+        if(it[middle].name > value.name) right = middle - 1;
+        elif(it[middle].name < value.name) left = middle + 1;
+        elif(it[middle].name == value.name) throw SException(ErrCode::binom_object_key_error, "");
+      }
+
+      for(; (middle < in_count)? it[middle].name < value.name : false ;++middle);
+
+      if(middle < in_count) {
+        memmove(data.bytes + 9 + (middle+1)*sizeof (NamedVariable),
+                data.bytes + 9 + middle*sizeof (NamedVariable),
+                (in_count - middle)*sizeof (NamedVariable));
+        it = it + middle;
+        it->name.data.ptr = value.name.data.ptr;
+        it->variable.data.ptr = value.variable.data.ptr;
+        const_cast<NamedVariable&>(value).name.data.ptr = nullptr;
+        const_cast<NamedVariable&>(value).variable.data.ptr = nullptr;
+      } else {
+        it = it + middle;
+        it->name.data.ptr = value.name.data.ptr;
+        it->variable.data.ptr = value.variable.data.ptr;
+        const_cast<NamedVariable&>(value).name.data.ptr = nullptr;
+        const_cast<NamedVariable&>(value).variable.data.ptr = nullptr;
+      }
+    }
+    ++in_count;
   }
 }
 
@@ -432,6 +473,7 @@ std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {
     case VarTypeClass::primitive: return os << var.toPrimitive();
     case VarTypeClass::buffer_array: return os << var.toBufferArray();
     case VarTypeClass::array: return os << var.toArray();
+    case VarTypeClass::object: return os << var.toObject();
 
     default: throw SException(ErrCode::binom_invalid_type, "Not implemented!");
   }

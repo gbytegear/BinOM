@@ -3,56 +3,56 @@
 
 using namespace binom;
 
-void testPrimitiver() {
-  std::cout << "Primitive test:\n";
+inline void testPrimitiver() {
+  std::clog << "Primitive test:\n";
   Variable byte = 8_ui8;
-  std::cout << "|Byte:         " << byte.toPrimitive() << std::endl;
+  std::clog << "|Byte:         " << byte.toPrimitive() << std::endl;
   Variable word = 16_ui16;
-  std::cout << "|Word:         " << word.toPrimitive() << std::endl;
+  std::clog << "|Word:         " << word.toPrimitive() << std::endl;
   Variable dword = 32_ui32;
-  std::cout << "|Dword:        " << dword.toPrimitive() << std::endl;
+  std::clog << "|Dword:        " << dword.toPrimitive() << std::endl;
   Variable qword = 64_ui64;
-  std::cout << "|Qword:        " << qword.toPrimitive() << std::endl;
+  std::clog << "|Qword:        " << qword.toPrimitive() << std::endl;
 
 
   byte.toPrimitive() = 8_ui64;
-  std::cout << "|Byte:         " << byte.toPrimitive() << std::endl;
+  std::clog << "|Byte:         " << byte.toPrimitive() << std::endl;
   word.toPrimitive() = 4_ui64;
-  std::cout << "|Word:         " << word.toPrimitive() << std::endl;
+  std::clog << "|Word:         " << word.toPrimitive() << std::endl;
   dword.toPrimitive() = 2_ui64;
-  std::cout << "|Dword:        " << dword.toPrimitive() << std::endl;
+  std::clog << "|Dword:        " << dword.toPrimitive() << std::endl;
   qword.toPrimitive() = 1_ui64;
-  std::cout << "|Qword:        " << qword.toPrimitive() << std::endl;
+  std::clog << "|Qword:        " << qword.toPrimitive() << std::endl;
 
 }
 
-void testBufferArray() {
+inline void testBufferArray() {
   Variable byte_array = "Hello world";
   Variable word_array = ui16arr{1, 2, 3};
   Variable dword_array = ui32arr{1, 2, 3};
   Variable qword_array = ui64arr{1, 2, 3};
 
-  std::cout << "Buffer array test:\n";
-  std::cout << "|Byte array:   " << byte_array.toBufferArray() << std::endl;
-  std::cout << "|String:       " << byte_array.toBufferArray().toString() << std::endl;
-  std::cout << "|Word array:   " << word_array.toBufferArray() << std::endl;
-  std::cout << "|Dword array:  " << dword_array.toBufferArray() << std::endl;
-  std::cout << "|Qword array:  " << qword_array.toBufferArray() << std::endl;
+  std::clog << "Buffer array test:\n";
+  std::clog << "|Byte array:   " << byte_array.toBufferArray() << std::endl;
+  std::clog << "|String:       " << byte_array.toBufferArray().toString() << std::endl;
+  std::clog << "|Word array:   " << word_array.toBufferArray() << std::endl;
+  std::clog << "|Dword array:  " << dword_array.toBufferArray() << std::endl;
+  std::clog << "|Qword array:  " << qword_array.toBufferArray() << std::endl;
 
   byte_array.toBufferArray() += byte_array.toBufferArray();
-  std::cout << "|Byte array:   " << byte_array.toBufferArray() << std::endl;
-  std::cout << "|String:       " << byte_array.toBufferArray().toString() << std::endl;
+  std::clog << "|Byte array:   " << byte_array.toBufferArray() << std::endl;
+  std::clog << "|String:       " << byte_array.toBufferArray().toString() << std::endl;
 
   word_array.toBufferArray() += word_array.toBufferArray();
-  std::cout << "|Word array:   " << word_array.toBufferArray() << std::endl;
+  std::clog << "|Word array:   " << word_array.toBufferArray() << std::endl;
 
   dword_array.toBufferArray() += dword_array.toBufferArray();
-  std::cout << "|Dword array:  " << dword_array.toBufferArray() << std::endl;
+  std::clog << "|Dword array:  " << dword_array.toBufferArray() << std::endl;
 
   qword_array.toBufferArray() += qword_array.toBufferArray();
-  std::cout << "|Qword array:  " << qword_array.toBufferArray() << std::endl;
+  std::clog << "|Qword array:  " << qword_array.toBufferArray() << std::endl;
 
-  std::cout << "Buffer compare test:\n"
+  std::clog << "Buffer compare test:\n"
                "|test == test: " << ("test"_buffer == "test"_buffer) << "\n"
                "|test == _test: " << ("test"_buffer == "_test"_buffer) << "\n"
                "|test != test: " << ("test"_buffer != "test"_buffer) << "\n"
@@ -72,12 +72,12 @@ void testBufferArray() {
 
   byte_array.toBufferArray() = "Hello World!HELLO!!!WORLD!Hello World";
 
-  std::cout << "Add/remove operations:\n"
+  std::clog << "Add/remove operations:\n"
                "|Start string: " << byte_array.toBufferArray().toString() << "\n"
                "|Subarr: " << byte_array.toBufferArray().subarr(12, 13).toString() << '\n';
 
 
-  std::cout << "|Operations:\n"
+  std::clog << "|Operations:\n"
                "||popBack(11)\n"
                "||popFront(11)\n"
                "||popBack()\n"
@@ -94,11 +94,11 @@ void testBufferArray() {
   byte_array.toBufferArray().remove(5);
   byte_array.toBufferArray().insert(5, ui64(' '));
 
-  std::cout << "|End string: " << byte_array.toBufferArray().toString() << "\n";
+  std::clog << "|End string: " << byte_array.toBufferArray().toString() << "\n";
 }
 
 
-void testArray() {
+inline void testArray() {
 
   Variable arr = varr {
                  8_ui8,
@@ -110,16 +110,16 @@ void testArray() {
                  ui32arr{1,2,3},
                  ui64arr{1,2,3}
               };
-  std::cout << arr;
+  std::clog << arr << '\n';
 
   arr.toArray().popBack(2);
   arr.toArray().popFront(2);
 
-  std::cout << arr;
+  std::clog << arr << '\n';
 
   arr.toArray().clear();
 
-  std::cout << arr;
+  std::clog << arr << '\n';
 
   arr.toArray().pushBack(ui8arr{1,2,3});
   arr.toArray().pushBack(ui16arr{1,2,3});
@@ -129,24 +129,75 @@ void testArray() {
   arr.toArray().pushFront(32_ui32);
   arr.toArray().pushFront(16_ui16);
   arr.toArray().pushFront(8_ui8);
+  arr.toArray().pushFront(varr {
+                            8_ui8,
+                            16_ui16,
+                            32_ui32,
+                            64_ui64,
+                            ui8arr{1,2,3},
+                            ui16arr{1,2,3},
+                            ui32arr{1,2,3},
+                            ui64arr{1,2,3}
+                         });
+  arr.toArray().pushFront(obj{
+                            {"4",64_ui64},
+                            {"9",ui16arr{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}},
+                            {"3",32_ui32},
+                            {"00",ui16arr{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}},
+                            {"5",64_ui64},
+                            {"2",16_ui16},
+                            {"1",8_ui8},
+                            {"6",ui16arr{1,2,3,4,5,6,7,8,9,10}},
+                            {"0","Hello world"}
+                          });
 
-  std::cout << arr;
+  std::clog << arr << '\n';
 }
 
+inline void testObject() {
+  Variable object = obj{
+    {"4",64_ui64},
+    {"9",ui16arr{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}},
+    {"3",32_ui32},
+    {"00",ui16arr{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}},
+    {"5",64_ui64},
+    {"2",16_ui16},
+    {"1",8_ui8},
+    {"6",ui16arr{1,2,3,4,5,6,7,8,9,10}},
+    {"0","Hello world"}
+  };
+
+  std::clog << object << '\n';
+
+  object.toObject().insert("01",8_ui8);
+  object.toObject().insert("10",8_ui8);
+  object.toObject().insert("8",8_ui8);
+  object.toObject().insert("7",8_ui8);
+  object.toObject().insert("Hello world","Hello world");
+  object.toObject().remove("4");
+
+  std::clog << object << '\n';
+
+  std::clog << object.toObject().getVariable("Hello world").toBufferArray().toString() << '\n';
+}
 
 int main() {
   try {
-    std::cout << "===================================================================\n";
+    std::clog << "===================================================================\n";
     testPrimitiver();
-    std::cout << "===================================================================\n";
+    std::clog << "===================================================================\n";
     testBufferArray();
-    std::cout << "===================================================================\n";
+    std::clog << "===================================================================\n";
     testArray();
+    std::clog << "===================================================================\n";
+    testObject();
+
+
 
   } catch(binom::SException except) {
-    std::cout << binom::SException::ectos(except.code()) << except.what() << std::endl;
+    std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;
   } catch(...) {
-    std::cout << "Unknown exception!" << std::endl;
+    std::cerr << "Unknown exception!" << std::endl;
   }
 
   return 0;
