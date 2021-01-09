@@ -176,6 +176,8 @@ inline void testObject() {
   object.toObject().insert("Hello world","Hello world");
   object.toObject().remove("4");
 
+  object.toObject() += {"Hello", "World"};
+
   std::clog << object << '\n';
 
   std::clog << object.toObject().getVariable("Hello world").toBufferArray().toString() << '\n';

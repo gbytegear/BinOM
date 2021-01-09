@@ -195,10 +195,12 @@ struct mtrx {
 };
 
 struct tbl {
+  #pragma pack(push,1)
   struct ColumnInfo {
     VarType type;
     BufferArray name;
   };
+  #pragma pack(pop)
   std::initializer_list<ColumnInfo> column_list;
   std::initializer_list<Variable> var_list;
 

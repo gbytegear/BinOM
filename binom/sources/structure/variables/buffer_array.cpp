@@ -46,7 +46,7 @@ void BufferArray::destroy() {tryFree(data.ptr);data.ptr = nullptr;}
 void* BufferArray::clone() const {
   size_t size = msize();
   void* ptr = tryMalloc(size);
-  memcpy(data.ptr, ptr, size);
+  memcpy(ptr, data.ptr, size);
   return ptr;
 }
 

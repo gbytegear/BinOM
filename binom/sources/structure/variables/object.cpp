@@ -170,7 +170,11 @@ void Object::remove(BufferArray name) {
   throw SException(ErrCode::binom_out_of_range, "");
 }
 
-Variable& Object::getVariable(BufferArray name) {
+Variable& Object::operator+=(NamedVariable named_variable) {
+  return insert(named_variable.name, named_variable.variable);
+}
+
+Variable& Object::getVariable(BufferArray name) const {
   i64 left = 0;
   i64 right = length();
   i64 middle = 0;
@@ -188,6 +192,7 @@ Variable& Object::getVariable(BufferArray name) {
 
   throw SException(ErrCode::binom_out_of_range, "");
 }
+
 
 
 

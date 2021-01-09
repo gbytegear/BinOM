@@ -102,6 +102,13 @@ namespace binom {
     }
   }
 
+  class MatrixDescriptor {
+    ui64 length;
+  public:
+    VarType* begin() {return reinterpret_cast<VarType*>(this) + 8;}
+    VarType* end() {return reinterpret_cast<VarType*>(this) + 8 + length;}
+  };
+
   // Basic
   class Variable;
   class Primitive;

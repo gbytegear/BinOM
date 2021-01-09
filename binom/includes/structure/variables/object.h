@@ -36,8 +36,10 @@ public:
   Variable& insert(BufferArray name, Variable var);
   void remove(BufferArray name);
 
-  Variable& getVariable(BufferArray name);
-  Variable& operator[](BufferArray name) {return getVariable(name);}
+  Variable& operator+=(NamedVariable named_variable);
+
+  Variable& getVariable(BufferArray name) const;
+  inline Variable& operator[](BufferArray name) const {return getVariable(name);}
 
 
   ObjectIterator begin() const {return reinterpret_cast<ObjectIterator>(data.bytes + 9);}
