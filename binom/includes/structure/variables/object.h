@@ -38,6 +38,7 @@ public:
 
   Variable& operator+=(NamedVariable named_variable);
 
+  NamedVariable& getNamedVariable(BufferArray name) const;
   Variable& getVariable(BufferArray name) const;
   inline Variable& operator[](BufferArray name) const {return getVariable(name);}
 

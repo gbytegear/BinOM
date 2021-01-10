@@ -12,7 +12,9 @@ enum ErrCode : ui8 {
   binom_invalid_type,
   binom_invalid_initer,
   binom_out_of_range,
-  binom_object_key_error
+  binom_object_key_error,
+
+  out_of_range
 };
 
 class SException {

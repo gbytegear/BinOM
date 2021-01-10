@@ -36,8 +36,6 @@ namespace binom {
     qword_array         = 0x08,
     array               = 0x09,
     object              = 0x0A,
-    matrix              = 0x0B,
-    table               = 0x0C,
 
     invlid_type         = 0xFF
   };
@@ -54,8 +52,6 @@ namespace binom {
     buffer_array        = 0x02,
     array               = 0x03,
     object              = 0x04,
-    matrix              = 0x05,
-    table               = 0x06,
 
     invalid_type        = 0xFF
   };
@@ -70,10 +66,6 @@ namespace binom {
         return VarTypeClass::array;
       case VarType::object:
         return VarTypeClass::object;
-      case VarType::matrix:
-        return VarTypeClass::matrix;
-      case VarType::table:
-        return VarTypeClass::table;
       default:
         return VarTypeClass::invalid_type;
     }
@@ -102,20 +94,11 @@ namespace binom {
     }
   }
 
-  class MatrixDescriptor {
-    ui64 length;
-  public:
-    VarType* begin() {return reinterpret_cast<VarType*>(this) + 8;}
-    VarType* end() {return reinterpret_cast<VarType*>(this) + 8 + length;}
-  };
-
   // Basic
   class Variable;
   class Primitive;
   class BufferArray;
   class Array;
-  class Matrix;
-  class Table;
 
   // Helpers
   class ValueRef;
@@ -125,8 +108,6 @@ namespace binom {
   class ValueIterator;
   typedef Variable* ArrayIterator;
   typedef NamedVariable* ObjectIterator;
-  class MatrixRow;
-  class TableRow;
 
   // Initilizers
   typedef std::initializer_list<ui8> ui8arr;
@@ -137,9 +118,6 @@ namespace binom {
   typedef std::initializer_list<i32> i32arr;
   typedef std::initializer_list<ui64> ui64arr;
   typedef std::initializer_list<i64> i64arr;
-  struct mtrx;
-  struct tbl;
-
   typedef std::initializer_list<Variable> varr;
   typedef std::initializer_list<NamedVariable> obj;
 }

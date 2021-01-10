@@ -10,8 +10,6 @@ void* Variable::clone() const {
     case VarTypeClass::buffer_array: return toBufferArray().clone();
     case VarTypeClass::array: return toArray().clone();
     case VarTypeClass::object: return toObject().clone();
-    case VarTypeClass::matrix: return toMatrix().clone();
-    case VarTypeClass::table: return toTable().clone();
     case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
   }
 }
@@ -23,8 +21,6 @@ void Variable::destroy() {
     case VarTypeClass::buffer_array: return toBufferArray().destroy();
     case VarTypeClass::array: return toArray().destroy();
     case VarTypeClass::object: return toObject().destroy();
-    case VarTypeClass::matrix: return toMatrix().destroy();
-    case VarTypeClass::table: return toTable().destroy();
     case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
   }
 }
@@ -413,56 +409,6 @@ Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVa
   }
 }
 
-Variable::Variable(mtrx matrix) : data(tryMalloc(17 + matrix.getNeededMemory())) {
-  data.type[0] = VarType::matrix;
-  *reinterpret_cast<ui64*>(data.bytes + 1) = matrix.getRowCount();
-  *reinterpret_cast<ui64*>(data.bytes + 9) = matrix.getColumnCount();
-
-  { // Init matrix type list
-    VarType* it = data.type + 17;
-    for(VarType type : matrix.type_list) {
-      *it = type;
-      ++it;
-    }
-  }
-
-  { // Init variable values
-    void** it = reinterpret_cast<void**>(data.bytes + 17 + matrix.type_list.size());
-    for(const Variable& var : matrix.var_list) {
-      *it = var.getDataPointer();
-      const_cast<Variable&>(var).data.ptr = nullptr;
-      ++it;
-    }
-  }
-
-}
-
-Variable::Variable(tbl table) : data(tryMalloc(17 + table.getNeededMemory())) {
-  data.type[0] = VarType::table;
-  *reinterpret_cast<ui64*>(data.bytes + 1) = table.getRowCount();
-  *reinterpret_cast<ui64*>(data.bytes + 9) = table.getColumnCount();
-
-  { // Init table columns
-    tbl::ColumnInfo* it = reinterpret_cast<tbl::ColumnInfo*>(data.bytes + 17);
-    for(const tbl::ColumnInfo& column : table.column_list) {
-      it->type = column.type;
-      it->name.data.ptr = column.name.data.ptr;
-      const_cast<tbl::ColumnInfo&>(column).name.data.ptr = nullptr;
-      ++it;
-    }
-  }
-
-  {
-    void** it = reinterpret_cast<void**>(data.bytes + 17 + table.column_list.size() * sizeof (tbl::ColumnInfo));
-    for(const Variable& var : table.var_list) {
-      *it = var.getDataPointer();
-      const_cast<Variable&>(var).data.ptr = nullptr;
-      ++it;
-    }
-  }
-
-}
-
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Variable::Variable(Variable& other) : data(other.clone()) {}
 
@@ -474,7 +420,6 @@ std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {
     case VarTypeClass::buffer_array: return os << var.toBufferArray();
     case VarTypeClass::array: return os << var.toArray();
     case VarTypeClass::object: return os << var.toObject();
-
     default: throw SException(ErrCode::binom_invalid_type, "Not implemented!");
   }
 }

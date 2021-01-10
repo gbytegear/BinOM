@@ -7,8 +7,8 @@
 #include "buffer_array.h"
 #include "array.h"
 #include "object.h"
-#include "matrix.h"
-#include "table.h"
+
+#include "binom/includes/byte_array.h"
 
 namespace binom {
 
@@ -23,8 +23,6 @@ class Variable {
     BufferArray buffer_array;
     Array array;
     Object object;
-    Matrix matrix;
-    Table table;
 
     types(void* ptr) : ptr(ptr) {}
     ~types() {}
@@ -102,16 +100,12 @@ public:
   // Object
   Variable(obj object);
 
-  // Matrix
-  Variable(mtrx matrix);
-
-  // Table
-  Variable(tbl table);
-
   Variable(Variable&& other);
   Variable(Variable& other);
 
   ~Variable() {destroy();}
+
+  ByteArray serialize() const {}
 
   inline void* getDataPointer() const {return data.ptr;}
 
@@ -123,15 +117,11 @@ public:
   inline bool isBufferArray() const noexcept       {return typeClass() == VarTypeClass::buffer_array;}
   inline bool isArray() const noexcept             {return typeClass() == VarTypeClass::array;}
   inline bool isObject() const noexcept            {return typeClass() == VarTypeClass::object;}
-  inline bool isMatrix() const noexcept            {return typeClass() == VarTypeClass::matrix;}
-  inline bool isTable() const noexcept             {return typeClass() == VarTypeClass::table;}
 
   inline Primitive& toPrimitive() const noexcept         {return const_cast<Primitive&>(data.primitive);}
   inline BufferArray& toBufferArray() const noexcept     {return const_cast<BufferArray&>(data.buffer_array);}
   inline Array& toArray() const noexcept                 {return const_cast<Array&>(data.array);}
   inline Object& toObject() const noexcept               {return const_cast<Object&>(data.object);}
-  inline Matrix& toMatrix() const noexcept               {return const_cast<Matrix&>(data.matrix);}
-  inline Table& toTable() const noexcept                 {return const_cast<Table&>(data.table);}
 
   inline Variable& operator=(const Variable& other) {
     if(!isNull())destroy();
@@ -143,7 +133,7 @@ public:
     return
           (isNull())
         ? 0
-        : (isBufferArray() || isArray() || isObject() || isMatrix() || isTable())
+        : (isBufferArray() || isArray() || isObject())
         ? *reinterpret_cast<ui64*>(data.bytes + 1)
         : 1;
   }
@@ -167,60 +157,6 @@ struct NamedVariable {
   NamedVariable& operator=(NamedVariable& other) {
     name.data.ptr = other.name.clone();
     variable.data.ptr = other.variable.clone();
-  }
-};
-
-struct mtrx {
-  std::initializer_list<VarType> type_list;
-  std::initializer_list<Variable> var_list;
-
-  mtrx(std::initializer_list<VarType> types, std::initializer_list<Variable> vars)
-    : type_list(types), var_list(vars)
-  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid matrix initer");}
-
-  ui64 getNeededMemory() {return type_list.size() + var_list.size() * PTR_SZ;}
-  ui64 getColumnCount() {return type_list.size();}
-  ui64 getRowCount() {return var_list.size() / type_list.size();}
-
-  private:
-  bool isValid() {
-    std::initializer_list<VarType>::iterator type(type_list.begin());
-    std::initializer_list<Variable>::iterator var(var_list.begin());
-    for(;var != var_list.end();(++type, ++var)) {
-      if(type == type_list.end()) type = type_list.begin();
-      if(var->type() != *type) return false;
-    }
-    return type == type_list.end();
-  }
-};
-
-struct tbl {
-  #pragma pack(push,1)
-  struct ColumnInfo {
-    VarType type;
-    BufferArray name;
-  };
-  #pragma pack(pop)
-  std::initializer_list<ColumnInfo> column_list;
-  std::initializer_list<Variable> var_list;
-
-  tbl(std::initializer_list<ColumnInfo> columns, std::initializer_list<Variable> vars)
-    : column_list(columns), var_list(vars)
-  {if(!isValid())throw SException(ErrCode::binom_invalid_initer, "Invalid table initer");}
-
-  ui64 getNeededMemory() {return column_list.size() * sizeof (ColumnInfo) + var_list.size() + PTR_SZ;}
-  ui64 getColumnCount() {return column_list.size();}
-  ui64 getRowCount() {return var_list.size() / column_list.size();}
-
-private:
-  bool isValid() {
-    std::initializer_list<ColumnInfo>::iterator column(column_list.begin());
-    std::initializer_list<Variable>::iterator var(var_list.begin());
-    for(;var != var_list.end();(++column, ++var)) {
-      if(column == column_list.end()) column = column_list.begin();
-      if(var->type() != column->type) return false;
-    }
-    return column == column_list.end();
   }
 };
 

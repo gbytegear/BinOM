@@ -29,6 +29,7 @@ class Primitive {
   void* clone();
 
   friend class Variable;
+  friend class ValueRef;
 public:
   Primitive() : data(nullptr) {}
   // Bool init

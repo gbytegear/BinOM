@@ -8,7 +8,7 @@
 
 #ifdef M_DBG
 
-#define MDBG(expression) std::cerr << "\n\n+-------- " << __FUNCTION__ << '\n' << expression << "+--------\n\n";
+#define MDBG(expression) std::clog << "\n\n+-------- " << __FUNCTION__ << '\n' << expression << "+--------\n\n";
 
 #else
 
@@ -44,5 +44,17 @@ Type* tryMalloc(size_t count) {
 }
 
 void* tryRealloc(void* ptr, size_t size);
+
+template <typename Type>
+Type* tryRealloc(Type* ptr, size_t count) {
+  Type* new_ptr = reinterpret_cast<Type*>(realloc(ptr, sizeof (Type) * count));
+
+  MDBG("|Reallocated:" << size << '\n'
+    << "|Reallocated from:" << ptr << '\n'
+    << "|Reallocated to:" << new_ptr << '\n')
+
+  if(new_ptr == nullptr) throw binom::SException(binom::ErrCode::memory_allocation_error, "Memory array allocation error!");
+  else return new_ptr;
+}
 
 #endif // TRYMEM_H

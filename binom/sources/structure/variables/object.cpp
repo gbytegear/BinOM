@@ -174,6 +174,25 @@ Variable& Object::operator+=(NamedVariable named_variable) {
   return insert(named_variable.name, named_variable.variable);
 }
 
+NamedVariable& Object::getNamedVariable(BufferArray name) const {
+  i64 left = 0;
+  i64 right = length();
+  i64 middle = 0;
+
+  NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
+
+  while (left <= right) {
+    middle = (left + right) / 2;
+    if(middle > length()) break;
+
+    if(it[middle].name > name) right = middle - 1;
+    elif(it[middle].name < name) left = middle + 1;
+    elif(it[middle].name == name) return it[middle];
+  }
+
+  throw SException(ErrCode::binom_out_of_range, "");
+}
+
 Variable& Object::getVariable(BufferArray name) const {
   i64 left = 0;
   i64 right = length();

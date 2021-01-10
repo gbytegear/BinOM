@@ -183,6 +183,7 @@ inline void testObject() {
   std::clog << object.toObject().getVariable("Hello world").toBufferArray().toString() << '\n';
 }
 
+
 int main() {
   try {
     std::clog << "===================================================================\n";

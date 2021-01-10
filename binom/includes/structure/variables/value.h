@@ -27,6 +27,7 @@ class ValueRef {
 
   friend class ValueIterator;
 public:
+  ValueRef(Primitive& var)              : type(toValueType(**reinterpret_cast<VarType**>(&var))), ptr(*reinterpret_cast<byte**>(&var) + 1) {}
   ValueRef(ValType type, void* pointer) : type(type), ptr(pointer) {}
   ValueRef(VarType type, void* pointer) : type(toValueType(type)), ptr(pointer) {}
   ValueRef(const ValueRef& other) : type(other.type), ptr(other.ptr.ptr) {}
