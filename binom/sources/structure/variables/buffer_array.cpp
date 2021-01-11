@@ -1,4 +1,5 @@
 #include "binom/includes/structure/variables/variable.h"
+#include <cmath>
 
 using namespace binom;
 
@@ -48,6 +49,34 @@ void* BufferArray::clone() const {
   void* ptr = tryMalloc(size);
   memcpy(ptr, data.ptr, size);
   return ptr;
+}
+
+ByteArray BufferArray::toChainNumber(ui64 number) {
+
+  auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
+  auto shiftBits = [](ui8 prev, ui8 next, ui8 shift)->byte {return static_cast<ui8>((next << shift) + (prev >> (8 - shift)));};
+  auto getByte = [](ui64& value, ui8 index)->byte {return reinterpret_cast<ui8*>(&value)[index];};
+
+  ByteArray bytes((number == 0) ? 1 : static_cast<ui64>(floor (log10 (number) / log10 (128))) + 1);
+  for(ui8 i = 0; i < bytes.length (); ++i) {
+    bytes[i] = withoutLastBit(shiftBits(getByte(number, i - 1), getByte(number, i), i));
+    if(i != bytes.length() - 1)
+      bytes[i] += 128;
+  }
+
+  return bytes;
+}
+
+ui64 BufferArray::fromChainNumber(ByteArray::iterator it) {
+
+  auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
+
+  ui64 number = 0;
+  ui8 i = 0;
+  for(; it[i] > 127; ++i)
+    number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
+  number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
+  return number;
 }
 
 BufferArray::BufferArray(const char* str) : data(tryMalloc(9 + strlen(str))) {
@@ -313,6 +342,8 @@ BufferArray::BufferArray(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
 BufferArray::BufferArray(BufferArray& other) : data(other.clone()) {}
 BufferArray::BufferArray(BufferArray&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
+ByteArray BufferArray::serialize() const {return ByteArray(data.ptr, msize ());}
+
 ValueRef BufferArray::pushBack(ui64 value) {
     ValueRef val(*data.type, madd(getMemberSize()));
     val.setUnsigned(value);
@@ -548,6 +579,7 @@ BufferArray::const_iterator BufferArray::cend() const {return ValueIterator(*dat
 
 std::string BufferArray::toString() const {
   std::string str;
+  str.reserve (length());
   for(const ValueRef &val : *this)
     str += char(val.asSigned());
   return str;
@@ -555,6 +587,7 @@ std::string BufferArray::toString() const {
 
 std::wstring BufferArray::toWString() const {
   std::wstring wstr;
+  wstr.reserve (length());
   for(const ValueRef &val : *this)
     wstr += wchar_t(val.asUnsigned());
   return wstr;

@@ -242,8 +242,91 @@ inline void testNodeVisitor() {
     std::clog << child.getValue() << '\n';
   }
 
+}
+
+#include <cstdio>
+
+std::ostream& operator<<(std::ostream& os, const binom::ByteArray byte_array) {
+  for(binom::byte b : byte_array) {
+    os << std::right << std::setw(2) << std::setfill('0') << std::hex << std::uppercase << ui16(b) << ' ';
+  }
+  return os;
+}
+
+inline void testSerialization() {
+  Variable arr = varr {
+    8_ui8,
+    16_ui16,
+    32_ui32,
+    64_ui64,
+    ui8arr{1,2,3},
+    ui16arr{1,2,3},
+    ui32arr{1,2,3},
+    ui64arr{1,2,3},
+    varr {
+      8_ui8,
+      16_ui16,
+      32_ui32,
+      64_ui64,
+      },
+    obj {
+      {"byte", 8_ui8},
+      {"word", 16_ui16},
+      {"dword", 32_ui32},
+      {"qword", 64_ui64}
+    }
+  };
+
+  ByteArray ser(arr.serialize());
+
+  FILE* file = fopen64 ("test.binom", "w+");
+  fwrite (ser.begin (), 1, ser.length (), file);
+  fclose (file);
+
+  std::clog << "Serialized:\n" << ser << "\nSize: " << std::dec << ser.length () << " bytes\n";
 
 }
+
+#include <cmath>
+
+
+inline void testChainNaumber() {
+
+  auto toChainNumber = [](ui64 number)->ByteArray {
+
+    auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
+    auto shiftBits = [](ui8 prev, ui8 next, ui8 shift)->byte {return static_cast<ui8>((next << shift) + (prev >> (8 - shift)));};
+    auto getByte = [](ui64& value, ui8 index)->byte {return reinterpret_cast<ui8*>(&value)[index];};
+
+    ByteArray bytes((number == 0) ? 1 : static_cast<ui64>(floor (log10 (number) / log10 (128))) + 1);
+    for(ui8 i = 0; i < bytes.length (); ++i) {
+      bytes[i] = withoutLastBit(shiftBits(getByte(number, i - 1), getByte(number, i), i));
+      if(i != bytes.length() - 1)
+        bytes[i] += 128;
+    }
+
+    return bytes;
+  };
+
+  auto fromChainNumber = [](ByteArray::iterator it)->ui64 {
+    auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
+
+    ui64 number = 0;
+    ui8 i = 0;
+    for(; it[i] > 127; ++i)
+      number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
+    number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
+    return number;
+  };
+
+  ui64 start_number = 0xff; // Bug!!!
+  ByteArray bytes(toChainNumber(start_number));
+  ui64 end_number = fromChainNumber (bytes.begin ());
+
+  std::clog << start_number << " => " << bytes << " => " << std::dec << end_number << '\n';
+}
+
+
 
 
 int main() {
@@ -258,6 +341,11 @@ int main() {
     testObject();
     std::clog << "===================================================================\n";
     testNodeVisitor();
+    std::clog << "===================================================================\n";
+    testSerialization ();
+    std::clog << "===================================================================\n";
+    testChainNaumber ();
+
 
 
 

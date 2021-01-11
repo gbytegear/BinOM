@@ -54,6 +54,8 @@ public:
 
   ~Primitive();
 
+  ByteArray serialize() const;
+
   inline ValueRef getValue() const {return ValueRef(*data.type, data.bytes + 1);}
 
   inline ValueRef operator*() const {return getValue();}

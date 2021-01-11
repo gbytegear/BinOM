@@ -412,6 +412,16 @@ Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVa
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Variable::Variable(Variable& other) : data(other.clone()) {}
 
+ByteArray Variable::serialize() const {
+  switch (typeClass()) {
+    case VarTypeClass::primitive: return toPrimitive().serialize();
+    case VarTypeClass::buffer_array: return toBufferArray().serialize();
+    case VarTypeClass::array: return toArray().serialize();
+    case VarTypeClass::object: return toObject().serialize();
+    default: throw SException(ErrCode::binom_invalid_type, "Not implemented!");
+  }
+}
+
 
 
 std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {

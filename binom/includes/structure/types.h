@@ -7,6 +7,7 @@
 #include <string>
 #include "../ctypes.h"
 #include "../mem.h"
+#include "binom/includes/byte_array.h"
 
 
 //Arch dependebce

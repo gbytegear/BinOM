@@ -28,6 +28,10 @@ class BufferArray {
   friend class Variable;
   friend class Object;
   friend struct NamedVariable;
+
+  struct _value_7_1 {ui8 val:7;bool sign:1;};
+  static ByteArray toChainNumber(ui64 number);
+  static ui64 fromChainNumber(ByteArray::iterator it);
     
   BufferArray(void* buffer) : data(buffer) {}
 
@@ -74,6 +78,8 @@ public:
   BufferArray(BufferArray&& other);
 
   ~BufferArray() {destroy();}
+
+  ByteArray serialize() const;
 
   inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}

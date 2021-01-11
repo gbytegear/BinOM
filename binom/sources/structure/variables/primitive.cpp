@@ -83,6 +83,8 @@ binom::Primitive::Primitive(binom::ValueRef value) : data(tryMalloc(1 + value.ge
 
 binom::Primitive::~Primitive() {destroy();}
 
+binom::ByteArray binom::Primitive::serialize() const {return ByteArray(data.ptr, msize ());}
+
 binom::Primitive& binom::Primitive::operator=(binom::Primitive& other) {
   getValue() << other.getValue();
   return *this;

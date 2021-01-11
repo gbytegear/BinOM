@@ -71,6 +71,15 @@ Array::Array(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {
 Array::Array(Array&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Array::Array(Array& other) : data(other.clone()) {}
 
+ByteArray Array::serialize() const {
+  ByteArray serialized;
+  serialized += byte(VarType::array);
+  for(Variable& var : *this)
+    serialized += var.serialize ();
+  serialized += byte(VarType::end);
+  return serialized;
+}
+
 Variable& Array::getVariable(ui64 index) const {
   if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of array range");
   return begin()[index];

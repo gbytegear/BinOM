@@ -8,8 +8,6 @@
 #include "array.h"
 #include "object.h"
 
-#include "binom/includes/byte_array.h"
-
 namespace binom {
 
 class Variable {
@@ -105,7 +103,7 @@ public:
 
   ~Variable() {destroy();}
 
-  ByteArray serialize() const {}
+  ByteArray serialize() const;
 
   inline void* getDataPointer() const {return data.ptr;}
 

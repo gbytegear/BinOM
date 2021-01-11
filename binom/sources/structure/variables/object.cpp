@@ -112,6 +112,17 @@ Object::Object(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariab
   }
 }
 
+ByteArray Object::serialize() const {
+  ByteArray serialised;
+  serialised += byte(VarType::object);
+  for(NamedVariable& n_var : *this) {
+    serialised += n_var.name.toString().c_str();
+    serialised += n_var.variable.serialize();
+  }
+  serialised += byte(VarType::end);
+  return serialised;
+}
+
 Variable& Object::insert(BufferArray name, Variable var) {
   if(!length()) {
     NamedVariable& member = *reinterpret_cast<NamedVariable*>(madd(sizeof (NamedVariable)));
