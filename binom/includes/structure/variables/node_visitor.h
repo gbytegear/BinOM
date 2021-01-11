@@ -47,6 +47,7 @@ public:
   NodeVisitor& operator=(const NodeVisitor& other);
 
   VarType getType();
+  VarTypeClass getTypeClass() {return toTypeClass(getType());}
 
   NodeVisitor& stepInside(ui64 index);
   NodeVisitor& stepInside(BufferArray name);
@@ -60,6 +61,136 @@ public:
   Variable& getVariable(BufferArray name) const;
   NamedVariable& getNamedVariable() const;
   NamedVariable& getNamedVariable(BufferArray name) const;
+
+  NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
+  NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(name);}
+
+  NodeVisitor operator[](ui64 index) {return NodeVisitor(*this).stepInside(index);}
+  NodeVisitor operator[](BufferArray name) {return NodeVisitor(*this).stepInside(name);}
+
+  NodeIterator begin();
+  NodeIterator end();
+
+};
+
+class NodeVisitor::NodeIterator {
+  Variable* parent = nullptr;
+
+  union Ptr {
+    Variable* variable;
+    NamedVariable* named_variable;
+    ValueIterator value_it;
+
+    Ptr(VarTypeClass type, Variable& parent, bool is_end = false) {
+      switch (type) {
+        case VarTypeClass::buffer_array: value_it = is_end? parent.toBufferArray().end() : parent.toBufferArray().begin(); return;
+        case VarTypeClass::array:        variable = is_end? parent.toArray().end() : parent.toArray().begin(); return;
+        case VarTypeClass::object:       named_variable = is_end? parent.toObject().end() : parent.toObject().begin(); return;
+        default: throw SException(ErrCode::binom_invalid_type);
+      }
+    }
+
+    Ptr(VarTypeClass type, Ptr& other) {
+      switch (type) {
+        case VarTypeClass::buffer_array: value_it = other.value_it; return;
+        case VarTypeClass::array:        variable = other.variable; return;
+        case VarTypeClass::object:       named_variable = other.named_variable; return;
+        default: throw SException(ErrCode::binom_invalid_type);
+      }
+    }
+
+  };
+
+  VarTypeClass type;
+  Ptr ptr;
+
+public:
+  NodeIterator(NodeVisitor& node, bool is_end = false)
+    : parent(&node.getVariable()),
+      type(toTypeClass(node.getType())),
+      ptr(type, *parent, is_end) {}
+
+  NodeIterator(NodeIterator& other)
+    : parent(other.parent),
+      type(other.type),
+      ptr(type, other.ptr) {}
+
+  NodeIterator(NodeIterator&& other)
+    : parent(other.parent),
+    type(other.type),
+    ptr(type, other.ptr) {}
+
+  NodeIterator& operator++() {
+    switch (type) {
+      case VarTypeClass::buffer_array: ++ptr.value_it; break;
+      case VarTypeClass::array:        ++ptr.variable; break;
+      case VarTypeClass::object:       ++ptr.named_variable; break;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+    return *this;
+  }
+
+  NodeIterator operator++(int) {
+    NodeIterator tmp(*this);
+    switch (type) {
+      case VarTypeClass::buffer_array: ++ptr.value_it; break;
+      case VarTypeClass::array:        ++ptr.variable; break;
+      case VarTypeClass::object:       ++ptr.named_variable; break;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+    return tmp;
+  }
+
+  NodeIterator& operator--(){
+    switch (type) {
+      case VarTypeClass::buffer_array: --ptr.value_it; break;
+      case VarTypeClass::array:        --ptr.variable; break;
+      case VarTypeClass::object:       --ptr.named_variable; break;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+    return *this;
+  }
+
+  NodeIterator operator--(int) {
+    NodeIterator tmp(*this);
+    switch (type) {
+      case VarTypeClass::buffer_array: --ptr.value_it; break;
+      case VarTypeClass::array:        --ptr.variable; break;
+      case VarTypeClass::object:       --ptr.named_variable; break;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+    return tmp;
+  }
+
+  bool operator==(NodeIterator& other) {
+    if(type != other.type) return false;
+    switch (type) {
+      case VarTypeClass::buffer_array: return ptr.value_it == other.ptr.value_it;
+      case VarTypeClass::array:        return ptr.variable == other.ptr.variable;
+      case VarTypeClass::object:       return ptr.named_variable == other.ptr.named_variable;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
+
+  bool operator!=(NodeIterator& other) {
+     if(type != other.type) return false;
+     switch (type) {
+       case VarTypeClass::buffer_array: return ptr.value_it != other.ptr.value_it;
+       case VarTypeClass::array:        return ptr.variable != other.ptr.variable;
+       case VarTypeClass::object:       return ptr.named_variable != other.ptr.named_variable;
+       default: throw SException(ErrCode::binom_invalid_type);
+     }
+  }
+
+  NodeVisitor operator*() {
+    switch (type) {
+      case VarTypeClass::buffer_array: return *ptr.value_it;
+      case VarTypeClass::array:        return ptr.variable;
+      case VarTypeClass::object:       return ptr.named_variable;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
+
 
 };
 

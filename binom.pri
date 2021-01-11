@@ -10,6 +10,7 @@ SOURCES += \
   binom/sources/structure/variables/node_visitor.cpp
 
 HEADERS += \
+  $$PWD/binom/includes/binom.h \
   $$PWD/binom/includes/byte_array.h \
   binom/includes/mem.h \
   binom/includes/structure/rwguard.h \

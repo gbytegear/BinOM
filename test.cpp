@@ -1,4 +1,5 @@
-#include "binom/includes/structure/variables/variable.h"
+//#include "binom/includes/structure/variables/variable.h"
+#include "binom/includes/binom.h"
 #include <cassert>
 
 using namespace binom;
@@ -183,6 +184,67 @@ inline void testObject() {
   std::clog << object.toObject().getVariable("Hello world").toBufferArray().toString() << '\n';
 }
 
+inline void testNodeVisitor() {
+  Variable arr = varr {
+    8_ui8,
+    16_ui16,
+    32_ui32,
+    64_ui64,
+    ui8arr{1,2,3},
+    ui16arr{1,2,3},
+    ui32arr{1,2,3},
+    ui64arr{1,2,3},
+    varr {
+      8_ui8,
+      16_ui16,
+      32_ui32,
+      64_ui64,
+    },
+    obj {
+      {"byte", 8_ui8},
+      {"word", 16_ui16},
+      {"dword", 32_ui32},
+      {"qword", 64_ui64}
+    }
+  };
+
+  NodeVisitor node(&arr);
+
+  std::clog << "Root: " << node.getVariable() << '\n';
+
+  std::clog << "8th element: "<< node.stepInside(8).getVariable() << '\n';
+
+  node = &arr;
+
+  std::clog << "9th/\"word\" element: " << node.stepInside(9).stepInside("word").getVariable() << '\n';
+
+  std::clog << "Foreach test object:\n";
+
+  (node = &arr).stepInside (9);
+
+  for(NodeVisitor child : node) {
+    std::clog << child.getNamedVariable ().name.toString () << ':' << child.getVariable () << '\n';
+  }
+
+  std::clog << "Foreach test array:\n";
+
+  (node = &arr).stepInside (8);
+
+  for(NodeVisitor child : node) {
+    std::clog << child.getVariable() << '\n';
+  }
+
+  std::clog << "Foreach test buffer array:\n";
+
+  (node = &arr).stepInside (4);
+
+  for(NodeVisitor child : node) {
+    std::clog << child.getValue() << '\n';
+  }
+
+
+}
+
 
 int main() {
   try {
@@ -194,6 +256,8 @@ int main() {
     testArray();
     std::clog << "===================================================================\n";
     testObject();
+    std::clog << "===================================================================\n";
+    testNodeVisitor();
 
 
 

@@ -100,3 +100,7 @@ binom::NamedVariable& binom::NodeVisitor::getNamedVariable(binom::BufferArray na
   if(var.isObject()) return var.toObject().getNamedVariable(name);
   throw SException(ErrCode::binom_invalid_type);
 }
+
+binom::NodeVisitor::NodeIterator binom::NodeVisitor::begin() {return NodeIterator(*this);}
+
+binom::NodeVisitor::NodeIterator binom::NodeVisitor::end() {return NodeIterator(*this, true);}
