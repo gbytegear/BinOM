@@ -30,6 +30,9 @@ class Primitive {
 
   friend class Variable;
   friend class ValueRef;
+
+  Primitive(void* buffer) : data(buffer) {}
+
 public:
   Primitive() : data(nullptr) {}
   // Bool init
@@ -55,6 +58,28 @@ public:
   ~Primitive();
 
   ByteArray serialize() const;
+  static Primitive deserialize(ByteArray::iterator& it);
+
+  inline ui8 getMemberSize() const {
+    switch (*data.type) {
+      case VarType::byte: return 1;
+      case VarType::word: return 2;
+      case VarType::dword: return 4;
+      case VarType::qword: return 8;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
+
+  static inline ui8 getMemberSize(VarType type) {
+    switch (type) {
+      case VarType::byte: return 1;
+      case VarType::word: return 2;
+      case VarType::dword: return 4;
+      case VarType::qword: return 8;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
+
 
   inline ValueRef getValue() const {return ValueRef(*data.type, data.bytes + 1);}
 

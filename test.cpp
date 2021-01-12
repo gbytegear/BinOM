@@ -263,6 +263,7 @@ inline void testSerialization() {
     ui16arr{1,2,3},
     ui32arr{1,2,3},
     ui64arr{1,2,3},
+    "Hello world",
     varr {
       8_ui8,
       16_ui16,
@@ -290,42 +291,71 @@ inline void testSerialization() {
 #include <cmath>
 
 
-inline void testChainNaumber() {
+inline void testChainNumber() {
 
   auto toChainNumber = [](ui64 number)->ByteArray {
 
-    auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
-    auto shiftBits = [](ui8 prev, ui8 next, ui8 shift)->byte {return static_cast<ui8>((next << shift) + (prev >> (8 - shift)));};
-    auto getByte = [](ui64& value, ui8 index)->byte {return reinterpret_cast<ui8*>(&value)[index];};
+    auto shiftBits = [](ui8 prev, ui8 next, ui8 shift)->ui8{return (next << shift) + (prev >> (8 - shift));};
+    auto get7Bit = [](ui8 val)->ui8 {return (val > 127)? val - 128 : val;};
 
+    ui8* number_bytes = reinterpret_cast<ui8*>(&number);
     ByteArray bytes((number == 0) ? 1 : static_cast<ui64>(floor (log10 (number) / log10 (128))) + 1);
-    for(ui8 i = 0; i < bytes.length (); ++i) {
-      bytes[i] = withoutLastBit(shiftBits(getByte(number, i - 1), getByte(number, i), i));
-      if(i != bytes.length() - 1)
-        bytes[i] += 128;
+    for(ui8 i = 0; i < bytes.length(); ++i) {
+      bytes[i] = get7Bit(shiftBits(number_bytes[i - 1], number_bytes[i], i));
+      if(i == bytes.length() - 1)
+        bytes[i] = (bytes[i] > 127) ? bytes[i] - 128 : bytes[i];
+      else
+        bytes[i] |= 128;
     }
-
     return bytes;
   };
 
   auto fromChainNumber = [](ByteArray::iterator it)->ui64 {
-    auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
+    auto get7Bit = [](ui8 val)->ui8 {return (val > 127)? val - 128 : val;};
 
     ui64 number = 0;
     ui8 i = 0;
-    for(; it[i] > 127; ++i)
-      number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
-    number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
+    for(; it[i] > 127; ++i) {
+      number += static_cast<ui64>( get7Bit(it[i]) * pow(128,i));
+    }
+    number += static_cast<ui64>(get7Bit(it[i]) * pow(128,i));
     return number;
   };
 
-  ui64 start_number = 0xff; // Bug!!!
-  ByteArray bytes(toChainNumber(start_number));
-  ui64 end_number = fromChainNumber (bytes.begin ());
+  for(ui64 start_number = 1; start_number < 9223372036854775808ull; start_number += start_number) {
+    ByteArray bytes(toChainNumber(start_number));
+    ui64 end_number = fromChainNumber (bytes.begin ());
 
-  std::clog << start_number << " => " << bytes << " => " << std::dec << end_number << '\n';
+    std::clog << std::dec << start_number << "( " << ByteArray(&start_number, 8) << ')'
+              << " => " << bytes
+              << " => " << std::dec << end_number << "( " << ByteArray(&end_number, 8) << ')'
+              << ((start_number != end_number)? "Err!" : "") << '\n';
+  }
 }
 
+
+inline void testDeserialize() {
+  Primitive pri(65535_ui64);
+  ByteArray ser = pri.serialize ();
+  ByteArray::iterator it = ser.begin();
+  Primitive new_pri(Primitive::deserialize(it));
+
+  std::clog
+    << "Preserialize: " << pri << '\n'
+    << "Serialized: " << ser << '\n'
+    << "Deserialized: " << new_pri << '\n';
+
+
+  BufferArray array = "Hello world";
+  ser = array.serialize();
+  it = ser.begin();
+  BufferArray new_arr(BufferArray::deserialize (it));
+
+  std::clog
+      << "Preserialize: " << array.toString() << '\n'
+      << "Serialized: " << ser << '\n'
+      << "Deserialized: " << new_arr.toString() << '\n';
+}
 
 
 
@@ -342,9 +372,12 @@ int main() {
     std::clog << "===================================================================\n";
     testNodeVisitor();
     std::clog << "===================================================================\n";
+    testChainNumber ();
+    std::clog << "===================================================================\n";
     testSerialization ();
     std::clog << "===================================================================\n";
-    testChainNaumber ();
+    testDeserialize ();
+
 
 
 

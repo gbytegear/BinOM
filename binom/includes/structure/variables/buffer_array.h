@@ -31,7 +31,7 @@ class BufferArray {
 
   struct _value_7_1 {ui8 val:7;bool sign:1;};
   static ByteArray toChainNumber(ui64 number);
-  static ui64 fromChainNumber(ByteArray::iterator it);
+  static ui64 fromChainNumber(ByteArray::iterator& it);
     
   BufferArray(void* buffer) : data(buffer) {}
 
@@ -39,6 +39,8 @@ public:
 
   typedef ValueIterator iterator;
   typedef const ValueIterator const_iterator;
+
+  BufferArray(VarType type);
 
   BufferArray(const char* str);
   BufferArray(const std::string str);
@@ -74,12 +76,15 @@ public:
   BufferArray(i32arr array);
   BufferArray(i64arr array);
 
+  BufferArray(ByteArray arr);
+
   BufferArray(BufferArray& other);
   BufferArray(BufferArray&& other);
 
   ~BufferArray() {destroy();}
 
   ByteArray serialize() const;
+  static BufferArray deserialize(ByteArray::iterator& it);
 
   inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
@@ -92,6 +97,17 @@ public:
       default: throw SException(ErrCode::binom_invalid_type);
     }
   }
+
+  static inline ui8 getMemberSize(VarType type) {
+    switch (type) {
+      case VarType::byte_array: return 1;
+      case VarType::word_array: return 2;
+      case VarType::dword_array: return 4;
+      case VarType::qword_array: return 8;
+      default: throw SException(ErrCode::binom_invalid_type);
+    }
+  }
+
 
   inline ValueRef getValue(ui64 index) const {
     if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");

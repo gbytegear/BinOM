@@ -52,31 +52,37 @@ void* BufferArray::clone() const {
 }
 
 ByteArray BufferArray::toChainNumber(ui64 number) {
-
-  auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
-  auto shiftBits = [](ui8 prev, ui8 next, ui8 shift)->byte {return static_cast<ui8>((next << shift) + (prev >> (8 - shift)));};
-  auto getByte = [](ui64& value, ui8 index)->byte {return reinterpret_cast<ui8*>(&value)[index];};
-
+  auto shiftBits = [](ui8 prev, ui8 next, ui8 shift)->ui8{return (next << shift) + (prev >> (8 - shift));};
+  auto get7Bit = [](ui8 val)->ui8 {return (val > 127)? val - 128 : val;};
+  ui8* number_bytes = reinterpret_cast<ui8*>(&number);
   ByteArray bytes((number == 0) ? 1 : static_cast<ui64>(floor (log10 (number) / log10 (128))) + 1);
-  for(ui8 i = 0; i < bytes.length (); ++i) {
-    bytes[i] = withoutLastBit(shiftBits(getByte(number, i - 1), getByte(number, i), i));
-    if(i != bytes.length() - 1)
-      bytes[i] += 128;
+  for(ui8 i = 0; i < bytes.length(); ++i) {
+    bytes[i] = get7Bit(shiftBits(number_bytes[i - 1], number_bytes[i], i));
+    if(i == bytes.length() - 1)
+      bytes[i] = (bytes[i] > 127) ? bytes[i] - 128 : bytes[i];
+    else
+      bytes[i] |= 128;
   }
-
   return bytes;
 }
 
-ui64 BufferArray::fromChainNumber(ByteArray::iterator it) {
-
-  auto withoutLastBit = [](byte b)->byte {return (b > 127)? b - 128 : b;};
-
+ui64 BufferArray::fromChainNumber(ByteArray::iterator& it) {
+  auto get7Bit = [](ui8 val)->ui8 {return (val > 127)? val - 128 : val;};
   ui64 number = 0;
   ui8 i = 0;
-  for(; it[i] > 127; ++i)
-    number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
-  number += static_cast<ui64>(withoutLastBit(it[i]) * pow(128,i));
+  for(; *it > 127; (++i, ++it)) {
+    number += static_cast<ui64>( get7Bit(*it) * pow(128,i));
+  }
+  number += static_cast<ui64>(get7Bit(*it) * pow(128,i));
+  ++it;
   return number;
+}
+
+BufferArray::BufferArray(VarType type) : data(nullptr){
+  if(type < VarType::byte_array || type > VarType::qword_array) throw SException(ErrCode::binom_invalid_type);
+  data.ptr = tryMalloc (9);
+  *data.type = type;
+  length() = 0;
 }
 
 BufferArray::BufferArray(const char* str) : data(tryMalloc(9 + strlen(str))) {
@@ -339,10 +345,35 @@ BufferArray::BufferArray(i64arr array) : data(tryMalloc(9 + array.size()*8)) {
     }
 }
 
+BufferArray::BufferArray(ByteArray arr) : data(tryMalloc (9 + arr.length())) {
+  data.type[0] = VarType::byte_array;
+  length() = arr.length();
+  memcpy(data.bytes + 9, arr.begin(), length());
+}
+
 BufferArray::BufferArray(BufferArray& other) : data(other.clone()) {}
 BufferArray::BufferArray(BufferArray&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
-ByteArray BufferArray::serialize() const {return ByteArray(data.ptr, msize ());}
+ByteArray BufferArray::serialize() const {
+  ByteArray bytes(1);
+  bytes[0] = byte(*data.type);
+  bytes += toChainNumber (length ());
+  bytes.pushBack(data.bytes + 9, msize() - 9);
+  return bytes;
+}
+
+BufferArray BufferArray::deserialize(binom::ByteArray::iterator& it) {
+  VarType type = VarType(*it);
+  ++it;
+  ui64 length = fromChainNumber(it);
+  void* buffer = tryMalloc(9 + length*getMemberSize(type));
+  BufferArray buffer_array(buffer);
+  *buffer_array.data.type = type;
+  buffer_array.length() = length;
+  memcpy(buffer_array.data.bytes + 9, it, length*getMemberSize(type));
+  *it += length*getMemberSize(type);
+  return buffer_array;
+}
 
 ValueRef BufferArray::pushBack(ui64 value) {
     ValueRef val(*data.type, madd(getMemberSize()));

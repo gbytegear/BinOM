@@ -85,6 +85,16 @@ binom::Primitive::~Primitive() {destroy();}
 
 binom::ByteArray binom::Primitive::serialize() const {return ByteArray(data.ptr, msize ());}
 
+binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
+  void* buffer = tryMalloc(1 + getMemberSize(VarType(*it)));
+  Primitive var(buffer);
+  *var.data.type = VarType(*it);
+  ++it;
+  memcpy (var.data.bytes + 1, it, getMemberSize(*var.data.type));
+  it += getMemberSize(*var.data.type);
+  return var;
+}
+
 binom::Primitive& binom::Primitive::operator=(binom::Primitive& other) {
   getValue() << other.getValue();
   return *this;
