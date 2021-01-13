@@ -51,9 +51,11 @@ binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::BufferArray name) {
   else throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::BufferArray& binom::NodeVisitor::rename(binom::BufferArray name) {
-  if(ref_type != RefType::named_variable) throw SException(ErrCode::binom_invalid_type);
-  return ref.named_variable->name = name;
+binom::BufferArray& binom::NodeVisitor::rename(binom::BufferArray old_name, binom::BufferArray new_name) {
+  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
+  if(var.isObject()) return var.toObject().rename(std::move(old_name), std::move(new_name));
+  else throw SException(ErrCode::binom_invalid_type);
 }
 
 binom::ValueRef binom::NodeVisitor::getValue() const {
@@ -89,15 +91,8 @@ binom::Variable& binom::NodeVisitor::getVariable(binom::BufferArray name) const 
   throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::NamedVariable& binom::NodeVisitor::getNamedVariable() const {
-  if(ref_type != RefType::named_variable) throw SException(ErrCode::binom_invalid_type);
-  return *ref.named_variable;
-}
-
-binom::NamedVariable& binom::NodeVisitor::getNamedVariable(binom::BufferArray name) const {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
-  Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
-  if(var.isObject()) return var.toObject().getNamedVariable(name);
+binom::BufferArray binom::NodeVisitor::getName() const {
+  if(ref_type == RefType::named_variable) return ref.named_variable->name;
   throw SException(ErrCode::binom_invalid_type);
 }
 

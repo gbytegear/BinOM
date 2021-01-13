@@ -40,6 +40,9 @@ public:
   bool seek(ui64 pos) {return !fseeko64(file, pos, SEEK_SET);}
   bool rseek(ui64 rpos) {return !fseeko64(file, rpos, SEEK_END);}
 
+
+
+
 };
 
 }

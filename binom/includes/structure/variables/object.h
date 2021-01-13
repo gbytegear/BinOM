@@ -39,6 +39,7 @@ public:
 
   Variable& insert(BufferArray name, Variable var);
   void remove(BufferArray name);
+  BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
   Variable& operator+=(NamedVariable named_variable);
 

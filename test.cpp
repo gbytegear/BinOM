@@ -172,10 +172,14 @@ inline void testObject() {
 
   object.toObject().insert("01",8_ui8);
   object.toObject().insert("10",8_ui8);
-  object.toObject().insert("8",8_ui8);
+  object.toObject().insert("8",64_ui8);
   object.toObject().insert("7",8_ui8);
   object.toObject().insert("Hello world","Hello world");
+
   object.toObject().remove("4");
+  object.toObject ().rename("1", "4");
+  object.toObject ().rename("8", "1");
+  object.toObject ().rename("0", "11");
 
   object.toObject() += {"Hello", "World"};
 
@@ -223,7 +227,7 @@ inline void testNodeVisitor() {
   (node = &arr).stepInside (9);
 
   for(NodeVisitor child : node) {
-    std::clog << child.getNamedVariable ().name.toString () << ':' << child.getVariable () << '\n';
+    std::clog << child.getName().toString() << ':' << child.getVariable() << '\n';
   }
 
   std::clog << "Foreach test array:\n";

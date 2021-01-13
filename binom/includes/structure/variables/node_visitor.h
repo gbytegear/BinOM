@@ -52,15 +52,14 @@ public:
   NodeVisitor& stepInside(ui64 index);
   NodeVisitor& stepInside(BufferArray name);
 
-  BufferArray& rename(BufferArray name);
+  BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
   ValueRef getValue() const;
   ValueRef getValue(ui64 index) const;
   Variable& getVariable() const;
   Variable& getVariable(ui64 index) const;
   Variable& getVariable(BufferArray name) const;
-  NamedVariable& getNamedVariable() const;
-  NamedVariable& getNamedVariable(BufferArray name) const;
+  BufferArray getName() const;
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}

@@ -198,6 +198,37 @@ void Object::remove(BufferArray name) {
   throw SException(ErrCode::binom_out_of_range, "");
 }
 
+BufferArray& Object::rename(BufferArray old_name, BufferArray new_name) {
+  NamedVariable& old_named_variable = getNamedVariable(old_name);
+
+  i64 left = 0;
+  i64 right = length();
+  i64 middle = 0;
+
+  NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
+
+  while (left <= right) {
+    middle = (left + right) / 2;
+    if(middle >= length()) break;
+
+    if(it[middle].name > new_name) right = middle - 1;
+    elif(it[middle].name < new_name) left = middle + 1;
+    elif(it[middle].name == new_name) throw SException(ErrCode::binom_object_key_error, "");
+  }
+
+  for(; (middle < length())? it[middle].name < new_name : false ;++middle);
+  NamedVariable new_named_variable{std::move(new_name), std::move(old_named_variable.variable)};
+  old_named_variable.name.destroy();
+
+  if(&old_named_variable < it + middle)
+    memmove(&old_named_variable, &old_named_variable + 1, ((it + --middle) - &old_named_variable)*sizeof(NamedVariable));
+  else
+    memmove (it + middle + 1, it + middle, (&old_named_variable - (it + middle))*sizeof(NamedVariable));
+  new(it + middle) NamedVariable{std::move(new_named_variable.name), std::move(new_named_variable.variable)};
+
+  return it[middle].name;
+}
+
 Variable& Object::operator+=(NamedVariable named_variable) {
   return insert(named_variable.name, named_variable.variable);
 }
