@@ -47,6 +47,7 @@ void* Array::clone() {
 }
 
 void Array::destroy() {
+  if(!data.ptr) return;
   for(Variable& var : *this) var.destroy();
   free(data.ptr);
   data.ptr = nullptr;
@@ -78,6 +79,18 @@ ByteArray Array::serialize() const {
     serialized += var.serialize ();
   serialized += byte(VarType::end);
   return serialized;
+}
+
+binom::Array Array::deserialize(ByteArray::iterator& it) {
+  VarType type = VarType(*it);
+  if(type != VarType::array) throw SException(ErrCode::binom_invalid_type);
+  ++it;
+  Array arr;
+  while (VarType(*it) != VarType::end) {
+    arr.pushBack(Variable::deserialize(it));
+  }
+  ++it;
+  return arr;
 }
 
 Variable& Array::getVariable(ui64 index) const {

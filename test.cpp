@@ -284,7 +284,14 @@ inline void testSerialization() {
   fwrite (ser.begin (), 1, ser.length (), file);
   fclose (file);
 
+  std::clog << "Structure for serialization:" << arr << '\n';
+
   std::clog << "Serialized:\n" << ser << "\nSize: " << std::dec << ser.length () << " bytes\n";
+
+
+  Variable new_arr(Variable::deserialize(ser));
+
+  std::clog << "Deserialized:\n" << new_arr << '\n';
 
 }
 
@@ -334,30 +341,6 @@ inline void testChainNumber() {
 }
 
 
-inline void testDeserialize() {
-  Primitive pri(65535_ui64);
-  ByteArray ser = pri.serialize ();
-  ByteArray::iterator it = ser.begin();
-  Primitive new_pri(Primitive::deserialize(it));
-
-  std::clog
-    << "Preserialize: " << pri << '\n'
-    << "Serialized: " << ser << '\n'
-    << "Deserialized: " << new_pri << '\n';
-
-
-  BufferArray array = "Hello world";
-  ser = array.serialize();
-  it = ser.begin();
-  BufferArray new_arr(BufferArray::deserialize (it));
-
-  std::clog
-      << "Preserialize: " << array.toString() << '\n'
-      << "Serialized: " << ser << '\n'
-      << "Deserialized: " << new_arr.toString() << '\n';
-}
-
-
 
 int main() {
   try {
@@ -375,12 +358,6 @@ int main() {
     testChainNumber ();
     std::clog << "===================================================================\n";
     testSerialization ();
-    std::clog << "===================================================================\n";
-    testDeserialize ();
-
-
-
-
 
   } catch(binom::SException except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;

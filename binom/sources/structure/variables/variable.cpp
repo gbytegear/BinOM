@@ -418,7 +418,17 @@ ByteArray Variable::serialize() const {
     case VarTypeClass::buffer_array: return toBufferArray().serialize();
     case VarTypeClass::array: return toArray().serialize();
     case VarTypeClass::object: return toObject().serialize();
-    default: throw SException(ErrCode::binom_invalid_type, "Not implemented!");
+    default: throw SException(ErrCode::binom_invalid_type);
+  }
+}
+
+Variable Variable::deserialize(ByteArray::iterator& it) {
+  switch (toTypeClass (VarType(*it))) {
+    case VarTypeClass::primitive: return std::move(Primitive::deserialize(it).asVar());
+    case VarTypeClass::buffer_array: return std::move(BufferArray::deserialize(it).asVar());
+    case VarTypeClass::array: return std::move(Array::deserialize(it).asVar());
+    case VarTypeClass::object: return std::move(Object::deserialize(it).asVar());
+    default: throw SException(ErrCode::binom_invalid_type);
   }
 }
 

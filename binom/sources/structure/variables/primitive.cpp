@@ -1,6 +1,10 @@
 #include "binom/includes/structure/variables/variable.h"
 
-void binom::Primitive::destroy() {tryFree(data.ptr);data.ptr = nullptr;}
+void binom::Primitive::destroy() {
+  if(!data.ptr) return;
+  tryFree(data.ptr);
+  data.ptr = nullptr;
+}
 
 void* binom::Primitive::clone() {
   ui64 size = msize();
@@ -86,10 +90,12 @@ binom::Primitive::~Primitive() {destroy();}
 binom::ByteArray binom::Primitive::serialize() const {return ByteArray(data.ptr, msize ());}
 
 binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
-  void* buffer = tryMalloc(1 + getMemberSize(VarType(*it)));
-  Primitive var(buffer);
-  *var.data.type = VarType(*it);
+  VarType type = VarType(*it);
+  if(type < VarType::byte || type > VarType::qword) throw SException(ErrCode::binom_invalid_type);
   ++it;
+  void* buffer = tryMalloc(1 + getMemberSize(type));
+  Primitive var(buffer);
+  *var.data.type = type;
   memcpy (var.data.bytes + 1, it, getMemberSize(*var.data.type));
   it += getMemberSize(*var.data.type);
   return var;

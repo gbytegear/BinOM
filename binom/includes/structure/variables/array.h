@@ -32,6 +32,7 @@ public:
   ~Array() {destroy ();}
 
   ByteArray serialize() const;
+  static Array deserialize(ByteArray::iterator& it);
 
   inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}

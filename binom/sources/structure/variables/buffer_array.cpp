@@ -42,7 +42,11 @@ void BufferArray::msubfrom(void* from, size_t size) {
   mch(old_size - size);
 }
 
-void BufferArray::destroy() {tryFree(data.ptr);data.ptr = nullptr;}
+void BufferArray::destroy() {
+  if(!data.ptr) return;
+  tryFree(data.ptr);
+  data.ptr = nullptr;
+}
 
 void* BufferArray::clone() const {
   size_t size = msize();
@@ -364,6 +368,7 @@ ByteArray BufferArray::serialize() const {
 
 BufferArray BufferArray::deserialize(binom::ByteArray::iterator& it) {
   VarType type = VarType(*it);
+  if(type < VarType::byte_array || type > VarType::qword_array) throw SException(ErrCode::binom_invalid_type);
   ++it;
   ui64 length = fromChainNumber(it);
   void* buffer = tryMalloc(9 + length*getMemberSize(type));
@@ -371,7 +376,7 @@ BufferArray BufferArray::deserialize(binom::ByteArray::iterator& it) {
   *buffer_array.data.type = type;
   buffer_array.length() = length;
   memcpy(buffer_array.data.bytes + 9, it, length*getMemberSize(type));
-  *it += length*getMemberSize(type);
+  it += length*getMemberSize(type);
   return buffer_array;
 }
 

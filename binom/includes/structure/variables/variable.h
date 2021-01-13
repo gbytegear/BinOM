@@ -104,6 +104,8 @@ public:
   ~Variable() {destroy();}
 
   ByteArray serialize() const;
+  static Variable deserialize(ByteArray::iterator& it);
+  static inline Variable deserialize(ByteArray serialized) {ByteArray::iterator it = serialized.begin(); return deserialize(it);}
 
   inline void* getDataPointer() const {return data.ptr;}
 

@@ -46,6 +46,7 @@ void* Object::clone() {
 }
 
 void Object::destroy() {
+  if(!data.ptr) return;
   for(NamedVariable& nvar : *this) {
     nvar.name.destroy();
     nvar.variable.destroy();
@@ -121,6 +122,20 @@ ByteArray Object::serialize() const {
   }
   serialised += byte(VarType::end);
   return serialised;
+}
+
+Object Object::deserialize(ByteArray::iterator& it) {
+  VarType type = VarType(*it);
+  if(type != VarType::object) throw SException(ErrCode::binom_invalid_type);
+  ++it;
+  Object obj;
+  while (VarType(*it) != VarType::end) {
+    char* name = reinterpret_cast<char*>(it);
+    it += strlen(name) + 1;
+    obj.insert(name, Variable::deserialize(it));
+  }
+  ++it;
+  return obj;
 }
 
 Variable& Object::insert(BufferArray name, Variable var) {
