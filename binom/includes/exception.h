@@ -14,7 +14,8 @@ enum ErrCode : ui8 {
   binom_out_of_range,
   binom_object_key_error,
 
-  out_of_range
+  out_of_range,
+  file_open_error
 };
 
 class SException {

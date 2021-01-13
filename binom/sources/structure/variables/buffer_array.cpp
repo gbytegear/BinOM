@@ -615,7 +615,7 @@ BufferArray::const_iterator BufferArray::cend() const {return ValueIterator(*dat
 
 std::string BufferArray::toString() const {
   std::string str;
-  str.reserve (length());
+  str.reserve(length());
   for(const ValueRef &val : *this)
     str += char(val.asSigned());
   return str;

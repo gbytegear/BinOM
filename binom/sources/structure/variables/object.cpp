@@ -40,8 +40,10 @@ void* Object::clone() {
   memcpy(ptr, data.ptr, 9);
 
   ObjectIterator it = reinterpret_cast<ObjectIterator>(ptr + 9);
-  for(NamedVariable& this_it : *this)
+  for(NamedVariable& this_it : *this) {
     *it = this_it;
+    ++it;
+  }
   return ptr;
 }
 

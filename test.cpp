@@ -278,18 +278,12 @@ inline void testSerialization() {
     }
   };
 
-  ByteArray ser(arr.serialize());
-
-  FILE* file = fopen64 ("test.binom", "w+");
-  fwrite (ser.begin (), 1, ser.length (), file);
-  fclose (file);
+  BinOM::saveToFile("test.binom", arr);
 
   std::clog << "Structure for serialization:" << arr << '\n';
 
-  std::clog << "Serialized:\n" << ser << "\nSize: " << std::dec << ser.length () << " bytes\n";
 
-
-  Variable new_arr(Variable::deserialize(ser));
+  Variable new_arr(BinOM::loadFromFile("test.binom"));
 
   std::clog << "Deserialized:\n" << new_arr << '\n';
 
@@ -358,6 +352,7 @@ int main() {
     testChainNumber ();
     std::clog << "===================================================================\n";
     testSerialization ();
+
 
   } catch(binom::SException except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;

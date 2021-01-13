@@ -63,10 +63,13 @@ public:
   NamedVariable& getNamedVariable(BufferArray name) const;
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
-  NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(name);}
+  NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
 
   NodeVisitor operator[](ui64 index) {return NodeVisitor(*this).stepInside(index);}
-  NodeVisitor operator[](BufferArray name) {return NodeVisitor(*this).stepInside(name);}
+  NodeVisitor operator[](BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
+
+  NodeVisitor& operator()(ui64 index) {return stepInside(index);}
+  NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
 
   NodeIterator begin();
   NodeIterator end();
