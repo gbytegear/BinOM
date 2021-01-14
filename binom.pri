@@ -1,7 +1,7 @@
 SOURCES += \
   binom/sources/structure/mem.cpp \
   binom/sources/structure/variables/value.cpp \
-  binom/sources/structure/file/f_node_visitor.cpp \
+  binom/sources/structure/file_storage/f_node_visitor.cpp \
   binom/sources/structure/variables/variable.cpp \
   binom/sources/structure/variables/primitive.cpp \
   binom/sources/structure/variables/buffer_array.cpp \
@@ -10,12 +10,12 @@ SOURCES += \
   binom/sources/structure/variables/node_visitor.cpp
 
 HEADERS += \
-  $$PWD/binom/includes/binom.h \
-  $$PWD/binom/includes/byte_array.h \
+  binom/includes/binom.h \
+  binom/includes/byte_array.h \
   binom/includes/mem.h \
   binom/includes/structure/rwguard.h \
   binom/includes/structure/variables/value.h \
-  binom/includes/structure/file/f_node_visitor.h \
+  binom/includes/structure/file_storage/f_node_visitor.h \
   binom/includes/ctypes.h \
   binom/includes/exception.h \
   binom/includes/structure/types.h \
@@ -25,6 +25,6 @@ HEADERS += \
   binom/includes/structure/variables/array.h \
   binom/includes/structure/variables/object.h \
   binom/includes/structure/variables/node_visitor.h \
-  binom/includes/structure/file/file_io.h \
-  binom/includes/structure/file/file_node_structs.h \
-  binom/includes/structure/file/file.h
+  binom/includes/structure/file_storage/file_io.h \
+  binom/includes/structure/file_storage/file_node_structs.h \
+  binom/includes/structure/file_storage/file.h
