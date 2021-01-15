@@ -339,6 +339,10 @@ inline void testChainNumber() {
 }
 
 
+void testDBFile() {
+  DBFile file("test.binomdb");
+}
+
 
 int main() {
   try {
@@ -356,6 +360,8 @@ int main() {
     testChainNumber ();
     std::clog << "===================================================================\n";
     testSerialization ();
+    std::clog << "===================================================================\n";
+    testDBFile();
 
 
   } catch(binom::SException except) {

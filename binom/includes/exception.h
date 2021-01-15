@@ -15,7 +15,10 @@ enum ErrCode : ui8 {
   binom_object_key_error,
 
   out_of_range,
-  file_open_error
+  file_open_error,
+  binomdb_invalid_file,
+  binomdb_invalid_storage_version,
+  binomdb_memory_management_error
 };
 
 class SException {

@@ -60,14 +60,28 @@ union BitMap {
   ui64 val = 0;
 
   bool get(ui8 index) {return bits[index/8].get(index%8);}
+  bool set(ui8 index, bool value) {return bits[index/8].set(index%8, value);}
 
 };
 
+struct VersionNumber {
+  enum Type : ui8 { alpha, beta, RC, RC2, final };
+  const ui16 major = 0;
+  const ui32 minor = 1;
+  Type type;
+};
 
-// Structure headers
+constexpr VersionNumber current_version {0, 1, VersionNumber::alpha};
 
+
+// Structure headersW
 struct DBHeader {
-
+  struct Version {
+    const char program_name[6] = "BinOM";
+    VersionNumber number = current_version;
+  };
+  Version version;
+  ui32 data_segment_size = 4096;
 };
 
 struct NodeSegmentDescriptor {
@@ -81,21 +95,31 @@ struct NodeDescriptor {
   ui64 data_index = 0;
 };
 
-struct DataSegmentDescriptor {
+struct PrimitiveSegementDescriptor {
   ui64 next_segment = 0;
+  BitMap map;
 };
 
 
 
 // Node data
 
-struct ArrayElement {
+struct ArrayDescriptor {
+  ui64 element_count;
+};
+
+struct ObjectDescriptor {
+  ui64 name_length_block_size;
+  ui64 name_block_size;
+  ui64 element_count;
+};
+
+struct AOElementDescriptor {
   ui64 node_index;
 };
 
-struct ObjectElement { // Think about it!!!
-  ui64 node_index;
-  ui64 name_index;
+struct BufferDescriptor {
+  ui64 element_count;
 };
 
 #pragma pack(pop)
