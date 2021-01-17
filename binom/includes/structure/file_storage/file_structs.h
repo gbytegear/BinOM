@@ -18,6 +18,7 @@ namespace binom {
 */
 
 union BitMap {
+  ui64 val = 0;
   struct Bits {
     bool n0:1;
     bool n1:1;
@@ -57,7 +58,6 @@ union BitMap {
     }
 
   } bits[8];
-  ui64 val = 0;
 
   bool get(ui8 index) {return bits[index/8].get(index%8);}
   bool set(ui8 index, bool value) {return bits[index/8].set(index%8, value);}
@@ -84,6 +84,7 @@ struct DBHeader {
   ui32 data_segment_size = 4096;
 };
 
+//! Node Segmnet size = 64*sizeof(NodeDescriptor) + sizeof(NodeSegmentDescriptor)
 struct NodeSegmentDescriptor {
   ui64 next_segment = 0;
   BitMap map;
@@ -95,7 +96,9 @@ struct NodeDescriptor {
   ui64 data_index = 0;
 };
 
-struct PrimitiveSegementDescriptor {
+
+//! Primitive Segment size = 64 + sizeof(PrimitiveSegementDescriptor)
+struct PrimitiveSegmentDescriptor {
   ui64 next_segment = 0;
   BitMap map;
 };

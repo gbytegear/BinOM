@@ -8,60 +8,78 @@ namespace binom {
 
 class VFMemory {
 
-  // Constants
-  static constexpr ui64 node_segment_size = 8*8*sizeof(NodeDescriptor);
-  static constexpr ui64 primitive_segment_size = 8*8;
+  static constexpr ui64 node_segement_size = sizeof(NodeSegmentDescriptor) + 64*sizeof(NodeDescriptor);
+  static constexpr ui64 primitive_segment_size = sizeof(PrimitiveSegmentDescriptor) + 64;
 
-  struct NodeSegmentList {
-    NodeSegmentList* next = nullptr;
-    ui64 header_pos;
-    NodeSegmentDescriptor descriptor;
-  };
+  struct MemoryBlock { ui64 index; ui64 size; };
 
-  struct PrimitiveSegmentList {
-    PrimitiveSegmentList* next = nullptr;
-    ui64 header_pos;
-    PrimitiveSegementDescriptor descriptor;
-  };
 
-  struct MemoryBlock {
-    ui64 pos = 0;
-    ui64 size = 0;
 
-    MemoryBlock cut(ui64 block_size) {
-      MemoryBlock new_block{pos, block_size};
-      if(block_size > size) throw SException(ErrCode::binomdb_memory_management_error);
-      pos += block_size;
-      size -= block_size;
-      return new_block;
+
+  template<typename Descriptor>
+  class SegmentList {
+  public:
+
+    struct SegmentNode {
+      SegmentNode* next = nullptr;
+      Descriptor descriptor;
+      MemoryBlock block;
+    };
+
+    class SegmentIterator {
+      SegmentNode* current = nullptr;
+    public:
+      SegmentIterator(SegmentNode* node) : current(node) {}
+
+      SegmentIterator& operator++() {current = current->next; return *this;}
+      SegmentNode& operator*() {return *current;}
+      bool operator==(SegmentIterator& other) const {return current == other.current;}
+      bool operator!=(SegmentIterator& other) const {return current != other.current;}
+    };
+
+    SegmentNode& last() {return *last_segment;}
+    SegmentNode& first() {return first_segment;}
+
+    SegmentNode* insertSegement(MemoryBlock memory_block, Descriptor descriptor) {
+      return last_segment = last_segment->next = new SegmentNode{nullptr, descriptor, memory_block};
     }
+
+    SegmentIterator begin() {return &first_segment;}
+    SegmentIterator end() {return nullptr;}
+
+  private:
+    SegmentNode first_segment;
+    SegmentNode* last_segment = &first_segment;
   };
 
-  struct MemoryBlockChain {
-    MemoryBlockChain* next = nullptr;
-    MemoryBlock mem_block;
+
+
+
+  class DataSegmentList {
+  public:
+    struct SegmentNode {
+      SegmentNode* next = nullptr;
+      MemoryBlock block;
+    };
+
+    SegmentNode* insertSegement(MemoryBlock memory_block) {
+      return last_segment = last_segment->next = new SegmentNode{nullptr, memory_block};
+    }
+
+  private:
+    SegmentNode first_segment;
+    SegmentNode* last_segment = &first_segment;
   };
 
-  struct NodeBuffer {
-    NodeSegmentDescriptor segment_descriptor;
-    NodeDescriptor node_descriptors[16];
-  };
-
-  // VFM Data
-  DBHeader header;
-  NodeSegmentList* last_node_segment = &node_segments;
-  PrimitiveSegmentList* last_primitive_segment = &primitive_segments;
-
-  NodeSegmentList node_segments;
-  PrimitiveSegmentList primitive_segments;
-
-  MemoryBlockChain free_mem_chain;
-
-  FileIO file;
-
+  typedef SegmentList<NodeSegmentDescriptor> NodeSegmentList;
+  typedef SegmentList<PrimitiveSegmentDescriptor> PrimitiveSegmentList;
 
   void init();
-  void findFree();
+
+  NodeSegmentList::SegmentNode& createNodeSegment();
+  void loadNodeSegments();
+  PrimitiveSegmentList::SegmentNode& createPrimitiveSegment();
+  void loadPrimitiveSegments();
 
 public:
   VFMemory(std::string filename) : file(std::move(filename)) {init();}
@@ -69,7 +87,15 @@ public:
 
   ui64 getFileSize() {return file.size();}
 
+private:
+  FileIO file;
+
+  DBHeader header;
+  NodeSegmentList node_segment_list;
+  PrimitiveSegmentList primitive_segment_list;
+
 };
 
 }
+
 #endif

@@ -7,7 +7,9 @@
 
 #ifdef __linux__
 
-#include <filesystem>
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
 
 #elif _WIN32
 
