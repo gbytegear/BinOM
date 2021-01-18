@@ -340,7 +340,16 @@ inline void testChainNumber() {
 
 
 void testDBFile() {
-  DBFile file("test.binomdb");
+  DBFile db_file("test.binomdb");
+
+  std::clog << std::dec
+            << "File size: " << db_file.getFileSize() << " bytes\n"
+            << "|Node segments count: " << db_file.getNodeSegmentsCount() << "\n"
+            << "|Node segments size: " << db_file.getNodeSegmentsSize() << " bytes\n"
+            << "|Primitive segment count: " << db_file.getPrimitiveSegmentsCount() << "\n"
+            << "|Primitive segment size: " << db_file.getPrimitiveSegmentsSize() << " bytes\n"
+            << "|Data segment count: " << db_file.getDataSegmentsCount() << "\n"
+            << "|Data segment size: " << db_file.getDataSegmentsSize() << " bytes\n";
 }
 
 

@@ -103,6 +103,11 @@ struct PrimitiveSegmentDescriptor {
   BitMap map;
 };
 
+struct DataSegmentDescriptor {
+  ui64 next_segment = 0;
+  ui64 segment_size = 4096;
+};
+
 
 
 // Node data

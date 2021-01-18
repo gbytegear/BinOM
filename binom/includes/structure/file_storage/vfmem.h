@@ -6,7 +6,9 @@
 
 namespace binom {
 
-class VFMemory {
+
+//! Virtual File Memory
+class VFMemoryController {
 
   static constexpr ui64 node_segement_size = sizeof(NodeSegmentDescriptor) + 64*sizeof(NodeDescriptor);
   static constexpr ui64 primitive_segment_size = sizeof(PrimitiveSegmentDescriptor) + 64;
@@ -52,27 +54,9 @@ class VFMemory {
     SegmentNode* last_segment = &first_segment;
   };
 
-
-
-
-  class DataSegmentList {
-  public:
-    struct SegmentNode {
-      SegmentNode* next = nullptr;
-      MemoryBlock block;
-    };
-
-    SegmentNode* insertSegement(MemoryBlock memory_block) {
-      return last_segment = last_segment->next = new SegmentNode{nullptr, memory_block};
-    }
-
-  private:
-    SegmentNode first_segment;
-    SegmentNode* last_segment = &first_segment;
-  };
-
   typedef SegmentList<NodeSegmentDescriptor> NodeSegmentList;
   typedef SegmentList<PrimitiveSegmentDescriptor> PrimitiveSegmentList;
+  typedef SegmentList<DataSegmentDescriptor> DataSegmentList;
 
   void init();
 
@@ -80,12 +64,22 @@ class VFMemory {
   void loadNodeSegments();
   PrimitiveSegmentList::SegmentNode& createPrimitiveSegment();
   void loadPrimitiveSegments();
+  DataSegmentList::SegmentNode& createDataSegment(ui64 size = 4096);
+  void loadDataSegments();
 
 public:
-  VFMemory(std::string filename) : file(std::move(filename)) {init();}
-  VFMemory(const char* filename) : file(filename) {init();}
+
+  VFMemoryController(std::string filename) : file(std::move(filename)) {init();}
+  VFMemoryController(const char* filename) : file(filename) {init();}
 
   ui64 getFileSize() {return file.size();}
+  ui64 getDataSegmentsSize();
+  ui64 getNodeSegmentsSize();
+  ui64 getPrimitiveSegmentsSize();
+
+  ui64 getDataSegmentsCount();
+  ui64 getNodeSegmentsCount();
+  ui64 getPrimitiveSegmentsCount();
 
 private:
   FileIO file;
@@ -93,6 +87,7 @@ private:
   DBHeader header;
   NodeSegmentList node_segment_list;
   PrimitiveSegmentList primitive_segment_list;
+  DataSegmentList data_segment_list;
 
 };
 
