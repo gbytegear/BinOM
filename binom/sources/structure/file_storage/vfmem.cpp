@@ -89,6 +89,50 @@ void VFMemoryController::loadDataSegments() {
   }
 }
 
+NodeDescriptor VFMemoryController::getNodeDescriptor(ui64 index) {
+  NodeDescriptor descriptor;
+  file.read(node_segment_list[index/64].block.index +
+            sizeof(NodeSegmentDescriptor) +
+            (index%64)*sizeof(NodeDescriptor), descriptor);
+  return descriptor;
+}
+
+ui64 VFMemoryController::setNodeDescriptor(ui64 index, NodeDescriptor descriptor) {
+  NodeSegmentList::SegmentNode& node_segment = node_segment_list[index/64];
+  ui64 node_index = index%64;
+  if(!node_segment.descriptor.map.get(node_index)) {
+    node_segment.descriptor.map.set(node_index, true);
+    file.write(node_segment.block.index + offsetof(NodeSegmentDescriptor, map), node_segment.descriptor.map);
+  }
+  file.write(node_segment_list[index/64].block.index +
+      sizeof(NodeSegmentDescriptor) +
+      (node_index)*sizeof(NodeDescriptor), descriptor);
+  return index;
+}
+
+ui64 VFMemoryController::setNodeDescriptor(NodeDescriptor descriptor) { return setNodeDescriptor(findFreeNodeDescriptor(), descriptor); }
+
+void VFMemoryController::freeNodeDescriptor(ui64 index) {
+  NodeSegmentList::SegmentNode& node_segment = node_segment_list[index/64];
+  ui64 node_index = index%64;
+  if(node_segment.descriptor.map.get(node_index)) {
+    node_segment.descriptor.map.set(node_index, false);
+    file.write(node_segment.block.index + offsetof(NodeSegmentDescriptor, map), node_segment.descriptor.map);
+  }
+}
+
+ui64 VFMemoryController::findFreeNodeDescriptor() {
+  ui64 node_index = 0;
+  for(NodeSegmentList::SegmentNode node : node_segment_list) {
+    for(BitPointer ptr = &node.descriptor.map; !ptr.isEnd(); ++ptr) {
+      if(!*ptr) return node_index;
+      ++node_index;
+    }
+  }
+  createNodeSegment();
+  return ++node_index;
+}
+
 ui64 VFMemoryController::getDataSegmentsSize() {
   ui64 size = 0;
   for(DataSegmentList::SegmentNode& node : data_segment_list) {
