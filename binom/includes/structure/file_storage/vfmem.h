@@ -6,6 +6,8 @@
 
 namespace binom {
 
+struct MemoryBlock { ui64 index; ui64 size; };
+
 //! Pointer on bit in BitMap. Can be used as iterator.
 struct BitPointer {
   BitMap* bitmap = nullptr;
@@ -21,8 +23,8 @@ public:
 
   bool operator*() {return (*bitmap).get(bit);}
 
-  bool get() {return (*bitmap).get(bit);}
-  bool set(bool value) {return (*bitmap).set(bit, value);}
+  bool get() {return (bit == 64)? false : (*bitmap).get(bit);}
+  bool set(bool value) {return (bit == 64)? false : (*bitmap).set(bit, value);}
 
   bool isEnd() {return bit == 64;}
   bool isBegin() {return bit == 0;}
@@ -36,11 +38,12 @@ public:
 
 
 
+
 //! Virtual File Memory Controller
 class VFMemoryController {
 public:
 
-  struct MemoryBlock { ui64 index; ui64 size; };
+
 
 private:
 
@@ -98,6 +101,29 @@ private:
   typedef SegmentList<PrimitiveSegmentDescriptor> PrimitiveSegmentList;
   typedef SegmentList<DataSegmentDescriptor> DataSegmentList;
 
+  class DataMemoryBlocks {
+    struct DataBlock {
+      bool is_used = false;
+      MemoryBlock block{0, 0};
+      DataBlock* next = nullptr;
+      DataBlock* prev = nullptr;
+
+      void split(ui64 size);
+      void free();
+    };
+
+    DataBlock start_block;
+
+  public:
+  };
+
+
+
+
+
+
+
+
   void init();
 
   NodeSegmentList::SegmentNode& createNodeSegment();
@@ -108,50 +134,59 @@ private:
   void loadDataSegments();
   void loadFreeMemoryList();
 
-public:
-  VFMemoryController(std::string filename) : file(std::move(filename)) {init();}
-  VFMemoryController(const char* filename) : file(filename) {init();}
-
-
-  // File info
-  ui64 getFileSize() {return file.size();}
-
-  ui64 getDataSegmentsSize();
-  ui64 getNodeSegmentsSize();
-  ui64 getPrimitiveSegmentsSize();
-
-  ui64 getDataSegmentsCount();
-  ui64 getNodeSegmentsCount();
-  ui64 getPrimitiveSegmentsCount();
-
-
-  // NodeDescriptor management
-  NodeDescriptor getNodeDescriptor(ui64 index);
-  ui64 setNodeDescriptor(ui64 index, NodeDescriptor descriptor);
-  ui64 setNodeDescriptor(NodeDescriptor descriptor);
-  void freeNodeDescriptor(ui64 index);
-  ui64 findFreeNodeDescriptor();
-
-
-  // Primitive memory mangement
-
-
-
-  // Data memory magement
 
 
 
 
-private:
-  FileIO file;
+  public:
+    VFMemoryController(std::string filename) : file(std::move(filename)) {init();}
+    VFMemoryController(const char* filename) : file(filename) {init();}
 
-  DBHeader header;
-  NodeSegmentList node_segment_list;
-  PrimitiveSegmentList primitive_segment_list;
-  DataSegmentList data_segment_list;
 
-};
+    // File info
+    ui64 getFileSize() {return file.size();}
 
-}
+    ui64 getDataSegmentsSize();
+    ui64 getNodeSegmentsSize();
+    ui64 getPrimitiveSegmentsSize();
 
-#endif
+    ui64 getDataSegmentsCount();
+    ui64 getNodeSegmentsCount();
+    ui64 getPrimitiveSegmentsCount();
+
+
+    // NodeDescriptor management
+    NodeDescriptor getNodeDescriptor(ui64 index);
+    ui64 setNodeDescriptor(ui64 index, NodeDescriptor descriptor);
+    ui64 setNodeDescriptor(NodeDescriptor descriptor);
+    void freeNodeDescriptor(ui64 index);
+    ui64 findFreeNodeDescriptor();
+
+
+    // Primitive memory mangement
+    template<typename Type> Type getPrimitive(ui64 index);
+    template<typename Type> ui64 setPrimitive(ui64 index, Type value);
+    template<typename Type> ui64 setPrimitive(Type value);
+    template<typename Type> void freePrimitive(ui64 index);
+    template<typename Type> ui64 findFreePrimitive();
+
+
+    // Data memory magement
+
+
+
+
+  private:
+    FileIO file;
+
+    DBHeader header;
+    NodeSegmentList node_segment_list;
+    PrimitiveSegmentList primitive_segment_list;
+    DataSegmentList data_segment_list;
+    DataMemoryBlocks data_memory_map;
+
+  };
+
+  }
+
+  #endif

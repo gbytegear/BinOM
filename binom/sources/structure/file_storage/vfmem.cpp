@@ -31,6 +31,15 @@ void VFMemoryController::init() {
   }
 }
 
+
+
+
+
+
+
+
+
+
 VFMemoryController::NodeSegmentList::SegmentNode& VFMemoryController::createNodeSegment() {
   ui64 descriptor_index = file.addSize(node_segement_size);
   file.write(descriptor_index, NodeSegmentDescriptor{0, {0}});
@@ -89,6 +98,15 @@ void VFMemoryController::loadDataSegments() {
   }
 }
 
+
+
+
+
+
+
+
+
+
 NodeDescriptor VFMemoryController::getNodeDescriptor(ui64 index) {
   NodeDescriptor descriptor;
   file.read(node_segment_list[index/64].block.index +
@@ -104,7 +122,7 @@ ui64 VFMemoryController::setNodeDescriptor(ui64 index, NodeDescriptor descriptor
     node_segment.descriptor.map.set(node_index, true);
     file.write(node_segment.block.index + offsetof(NodeSegmentDescriptor, map), node_segment.descriptor.map);
   }
-  file.write(node_segment_list[index/64].block.index +
+  file.write(node_segment.block.index +
       sizeof(NodeSegmentDescriptor) +
       (node_index)*sizeof(NodeDescriptor), descriptor);
   return index;
@@ -175,3 +193,107 @@ ui64 VFMemoryController::getPrimitiveSegmentsCount() {
   return count;
 }
 
+
+
+
+
+
+
+
+
+
+template ui8 VFMemoryController::getPrimitive<ui8>(ui64);
+template ui16 VFMemoryController::getPrimitive<ui16>(ui64);
+template ui32 VFMemoryController::getPrimitive<ui32>(ui64);
+template ui64 VFMemoryController::getPrimitive<ui64>(ui64);
+template i8 VFMemoryController::getPrimitive<i8>(ui64);
+template i16 VFMemoryController::getPrimitive<i16>(ui64);
+template i32 VFMemoryController::getPrimitive<i32>(ui64);
+template i64 VFMemoryController::getPrimitive<i64>(ui64);
+template f32 VFMemoryController::getPrimitive<f32>(ui64);
+template f64 VFMemoryController::getPrimitive<f64>(ui64);
+template<typename Type>
+Type VFMemoryController::getPrimitive(ui64 index) {
+  Type value;
+  file.read(primitive_segment_list[index/64].block.index +
+            sizeof(PrimitiveSegmentDescriptor) + index%64, value);
+  return value;
+}
+
+template ui64 VFMemoryController::setPrimitive<ui8>(ui64,ui8);
+template ui64 VFMemoryController::setPrimitive<ui16>(ui64,ui16);
+template ui64 VFMemoryController::setPrimitive<ui32>(ui64,ui32);
+template ui64 VFMemoryController::setPrimitive<ui64>(ui64,ui64);
+template ui64 VFMemoryController::setPrimitive<i8>(ui64,i8);
+template ui64 VFMemoryController::setPrimitive<i16>(ui64,i16);
+template ui64 VFMemoryController::setPrimitive<i32>(ui64,i32);
+template ui64 VFMemoryController::setPrimitive<i64>(ui64,i64);
+template ui64 VFMemoryController::setPrimitive<f32>(ui64,f32);
+template ui64 VFMemoryController::setPrimitive<f64>(ui64,f64);
+template<typename Type>
+ui64 VFMemoryController::setPrimitive(ui64 index, Type value) {
+  PrimitiveSegmentList::SegmentNode& primitive_segment = primitive_segment_list[index/64];
+  ui64 byte_index = index%64;
+
+  for(ui8 i = byte_index; i < byte_index + sizeof(Type); ++i)
+    primitive_segment.descriptor.map.set(i, true);
+  file.write(primitive_segment.block.index + offsetof(PrimitiveSegmentDescriptor, map), primitive_segment.descriptor.map);
+
+  file.write(primitive_segment.block.index +
+      sizeof(PrimitiveSegmentDescriptor) + index%64, value);
+  return index;
+}
+
+template ui64 VFMemoryController::setPrimitive<ui8>(ui8);
+template ui64 VFMemoryController::setPrimitive<ui16>(ui16);
+template ui64 VFMemoryController::setPrimitive<ui32>(ui32);
+template ui64 VFMemoryController::setPrimitive<ui64>(ui64);
+template ui64 VFMemoryController::setPrimitive<i8>(i8);
+template ui64 VFMemoryController::setPrimitive<i16>(i16);
+template ui64 VFMemoryController::setPrimitive<i32>(i32);
+template ui64 VFMemoryController::setPrimitive<i64>(i64);
+template ui64 VFMemoryController::setPrimitive<f32>(f32);
+template ui64 VFMemoryController::setPrimitive<f64>(f64);
+template<typename Type>
+ui64 VFMemoryController::setPrimitive(Type value) {return setPrimitive<Type>(findFreePrimitive<Type>(), value);}
+
+template void VFMemoryController::freePrimitive<ui8>(ui64);
+template void VFMemoryController::freePrimitive<ui16>(ui64);
+template void VFMemoryController::freePrimitive<ui32>(ui64);
+template void VFMemoryController::freePrimitive<ui64>(ui64);
+template void VFMemoryController::freePrimitive<i8>(ui64);
+template void VFMemoryController::freePrimitive<i16>(ui64);
+template void VFMemoryController::freePrimitive<i32>(ui64);
+template void VFMemoryController::freePrimitive<i64>(ui64);
+template void VFMemoryController::freePrimitive<f32>(ui64);
+template void VFMemoryController::freePrimitive<f64>(ui64);
+template<typename Type>
+void VFMemoryController::freePrimitive(ui64 index) {
+  PrimitiveSegmentList::SegmentNode& primitive_segment = primitive_segment_list[index/64];
+  ui64 byte_index = index%64;
+  for(ui8 i = byte_index; i < byte_index + sizeof(Type); ++i)
+    primitive_segment.descriptor.map.set(i, false);
+  file.write(primitive_segment.block.index + offsetof(PrimitiveSegmentDescriptor, map), primitive_segment.descriptor.map);
+}
+
+template ui64 VFMemoryController::findFreePrimitive<ui8>();
+template ui64 VFMemoryController::findFreePrimitive<ui16>();
+template ui64 VFMemoryController::findFreePrimitive<ui32>();
+template ui64 VFMemoryController::findFreePrimitive<ui64>();
+template ui64 VFMemoryController::findFreePrimitive<i8>();
+template ui64 VFMemoryController::findFreePrimitive<i16>();
+template ui64 VFMemoryController::findFreePrimitive<i32>();
+template ui64 VFMemoryController::findFreePrimitive<i64>();
+template<typename Type>
+ui64 VFMemoryController::findFreePrimitive() {
+  ui64 byte_index = 0;
+  for(PrimitiveSegmentList::SegmentNode segment : primitive_segment_list)
+    for(BitPointer ptr = &segment.descriptor.map; !ptr.isEnd(); ++ptr) {
+      ui8 i = sizeof(Type);
+      for(;!*ptr && i > 0 && !ptr.isEnd();(--i,++ptr)); // Test bits
+      if(i == 0) return byte_index;
+      else byte_index += sizeof (Type) - i;
+    }
+  createPrimitiveSegment();
+  return ++byte_index;
+}
