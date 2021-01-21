@@ -101,21 +101,122 @@ private:
   typedef SegmentList<PrimitiveSegmentDescriptor> PrimitiveSegmentList;
   typedef SegmentList<DataSegmentDescriptor> DataSegmentList;
 
+
+
+
+
+
+
+
   class DataMemoryBlocks {
     struct DataBlock {
       bool is_used = false;
       MemoryBlock block{0, 0};
       DataBlock* next = nullptr;
       DataBlock* prev = nullptr;
-
-      void split(ui64 size);
-      void free();
     };
 
+
+    MemoryBlock alloc(DataBlock& data_block, ui64 size) {
+      if(data_block.block.size == size) {
+        data_block.is_used = true;
+        return data_block.block;
+      }
+
+      DataBlock* new_data_block = new DataBlock{
+                                  false,
+                                  {data_block.block.index + size,
+                                  data_block.block.size - size},
+                                  data_block.next, &data_block};
+      data_block.block.size = size;
+      if(data_block.next) data_block.next->prev = new_data_block;
+      else last_block = new_data_block;
+      data_block.next = new_data_block;
+      data_block.is_used = true;
+      return data_block.block;
+    }
+
+    void free(DataBlock& data_block) {
+      while(!data_block.prev->is_used) {
+        data_block.prev->is_used = true;
+        DataBlock* prev_block = data_block.prev;
+        data_block.prev = data_block.prev->prev;
+        if(data_block.prev)data_block.prev->next = &data_block;
+        data_block.block = {prev_block->block.index,
+                            data_block.block.size + prev_block->block.size};
+        delete prev_block;
+        if(!data_block.prev) break;
+      }
+
+      while(!data_block.next->is_used) {
+        data_block.next->is_used = true;
+        DataBlock* next_block = data_block.next;
+        data_block.next = data_block.next->next;
+        if(data_block.next) data_block.next->prev = &data_block;
+        data_block.block.size += next_block->block.size;
+        delete next_block;
+        if(!data_block.next) {
+          last_block = &data_block;
+          break;
+        }
+      }
+
+      data_block.is_used = false;
+    }
+
+
     DataBlock start_block;
+    DataBlock* last_block = &start_block;
 
   public:
+
+    class iterator {
+      DataBlock* ptr;
+    public:
+      iterator(DataBlock* ptr) : ptr(ptr) {}
+      iterator(iterator& other) : ptr(other.ptr) {}
+      iterator(iterator&& other) : ptr(other.ptr) {}
+      iterator& operator=(DataBlock* ptr) {this->ptr = ptr; return *this;}
+      iterator& operator++() {ptr = ptr->next; return *this;}
+      iterator operator++(int) {iterator other(*this); ptr = ptr->next; return other;}
+      iterator& operator--() {ptr = ptr->prev; return *this;}
+      iterator operator--(int) {iterator other(*this); ptr = ptr->prev; return other;}
+      bool operator==(iterator& other) {return ptr == other.ptr;}
+      bool operator!=(iterator& other) {return ptr != other.ptr;}
+      DataBlock* operator->() {return ptr;}
+      DataBlock& operator*() {return *ptr;}
+    };
+
+    void addMemory(ui64 size) {
+      if(!last_block->is_used) {
+        last_block->block.size += size;
+      } else {
+        last_block = last_block->next = new DataBlock{false,
+                                                      {last_block->block.index + last_block->block.size, size},
+                                                      nullptr,
+                                                      last_block};
+      }
+    }
+
+    MemoryBlock findDataBlock(ui64 size) {
+      for(DataBlock& data : *this) {
+        if(data.is_used || data.block.size < size) continue;
+        return alloc(data, size);
+      }
+      return {0,0};
+    }
+
+    void freeBlock(ui64 index) {
+      for(DataBlock& data : *this)
+        if(data.block.index == index) return free(data);
+    }
+
+    iterator begin() {return &start_block;}
+    iterator end() {return nullptr;}
+
   };
+
+
 
 
 

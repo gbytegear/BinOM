@@ -90,6 +90,7 @@ struct NodeSegmentDescriptor {
   BitMap map;
 };
 
+//! Descriptor contains type of node, node contined element count and index of element in primitive or data memory
 struct NodeDescriptor {
   VarType type = VarType::end;
   ui32 element_count = 0;

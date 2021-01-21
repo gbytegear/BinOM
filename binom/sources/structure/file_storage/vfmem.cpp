@@ -91,10 +91,12 @@ void VFMemoryController::loadDataSegments() {
   data_segment_list.first() = {nullptr, descriptor,
                               MemoryBlock{sizeof(DBHeader) + node_segement_size + primitive_segment_size,
                                           sizeof (DataSegmentDescriptor) + descriptor.segment_size}};
+  data_memory_map.addMemory(data_segment_list.first().block.size);
   while (descriptor.next_segment) {
     ui64 segment_index = descriptor.next_segment;
     file.read(segment_index, descriptor);
     data_segment_list.insertSegement(MemoryBlock{segment_index, sizeof (DataSegmentDescriptor) + descriptor.segment_size}, descriptor);
+    data_memory_map.addMemory(data_segment_list.last().block.size);
   }
 }
 
