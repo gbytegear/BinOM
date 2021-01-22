@@ -71,6 +71,18 @@ public:
   template<typename Type>
   bool write(ui64 index, const Type& data) {return write (index, &data, sizeof(data));}
 
+  bool write(ui64 index, ByteArray& byte_array) {return write(index, byte_array.begin(), byte_array.length());}
+
+  ByteArray::iterator write(ui64 index, ByteArray& byte_array, ui64 size) {
+    return write(index, byte_array.begin(), size);
+  }
+
+  ByteArray::iterator write(ui64 index, ByteArray::iterator it, ui64 size) {
+    write(index, it, size);
+    it += size;
+    return it;
+  }
+
   bool read(ui64 index, void* buffer, ui64 size) {
     seek(index);
     return fread (buffer, size, 1, file) == size;
@@ -78,6 +90,18 @@ public:
 
   template<typename Type>
   bool read(ui64 index, Type& data) {return read(index, &data, sizeof(data));}
+
+  bool read(ui64 index, ByteArray& byte_array) {return read(index, byte_array.begin(), byte_array.length());}
+
+  ByteArray::iterator read(ui64 index, ByteArray& byte_array, ui64 size) {
+    return read(index, byte_array.begin(), size);
+  }
+
+  ByteArray::iterator read(ui64 index, ByteArray::iterator it, ui64 size) {
+    read(index, it, size);
+    it += size;
+    return it;
+  }
 
 };
 

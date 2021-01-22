@@ -93,7 +93,7 @@ struct NodeSegmentDescriptor {
 //! Descriptor contains type of node, node contined element count and index of element in primitive or data memory
 struct NodeDescriptor {
   VarType type = VarType::end;
-  ui32 element_count = 0;
+  ui64 block_size = 0;
   ui64 data_index = 0;
 };
 

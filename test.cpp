@@ -346,6 +346,7 @@ void testDBFile() {
             << "File size: " << db_file.getFileSize() << " bytes\n"
             << "|Node segments count: " << db_file.getNodeSegmentsCount() << "\n"
             << "|Node segments size: " << db_file.getNodeSegmentsSize() << " bytes\n"
+            << "|Node count: " << db_file.getNodeCount() << "\n"
             << "|Primitive segment count: " << db_file.getPrimitiveSegmentsCount() << "\n"
             << "|Primitive segment size: " << db_file.getPrimitiveSegmentsSize() << " bytes\n"
             << "|Data segment count: " << db_file.getDataSegmentsCount() << "\n"

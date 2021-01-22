@@ -9,7 +9,7 @@ LIBS += -lstdc++fs;
 
 
 win32 {
-    CONFIG += 17
+    CONFIG += c++17
     LIBS += -lstdc++fs;
     QMAKE_LFLAGS = -Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc
     QMAKE_LFLAGS_EXCEPTIONS_ON = -mthreads

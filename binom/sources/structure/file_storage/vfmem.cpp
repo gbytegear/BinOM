@@ -28,6 +28,7 @@ void VFMemoryController::init() {
     loadNodeSegments();
     loadPrimitiveSegments();
     loadDataSegments();
+    loadDataMemory ();
   }
 }
 
@@ -97,6 +98,20 @@ void VFMemoryController::loadDataSegments() {
     file.read(segment_index, descriptor);
     data_segment_list.insertSegement(MemoryBlock{segment_index, sizeof (DataSegmentDescriptor) + descriptor.segment_size}, descriptor);
     data_memory_map.addMemory(data_segment_list.last().block.size);
+  }
+}
+
+void VFMemoryController::loadDataMemory() {
+  for(NodeSegmentList::SegmentNode& segment : node_segment_list) {
+    NodeDescriptor descriptor;
+    {ui8 i = 0; for(BitPointer ptr(&segment.descriptor.map); !ptr.isEnd(); (++ptr,++i))
+      if(*ptr) {
+        file.read(segment.block.index + sizeof(NodeSegmentDescriptor) + i*sizeof(NodeDescriptor), descriptor);
+        if(VarTypeClass type_class = toTypeClass(descriptor.type); type_class == VarTypeClass::primitive || type_class == VarTypeClass::invalid_type)
+          continue;
+        data_memory_map.allocDataBlock (descriptor.data_index, descriptor.block_size);
+      }
+    }
   }
 }
 
@@ -186,6 +201,14 @@ ui64 VFMemoryController::getDataSegmentsCount() {
 ui64 VFMemoryController::getNodeSegmentsCount() {
   ui64 count = 0;
   for([[maybe_unused]] NodeSegmentList::SegmentNode& node : node_segment_list) ++count;
+  return count;
+}
+
+ui64 VFMemoryController::getNodeCount() {
+  ui64 count = 0;
+  for(NodeSegmentList::SegmentNode& node : node_segment_list)
+    for(BitPointer ptr(&node.descriptor.map) ; !ptr.isEnd(); ++ptr)
+      count += *ptr;
   return count;
 }
 
@@ -299,3 +322,178 @@ ui64 VFMemoryController::findFreePrimitive() {
   createPrimitiveSegment();
   return ++byte_index;
 }
+
+
+
+
+
+
+
+ByteArray VFMemoryController::getData(ui64 index, ui64 size) {
+  ByteArray data(size);
+  DataSegmentList::SegmentIterator s_it = &data_segment_list[index/header.data_segment_size];
+  ui64 data_index = index%header.data_segment_size;
+  if(ui64 size_in_segment = s_it->block.size - sizeof(DataSegmentDescriptor); s_it->block.size - data_index >= size) // Read from continuous block
+    file.read (s_it->block.index + sizeof(DataSegmentDescriptor) + data_index, data);
+
+  else { // Read from segmented block
+    ByteArray::iterator b_it = file.read (s_it->block.index +  + sizeof(DataSegmentDescriptor) + data_index, data, size_in_segment);
+    size -= size_in_segment;
+    while (size) {
+      ++s_it;
+      if(s_it == nullptr) throw SException(ErrCode::binomdb_out_of_segment);
+      if(size > s_it->block.size) {
+        b_it = file.read (s_it->block.index + sizeof(DataSegmentDescriptor), data, s_it->block.size - sizeof(DataSegmentDescriptor));
+        size -= s_it->block.size - sizeof(DataSegmentDescriptor);
+      } else {
+         file.read(s_it->block.index  + sizeof(DataSegmentDescriptor), data, size);
+         break;
+      }
+    }
+  }
+
+  return data;
+}
+
+ByteArray VFMemoryController::getData(ui64 index) {
+  MemoryBlock mblock = data_memory_map.findDataBlock(index);
+  if(mblock.index == 0 && mblock.size == 0) throw SException(ErrCode::binomdb_block_isnt_exist);
+  return getData(mblock.index, mblock.size);
+}
+
+ui64 VFMemoryController::setData(ui64 index, ByteArray data) {
+  DataSegmentList::SegmentIterator s_it = &data_segment_list[index/header.data_segment_size];
+  ui64 size = data.length();
+  ui64 data_index = index%header.data_segment_size;
+  if(ui64 size_in_segment = s_it->block.size - sizeof(DataSegmentDescriptor); s_it->block.size - data_index >= size) // Read from continuous block
+    file.write (s_it->block.index + sizeof(DataSegmentDescriptor) + data_index, data);
+
+  else { // Read from segmented block
+    ByteArray::iterator b_it = file.read (s_it->block.index +  + sizeof(DataSegmentDescriptor) + data_index, data, size_in_segment);
+    size -= size_in_segment;
+    while (size) {
+      ++s_it;
+      if(s_it == nullptr) throw SException(ErrCode::binomdb_out_of_segment);
+      if(size > s_it->block.size) {
+        b_it = file.write (s_it->block.index + sizeof(DataSegmentDescriptor), data, s_it->block.size - sizeof(DataSegmentDescriptor));
+        size -= s_it->block.size - sizeof(DataSegmentDescriptor);
+      } else {
+        file.write(s_it->block.index  + sizeof(DataSegmentDescriptor), data, size);
+        break;
+      }
+    }
+  }
+
+  return index;
+}
+
+ui64 VFMemoryController::setData(ByteArray data) {
+  MemoryBlock mblock = data_memory_map.allocDataBlock (data.length());
+  if(mblock.index == 0 && mblock.size == 0) throw SException(ErrCode::binomdb_block_isnt_exist);
+  return setData(mblock.index, data);
+}
+
+void VFMemoryController::freeData(ui64 index) {data_memory_map.freeBlock(index);}
+
+
+
+
+
+
+
+
+// DataMemoryBlocks
+
+void VFMemoryController::DataMemoryBlocks::split(VFMemoryController::DataMemoryBlocks::DataBlock& data_block, ui64 size) {
+  if(data_block.block.size == size) {
+    return;
+  }
+
+  DataBlock* new_data_block = new DataBlock{
+      false,
+      {data_block.block.index + size,
+       data_block.block.size - size},
+      data_block.next, &data_block};
+
+  data_block.block.size = size;
+  if(data_block.next) data_block.next->prev = new_data_block;
+  else last_block = new_data_block;
+  data_block.next = new_data_block;
+}
+
+MemoryBlock VFMemoryController::DataMemoryBlocks::alloc(VFMemoryController::DataMemoryBlocks::DataBlock& data_block, ui64 size) {
+  split (data_block, size);
+  data_block.is_used = true;
+  return data_block.block;
+}
+
+void VFMemoryController::DataMemoryBlocks::free(VFMemoryController::DataMemoryBlocks::DataBlock& data_block) {
+  while(!data_block.prev->is_used) {
+    data_block.prev->is_used = true;
+    DataBlock* prev_block = data_block.prev;
+    data_block.prev = data_block.prev->prev;
+    if(data_block.prev)data_block.prev->next = &data_block;
+    data_block.block = {prev_block->block.index,
+                        data_block.block.size + prev_block->block.size};
+    delete prev_block;
+    if(!data_block.prev) break;
+  }
+
+  while(!data_block.next->is_used) {
+    data_block.next->is_used = true;
+    DataBlock* next_block = data_block.next;
+    data_block.next = data_block.next->next;
+    if(data_block.next) data_block.next->prev = &data_block;
+    data_block.block.size += next_block->block.size;
+    delete next_block;
+    if(!data_block.next) {
+      last_block = &data_block;
+      break;
+    }
+  }
+
+  data_block.is_used = false;
+}
+
+void VFMemoryController::DataMemoryBlocks::addMemory(ui64 size) {
+  if(!last_block->is_used) {
+    last_block->block.size += size;
+  } else {
+    last_block = last_block->next = new DataBlock{false,
+    {last_block->block.index + last_block->block.size, size},
+        nullptr,
+        last_block};
+  }
+}
+
+MemoryBlock VFMemoryController::DataMemoryBlocks::allocDataBlock(ui64 size) {
+  for(DataBlock& data : *this) {
+    if(data.is_used || data.block.size < size) continue;
+    return alloc(data, size);
+  }
+  return {0,0};
+}
+
+MemoryBlock VFMemoryController::DataMemoryBlocks::allocDataBlock(ui64 index, ui64 size) {
+  for(DataBlock& data : *this) {
+    if(data.block.index < index && data.block.index + data.block.size > index) {
+      split (data, index - data.block.index);
+      return alloc (*data.next, size);
+    } else if(data.block.index == index) return alloc (data, size);
+  }
+  return {0,0};
+}
+
+MemoryBlock VFMemoryController::DataMemoryBlocks::findDataBlock(ui64 index) {
+  for(DataBlock& data: *this)
+    if(data.block.index == index) return data.block;
+  return {0,0};
+}
+
+void VFMemoryController::DataMemoryBlocks::freeBlock(ui64 index) {
+  for(DataBlock& data : *this)
+    if(data.block.index == index) return free(data);
+}
+
+VFMemoryController::DataMemoryBlocks::iterator VFMemoryController::DataMemoryBlocks::begin() {return &start_block;}
+VFMemoryController::DataMemoryBlocks::iterator VFMemoryController::DataMemoryBlocks::end() {return nullptr;}

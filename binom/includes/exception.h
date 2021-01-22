@@ -18,8 +18,11 @@ enum ErrCode : ui8 {
   file_open_error,
   binomdb_invalid_file,
   binomdb_invalid_storage_version,
+
   binomdb_memory_management_error,
-  binomdb_segment_isnt_exist
+  binomdb_segment_isnt_exist,
+  binomdb_block_isnt_exist,
+  binomdb_out_of_segment
 };
 
 class SException {

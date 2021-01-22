@@ -45,6 +45,7 @@ public:
 
   inline ui64 getDataSegmentsCount() {return vmemeory.getDataSegmentsCount();}
   inline ui64 getNodeSegmentsCount() {return vmemeory.getNodeSegmentsCount();}
+  inline ui64 getNodeCount() {return vmemeory.getNodeCount();}
   inline ui64 getPrimitiveSegmentsCount() {return vmemeory.getPrimitiveSegmentsCount();}
 };
 

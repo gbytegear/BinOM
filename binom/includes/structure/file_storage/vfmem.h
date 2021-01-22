@@ -41,12 +41,6 @@ public:
 
 //! Virtual File Memory Controller
 class VFMemoryController {
-public:
-
-
-
-private:
-
   static constexpr ui64 node_segement_size = sizeof(NodeSegmentDescriptor) + 64*sizeof(NodeDescriptor);
   static constexpr ui64 primitive_segment_size = sizeof(PrimitiveSegmentDescriptor) + 64;
 
@@ -67,11 +61,14 @@ private:
       SegmentNode* current = nullptr;
     public:
       SegmentIterator(SegmentNode* node) : current(node) {}
+      SegmentIterator(SegmentIterator& other) : current(other.current) {}
+      SegmentIterator(SegmentIterator&& other) : current(other.current) {}
 
       SegmentIterator& operator++() {current = current->next; return *this;}
       SegmentNode& operator*() {return *current;}
-      bool operator==(SegmentIterator& other) const {return current == other.current;}
-      bool operator!=(SegmentIterator& other) const {return current != other.current;}
+      SegmentNode* operator->() {return current;}
+      bool operator==(SegmentIterator other) const {return current == other.current;}
+      bool operator!=(SegmentIterator other) const {return current != other.current;}
     };
 
     SegmentNode& last() {return *last_segment;}
@@ -116,54 +113,9 @@ private:
       DataBlock* prev = nullptr;
     };
 
-
-    MemoryBlock alloc(DataBlock& data_block, ui64 size) {
-      if(data_block.block.size == size) {
-        data_block.is_used = true;
-        return data_block.block;
-      }
-
-      DataBlock* new_data_block = new DataBlock{
-                                  false,
-                                  {data_block.block.index + size,
-                                  data_block.block.size - size},
-                                  data_block.next, &data_block};
-      data_block.block.size = size;
-      if(data_block.next) data_block.next->prev = new_data_block;
-      else last_block = new_data_block;
-      data_block.next = new_data_block;
-      data_block.is_used = true;
-      return data_block.block;
-    }
-
-    void free(DataBlock& data_block) {
-      while(!data_block.prev->is_used) {
-        data_block.prev->is_used = true;
-        DataBlock* prev_block = data_block.prev;
-        data_block.prev = data_block.prev->prev;
-        if(data_block.prev)data_block.prev->next = &data_block;
-        data_block.block = {prev_block->block.index,
-                            data_block.block.size + prev_block->block.size};
-        delete prev_block;
-        if(!data_block.prev) break;
-      }
-
-      while(!data_block.next->is_used) {
-        data_block.next->is_used = true;
-        DataBlock* next_block = data_block.next;
-        data_block.next = data_block.next->next;
-        if(data_block.next) data_block.next->prev = &data_block;
-        data_block.block.size += next_block->block.size;
-        delete next_block;
-        if(!data_block.next) {
-          last_block = &data_block;
-          break;
-        }
-      }
-
-      data_block.is_used = false;
-    }
-
+    void split(DataBlock& data_block, ui64 size);
+    MemoryBlock alloc(DataBlock& data_block, ui64 size);
+    void free(DataBlock& data_block);
 
     DataBlock start_block;
     DataBlock* last_block = &start_block;
@@ -187,32 +139,14 @@ private:
       DataBlock& operator*() {return *ptr;}
     };
 
-    void addMemory(ui64 size) {
-      if(!last_block->is_used) {
-        last_block->block.size += size;
-      } else {
-        last_block = last_block->next = new DataBlock{false,
-                                                      {last_block->block.index + last_block->block.size, size},
-                                                      nullptr,
-                                                      last_block};
-      }
-    }
+    void addMemory(ui64 size);
+    MemoryBlock allocDataBlock(ui64 size);
+    MemoryBlock allocDataBlock(ui64 index, ui64 size);
+    MemoryBlock findDataBlock(ui64 index);
+    void freeBlock(ui64 index);
 
-    MemoryBlock findDataBlock(ui64 size) {
-      for(DataBlock& data : *this) {
-        if(data.is_used || data.block.size < size) continue;
-        return alloc(data, size);
-      }
-      return {0,0};
-    }
-
-    void freeBlock(ui64 index) {
-      for(DataBlock& data : *this)
-        if(data.block.index == index) return free(data);
-    }
-
-    iterator begin() {return &start_block;}
-    iterator end() {return nullptr;}
+    iterator begin();
+    iterator end();
 
   };
 
@@ -233,61 +167,68 @@ private:
   void loadPrimitiveSegments();
   DataSegmentList::SegmentNode& createDataSegment(ui64 size = 4096);
   void loadDataSegments();
-  void loadFreeMemoryList();
+  void loadDataMemory();
 
 
 
 
 
-  public:
-    VFMemoryController(std::string filename) : file(std::move(filename)) {init();}
-    VFMemoryController(const char* filename) : file(filename) {init();}
+public:
+  VFMemoryController(std::string filename) : file(std::move(filename)) {init();}
+  VFMemoryController(const char* filename) : file(filename) {init();}
 
 
-    // File info
-    ui64 getFileSize() {return file.size();}
+  // File info
+  ui64 getFileSize() {return file.size();}
 
-    ui64 getDataSegmentsSize();
-    ui64 getNodeSegmentsSize();
-    ui64 getPrimitiveSegmentsSize();
+  ui64 getDataSegmentsSize();
+  ui64 getNodeSegmentsSize();
+  ui64 getPrimitiveSegmentsSize();
 
-    ui64 getDataSegmentsCount();
-    ui64 getNodeSegmentsCount();
-    ui64 getPrimitiveSegmentsCount();
-
-
-    // NodeDescriptor management
-    NodeDescriptor getNodeDescriptor(ui64 index);
-    ui64 setNodeDescriptor(ui64 index, NodeDescriptor descriptor);
-    ui64 setNodeDescriptor(NodeDescriptor descriptor);
-    void freeNodeDescriptor(ui64 index);
-    ui64 findFreeNodeDescriptor();
+  ui64 getDataSegmentsCount();
+  ui64 getNodeSegmentsCount();
+  ui64 getNodeCount();
+  ui64 getPrimitiveSegmentsCount();
 
 
-    // Primitive memory mangement
-    template<typename Type> Type getPrimitive(ui64 index);
-    template<typename Type> ui64 setPrimitive(ui64 index, Type value);
-    template<typename Type> ui64 setPrimitive(Type value);
-    template<typename Type> void freePrimitive(ui64 index);
-    template<typename Type> ui64 findFreePrimitive();
+  // NodeDescriptor management
+  NodeDescriptor getNodeDescriptor(ui64 index);
+  ui64 setNodeDescriptor(ui64 index, NodeDescriptor descriptor);
+  ui64 setNodeDescriptor(NodeDescriptor descriptor);
+  void freeNodeDescriptor(ui64 index);
+  ui64 findFreeNodeDescriptor();
 
 
-    // Data memory magement
+  // Primitive memory mangement
+  template<typename Type> Type getPrimitive(ui64 index);
+  template<typename Type> ui64 setPrimitive(ui64 index, Type value);
+  template<typename Type> ui64 setPrimitive(Type value);
+  template<typename Type> void freePrimitive(ui64 index);
+  template<typename Type> ui64 findFreePrimitive();
+
+
+  // Data memory magement
+  ByteArray getData(ui64 index, ui64 size);
+  ByteArray getData(ui64 index);
+  ui64 setData(ui64 index, ByteArray data);
+  ui64 setData(ByteArray data);
+  void freeData(ui64 index);
 
 
 
+private:
+  FileIO file;
 
-  private:
-    FileIO file;
+  DBHeader header;
+  NodeSegmentList node_segment_list;
+  PrimitiveSegmentList primitive_segment_list;
+  DataSegmentList data_segment_list;
+  DataMemoryBlocks data_memory_map;
 
-    DBHeader header;
-    NodeSegmentList node_segment_list;
-    PrimitiveSegmentList primitive_segment_list;
-    DataSegmentList data_segment_list;
-    DataMemoryBlocks data_memory_map;
+};
 
-  };
 
-  }
 
-  #endif
+}
+
+#endif
