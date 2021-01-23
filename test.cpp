@@ -339,7 +339,7 @@ inline void testChainNumber() {
 }
 
 
-void testDBFile() {
+void testDB() {
   DBFile db_file("test.binomdb");
 
   std::clog << std::dec
@@ -351,6 +351,7 @@ void testDBFile() {
             << "|Primitive segment size: " << db_file.getPrimitiveSegmentsSize() << " bytes\n"
             << "|Data segment count: " << db_file.getDataSegmentsCount() << "\n"
             << "|Data segment size: " << db_file.getDataSegmentsSize() << " bytes\n";
+
 }
 
 
@@ -371,7 +372,7 @@ int main() {
     std::clog << "===================================================================\n";
     testSerialization ();
     std::clog << "===================================================================\n";
-    testDBFile();
+    testDB();
 
 
   } catch(binom::SException except) {

@@ -124,12 +124,12 @@ void VFMemoryController::loadDataMemory() {
 
 
 
-NodeDescriptor VFMemoryController::getNodeDescriptor(ui64 index) {
+IndexedNodeDescriptor VFMemoryController::getNodeDescriptor(ui64 index) {
   NodeDescriptor descriptor;
   file.read(node_segment_list[index/64].block.index +
             sizeof(NodeSegmentDescriptor) +
             (index%64)*sizeof(NodeDescriptor), descriptor);
-  return descriptor;
+  return {descriptor, index};
 }
 
 ui64 VFMemoryController::setNodeDescriptor(ui64 index, NodeDescriptor descriptor) {
@@ -360,6 +360,8 @@ ByteArray VFMemoryController::getData(ui64 index) {
   if(mblock.index == 0 && mblock.size == 0) throw SException(ErrCode::binomdb_block_isnt_exist);
   return getData(mblock.index, mblock.size);
 }
+
+ByteArray VFMemoryController::getData(NodeDescriptor descriptor) {return getData(descriptor.data_index, descriptor.block_size);}
 
 ui64 VFMemoryController::setData(ui64 index, ByteArray data) {
   DataSegmentList::SegmentIterator s_it = &data_segment_list[index/header.data_segment_size];

@@ -39,6 +39,16 @@ public:
 
 
 
+struct IndexedNodeDescriptor {
+  NodeDescriptor descriptor;
+  ui64 node_index = 0;
+};
+
+
+
+
+
+
 //! Virtual File Memory Controller
 class VFMemoryController {
   static constexpr ui64 node_segement_size = sizeof(NodeSegmentDescriptor) + 64*sizeof(NodeDescriptor);
@@ -192,7 +202,8 @@ public:
 
 
   // NodeDescriptor management
-  NodeDescriptor getNodeDescriptor(ui64 index);
+  inline IndexedNodeDescriptor getRootNodeDescriptor() {return getNodeDescriptor(0);}
+  IndexedNodeDescriptor getNodeDescriptor(ui64 index);
   ui64 setNodeDescriptor(ui64 index, NodeDescriptor descriptor);
   ui64 setNodeDescriptor(NodeDescriptor descriptor);
   void freeNodeDescriptor(ui64 index);
@@ -210,6 +221,7 @@ public:
   // Data memory magement
   ByteArray getData(ui64 index, ui64 size);
   ByteArray getData(ui64 index);
+  ByteArray getData(NodeDescriptor descriptor);
   ui64 setData(ui64 index, ByteArray data);
   ui64 setData(ByteArray data);
   void freeData(ui64 index);

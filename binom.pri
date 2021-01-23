@@ -1,4 +1,5 @@
 SOURCES += \
+  $$PWD/binom/sources/structure/file_storage/dbfile.cpp \
   binom/sources/structure/file_storage/vfmem.cpp \
   binom/sources/structure/mem.cpp \
   binom/sources/structure/variables/value.cpp \

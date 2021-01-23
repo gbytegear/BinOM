@@ -113,22 +113,14 @@ struct DataSegmentDescriptor {
 
 // Node data
 
-struct ArrayDescriptor {
-  ui64 element_count;
-};
-
 struct ObjectDescriptor {
   ui64 name_length_block_size;
   ui64 name_block_size;
   ui64 element_count;
 };
 
-struct AOElementDescriptor {
+struct Element {
   ui64 node_index;
-};
-
-struct BufferDescriptor {
-  ui64 element_count;
 };
 
 #pragma pack(pop)
