@@ -147,6 +147,8 @@ ui64 VFMemoryController::setNodeDescriptor(ui64 index, NodeDescriptor descriptor
 
 ui64 VFMemoryController::setNodeDescriptor(NodeDescriptor descriptor) { return setNodeDescriptor(findFreeNodeDescriptor(), descriptor); }
 
+ui64 VFMemoryController::setNodeDescriptor(IndexedNodeDescriptor descriptor) {return setNodeDescriptor(descriptor.node_index, descriptor.descriptor);}
+
 void VFMemoryController::freeNodeDescriptor(ui64 index) {
   NodeSegmentList::SegmentNode& node_segment = node_segment_list[index/64];
   ui64 node_index = index%64;

@@ -132,6 +132,8 @@ public:
   inline ui64 getNodeCount() {return vmemory.getNodeCount();}
   inline ui64 getPrimitiveSegmentsCount() {return vmemory.getPrimitiveSegmentsCount();}
 
+  VFMemoryController& getMemoryCntroller() {return vmemory;}
+
   FileNodeVisitor getRootNode() {return FileNodeVisitor(vmemory);}
 
 };

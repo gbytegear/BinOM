@@ -57,6 +57,8 @@ public:
 
   ~Primitive();
 
+  VarType getType() {return *data.type;}
+
   ByteArray serialize() const;
   static Primitive deserialize(ByteArray::iterator& it);
 

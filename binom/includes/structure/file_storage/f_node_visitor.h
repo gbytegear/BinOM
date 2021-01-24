@@ -2,6 +2,7 @@
 #define FILE_NODE_VISITOR_H
 
 #include "vfmem.h"
+#include "../variables/variable.h"
 
 namespace binom {
 
@@ -9,7 +10,22 @@ class FileNodeVisitor {
   VFMemoryController* vmemory;
   IndexedNodeDescriptor descriptor;
 
-  void load(ui64 index);
+  void loadNodeVisitor(ui64 index);
+  void updateNodeVisitor();
+
+  ByteArray covert(Object& object);
+
+  void set(Variable& variable);
+  void set(Primitive& primitive);
+  void set(BufferArray& buffer);
+  void set(Array& array);
+  void set(Object& object);
+
+  ui64 create(Variable& variable);
+  ui64 create(Primitive& primitive);
+  ui64 create(BufferArray& buffer);
+  ui64 create(Array& array);
+  ui64 create(Object& object);
 
 public:
   FileNodeVisitor(VFMemoryController& vmemory) : vmemory(&vmemory), descriptor(vmemory.getRootNodeDescriptor()) {}
@@ -20,6 +36,7 @@ public:
   FileNodeVisitor& operator=(IndexedNodeDescriptor descriptor) {this->descriptor = descriptor; return *this;}
   FileNodeVisitor& operator=(FileNodeVisitor& other) {vmemory = other.vmemory; descriptor = other.descriptor; return *this;}
   FileNodeVisitor& operator=(FileNodeVisitor&& other) {vmemory = other.vmemory; descriptor = other.descriptor; return *this;}
+  FileNodeVisitor& operator=(Variable var);
 
   inline VarType getType() {return descriptor.descriptor.type;}
   inline VarTypeClass getTypeClass() {return toTypeClass(getType());}
@@ -36,7 +53,6 @@ public:
 
   FileNodeVisitor& operator()(ui64 index) {return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
-
 
 };
 

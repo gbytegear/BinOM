@@ -18,6 +18,17 @@ public:
   ByteArray() = default;
   ByteArray(void* buffer, ui64 size) : _length(size), array(tryMalloc<byte>(size)) {memcpy(array, buffer, size);}
   ByteArray(ui64 size) : _length(size), array(tryMalloc<byte>(size)) {}
+  ByteArray(std::initializer_list<ByteArray&> arrays) {
+    for(ByteArray& byte_array : arrays) {
+      _length += byte_array._length;
+    }
+    array = tryMalloc<byte>(_length);
+    iterator it = begin();
+    for(ByteArray& byte_array : arrays) {
+      memcpy(it, byte_array.begin(), byte_array._length);
+      it += byte_array._length;
+    }
+  }
 
   ui64 length() {return _length;}
 
@@ -52,6 +63,12 @@ public:
     memcpy (array, buffer, size);
     return *this;
   }
+
+  template<typename Type>
+  ByteArray& pushBack(Type& value) {return pushBack(&value, sizeof (Type));}
+
+  template<typename Type>
+  ByteArray& pushFront(Type& value) {return pushFront(&value, sizeof (Type));}
 
   ByteArray& pushBack(const char* c_str) {return pushBack (c_str, strlen (c_str) + 1);}
   ByteArray& pushFront(const char* c_str) {return pushFront(c_str, strlen (c_str) + 1);}

@@ -351,7 +351,6 @@ void testDB() {
             << "|Primitive segment size: " << db_file.getPrimitiveSegmentsSize() << " bytes\n"
             << "|Data segment count: " << db_file.getDataSegmentsCount() << "\n"
             << "|Data segment size: " << db_file.getDataSegmentsSize() << " bytes\n";
-
 }
 
 

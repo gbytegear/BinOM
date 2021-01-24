@@ -119,6 +119,11 @@ struct ObjectDescriptor {
   ui64 element_count;
 };
 
+struct NameDescriptor {
+  ui64 length = 0;
+  ui64 count = 0;
+};
+
 struct Element {
   ui64 node_index;
 };

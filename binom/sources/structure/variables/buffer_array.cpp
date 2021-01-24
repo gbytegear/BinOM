@@ -629,6 +629,13 @@ std::wstring BufferArray::toWString() const {
   return wstr;
 }
 
+ByteArray BufferArray::toByteArray() const {
+  ui64 size = msize() - 9;
+  ByteArray array(size);
+  memcpy(array.begin(), data.bytes + 9, size);
+  return array;
+}
+
 std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
   for(const binom::ValueRef &val : buffer)
     os << val << ' ';

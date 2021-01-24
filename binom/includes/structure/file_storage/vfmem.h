@@ -206,6 +206,7 @@ public:
   IndexedNodeDescriptor getNodeDescriptor(ui64 index);
   ui64 setNodeDescriptor(ui64 index, NodeDescriptor descriptor);
   ui64 setNodeDescriptor(NodeDescriptor descriptor);
+  ui64 setNodeDescriptor(IndexedNodeDescriptor descriptor);
   void freeNodeDescriptor(ui64 index);
   ui64 findFreeNodeDescriptor();
 

@@ -83,6 +83,8 @@ public:
 
   ~BufferArray() {destroy();}
 
+  VarType getType() {return *data.type;}
+
   ByteArray serialize() const;
   static BufferArray deserialize(ByteArray::iterator& it);
 
@@ -162,6 +164,7 @@ public:
 
   std::string toString() const;
   std::wstring toWString() const;
+  ByteArray toByteArray() const;
 
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 };
