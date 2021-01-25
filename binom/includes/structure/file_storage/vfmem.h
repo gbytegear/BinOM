@@ -65,6 +65,7 @@ class VFMemoryController {
       SegmentNode* next = nullptr;
       Descriptor descriptor;
       MemoryBlock block;
+      ~SegmentNode() {if(next){delete next; next = nullptr;}}
     };
 
     class SegmentIterator {
@@ -121,6 +122,7 @@ class VFMemoryController {
       MemoryBlock block{0, 0};
       DataBlock* next = nullptr;
       DataBlock* prev = nullptr;
+      ~DataBlock() {if(next){delete next;next = nullptr;}}
     };
 
     void split(DataBlock& data_block, ui64 size);

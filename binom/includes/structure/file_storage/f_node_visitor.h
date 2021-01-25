@@ -13,7 +13,9 @@ class FileNodeVisitor {
   void loadNodeVisitor(ui64 index);
   void updateNodeVisitor();
 
-  ByteArray covert(Object& object);
+  ByteArray loadData();
+
+  ByteArray pack(Object& object);
 
   void set(Variable& variable);
   void set(Primitive& primitive);
@@ -26,6 +28,8 @@ class FileNodeVisitor {
   ui64 create(BufferArray& buffer);
   ui64 create(Array& array);
   ui64 create(Object& object);
+
+  void free();
 
 public:
   FileNodeVisitor(VFMemoryController& vmemory) : vmemory(&vmemory), descriptor(vmemory.getRootNodeDescriptor()) {}
@@ -43,8 +47,8 @@ public:
 
   FileNodeVisitor& stepInside(ui64 index);
   FileNodeVisitor& stepInside(BufferArray name);
-  FileNodeVisitor getChilde(ui64 index);
-  FileNodeVisitor getChilde(BufferArray name);
+  FileNodeVisitor getChild(ui64 index);
+  FileNodeVisitor getChild(BufferArray name);
 
   Variable getVariable();
 

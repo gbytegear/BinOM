@@ -10,6 +10,8 @@ void FileNodeVisitor::updateNodeVisitor() {
   vmemory->setNodeDescriptor(descriptor);
 }
 
+ByteArray FileNodeVisitor::loadData() {return vmemory->getData (descriptor.descriptor.data_index, descriptor.descriptor.block_size);}
+
 ByteArray FileNodeVisitor::pack(Object& object) {
   NameDescriptor name_descriptor;
   ByteArray object_des_block(0),
@@ -43,28 +45,42 @@ ByteArray FileNodeVisitor::pack(Object& object) {
   return ByteArray({object_des_block, name_des_block, name_block, index_block});
 }
 
+
+
+
+
+
+
+
+void FileNodeVisitor::set(Variable& variable){
+  switch (variable.typeClass()) {
+  case VarTypeClass::primitive: return set(variable.toPrimitive());
+  case VarTypeClass::buffer_array: return set(variable.toBufferArray());
+  case VarTypeClass::array: return set(variable.toArray());
+  case VarTypeClass::object: return set(variable.toObject());
+  default: throw SException(ErrCode::binom_invalid_type);
+  }
+}
+
 void FileNodeVisitor::set(Primitive& primitive) {
+  free();
   switch (primitive.getType()) {
     case VarType::byte:
-      vmemory->freePrimitive<ui8>(descriptor.descriptor.data_index);
       descriptor.descriptor.data_index = vmemory->setPrimitive(static_cast<ui8>(primitive.getValue().asUnsigned()));
       descriptor.descriptor.block_size = 1;
       descriptor.descriptor.type = VarType::byte;
     break;
     case VarType::word:
-      vmemory->freePrimitive<ui16>(descriptor.descriptor.data_index);
       descriptor.descriptor.data_index = vmemory->setPrimitive(static_cast<ui16>(primitive.getValue().asUnsigned()));
       descriptor.descriptor.block_size = 2;
       descriptor.descriptor.type = VarType::word;
     break;
     case VarType::dword:
-      vmemory->freePrimitive<ui32>(descriptor.descriptor.data_index);
       descriptor.descriptor.data_index = vmemory->setPrimitive(static_cast<ui16>(primitive.getValue().asUnsigned()));
       descriptor.descriptor.block_size = 4;
       descriptor.descriptor.type = VarType::dword;
     break;
     case VarType::qword:
-      vmemory->freePrimitive<ui64>(descriptor.descriptor.data_index);
       descriptor.descriptor.data_index = vmemory->setPrimitive(static_cast<ui16>(primitive.getValue().asUnsigned()));
       descriptor.descriptor.block_size = 8;
       descriptor.descriptor.type = VarType::qword;
@@ -76,7 +92,7 @@ void FileNodeVisitor::set(Primitive& primitive) {
 
 void FileNodeVisitor::set(BufferArray& buffer) {
   ByteArray array = buffer.toByteArray();
-  vmemory->freeData(descriptor.descriptor.data_index);
+  free();
   descriptor.descriptor.data_index = vmemory->setData(array);
   descriptor.descriptor.block_size = array.length();
   descriptor.descriptor.type = buffer.getType();
@@ -89,7 +105,7 @@ void FileNodeVisitor::set(Array& array) {
     Element element{create(var)};
     data.pushBack(element);
   }
-  vmemory->freeData(descriptor.descriptor.data_index);
+  free();
   descriptor.descriptor.data_index = vmemory->setData(data);
   descriptor.descriptor.block_size = data.length();
   descriptor.descriptor.type = VarType::array;
@@ -98,11 +114,18 @@ void FileNodeVisitor::set(Array& array) {
 
 void FileNodeVisitor::set(Object& object) {
   ByteArray data(pack(object));
+  free();
   descriptor.descriptor.data_index = vmemory->setData(data);
   descriptor.descriptor.block_size = data.length();
   descriptor.descriptor.type = VarType::object;
   updateNodeVisitor();
 }
+
+
+
+
+
+
 
 ui64 FileNodeVisitor::create(Variable& variable) {
   switch (variable.typeClass()) {
@@ -173,12 +196,53 @@ ui64 FileNodeVisitor::create(Object& object) {
   return vmemory->setNodeDescriptor(descriptor);
 }
 
+
+
+
+
+
+
+void FileNodeVisitor::free() {
+  switch (getType ()) {
+  case VarType::byte: vmemory->freePrimitive<ui8>(descriptor.descriptor.data_index);break;
+  case VarType::word: vmemory->freePrimitive<ui16>(descriptor.descriptor.data_index);break;
+  case VarType::dword: vmemory->freePrimitive<ui32>(descriptor.descriptor.data_index);break;
+  case VarType::qword: vmemory->freePrimitive<ui64>(descriptor.descriptor.data_index);break;
+  case VarType::byte_array:
+  case VarType::word_array:
+  case VarType::dword_array:
+  case VarType::qword_array:
+    vmemory->freeData(descriptor.descriptor.data_index);
+  break;
+  case VarType::array:
+  case VarType::object: throw SException(ErrCode::binom_invalid_type, "Impthis!");
+  default: throw SException(ErrCode::binom_invalid_type);
+  }
+}
+
+
+
+
+
+
+
+
 FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
   if(getType() != VarType::array) throw SException(ErrCode::binom_invalid_type);
   ByteArray array_data = vmemory->getData(descriptor.descriptor);
   if(array_data.length()/sizeof(Element) >= index) throw SException(ErrCode::binom_out_of_range);
   loadNodeVisitor(reinterpret_cast<Element*>(array_data.begin() + index*sizeof(Element))->node_index);
   return *this;
+}
+
+FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
+  if(getType() != VarType::object) throw SException(ErrCode::binom_invalid_type);
+  ByteArray data = loadData();
+  ObjectDescriptor object_des = data.takeFront<ObjectDescriptor>();
+  ByteArray name_des_block = data.takeFront(object_des.name_length_block_size),
+            name_block = data.takeFront(object_des.name_block_size),
+            index_block = data.takeBack(object_des.element_count*sizeof(Element));
+
 }
 
 FileNodeVisitor& FileNodeVisitor::operator=(Variable var) {

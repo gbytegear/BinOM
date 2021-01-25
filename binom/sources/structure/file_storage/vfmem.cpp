@@ -439,7 +439,7 @@ void VFMemoryController::DataMemoryBlocks::free(VFMemoryController::DataMemoryBl
     if(data_block.prev)data_block.prev->next = &data_block;
     data_block.block = {prev_block->block.index,
                         data_block.block.size + prev_block->block.size};
-    delete prev_block;
+    std::free(prev_block);
     if(!data_block.prev) break;
   }
 
@@ -449,7 +449,7 @@ void VFMemoryController::DataMemoryBlocks::free(VFMemoryController::DataMemoryBl
     data_block.next = data_block.next->next;
     if(data_block.next) data_block.next->prev = &data_block;
     data_block.block.size += next_block->block.size;
-    delete next_block;
+    std::free(next_block);
     if(!data_block.next) {
       last_block = &data_block;
       break;
