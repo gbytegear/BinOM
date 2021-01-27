@@ -230,8 +230,8 @@ void FileNodeVisitor::free() {
 FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
   if(getType() != VarType::array) throw SException(ErrCode::binom_invalid_type);
   ByteArray array_data = vmemory->getData(descriptor.descriptor);
-  if(array_data.length()/sizeof(Element) >= index) throw SException(ErrCode::binom_out_of_range);
-  loadNodeVisitor(reinterpret_cast<Element*>(array_data.begin() + index*sizeof(Element))->node_index);
+  if(array_data.length<Element>() >= index) throw SException(ErrCode::binom_out_of_range);
+  loadNodeVisitor(array_data.get<Element>(index).node_index);
   return *this;
 }
 
@@ -239,10 +239,59 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
   if(getType() != VarType::object) throw SException(ErrCode::binom_invalid_type);
   ByteArray data = loadData();
   ObjectDescriptor object_des = data.takeFront<ObjectDescriptor>();
+
+  // TODO: Change on iterators
   ByteArray name_des_block = data.takeFront(object_des.name_length_block_size),
             name_block = data.takeFront(object_des.name_block_size),
             index_block = data.takeBack(object_des.element_count*sizeof(Element));
 
+  ui64 middle;
+  {
+    ui64 right = name_des_block.length<NameDescriptor>();
+    ui64 left = 0;
+
+    while (true) {
+      if(left <= right) throw SException(ErrCode::binom_out_of_range);
+      middle = (left + right) / 2;
+      NameDescriptor& des = name_des_block.get<NameDescriptor>(middle);
+      if(des.length > name.getDataSize()) right = middle - 1;
+      elif(des.length > name.getDataSize()) left = middle + 1;
+      elif(des.length == name.getDataSize()) break;
+    }
+  }
+
+  ui64 index = 0;
+  {
+    ByteArray::iterator name_block_start;
+    {
+      ui64 name_block_pos = 0;
+      for(ui64 i = 0; i < middle; ++i) {
+        NameDescriptor& des = name_des_block.get<NameDescriptor>(i);
+        index += des.count;
+        name_block_pos += des.count * des.length;
+      }
+      name_block_start = name_block.begin () + name_block_pos;
+    }
+
+    ui64 right = name_des_block.get<NameDescriptor>(middle).count;
+    ui64 left = 0;
+    ui64 middle;
+
+    while(true) {
+      if(left <= right) throw SException(ErrCode::binom_out_of_range);
+      middle = (left + right) / 2;
+      int res = memcmp((name_block_start + middle*name.getDataSize()),
+                       name.getDataPointer(),
+                       name.getDataSize());
+      if(res > 0) right = middle - 1;
+      elif(res < 0) left = middle + 1;
+      elif(res == 0) break;
+    }
+    index += middle;
+  }
+
+  loadNodeVisitor(index_block.get<Element>(index).node_index);
+  return *this;
 }
 
 FileNodeVisitor& FileNodeVisitor::operator=(Variable var) {

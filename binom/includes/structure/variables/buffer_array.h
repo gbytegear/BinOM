@@ -116,6 +116,9 @@ public:
     return begin()[index];
   }
 
+  void* getDataPointer() {return data.bytes + 9;}
+  ui64 getDataSize() {return getMemberCount() * getMemberSize();}
+
   ValueRef pushBack(ui64 value);
   ValueRef pushBack(i64 value);
   ValueRef pushBack(f64 value);

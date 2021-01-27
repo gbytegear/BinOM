@@ -224,7 +224,7 @@ inline void testNodeVisitor() {
 
   std::clog << "Foreach test object:\n";
 
-  (node = &arr).stepInside (9);
+  (node = &arr)(9);
 
   for(NodeVisitor child : node) {
     std::clog << child.getName().toString() << ':' << child.getVariable() << '\n';
@@ -232,7 +232,7 @@ inline void testNodeVisitor() {
 
   std::clog << "Foreach test array:\n";
 
-  (node = &arr).stepInside (8);
+  (node = &arr)(8);
 
   for(NodeVisitor child : node) {
     std::clog << child.getVariable() << '\n';
@@ -240,7 +240,7 @@ inline void testNodeVisitor() {
 
   std::clog << "Foreach test buffer array:\n";
 
-  (node = &arr).stepInside (4);
+  (node = &arr)(4);
 
   for(NodeVisitor child : node) {
     std::clog << child.getValue() << '\n';

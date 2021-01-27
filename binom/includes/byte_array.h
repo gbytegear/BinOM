@@ -20,13 +20,13 @@ public:
   ByteArray(const ByteArray& other) : _length(other._length), array(tryMalloc<byte>(_length)) {memcpy(array, other.begin(), _length);}
   ByteArray(const ByteArray&& other) : _length(other._length), array(other.array) {}
   ByteArray(ui64 size) : _length(size), array(tryMalloc<byte>(size)) {}
-  ByteArray([[maybe_unused]]std::initializer_list<const ByteArray&> arrays) {
-    for(ByteArray& byte_array : arrays) {
+  ByteArray(std::initializer_list<const ByteArray> arrays) {
+    for(const ByteArray& byte_array : arrays) {
       _length += byte_array._length;
     }
     array = tryMalloc<byte>(_length);
     iterator it = begin();
-    for(ByteArray& byte_array : arrays) {
+    for(const ByteArray& byte_array : arrays) {
       memcpy(it, byte_array.begin(), byte_array._length);
       it += byte_array._length;
     }

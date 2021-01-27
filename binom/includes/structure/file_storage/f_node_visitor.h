@@ -47,8 +47,8 @@ public:
 
   FileNodeVisitor& stepInside(ui64 index);
   FileNodeVisitor& stepInside(BufferArray name);
-  FileNodeVisitor getChild(ui64 index);
-  FileNodeVisitor getChild(BufferArray name);
+  FileNodeVisitor getChild(ui64 index) {return FileNodeVisitor(*this).stepInside(index);}
+  FileNodeVisitor getChild(BufferArray name) {return FileNodeVisitor(*this).stepInside(std::move(name));}
 
   Variable getVariable();
 
@@ -59,6 +59,16 @@ public:
   FileNodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
 
 };
+
+
+class FileNodeIterator {
+  ByteArray data;
+  Element* current;
+public:
+  FileNodeIterator(FileNodeVisitor& visitor);
+};
+
+
 
 }
 
