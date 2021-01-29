@@ -15,7 +15,7 @@ class Object {
   } data;
 
   inline ui64& length() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
-  inline ui64 msize() const;
+  ui64 msize() const;
 
   void mch(size_t new_size);
   void* madd(size_t add_size);
@@ -41,6 +41,7 @@ public:
   void remove(BufferArray name);
   BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
+  Object& operator=(Object other);
   Variable& operator+=(NamedVariable named_variable);
 
   NamedVariable& getNamedVariable(BufferArray name) const;

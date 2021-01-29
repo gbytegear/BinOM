@@ -151,7 +151,7 @@ public:
   inline BufferArray& operator+=(const BufferArray& other) {pushBack(other); return *this;}
   inline BufferArray& operator+=(const ValueRef value) {pushBack(value); return *this;}
 
-  BufferArray& operator=(const BufferArray& other);
+  BufferArray& operator=(BufferArray other);
 
   bool operator==(const BufferArray& other) const;
   inline bool operator!=(const BufferArray& other) const {return !(*this == other);}

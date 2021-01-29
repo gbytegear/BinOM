@@ -174,6 +174,13 @@ Variable& Array::operator+=(Variable var) {
   return *new_var;
 }
 
+Array& Array::operator=(Array other) {
+  destroy();
+  data.ptr = other.data.ptr;
+  other.data.ptr = nullptr;
+  return *this;
+}
+
 
 
 

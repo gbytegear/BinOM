@@ -13,9 +13,9 @@ namespace fs = std::experimental::filesystem;
 
 #elif _WIN32
 
-#include <experimental/filesystem>
+#include <filesystem>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 #endif
 
@@ -41,7 +41,7 @@ public:
 
   bool open(const char* filename) {
     close();
-    file = fs::exists (filename)? fopen64(filename, "r+") : fopen64(filename, "w+");
+    file = fs::exists(filename)? fopen64(filename, "r+") : fopen64(filename, "w+");
     file_path = filename;
     return !!file;
   }

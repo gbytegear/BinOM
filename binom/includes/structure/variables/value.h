@@ -76,6 +76,7 @@ class ValueIterator {
       case ValType::word: return 2;
       case ValType::dword: return 4;
       case ValType::qword: return 8;
+      default: throw SException(ErrCode::binom_invalid_type);
     }
   }
 

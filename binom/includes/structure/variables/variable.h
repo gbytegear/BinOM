@@ -98,6 +98,11 @@ public:
   // Object
   Variable(obj object);
 
+  Variable(Primitive primitive);
+  Variable(BufferArray buffer_array);
+  Variable(Array array);
+  Variable(Object object);
+
   Variable(Variable&& other);
   Variable(Variable& other);
 
@@ -123,11 +128,7 @@ public:
   inline Array& toArray() const noexcept                 {return const_cast<Array&>(data.array);}
   inline Object& toObject() const noexcept               {return const_cast<Object&>(data.object);}
 
-  inline Variable& operator=(const Variable& other) {
-    if(!isNull())destroy();
-    data.ptr = other.clone();
-    return *this;
-  }
+  Variable& operator=(Variable other);
 
   inline ui64 length() {
     return
@@ -157,6 +158,7 @@ struct NamedVariable {
   NamedVariable& operator=(NamedVariable& other) {
     name.data.ptr = other.name.clone();
     variable.data.ptr = other.variable.clone();
+    return *this;
   }
 };
 

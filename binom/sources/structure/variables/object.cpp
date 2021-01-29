@@ -229,6 +229,13 @@ BufferArray& Object::rename(BufferArray old_name, BufferArray new_name) {
   return it[middle].name;
 }
 
+Object& Object::operator=(Object other) {
+  destroy();
+  data.ptr = other.data.ptr;
+  other.data.ptr = nullptr;
+  return *this;
+}
+
 Variable& Object::operator+=(NamedVariable named_variable) {
   return insert(named_variable.name, named_variable.variable);
 }

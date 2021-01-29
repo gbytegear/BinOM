@@ -10,6 +10,7 @@ void* Variable::clone() const {
     case VarTypeClass::buffer_array: return toBufferArray().clone();
     case VarTypeClass::array: return toArray().clone();
     case VarTypeClass::object: return toObject().clone();
+    default:
     case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
   }
 }
@@ -409,6 +410,11 @@ Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVa
   }
 }
 
+Variable::Variable(Primitive primitive) : data(primitive.data.ptr) {primitive.data.ptr = nullptr;}
+Variable::Variable(BufferArray buffer_array) : data(buffer_array.data.ptr) {buffer_array.data.ptr = nullptr;}
+Variable::Variable(Array array) : data(array.data.ptr) {array.data.ptr = nullptr;}
+Variable::Variable(Object object) : data(object.data.ptr) {object.data.ptr = nullptr;}
+
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Variable::Variable(Variable& other) : data(other.clone()) {}
 
@@ -432,11 +438,18 @@ Variable Variable::deserialize(ByteArray::iterator& it) {
   }
 }
 
+Variable& Variable::operator=(Variable other) {
+  destroy();
+  data.ptr = other.data.ptr;
+  other.data.ptr = nullptr;
+  return *this;
+}
+
 
 
 std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {
   switch (var.typeClass()) {
-    case VarTypeClass::primitive: return os << var.toPrimitive();
+  case VarTypeClass::primitive: return os << var.toPrimitive();
     case VarTypeClass::buffer_array: return os << var.toBufferArray();
     case VarTypeClass::array: return os << var.toArray();
     case VarTypeClass::object: return os << var.toObject();

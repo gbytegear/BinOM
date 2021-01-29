@@ -6,7 +6,7 @@ void binom::Primitive::destroy() {
   data.ptr = nullptr;
 }
 
-void* binom::Primitive::clone() {
+void* binom::Primitive::clone() const {
   ui64 size = msize();
   void* ptr = tryMalloc(size);
   memcpy(ptr, data.ptr, size);
@@ -101,8 +101,10 @@ binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
   return var;
 }
 
-binom::Primitive& binom::Primitive::operator=(binom::Primitive& other) {
-  getValue() << other.getValue();
+binom::Primitive& binom::Primitive::operator=(binom::Primitive other) {
+  destroy();
+  data.ptr = other.data.ptr;
+  other.data.ptr = nullptr;
   return *this;
 }
 

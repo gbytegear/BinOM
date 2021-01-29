@@ -517,15 +517,10 @@ BufferArray BufferArray::subarr(const ui64 index, const ui64 n) {
 void BufferArray::clear() {mch(9);length() = 0;}
 
 
-BufferArray& BufferArray::operator=(const BufferArray& other) {
-  if(data.ptr == nullptr) {
-    data.ptr = other.clone();
-    return *this;
-  }
-  size_t other_size = other.msize();
-  if(msize() != other_size)
-    mch(other_size);
-  memcpy(data.ptr, other.data.ptr, other_size);
+BufferArray& BufferArray::operator=(BufferArray other) {
+  destroy();
+  data.ptr = other.data.ptr;
+  other.data.ptr = nullptr;
   return *this;
 }
 
@@ -642,4 +637,4 @@ std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
   return os;
 }
 
-const binom::BufferArray operator "" _buffer(const char* c_str, const size_t) {return c_str;}
+const binom::BufferArray operator "" _buffer(const char* c_str) {return c_str;}

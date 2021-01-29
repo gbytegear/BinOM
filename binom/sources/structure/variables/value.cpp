@@ -48,9 +48,9 @@ f64 ValueRef::asFloat() const {
 bool ValueRef::setBool(const bool value) {
   switch (type) {
     case ValType::byte: return *ptr.boolptr = value;
-    case ValType::word: return *ptr.ui16ptr = value;
-    case ValType::dword: return *ptr.ui32ptr = value;
-    case ValType::qword: return *ptr.ui64ptr = value;
+    case ValType::word: return *ptr.ui16ptr = static_cast<ui16>(value);
+    case ValType::dword: return *ptr.ui32ptr = static_cast<ui32>(value);
+    case ValType::qword: return *ptr.ui64ptr = static_cast<ui64>(value);
   }
   throw SException(ErrCode::binom_invalid_type, "Invalid type");
 }

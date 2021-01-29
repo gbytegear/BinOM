@@ -38,12 +38,13 @@ public:
 
   static const char* ectos(ErrCode code) {
     switch (code) {
-      case ErrCode::any: return                       "";
       case ErrCode::memory_allocation_error: return   "Memory allocation error";
       case ErrCode::memory_free_error: return         "Memory free error";
       case ErrCode::binom_invalid_type: return        "Invalid BinOM type";
       case ErrCode::binom_invalid_initer: return      "Invalid BinOM init struct";
       case ErrCode::binom_out_of_range: return        "Out of range";
+      default:
+      case ErrCode::any: return                       "";
     }
     throw SException(ErrCode::any, "Invalid error code!");
   }

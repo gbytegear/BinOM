@@ -26,7 +26,7 @@ class Primitive {
   }
 
   void destroy();
-  void* clone();
+  void* clone() const;
 
   friend class Variable;
   friend class ValueRef;
@@ -92,7 +92,7 @@ public:
   inline i64 operator=(const i64 value) {return (**this).setSigned(value);}
   inline f64 operator=(const f64 value) {return (**this).setFloat(value);}
 
-  Primitive& operator=(Primitive& other);
+  Primitive& operator=(Primitive other);
 
 
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
