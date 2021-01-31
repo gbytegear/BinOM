@@ -28,18 +28,7 @@ void testVariable() {
 }
 
 void testDB() {
-  FileVirtualMemoryController memory("test_db.binomdb");
 
-  memory.allocNode(NodeDescriptor{VarType::array, 0, 16});
-  memory.allocNode(NodeDescriptor{VarType::byte, 0, 1});
-  memory.freeNode(1);
-  memory.allocNode(NodeDescriptor{VarType::qword, 1, 8});
-  NodeDescriptor des;
-  memory.loadNode(1, des);
-
-  std::clog << std::dec
-            << des.index << '\n'
-            << des.size << '\n';
 }
 
 

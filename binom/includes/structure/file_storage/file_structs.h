@@ -295,6 +295,7 @@ public:
   BitIterator(BitIterator&& other) : map(other.map), bit_index(other.bit_index) {}
 
   bool get() {return map->get(bit_index);}
+  ui8 getBitIndex() {return bit_index;}
   bool set(bool value) {return map->set(bit_index, value);}
   BitIterator& operator*() {return *this;}
 

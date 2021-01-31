@@ -2,6 +2,96 @@
 
 using namespace binom;
 
+
+void MemoryBlockList::split(MemoryBlockList::MemoryBlock& block, f_size _size) {
+  MemoryBlock* new_block = new MemoryBlock{block.index + _size, block.size - _size, block.used, block.next, &block};
+  if(block.next) block.next->prev = new_block;
+  block.next = new_block;
+  block.size = _size;
+}
+
+void MemoryBlockList::alloc(MemoryBlockList::MemoryBlock& block, f_size _size) {
+  if(_size != block.size)split(block, _size);
+  block.used = true;
+}
+
+void MemoryBlockList::free(MemoryBlockList::MemoryBlock& block) {
+  block.used = false;
+
+  if(block.next) if(!block.next->used) { // Absorb next
+    MemoryBlock* it = block.next;
+    while (it && !it->used) {
+      block.size += it->size;
+      block.next = it->next;
+      if(it->next)
+        it->next->prev = &block;
+      delete it;
+      it = block.next;
+    }
+  }
+
+  if(block.prev) if(!block.prev->used) { // Absorb prev
+    MemoryBlock* it = block.prev;
+    while (it && !it->used) {
+      it->size += it->next->size;
+      MemoryBlock* del = it->next;
+      it->next = it->next->next;
+      if(it->next)
+        it->next->prev = it;
+      delete del;
+      it = it->prev;
+    }
+  }
+
+}
+
+void MemoryBlockList::addMemory(f_size size) {
+  if(_last->used) {
+    MemoryBlock* new_block = new MemoryBlock{_last->index + _last->size, size, false, nullptr, _last};
+    _last = _last->next = new_block;
+  } else {
+    _last->size += size;
+  }
+}
+
+MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_size size) {
+  for(MemoryBlock& block : *this)
+    if(!block.used && block.size >= size) {
+      alloc(block, size);
+      return block;
+    }
+  return empty;
+}
+
+void MemoryBlockList::freeBlock(f_virtual_index index) {
+  for(MemoryBlock& block : *this)
+    if(block.index == index) free(block);
+}
+
+MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, f_size size) {
+  for(MemoryBlock& block : *this)
+    if(index >= block.index && index < block.index + block.size) {
+      if(index != block.index) {
+        split(block, index - block.index);
+        alloc(*block.next, size);
+        return *block.next;
+      } else {
+        alloc(block, size);
+        return block;
+      }
+    }
+  return empty;
+}
+
+
+
+
+
+
+
+
+
+
 void FileVirtualMemoryController::init() {
   if(file.isEmpty()) {
     file.write(0, header);
@@ -25,6 +115,7 @@ void FileVirtualMemoryController::init() {
         file.read(next_heap_page_index, page_descriptor);
         heap_page_list.insertPage(next_heap_page_index, page_descriptor);
         next_heap_page_index = page_descriptor.next_heap_page;
+        heap_block_list.addMemory(heap_page_size - sizeof(HeapPageDescriptor));
       }
     }
 
@@ -37,6 +128,30 @@ void FileVirtualMemoryController::init() {
         next_byte_page_index = page_descriptor.next_byte_page;
       }
     }
+
+
+
+    switch (toTypeClass(header.root_node.type)) {
+      case VarTypeClass::buffer_array:
+      case VarTypeClass::array:
+      case VarTypeClass::object:
+        heap_block_list.allocBlock(header.root_node.index, header.root_node.size);
+      default:;
+    }
+
+    for(NodePageList::PageNode& page : node_page_list)
+      for(BitIterator it : page.descriptor.node_map)
+        if(it.get()) {
+          NodeDescriptor descriptor;
+          file.read(page.index + sizeof (NodePageDescriptor) + it.getBitIndex()*sizeof (NodeDescriptor), descriptor);
+          switch (toTypeClass(descriptor.type)) {
+            case VarTypeClass::buffer_array:
+            case VarTypeClass::array:
+            case VarTypeClass::object:
+              heap_block_list.allocBlock(descriptor.index, descriptor.size);
+            default:continue;
+          }
+        }
 
   }
 }
@@ -65,6 +180,7 @@ void FileVirtualMemoryController::createHeapPage() {
     file.write(heap_page_list.last().index + offsetof(HeapPageDescriptor, next_heap_page), heap_page_index);
   }
   heap_page_list.insertPage(heap_page_index, page_descriptor);
+  heap_block_list.addMemory(heap_page_size - sizeof(HeapPageDescriptor));
   // Add size to memory_map
 }
 
