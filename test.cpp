@@ -1,5 +1,6 @@
 //#include "binom/includes/structure/variables/variable.h"
 #include "binom/includes/binom.h"
+#include "binom/includes/structure/file_storage/file_virtual_memory_controller.h"
 #include <cassert>
 
 using namespace binom;
@@ -9,24 +10,36 @@ void testVariable() {
   Variable bf(ui8arr{1_ui8, 2_ui8, 3_ui8});
   Variable a(varr{1,2,3,4,5});
   Variable o(obj{{"Hello", "World"}, {"Goodby", "World"}});
-  std::clog << p << "\n\n"
-            << bf << "\n\n"
-            << a << "\n\n"
+
+  std::clog << p << "\n"
+            << bf << "\n"
+            << a << "\n"
+            << o << "\n\n";
+
+  a = varr{p,bf,a,o};
+  p = 10_ui32;
+  bf = "Hello World";
+  o = obj{{"Hello","Goodby"}, {"World", "World"}};
+
+  std::clog << p << "\n"
+            << bf << "\n"
+            << a << "\n"
             << o << "\n\n";
 }
 
 void testDB() {
-  DBFile db_file("test.binomdb");
+  FileVirtualMemoryController memory("test_db.binomdb");
+
+  memory.allocNode(NodeDescriptor{VarType::array, 0, 16});
+  memory.allocNode(NodeDescriptor{VarType::byte, 0, 1});
+  memory.freeNode(1);
+  memory.allocNode(NodeDescriptor{VarType::qword, 1, 8});
+  NodeDescriptor des;
+  memory.loadNode(1, des);
 
   std::clog << std::dec
-            << "File size: " << db_file.getFileSize() << " bytes\n"
-            << "|Node segments count: " << db_file.getNodeSegmentsCount() << "\n"
-            << "|Node segments size: " << db_file.getNodeSegmentsSize() << " bytes\n"
-            << "|Node count: " << db_file.getNodeCount() << "\n"
-            << "|Primitive segment count: " << db_file.getPrimitiveSegmentsCount() << "\n"
-            << "|Primitive segment size: " << db_file.getPrimitiveSegmentsSize() << " bytes\n"
-            << "|Data segment count: " << db_file.getDataSegmentsCount() << "\n"
-            << "|Data segment size: " << db_file.getDataSegmentsSize() << " bytes\n";
+            << des.index << '\n'
+            << des.size << '\n';
 }
 
 
