@@ -1,4 +1,4 @@
-#ifndef FILE_VIRTUAL_MEMORY_CONTROLLER_H
+﻿#ifndef FILE_VIRTUAL_MEMORY_CONTROLLER_H
 #define FILE_VIRTUAL_MEMORY_CONTROLLER_H
 
 #include "file_io.h"
@@ -29,6 +29,17 @@ public:
     PageNode* operator->() {return current;}
     bool operator==(PageIterator other) const {return current == other.current;}
     bool operator!=(PageIterator other) const {return current != other.current;}
+    PageIterator& operator+=(ui64 index) {
+      while (index != 0) {
+        if(!current) throw SException(ErrCode::binomdb_page_isnt_exist);
+        current = current->next;
+        --index;
+      }
+      return *this;
+    }
+
+    bool isEnd() {return !current;}
+
   };
 
 private:
@@ -49,7 +60,7 @@ public:
       if(index == 0) return node;
       --index;
     }
-    throw SException(ErrCode::binomdb_segment_isnt_exist);
+    throw SException(ErrCode::binomdb_page_isnt_exist);
   }
 
   PageNode* insertPage(f_real_index index, DescriptorType descriptor) {
@@ -123,6 +134,7 @@ public:
   void addMemory(f_size size);
 
   MemoryBlock allocBlock(f_size size);
+  MemoryBlock findBlock(f_virtual_index index);
   void freeBlock(f_virtual_index index);
   MemoryBlock allocBlock(f_virtual_index index, f_size size);
 
@@ -137,6 +149,11 @@ public:
 
 class FileVirtualMemoryController {
 public:
+
+  struct VMemoryBlock {
+    f_virtual_index v_index;
+    f_size size;
+  };
 
 private:
 public: // WARNING: For testing
@@ -166,16 +183,18 @@ public: // WARNING: For testing
   void loadNode(f_virtual_index v_index, NodeDescriptor& descriptor);
   void freeNode(f_virtual_index v_index);
 
+  struct RealBlock {f_real_index r_index; f_size size;};
+  ByteArray getRealBlocks(f_virtual_index index, f_size size);
+
 public:
   FileVirtualMemoryController(const char* filename) : file(filename) {init();}
   FileVirtualMemoryController(std::string filename) : file(filename) {init();}
 
-  f_virtual_index allocData(const ByteArray data);
-  f_virtual_index setData(f_virtual_index node_index);
-  ByteArray loadData(f_virtual_index node_index);
+  VMemoryBlock allocData(const ByteArray data);
+  f_virtual_index setData(f_virtual_index node_index, const ByteArray data);
+  ByteArray loadData(f_virtual_index data_index);
   ByteArray loadData(NodeDescriptor descriptor);
-
-
+  void freeData(f_virtual_index index) {heap_block_list.freeBlock(index);}
 
 };
 

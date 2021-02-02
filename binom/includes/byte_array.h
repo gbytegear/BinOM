@@ -94,6 +94,18 @@ public:
     return _new;
   }
 
+
+  bool isEqual(const ByteArray& other) {
+    if(length() != other.length()) return false;
+    iterator o_it = other.begin();
+    for(ui8 it : *this) {
+      if(it != *o_it)
+        return false;
+      ++o_it;
+    }
+    return true;
+  }
+
   ByteArray takeFront(ui64 size) {
     if(size > _length) throw SException(ErrCode::any);
     ByteArray _new(size);

@@ -78,7 +78,7 @@ public:
   }
 
   ByteArray::iterator write(ui64 index, ByteArray::iterator it, ui64 size) {
-    write(index, it, size);
+    write(index, (void*)it, size);
     it += size;
     return it;
   }
@@ -98,7 +98,7 @@ public:
   }
 
   ByteArray::iterator read(ui64 index, ByteArray::iterator it, ui64 size) {
-    read(index, it, size);
+    read(index, (void*)it, size);
     it += size;
     return it;
   }

@@ -2,6 +2,7 @@
 #include "binom/includes/binom.h"
 #include "binom/includes/structure/file_storage/file_virtual_memory_controller.h"
 #include <cassert>
+#include <cmath>
 
 using namespace binom;
 
@@ -28,7 +29,22 @@ void testVariable() {
 }
 
 void testDB() {
+  FileVirtualMemoryController memory("test_db.binomdb");
+  memory.createNodePage();
+  memory.createHeapPage();
+  memory.createBytePage();
+  memory.createHeapPage();
 
+
+  ByteArray data(7680);
+  for(ui8& byte : data)
+    byte = (ui8)(33+rand()%93);
+
+  f_virtual_index pos = memory.allocData(data).v_index;
+
+  ByteArray data_loaded = memory.loadData(pos);
+
+  std::clog << "Data compare: " << data.isEqual(data_loaded) << '\n';
 }
 
 
@@ -37,7 +53,6 @@ int main() {
     testVariable();
     std::clog << "===================================================================\n";
     testDB();
-
 
   } catch(binom::SException except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;

@@ -325,7 +325,8 @@ inline BitIterator BitMap::begin() {return BitIterator(this);}
 inline BitIterator BitMap::end() {return BitIterator(this, 64);}
 
 constexpr f_size node_page_size = sizeof(NodePageDescriptor) + sizeof(NodeDescriptor)*64;
-constexpr f_size heap_page_size = sizeof(HeapPageDescriptor) + 4096;
+constexpr f_size heap_data_page_size = 4096;
+constexpr f_size heap_page_size = sizeof(HeapPageDescriptor) + heap_data_page_size;
 constexpr f_size byte_page_size = sizeof(BytePageDescriptor) + 64;
 
 }

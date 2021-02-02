@@ -20,7 +20,7 @@ enum ErrCode : ui8 {
   binomdb_invalid_storage_version,
 
   binomdb_memory_management_error,
-  binomdb_segment_isnt_exist,
+  binomdb_page_isnt_exist,
   binomdb_block_isnt_exist,
   binomdb_out_of_segment
 };

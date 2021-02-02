@@ -63,6 +63,12 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_size size) {
   return empty;
 }
 
+MemoryBlockList::MemoryBlock MemoryBlockList::findBlock(f_virtual_index index) {
+  for(MemoryBlock& block : *this)
+    if(block.index == index) return block;
+  return empty;
+}
+
 void MemoryBlockList::freeBlock(f_virtual_index index) {
   for(MemoryBlock& block : *this)
     if(block.index == index) free(block);
@@ -269,4 +275,69 @@ void FileVirtualMemoryController::freeNode(f_virtual_index v_index) {
   NodePageList::PageNode& page = node_page_list[(v_index - 1)/64];
   page.descriptor.node_map.set((v_index - 1)%64, false);
   file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
+}
+
+ByteArray FileVirtualMemoryController::getRealBlocks(f_virtual_index index, f_size size) {
+  ByteArray result;
+  HeapPageList::PageIterator it = heap_page_list.begin();
+  it += index/heap_data_page_size;
+  {
+    ui64 index_in_page = index%heap_data_page_size;
+    RealBlock block {
+      it->index + sizeof (HeapPageDescriptor) + index_in_page,
+      heap_data_page_size - index_in_page
+    };
+
+    if(block.size >= size) {
+      block.size = size;
+      result.pushBack(block);
+      return result;
+    } else {
+      size -= block.size;
+      result.pushBack(block);
+    }
+  }
+
+  while (size) {
+    if((++it).isEnd()) throw SException(ErrCode::binomdb_page_isnt_exist);
+    RealBlock block{
+      it->index + sizeof (HeapPageDescriptor),
+      heap_data_page_size
+    };
+
+    if(block.size >= size) {
+      block.size = size;
+      result.pushBack(block);
+      return result;
+    } else {
+      size -= block.size;
+      result.pushBack(block);
+    }
+  }
+
+  return result;
+}
+
+FileVirtualMemoryController::VMemoryBlock FileVirtualMemoryController::allocData(const ByteArray data) {
+  MemoryBlockList::MemoryBlock data_block = heap_block_list.allocBlock(data.length());
+  ByteArray real_block_array = getRealBlocks(data_block.index, data_block.size);
+  ByteArray::iterator data_it = data.begin();
+  for(RealBlock* it = real_block_array.begin<RealBlock>();
+      it != real_block_array.end<RealBlock>();
+      ++it)
+    data_it = file.write(it->r_index, data_it, it->size);
+  return {data_block.index, data_block.size};
+}
+
+ByteArray FileVirtualMemoryController::loadData(f_virtual_index data_index) {
+  MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(data_index);
+  if(data_block.isEmpty()) throw SException(ErrCode::any); // WARNING: Reaplace any
+  ByteArray real_block_array = getRealBlocks(data_block.index, data_block.size);
+  ByteArray data(data_block.size);
+  ByteArray::iterator data_it = data.begin();
+  for(RealBlock* it = real_block_array.begin<RealBlock>();
+      it != real_block_array.end<RealBlock>();
+      ++it)
+    data_it = file.read(it->r_index, data_it, it->size);
+  return data;
 }
