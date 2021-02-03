@@ -162,7 +162,7 @@ public:
 
 
 private:
-public: // WARNING: For testing
+//public: // WARNING: For testing!!!
   FileIO file;
   NodePageList node_page_list;
   BytePageList byte_page_list;
@@ -198,7 +198,11 @@ public: // WARNING: For testing
   void freeHeapData(f_virtual_index index) {heap_block_list.freeBlock(index);}
 
   // Primitive data management
-  // TODO: Primitive data management
+  constexpr ui8 toSize(ValType type);
+  f_virtual_index allocByteBlock(ValType type);
+  f_virtual_index allocByteData(ValType type, ByteArray data);
+  void setByteData(f_virtual_index index, ValType type, ByteArray data);
+  ByteArray loadByteData(f_virtual_index index, ValType type);
 
 
 public:
@@ -211,13 +215,10 @@ public:
   ui64 getHeapPageCount() {return heap_page_list.getPageCount();}
   ui64 getBytePageCount() {return byte_page_list.getPageCount();}
 
-  // DB Back end IO
+  // DB Back-end IO interface
   f_virtual_index createNode(VarType type, ByteArray data);
-  f_virtual_index createNode(ValType type, ui64 number);
   void updateNode(f_virtual_index node_index, ByteArray data, VarType type = VarType::end);
-  void updateNode(f_virtual_index node_index, ui64 number, ValType type);
   ByteArray loadData(f_virtual_index node_index);
-  ui64 loadNumber(f_virtual_index node_index);
   void free(f_virtual_index node_index);
   NodeDescriptor loadNodeDescriptor(f_virtual_index v_index);
 };

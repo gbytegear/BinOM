@@ -228,6 +228,8 @@ struct BitMap {
     }
   }
 
+  ui64 value() {return data.number;}
+
   BitIterator begin();
   BitIterator end();
 
@@ -316,6 +318,10 @@ public:
 
   bool operator==(BitIterator other) {return map == other.map && bit_index == other.bit_index;}
   bool operator!=(BitIterator other) {return map != other.map || bit_index != other.bit_index;}
+  bool operator<(BitIterator other) {return bit_index < other.bit_index;}
+  bool operator<=(BitIterator other) {return bit_index <= other.bit_index;}
+  bool operator>(BitIterator other) {return bit_index > other.bit_index;}
+  bool operator>=(BitIterator other) {return bit_index >= other.bit_index;}
 
   bool isBegin() const {return bit_index == 0;}
   bool isEnd() const {return bit_index == 64;}

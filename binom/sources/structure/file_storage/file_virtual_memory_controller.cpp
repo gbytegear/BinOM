@@ -364,28 +364,88 @@ ByteArray FileVirtualMemoryController::loadHeapData(f_virtual_index data_index) 
   return data;
 }
 
+constexpr ui8 FileVirtualMemoryController::toSize(ValType type) {
+  switch (type) {
+    case ValType::byte: return 1;
+    case ValType::word: return 2;
+    case ValType::dword: return 4;
+    case ValType::qword: return 8;
+  }
+}
+
+f_virtual_index FileVirtualMemoryController::allocByteData(ValType type, ByteArray data) {
+  f_virtual_index block_index = allocByteBlock(type);
+  setByteData(block_index, type, data);
+  return block_index;
+}
+
+f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
+  const ui8 need_byte_count = toSize(type);
+  ui8 byte_count = 0;
+
+  if(byte_page_list.isEmpty()) createBytePage();
+
+  f_virtual_index index = 0;
+  for(BytePageList::PageNode& page : byte_page_list)
+    if(page.descriptor.byte_map.value() == UINT64_MAX) {
+      // if all page is busy
+      index += 64;
+      if(!page.next) createBytePage(); // add new page if this page last
+      continue;
+    } else {
+      for(BitIterator bit : page.descriptor.byte_map)
+        if(!bit.get()) {
+          // if byte is free
+          if(++byte_count == need_byte_count) {
+            // all bytes is found
+            for(BitIterator bit_it = bit - (byte_count-1); bit_it <= bit; ++bit_it)
+              // set byte flags as busy
+              bit_it.set(true);
+            file.write(page.index + offsetof(BytePageDescriptor, byte_map), page.descriptor.byte_map);
+            return index;
+          }
+          continue;
+        } else {
+          if(!byte_count) {++index;continue;}
+          index += byte_count;
+          byte_count = 0;
+        }
+      index += byte_count;
+      byte_count = 0;
+      if(!page.next) createBytePage(); // add new page if this page last
+      continue;
+    }
+  throw SException(ErrCode::any);
+}
+
+void FileVirtualMemoryController::setByteData(f_virtual_index index, ValType type, ByteArray data) {
+  file.write(getRealBytePos(index), (void*)data.begin(), toSize(type));
+}
+
+ByteArray FileVirtualMemoryController::loadByteData(f_virtual_index index, ValType type) {
+  ByteArray data(toSize(type));
+  file.read(getRealBytePos(index), data);
+  return data;
+}
+
 f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray data) {
   switch (toTypeClass(type)) {
   default: throw SException(ErrCode::binom_invalid_type);
-  case VarTypeClass::primitive: return createNode(toValueType(type), data.get<ui64>(0));
-  case VarTypeClass::buffer_array:
-  case VarTypeClass::array:
-  case VarTypeClass::object:
+    case VarTypeClass::primitive: {
+      NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
+      return allocNode(descriptor);
+    }
+    case VarTypeClass::buffer_array:
+    case VarTypeClass::array:
+    case VarTypeClass::object:
     VMemoryBlock data_block = allocHeapData(data);
     NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
     return allocNode(descriptor);
   }
 }
 
-f_virtual_index FileVirtualMemoryController::createNode(ValType type, ui64 number) {
-  // TODO: ...
-}
 
 void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ByteArray data, VarType type) {
-  // TODO: ...
-}
-
-void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ui64 number, ValType type) {
   // TODO: ...
 }
 
@@ -393,15 +453,11 @@ ByteArray FileVirtualMemoryController::loadData(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   switch (toTypeClass(descriptor.type)) {
   default: throw SException(ErrCode::binom_invalid_type);
-//  TODO:  case VarTypeClass::primitive: return createNode(toValueType(type), data.get<ui64>(0));
+  case VarTypeClass::primitive: return loadByteData(descriptor.index, toValueType(descriptor.type));
   case VarTypeClass::buffer_array:
   case VarTypeClass::array:
   case VarTypeClass::object: return loadHeapData(descriptor.index);
   }
-}
-
-ui64 FileVirtualMemoryController::loadNumber(f_virtual_index node_index) {
-  // TODO: ...
 }
 
 void FileVirtualMemoryController::free(f_virtual_index node_index) {

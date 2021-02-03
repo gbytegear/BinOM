@@ -1,4 +1,3 @@
-//#include "binom/includes/structure/variables/variable.h"
 #include "binom/includes/binom.h"
 #include "binom/includes/structure/file_storage/file_virtual_memory_controller.h"
 #include <cassert>
@@ -30,21 +29,7 @@ void testVariable() {
 
 void testDB() {
   FileVirtualMemoryController memory("test_db.binomdb");
-  memory.createNodePage();
-//  memory.createHeapPage(); // Test heap page autoallocation
-  memory.createBytePage();
-//  memory.createHeapPage();
-
-
-  ByteArray data(7680);
-  for(ui8& byte : data)
-    byte = (ui8)(33+rand()%93);
-
-  f_virtual_index pos = memory.allocHeapData(data).v_index;
-
-  ByteArray data_loaded = memory.loadHeapData(pos);
-
-  std::clog << "Data compare: " << data.isEqual(data_loaded) << '\n';
+  // TODO: Complete & test public interface of FVMC
 }
 
 
@@ -53,6 +38,8 @@ int main() {
     testVariable();
     std::clog << "===================================================================\n";
     testDB();
+
+    std::clog << "Test ended!\n";
 
   } catch(binom::SException except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;
