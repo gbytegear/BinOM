@@ -204,7 +204,7 @@ private:
   void setByteData(f_virtual_index index, ValType type, ByteArray data);
   ByteArray loadByteData(f_virtual_index index, ValType type);
 
-
+  friend class MemoryBlockList;
 public:
   FileVirtualMemoryController(const char* filename) : file(filename) {init();}
   FileVirtualMemoryController(std::string filename) : file(filename) {init();}
