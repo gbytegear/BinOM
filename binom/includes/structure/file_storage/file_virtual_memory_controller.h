@@ -7,6 +7,8 @@
 namespace binom {
 
 
+class FileVirtualMemoryController;
+
 template<typename DescriptorType>
 class PageList {
 public:
@@ -68,6 +70,13 @@ public:
     else return last_page = last_page->next = new PageNode{nullptr, descriptor, index};
   }
 
+  ui64 getPageCount() {
+    if(!first_page.index) return 0;
+    ui64 count = 0;
+    for([[maybe_unused]]PageNode& node : *this) ++count;
+    return count;
+  }
+
 };
 
 template class PageList<NodePageDescriptor>;
@@ -88,6 +97,7 @@ typedef PageList<HeapPageDescriptor> HeapPageList;
 */
 
 class MemoryBlockList {
+  FileVirtualMemoryController* parent();
 public:
   struct MemoryBlock {
     f_virtual_index index = 0;
@@ -150,10 +160,6 @@ public:
 class FileVirtualMemoryController {
 public:
 
-  struct VMemoryBlock {
-    f_virtual_index v_index;
-    f_size size;
-  };
 
 private:
 public: // WARNING: For testing
@@ -177,25 +183,43 @@ public: // WARNING: For testing
   f_real_index getRealHeapPos(f_virtual_index v_index);
   f_real_index getRealBytePos(f_virtual_index v_index);
 
+  struct VMemoryBlock {f_virtual_index v_index;f_size size;};
+  struct RealBlock {f_real_index r_index; f_size size;};
+
   // Node management
   f_virtual_index allocNode(NodeDescriptor descriptor);
   void setNode(f_virtual_index v_index, NodeDescriptor descriptor);
-  void loadNode(f_virtual_index v_index, NodeDescriptor& descriptor);
   void freeNode(f_virtual_index v_index);
 
-  struct RealBlock {f_real_index r_index; f_size size;};
-  ByteArray getRealBlocks(f_virtual_index index, f_size size);
+  // Heap data management
+  ByteArray getRealHeapBlocks(f_virtual_index index, f_size size);
+  VMemoryBlock allocHeapData(const ByteArray data);
+  ByteArray loadHeapData(f_virtual_index data_index);
+  void freeHeapData(f_virtual_index index) {heap_block_list.freeBlock(index);}
+
+  // Primitive data management
+  // TODO: Primitive data management
+
 
 public:
   FileVirtualMemoryController(const char* filename) : file(filename) {init();}
   FileVirtualMemoryController(std::string filename) : file(filename) {init();}
 
-  VMemoryBlock allocData(const ByteArray data);
-  f_virtual_index setData(f_virtual_index node_index, const ByteArray data);
-  ByteArray loadData(f_virtual_index data_index);
-  ByteArray loadData(NodeDescriptor descriptor);
-  void freeData(f_virtual_index index) {heap_block_list.freeBlock(index);}
+  // DB Props
+  f_size getFileSize() {return file.size();}
+  ui64 getNodePageCount() {return node_page_list.getPageCount();}
+  ui64 getHeapPageCount() {return heap_page_list.getPageCount();}
+  ui64 getBytePageCount() {return byte_page_list.getPageCount();}
 
+  // DB Back end IO
+  f_virtual_index createNode(VarType type, ByteArray data);
+  f_virtual_index createNode(ValType type, ui64 number);
+  void updateNode(f_virtual_index node_index, ByteArray data, VarType type = VarType::end);
+  void updateNode(f_virtual_index node_index, ui64 number, ValType type);
+  ByteArray loadData(f_virtual_index node_index);
+  ui64 loadNumber(f_virtual_index node_index);
+  void free(f_virtual_index node_index);
+  NodeDescriptor loadNodeDescriptor(f_virtual_index v_index);
 };
 
 }

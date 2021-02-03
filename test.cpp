@@ -31,18 +31,18 @@ void testVariable() {
 void testDB() {
   FileVirtualMemoryController memory("test_db.binomdb");
   memory.createNodePage();
-  memory.createHeapPage();
+//  memory.createHeapPage(); // Test heap page autoallocation
   memory.createBytePage();
-  memory.createHeapPage();
+//  memory.createHeapPage();
 
 
   ByteArray data(7680);
   for(ui8& byte : data)
     byte = (ui8)(33+rand()%93);
 
-  f_virtual_index pos = memory.allocData(data).v_index;
+  f_virtual_index pos = memory.allocHeapData(data).v_index;
 
-  ByteArray data_loaded = memory.loadData(pos);
+  ByteArray data_loaded = memory.loadHeapData(pos);
 
   std::clog << "Data compare: " << data.isEqual(data_loaded) << '\n';
 }

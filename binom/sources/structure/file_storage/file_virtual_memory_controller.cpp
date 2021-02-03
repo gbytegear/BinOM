@@ -3,6 +3,12 @@
 using namespace binom;
 
 
+FileVirtualMemoryController* MemoryBlockList::parent() {
+  return reinterpret_cast<FileVirtualMemoryController*>(
+         reinterpret_cast<byte*>(this) -
+         offsetof(FileVirtualMemoryController, heap_block_list));
+}
+
 void MemoryBlockList::split(MemoryBlockList::MemoryBlock& block, f_size _size) {
   MemoryBlock* new_block = new MemoryBlock{block.index + _size, block.size - _size, block.used, block.next, &block};
   if(block.next) block.next->prev = new_block;
@@ -59,7 +65,21 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_size size) {
     if(!block.used && block.size >= size) {
       alloc(block, size);
       return block;
-    }
+    } else if(!block.next) { // If there is not enough memory in the existing pages
+      parent()->createHeapPage();
+      if(!block.used) {
+        while(block.size < size)
+          parent()->createHeapPage();
+        alloc(block, size);
+        return block;
+      } else {
+        MemoryBlock& new_page_block = *block.next;
+        while(new_page_block.size < size)
+          parent()->createHeapPage();
+        alloc(new_page_block, size);
+        return new_page_block;
+      }
+  }
   return empty;
 }
 
@@ -262,8 +282,10 @@ void FileVirtualMemoryController::setNode(f_virtual_index v_index, NodeDescripto
   file.write(getRealNodePos(v_index), descriptor);
 }
 
-void FileVirtualMemoryController::loadNode(f_virtual_index v_index, NodeDescriptor& descriptor) {
+NodeDescriptor FileVirtualMemoryController::loadNodeDescriptor(f_virtual_index v_index) {
+  NodeDescriptor descriptor;
   file.read(getRealNodePos(v_index), descriptor);
+  return descriptor;
 }
 
 void FileVirtualMemoryController::freeNode(f_virtual_index v_index) {
@@ -277,7 +299,7 @@ void FileVirtualMemoryController::freeNode(f_virtual_index v_index) {
   file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
 }
 
-ByteArray FileVirtualMemoryController::getRealBlocks(f_virtual_index index, f_size size) {
+ByteArray FileVirtualMemoryController::getRealHeapBlocks(f_virtual_index index, f_size size) {
   ByteArray result;
   HeapPageList::PageIterator it = heap_page_list.begin();
   it += index/heap_data_page_size;
@@ -318,9 +340,9 @@ ByteArray FileVirtualMemoryController::getRealBlocks(f_virtual_index index, f_si
   return result;
 }
 
-FileVirtualMemoryController::VMemoryBlock FileVirtualMemoryController::allocData(const ByteArray data) {
+FileVirtualMemoryController::VMemoryBlock FileVirtualMemoryController::allocHeapData(const ByteArray data) {
   MemoryBlockList::MemoryBlock data_block = heap_block_list.allocBlock(data.length());
-  ByteArray real_block_array = getRealBlocks(data_block.index, data_block.size);
+  ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
   ByteArray::iterator data_it = data.begin();
   for(RealBlock* it = real_block_array.begin<RealBlock>();
       it != real_block_array.end<RealBlock>();
@@ -329,10 +351,10 @@ FileVirtualMemoryController::VMemoryBlock FileVirtualMemoryController::allocData
   return {data_block.index, data_block.size};
 }
 
-ByteArray FileVirtualMemoryController::loadData(f_virtual_index data_index) {
+ByteArray FileVirtualMemoryController::loadHeapData(f_virtual_index data_index) {
   MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(data_index);
   if(data_block.isEmpty()) throw SException(ErrCode::any); // WARNING: Reaplace any
-  ByteArray real_block_array = getRealBlocks(data_block.index, data_block.size);
+  ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
   ByteArray data(data_block.size);
   ByteArray::iterator data_it = data.begin();
   for(RealBlock* it = real_block_array.begin<RealBlock>();
@@ -340,4 +362,48 @@ ByteArray FileVirtualMemoryController::loadData(f_virtual_index data_index) {
       ++it)
     data_it = file.read(it->r_index, data_it, it->size);
   return data;
+}
+
+f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray data) {
+  switch (toTypeClass(type)) {
+  default: throw SException(ErrCode::binom_invalid_type);
+  case VarTypeClass::primitive: return createNode(toValueType(type), data.get<ui64>(0));
+  case VarTypeClass::buffer_array:
+  case VarTypeClass::array:
+  case VarTypeClass::object:
+    VMemoryBlock data_block = allocHeapData(data);
+    NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
+    return allocNode(descriptor);
+  }
+}
+
+f_virtual_index FileVirtualMemoryController::createNode(ValType type, ui64 number) {
+  // TODO: ...
+}
+
+void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ByteArray data, VarType type) {
+  // TODO: ...
+}
+
+void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ui64 number, ValType type) {
+  // TODO: ...
+}
+
+ByteArray FileVirtualMemoryController::loadData(f_virtual_index node_index) {
+  NodeDescriptor descriptor(loadNodeDescriptor(node_index));
+  switch (toTypeClass(descriptor.type)) {
+  default: throw SException(ErrCode::binom_invalid_type);
+//  TODO:  case VarTypeClass::primitive: return createNode(toValueType(type), data.get<ui64>(0));
+  case VarTypeClass::buffer_array:
+  case VarTypeClass::array:
+  case VarTypeClass::object: return loadHeapData(descriptor.index);
+  }
+}
+
+ui64 FileVirtualMemoryController::loadNumber(f_virtual_index node_index) {
+  // TODO: ...
+}
+
+void FileVirtualMemoryController::free(f_virtual_index node_index) {
+  // TODO: ... (Think about Array/Object handling!)
 }
