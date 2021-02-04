@@ -203,6 +203,7 @@ private:
   f_virtual_index allocByteData(ValType type, ByteArray data);
   void setByteData(f_virtual_index index, ValType type, ByteArray data);
   ByteArray loadByteData(f_virtual_index index, ValType type);
+  void freeByteData(f_virtual_index index, ValType type);
 
   friend class MemoryBlockList;
 public:
@@ -210,17 +211,17 @@ public:
   FileVirtualMemoryController(std::string filename) : file(filename) {init();}
 
   // DB Props
-  f_size getFileSize() {return file.size();}
-  ui64 getNodePageCount() {return node_page_list.getPageCount();}
-  ui64 getHeapPageCount() {return heap_page_list.getPageCount();}
-  ui64 getBytePageCount() {return byte_page_list.getPageCount();}
+  f_size  getFileSize() {return file.size();}
+  ui64    getNodePageCount() {return node_page_list.getPageCount();}
+  ui64    getHeapPageCount() {return heap_page_list.getPageCount();}
+  ui64    getBytePageCount() {return byte_page_list.getPageCount();}
 
   // DB Back-end IO interface
   f_virtual_index createNode(VarType type, ByteArray data);
-  void updateNode(f_virtual_index node_index, ByteArray data, VarType type = VarType::end);
-  ByteArray loadData(f_virtual_index node_index);
-  void free(f_virtual_index node_index);
-  NodeDescriptor loadNodeDescriptor(f_virtual_index v_index);
+  void            updateNode(f_virtual_index node_index, ByteArray data, VarType type = VarType::end);
+  ByteArray       loadData(f_virtual_index node_index);
+  void            free(f_virtual_index node_index);
+  NodeDescriptor  loadNodeDescriptor(f_virtual_index v_index);
 };
 
 }

@@ -28,8 +28,40 @@ void testVariable() {
 }
 
 void testDB() {
+
+//  FileIO file("test_db.binomdb");
+
+//  ui64 index;
+
+//  std::clog << std::hex << 0x1064f << ':' << std::dec << 0x1064f << '\n';
+
+//  file.read(0x1064f, index);
+
+//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
+
+//  file.read(index, index);
+
+//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
+
+//  file.read(index, index);
+
+//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
+
   FileVirtualMemoryController memory("test_db.binomdb");
   // TODO: Complete & test public interface of FVMC
+
+  ByteArray hdata(sizeof (f_virtual_index)*256);
+  for(ui8& val : hdata)
+    val = 33+rand()%98;
+  ByteArray bdata(8);
+  for(ui8& val : bdata)
+    val = 33+rand()%98;
+
+  for(ui8 i = 0; i < 80; ++i) {
+    memory.createNode(VarType::array, hdata);
+    memory.createNode(VarType::qword, bdata);
+  }
+
 }
 
 

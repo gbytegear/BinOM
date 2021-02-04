@@ -14,6 +14,7 @@ void MemoryBlockList::split(MemoryBlockList::MemoryBlock& block, f_size _size) {
   if(block.next) block.next->prev = new_block;
   block.next = new_block;
   block.size = _size;
+  if(&block == _last) _last = block.next;
 }
 
 void MemoryBlockList::alloc(MemoryBlockList::MemoryBlock& block, f_size _size) {
@@ -73,6 +74,7 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_size size) {
         alloc(block, size);
         return block;
       } else {
+        if(!block.next) parent()->createHeapPage();
         MemoryBlock& new_page_block = *block.next;
         while(new_page_block.size < size)
           parent()->createHeapPage();
@@ -118,7 +120,7 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, 
 
 
 
-void FileVirtualMemoryController::init() {
+void FileVirtualMemoryController::init() { // FIXME: Page initialization bug
   if(file.isEmpty()) {
     file.write(0, header);
   } else {
@@ -428,6 +430,15 @@ ByteArray FileVirtualMemoryController::loadByteData(f_virtual_index index, ValTy
   return data;
 }
 
+void FileVirtualMemoryController::freeByteData(f_virtual_index index, ValType type) {
+  BytePageList::PageNode& page = byte_page_list[index / 64];
+  BitIterator bit = page.descriptor.byte_map.begin() + index%64;
+  const ui8 size = toSize(type);
+  for(ui8 i = 0;i < size;(++bit,++i))
+    bit.set(false);
+  file.write(page.index + offsetof(BytePageDescriptor, byte_map), page.descriptor.byte_map);
+}
+
 f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray data) {
   switch (toTypeClass(type)) {
   default: throw SException(ErrCode::binom_invalid_type);
@@ -446,7 +457,35 @@ f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray 
 
 
 void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ByteArray data, VarType type) {
-  // TODO: ...
+  NodeDescriptor descriptor(loadNodeDescriptor(node_index));
+  switch (toTypeClass(descriptor.type)) { // Free old data block
+  default: throw SException(ErrCode::binom_invalid_type);
+  case VarTypeClass::primitive:
+    freeByteData(descriptor.index, toValueType(descriptor.type));
+  break;
+  case VarTypeClass::buffer_array:
+  case VarTypeClass::array:
+  case VarTypeClass::object:
+    freeHeapData(descriptor.index);
+  break;
+  }
+
+  switch (toTypeClass(type)) { // Alloc new data block
+  default: throw SException(ErrCode::binom_invalid_type);
+  case VarTypeClass::primitive: {
+    NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
+    setNode(node_index, descriptor);
+    return;
+  }
+  case VarTypeClass::buffer_array:
+  case VarTypeClass::array:
+  case VarTypeClass::object: {
+    VMemoryBlock data_block = allocHeapData(data);
+    NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
+    setNode(node_index, descriptor);
+  }
+  }
+
 }
 
 ByteArray FileVirtualMemoryController::loadData(f_virtual_index node_index) {
@@ -461,5 +500,17 @@ ByteArray FileVirtualMemoryController::loadData(f_virtual_index node_index) {
 }
 
 void FileVirtualMemoryController::free(f_virtual_index node_index) {
-  // TODO: ... (Think about Array/Object handling!)
+  NodeDescriptor descriptor(loadNodeDescriptor(node_index));
+  freeNode(node_index);
+  switch (toTypeClass(descriptor.type)) { // Free data block
+  default: throw SException(ErrCode::binom_invalid_type);
+  case VarTypeClass::primitive:
+    freeByteData(descriptor.index, toValueType(descriptor.type));
+  return;
+  case VarTypeClass::buffer_array:
+  case VarTypeClass::array:
+  case VarTypeClass::object:
+    freeHeapData(descriptor.index);
+  return;
+  }
 }

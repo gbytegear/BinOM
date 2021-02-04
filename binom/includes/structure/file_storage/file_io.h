@@ -17,6 +17,8 @@ namespace fs = std::experimental::filesystem;
 
 namespace fs = std::experimental::filesystem;
 
+#define fseeko64(stream, offset, origin) _fseeki64(stream, offset, origin);
+
 #endif
 
 namespace binom {
@@ -41,7 +43,7 @@ public:
 
   bool open(const char* filename) {
     close();
-    file = fs::exists(filename)? fopen64(filename, "r+") : fopen64(filename, "w+");
+    file = fs::exists(filename)? fopen64(filename, "rb+") : fopen64(filename, "wb+");
     file_path = filename;
     return !!file;
   }
@@ -85,7 +87,8 @@ public:
 
   bool read(ui64 index, void* buffer, ui64 size) {
     seek(index);
-    return fread (buffer, size, 1, file) == size;
+    size_t r_size = fread (buffer, 1, size, file);
+    return r_size == size;
   }
 
   template<typename Type>
