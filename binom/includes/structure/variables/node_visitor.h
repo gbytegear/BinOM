@@ -49,6 +49,11 @@ public:
   VarType getType();
   VarTypeClass getTypeClass() {return toTypeClass(getType());}
 
+  bool isPrimitive() {return getTypeClass() == VarTypeClass::primitive;}
+  bool isBufferArray() {return getTypeClass() == VarTypeClass::buffer_array;}
+  bool isArray() {return getTypeClass() == VarTypeClass::array;}
+  bool isObject() {return getTypeClass() == VarTypeClass::object;}
+
   NodeVisitor& stepInside(ui64 index);
   NodeVisitor& stepInside(BufferArray name);
 

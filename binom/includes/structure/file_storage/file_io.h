@@ -60,7 +60,7 @@ public:
   }
 
   ui64 addSize(ui64 add) {ui64 pos = size();resize(pos + add);return pos;}
-  ui64 sebSize(ui64 sub) {return resize(size() - sub);}
+  ui64 subSize(ui64 sub) {return resize(size() - sub);}
 
 
   bool isEmpty() {return size() == 0;}

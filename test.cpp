@@ -27,40 +27,83 @@ void testVariable() {
             << o << "\n\n";
 }
 
+void printDBInfo(DataBaseContainer& db) {
+  std::clog << std::dec;
+
+  std::clog << "DATABASE INFO:\n"
+               "|File size: " << f32(db.getFileSize())/1024 << " Kb\n" <<
+               "|Node page count: " << db.getNodePageCount() << '\n' <<
+               "|Heap page count: " << db.getHeapPageCount() << '\n' <<
+               "|Byte page count: " << db.getBytePageCount() << "\n"
+               "+----------------\n";
+}
+
+
 void testDB() {
 
-//  FileIO file("test_db.binomdb");
+//  FileVirtualMemoryController memory("test_db.binomdb");
+//  // TODO: Complete & test public interface of FVMC
 
-//  ui64 index;
+//  ByteArray data(4096*8);
+//  {
+//    ui64 i = 0;
+//    for(ui64* it = data.begin<ui64>(); it != data.end<ui64>(); (++it, ++i))
+//      *it = i;
+//  }
+//  f_virtual_index node_index = memory.createNode(VarType::array, data);
 
-//  std::clog << std::hex << 0x1064f << ':' << std::dec << 0x1064f << '\n';
+//  for(ui64 i = 0; i < 4096; ++i) {
+//    ByteArray loaded_data(memory.loadHeapDataPart(node_index, i*sizeof(ui64), sizeof(ui64)));
+//    std::clog << "Loaded number: " << std::dec << loaded_data.get<ui64>(0) << '\n';
+//  }
 
-//  file.read(0x1064f, index);
+  DataBaseContainer db("test_db.binomdb");
+//  std::clog << "AFTER INIT "; printDBInfo(db);
 
-//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
+  Variable struct_for_upload =
+//      obj{
+//        {"usr", varr{
+//            obj{
+//              {"id", 0_ui64},
+//              {"login", "admin"},
+//              {"password", "admin"},
+//              {"user_data", obj{}}
+//            },
+//            obj{
+//              {"id", 1_ui64},
+//              {"login", "guest"},
+//              {"password", "guest"},
+//              {"user_data", obj{}}
+//            }
+//         }},
+//        {"etc", varr{}},
+//        {"grp", varr{
+//          obj{
+//            {"id", 0_ui64},
+//            {"name", "admins"},
+//            {"user_ids", ui64arr{0}}
+//          }
+//        }}
+//      };
+      varr{};
 
-//  file.read(index, index);
+//  std::clog << "AFTER ROOT SET "; printDBInfo(db);
 
-//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
+  DBNodeVisitor node_visitor(db.getRoot());
 
-//  file.read(index, index);
+  node_visitor.setVariable(struct_for_upload);
+  node_visitor.pushBack(0_ui64);
+  node_visitor.pushBack("admin");
+  node_visitor[1].pushBack("_admin");
+  node_visitor.pushBack(obj{});
+  node_visitor.insert(2, 15_ui8);
+  node_visitor[1].insert(5, "_deamn_cool");
 
-//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
+//  std::clog << "AFTER BUSH VARIABLES TO ROOT "; printDBInfo(db);
 
-  FileVirtualMemoryController memory("test_db.binomdb");
-  // TODO: Complete & test public interface of FVMC
-
-  ByteArray hdata(sizeof (f_virtual_index)*256);
-  for(ui8& val : hdata)
-    val = 33+rand()%98;
-  ByteArray bdata(8);
-  for(ui8& val : bdata)
-    val = 33+rand()%98;
-
-  for(ui8 i = 0; i < 80; ++i) {
-    memory.createNode(VarType::array, hdata);
-    memory.createNode(VarType::qword, bdata);
-  }
+  std::clog << "Loaded: "
+            << node_visitor[1].getVariable().toBufferArray().toString()
+            << '\n';
 
 }
 

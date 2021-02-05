@@ -7,7 +7,7 @@
 #include <string>
 #include "../ctypes.h"
 #include "../mem.h"
-#include "binom/includes/byte_array.h"
+#include "../byte_array.h"
 
 
 //Arch dependebce
@@ -92,6 +92,15 @@ namespace binom {
       case ValType::word: return VarType::word;
       case ValType::dword:return VarType::dword;
       case ValType::qword:return VarType::qword;
+    }
+  }
+
+  constexpr ui8 toSize(ValType type) {
+    switch (type) {
+      case ValType::byte: return 1;
+      case ValType::word: return 2;
+      case ValType::dword: return 4;
+      case ValType::qword: return 8;
     }
   }
 

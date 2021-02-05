@@ -10,111 +10,94 @@ namespace binom {
 class ByteArray {
   ui64 _length = 0;
   byte* array = nullptr;
+
+  friend class SharedByteArray;
+
 public:
 
   typedef byte* iterator;
   typedef const byte* const_iterator;
 
   ByteArray() = default;
-  ByteArray(const void* buffer, ui64 size) : _length(size), array(tryMalloc<byte>(size)) {memcpy(array, buffer, size);}
-  ByteArray(const ByteArray& other) : _length(other._length), array(tryMalloc<byte>(_length)) {memcpy(array, other.begin(), _length);}
-  ByteArray(const ByteArray&& other) : _length(other._length), array(other.array) {}
-  ByteArray(ui64 size) : _length(size), array(tryMalloc<byte>(size)) {}
-  ByteArray(std::initializer_list<const ByteArray> arrays) {
-    for(const ByteArray& byte_array : arrays) {
-      _length += byte_array._length;
-    }
-    array = tryMalloc<byte>(_length);
-    iterator it = begin();
-    for(const ByteArray& byte_array : arrays) {
-      memcpy(it, byte_array.begin(), byte_array._length);
-      it += byte_array._length;
-    }
-  }
+  ByteArray(const void* buffer, ui64 size);
+  ByteArray(const ByteArray& other);
+  ByteArray(ByteArray&& other);
+  ByteArray(ui64 size);
+  ByteArray(std::initializer_list<const ByteArray> arrays);
 
-  ui64 length() const {return _length;}
+  ~ByteArray();
+
+  bool isEmpty() const;
+  bool isEqual(const ByteArray& other);
 
   template<typename Type>
   ui64 length() const {return _length/sizeof(Type);}
+  ui64 length() const;
 
-  byte& operator[](ui64 index) {
-    if(index >= _length) throw SException(ErrCode::out_of_range);
-    return array[index];
-  }
-
-  ByteArray& pushBack(byte b) {
-    array = tryRealloc<byte>(array, ++_length);
-    array[_length - 1] = b;
-    return *this;
-  }
-
-  ByteArray& pushFront(byte b) {
-    array = tryRealloc<byte>(array, ++_length);
-    memmove (array + 1, array, _length - 1);
-    *array = b;
-    return *this;
-  }
-
-  ByteArray& pushBack(const void* buffer, ui64 size) {
-    ui64 last_length = _length;
-    array = tryRealloc<byte>(array, _length += size);
-    memcpy (array + last_length, buffer, size);
-    return *this;
-  }
-
-  ByteArray& pushFront(const void* buffer, ui64 size) {
-    array = tryRealloc<byte>(array, _length += size);
-    memmove (array + size, array, _length - size);
-    memcpy (array, buffer, size);
-    return *this;
+  void reset(ui64 new_length) {
+    _length = new_length;
+    array = tryRealloc<byte>(array, _length);
+    memset(array, 0, _length);
   }
 
   template<typename Type>
   ByteArray& pushBack(const Type& value) {return pushBack(&value, sizeof (Type));}
+  ByteArray& pushBack(byte b);
+  ByteArray& pushBack(const char* c_str);
+  ByteArray& pushBack(const void* buffer, ui64 size);
+  ByteArray& pushBack(const ByteArray& byte_array);
+  ByteArray& pushBack(const ByteArray&& byte_array);
 
   template<typename Type>
   ByteArray& pushFront(const Type& value) {return pushFront(&value, sizeof (Type));}
+  ByteArray& pushFront(byte b);
+  ByteArray& pushFront(const char* c_str);
+  ByteArray& pushFront(const void* buffer, ui64 size);
+  ByteArray& pushFront(const ByteArray& byte_array);
+  ByteArray& pushFront(const ByteArray&& byte_array);
 
-  ByteArray& pushBack(const char* c_str) {return pushBack (c_str, strlen (c_str) + 1);}
-  ByteArray& pushFront(const char* c_str) {return pushFront(c_str, strlen (c_str) + 1);}
+  template<typename Type>
+  ByteArray& insert(ui64 index, ui64 shift, Type type) { return insert(index*sizeof (Type) + shift, &type, sizeof(Type)); }
+  ByteArray& insert(ui64 index, byte b);
+  ByteArray& insert(ui64 index, const void* buffer, ui64 size);
+  ByteArray& insert(ui64 index, const ByteArray& byte_array);
+  ByteArray& insert(ui64 index, const ByteArray&& byte_array);
 
-  ByteArray& pushBack(const ByteArray& byte_array) {return pushBack (byte_array.array, byte_array._length);}
-  ByteArray& pushFront(const ByteArray& byte_array) {return pushFront (byte_array.array, byte_array._length);}
+  template<typename Type>
+  ByteArray& remove(ui64 index, ui64 shift, ui64 count = 1) { return remove(index*sizeof(Type)+shift, count*sizeof(Type)); }
+  ByteArray& remove(ui64 index, ui64 size = 1);
 
-  ByteArray& pushBack(const ByteArray&& byte_array) {return pushBack (byte_array.array, byte_array._length);}
-  ByteArray& pushFront(const ByteArray&& byte_array) {return pushFront (byte_array.array, byte_array._length);}
+  template<typename Type>
+  Type& set(ui64 index, ui64 shift, Type value) { return get<Type>(index, shift) = value; }
+  iterator set(ui64 index, ByteArray data);
+  byte& set(ui64 index, byte value);
 
+  template<typename Type>
+  Type& get(ui64 index, ui64 shift = 0) {return reinterpret_cast<Type*>(array + shift)[index];}
+  byte& get(ui64 index);
 
-  ByteArray takeBack(ui64 size) {
-    if(size > _length) throw SException(ErrCode::any);
-    ByteArray _new(size);
-    memcpy(_new.begin(), end()-size, size);
-    _length -= size;
-    array = tryRealloc<byte>(array, _length);
-    return _new;
+  template<typename Type>
+  Type& first() {return *reinterpret_cast<Type*>(array);}
+  byte& first();
+
+  template<typename Type>
+  Type& last() {return *reinterpret_cast<Type*>(array + _length - sizeof (Type));}
+  byte& last();
+
+  template<typename Type>
+  Type takeBackAs() {
+    void* ptr = takeBack(sizeof(Type)).unfree();
+    return *reinterpret_cast<Type*>(ptr);
+  }
+   template<typename Type>
+  ByteArray takeFrontAs(){
+    void* ptr = takeFront(sizeof(Type)).unfree();
+    return *reinterpret_cast<Type*>(ptr);
   }
 
-
-  bool isEqual(const ByteArray& other) {
-    if(length() != other.length()) return false;
-    iterator o_it = other.begin();
-    for(ui8 it : *this) {
-      if(it != *o_it)
-        return false;
-      ++o_it;
-    }
-    return true;
-  }
-
-  ByteArray takeFront(ui64 size) {
-    if(size > _length) throw SException(ErrCode::any);
-    ByteArray _new(size);
-    memcpy(_new.begin(), begin(), size);
-    _length -= size;
-    memmove(begin(), begin() + size, _length);
-    array = tryRealloc<byte>(array, _length);
-    return _new;
-  }
+  ByteArray takeBack(ui64 size);
+  ByteArray takeFront(ui64 size);
+  ByteArray takeFrom(ui64 index, ui64 size);
 
   template<typename Type>
   Type takeBack() {
@@ -136,37 +119,29 @@ public:
     return _new;
   }
 
-  ByteArray& operator+=(byte b) {return pushBack (b);}
-  ByteArray& operator+=(const ByteArray& byte_array) {return pushBack (byte_array);}
-  ByteArray& operator+=(const ByteArray&& byte_array) {return pushBack (byte_array);}
-  ByteArray& operator+=(const char* c_str) {return pushBack (c_str);}
-  template<typename Type>
-  ByteArray& operator+=(const Type& data) {return pushBack(data);}
 
-  byte& get(ui64 index) {return array[index];}
-  template<typename Type>
-  Type& get(ui64 index, ui64 shift = 0) {return reinterpret_cast<Type*>(array + shift)[index];}
-
-  byte& first() {return *array;}
-  byte& last() {return array[_length - 1];}
 
   template<typename Type>
-  Type& first() {return *reinterpret_cast<Type*>(array);}
-  template<typename Type>
-  Type& last() {return *reinterpret_cast<Type*>(array + _length - sizeof (Type));}
+  Type* begin(ui64 shift = 0) const {return reinterpret_cast<Type*>(array + shift);}
+  iterator begin() const;
+  const_iterator cbegin() const;
 
-  iterator begin() const {return array;}
-  iterator end() const {return array + _length;}
-
-  template<typename Type>
-  Type* begin() const {return reinterpret_cast<Type*>(array);}
   template<typename Type>
   Type* end() const {return reinterpret_cast<Type*>(array) + length<Type>();}
+  iterator end() const;
+  const_iterator cend() const;
 
-  const_iterator cbegin() const {return array;}
-  const_iterator cend() const {return array + _length;}
+  void* unfree();
 
+  byte& operator[](ui64 index);                             // byte& get(ui64) alias operator
+  ByteArray& operator+=(byte b);                            // ByteArray& pushBack(byte) alias operator
+  ByteArray& operator+=(const ByteArray& byte_array);       // ByteArray& pushBack(const ByteArray&) alias operator
+  ByteArray& operator+=(const ByteArray&& byte_array);      // ByteArray& pushBack(const ByteArray&&) alias operator
+  ByteArray& operator+=(const char* c_str);
+  template<typename Type>
+  ByteArray& operator+=(const Type& data) {return pushBack(data);}
 };
+
 
 }
 
