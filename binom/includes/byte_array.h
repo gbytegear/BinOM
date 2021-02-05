@@ -168,6 +168,17 @@ public:
 
 };
 
+
+
+
+class SharedByteArray {
+  ui32* pointer_count;
+  ByteArray byte_array;
+public:
+  // TODO: For DBNodeIterator
+};
+
+
 }
 
 
