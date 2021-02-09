@@ -11,11 +11,23 @@ class DBNodeVisitor {
   NodeDescriptor node_descriptor;
   f_virtual_index node_index = 0;
 
+  bool is_value_ptr = false;
+  ui64 value_index = 0;
+
   NodeDescriptor loadNode(f_virtual_index node_index);
   void updateNode();
   ByteArray loadData();
 
+  f_virtual_index createVariable(Variable var);
+  f_virtual_index createPrimitive(Primitive primitive);
+  f_virtual_index createBufferArray(BufferArray buffer_array);
+  f_virtual_index createArray(Array array);
+  f_virtual_index createObject(Object object);
+
+  void deleteNode(f_virtual_index node_index);
+
 public:
+
   DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index = 0);
   DBNodeVisitor(DBNodeVisitor& other);
   DBNodeVisitor(DBNodeVisitor&& other);
@@ -46,7 +58,6 @@ public:
 
   DBNodeVisitor& operator()(ui64 index);
   DBNodeVisitor& operator()(BufferArray name);
-
 };
 
 }

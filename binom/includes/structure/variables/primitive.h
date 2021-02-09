@@ -58,6 +58,7 @@ public:
   ~Primitive();
 
   VarType getType() {return *data.type;}
+  ValType getValType() {return toValueType(*data.type);}
 
   ByteArray serialize() const;
   static Primitive deserialize(ByteArray::iterator& it);
@@ -94,8 +95,9 @@ public:
 
   Primitive& operator=(Primitive other);
 
-
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
+
+  void* getDataPtr() {return data.bytes + 1;}
 };
 
 }

@@ -275,6 +275,11 @@ struct ObjectDescriptor {
   f_size index_count = 0;
 };
 
+struct ObjectNameLength {
+  f_size name_length = 0;
+  f_size name_count = 0;
+};
+
 //! Data Base descriptor
 struct DBHeader {
   DBVersion version = current;

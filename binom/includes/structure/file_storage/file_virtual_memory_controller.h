@@ -219,9 +219,17 @@ public:
   // DB Back-end IO interface
   f_virtual_index createNode(VarType type, ByteArray data);
   void            updateNode(f_virtual_index node_index, ByteArray data, VarType type = VarType::end);
-  ByteArray       loadData(f_virtual_index node_index);
   void            free(f_virtual_index node_index);
+
+  ByteArray       loadDataByNode(f_virtual_index node_index);
+  ByteArray       loadHeapDataByIndex(f_virtual_index heap_index) { return loadHeapData(heap_index); }
+  ByteArray       loadHeapDataPartByIndex(f_virtual_index heap_index, f_real_index shift, f_size size);
+  ByteArray       loadHeapDataPartByNode(f_virtual_index node_index, f_real_index shift, f_size size) { return loadHeapDataPartByIndex(loadNodeDescriptor(node_index).index, shift, size); }
+  ByteArray       loadByteDataByIndex(f_virtual_index byte_index, ValType type) { return loadByteData( byte_index, type); }
   NodeDescriptor  loadNodeDescriptor(f_virtual_index v_index);
+
+  void clear() {file.resize(0);init();}
+
 };
 
 }

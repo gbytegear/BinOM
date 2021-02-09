@@ -10,6 +10,9 @@ namespace binom {
 class ByteArray {
   ui64 _length = 0;
   byte* array = nullptr;
+
+  friend class SharedByteArray;
+
 public:
 
   typedef byte* iterator;
@@ -30,6 +33,13 @@ public:
       memcpy(it, byte_array.begin(), byte_array._length);
       it += byte_array._length;
     }
+  }
+
+  ~ByteArray() {
+    if(!array) return;
+    free(array);
+    array = nullptr;
+    _length = 0;
   }
 
   ui64 length() const {return _length;}
@@ -166,16 +176,6 @@ public:
   const_iterator cbegin() const {return array;}
   const_iterator cend() const {return array + _length;}
 
-};
-
-
-
-
-class SharedByteArray {
-  ui32* pointer_count;
-  ByteArray byte_array;
-public:
-  // TODO: For DBNodeIterator
 };
 
 

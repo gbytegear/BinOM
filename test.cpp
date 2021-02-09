@@ -29,37 +29,20 @@ void testVariable() {
 
 void testDB() {
 
-//  FileIO file("test_db.binomdb");
-
-//  ui64 index;
-
-//  std::clog << std::hex << 0x1064f << ':' << std::dec << 0x1064f << '\n';
-
-//  file.read(0x1064f, index);
-
-//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
-
-//  file.read(index, index);
-
-//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
-
-//  file.read(index, index);
-
-//  std::clog << std::hex << index << ':' << std::dec << index << '\n';
-
   FileVirtualMemoryController memory("test_db.binomdb");
   // TODO: Complete & test public interface of FVMC
 
-  ByteArray hdata(sizeof (f_virtual_index)*256);
-  for(ui8& val : hdata)
-    val = 33+rand()%98;
-  ByteArray bdata(8);
-  for(ui8& val : bdata)
-    val = 33+rand()%98;
+  ByteArray data(4096*8);
+  {
+    ui64 i = 0;
+    for(ui64* it = data.begin<ui64>(); it != data.end<ui64>(); (++it, ++i))
+      *it = i;
+  }
+  f_virtual_index node_index = memory.createNode(VarType::array, data);
 
-  for(ui8 i = 0; i < 80; ++i) {
-    memory.createNode(VarType::array, hdata);
-    memory.createNode(VarType::qword, bdata);
+  for(ui64 i = 0; i < 4096; ++i) {
+    ByteArray loaded_data(memory.loadHeapDataPart(node_index, i*sizeof(ui64), sizeof(ui64)));
+    std::clog << "Loaded number: " << std::dec << loaded_data.get<ui64>(0) << '\n';
   }
 
 }

@@ -488,7 +488,7 @@ void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ByteArr
 
 }
 
-ByteArray FileVirtualMemoryController::loadData(f_virtual_index node_index) {
+ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   switch (toTypeClass(descriptor.type)) {
   default: throw SException(ErrCode::binom_invalid_type);
@@ -497,6 +497,42 @@ ByteArray FileVirtualMemoryController::loadData(f_virtual_index node_index) {
   case VarTypeClass::array:
   case VarTypeClass::object: return loadHeapData(descriptor.index);
   }
+}
+
+ByteArray FileVirtualMemoryController::loadHeapDataPartByIndex(f_virtual_index heap_index, f_real_index shift, f_size size) {
+  MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(heap_index);
+  if(data_block.isEmpty()) throw SException(ErrCode::any); // WARNING: Reaplace any
+  ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
+
+  ByteArray data(size);
+  ByteArray::iterator data_it = data.begin();
+
+  for(RealBlock* it = real_block_array.begin<RealBlock>(); it != real_block_array.end<RealBlock>(); ++it)
+    if(it->size <= shift) { // Search start real block
+
+      shift -= it->size;
+      continue;
+
+    } else {
+
+      if(shift) {
+        f_size r_size = (size < it->size)? size : it->size - shift;
+        data_it = file.read(it->r_index + shift, data_it, r_size);
+        size -= r_size;
+        shift = 0;
+        if(size) continue;
+        else return data;
+      } else {
+        f_size r_size = (size < it->size)? size : it->size;
+        data_it = file.read(it->r_index, data_it, r_size);
+        size -= r_size;
+        if(size) continue;
+        else return data;
+      }
+
+    }
+
+  return data;
 }
 
 void FileVirtualMemoryController::free(f_virtual_index node_index) {
