@@ -51,6 +51,73 @@ f_virtual_index DBNodeVisitor::createObject(Object object) {
       } else {
         name_length_segment.pushBack(name_length);
         name_length.name_length = symbol_count;
+        name_length.name_count = 0;
+      }
+    }
+
+    name_segment += var.name.toByteArray();
+    index_segment
+        .pushBack<f_virtual_index>(
+          createVariable(var.variable)
+          );
+    ++name_length.name_count;
+  }
+
+  ObjectDescriptor object_descriptor{
+        name_length_segment.length<ObjectNameLength>(),
+        name_segment.length(),
+        index_segment.length<f_virtual_index>()
+  };
+
+  ByteArray data{
+    ByteArray(&object_descriptor, sizeof (ObjectDescriptor)),
+    name_length_segment,
+    name_segment,
+    index_segment
+  };
+
+  return fvmc.createNode(VarType::object, std::move(data));
+}
+
+void DBNodeVisitor::setPrimitive(f_virtual_index node_index, Primitive primitive) {
+  clearNode(node_index);
+  fvmc.updateNode(node_index, primitive.getType(),
+                  ByteArray(primitive.getDataPtr(), toSize(primitive.getValType())));
+}
+
+void DBNodeVisitor::setBufferArray(f_virtual_index node_index, BufferArray buffer_array) {
+  clearNode(node_index);
+  fvmc.updateNode(node_index, buffer_array.getType(), buffer_array.toByteArray());
+}
+
+void DBNodeVisitor::setArray(f_virtual_index node_index, Array array) {
+  clearNode(node_index);
+  ByteArray array_data(array.getMemberCount() * sizeof (f_virtual_index));
+  {
+    f_virtual_index* index_it = array_data.begin<f_virtual_index>();
+    for(Variable& var : array) {
+      *index_it = createVariable(var);
+      ++index_it;
+    }
+  }
+
+  fvmc.updateNode(node_index, VarType::array, std::move(array_data));
+}
+
+void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
+  clearNode(node_index);
+  ByteArray name_length_segment,
+            name_segment,
+            index_segment;
+  ObjectNameLength name_length;
+  for(NamedVariable& var : object) {
+    ui64 symbol_count = var.name.getMemberCount();
+    if(symbol_count != name_length.name_length) {
+      if(object.begin() == &var) {
+        name_length.name_length = symbol_count;
+      } else {
+        name_length_segment.pushBack(name_length);
+        name_length.name_length = symbol_count;
       }
     }
 
@@ -71,27 +138,41 @@ f_virtual_index DBNodeVisitor::createObject(Object object) {
     index_segment
   };
 
-  return fvmc.createNode(VarType::object, std::move(data));
+  fvmc.updateNode(node_index, VarType::object, std::move(data));
 }
 
-void DBNodeVisitor::deleteNode(f_virtual_index node_index) {
+void DBNodeVisitor::clearNode(f_virtual_index node_index) {
   NodeDescriptor descriptor = fvmc.loadNodeDescriptor(node_index);
   switch (toTypeClass(descriptor.type)) {
     case VarTypeClass::primitive:
     case VarTypeClass::buffer_array:
-      fvmc.free(node_index);
     break;
     case VarTypeClass::array: {
       ByteArray data(fvmc.loadHeapDataByIndex(descriptor.index));
       for(f_virtual_index* index_it = data.begin<f_virtual_index>(); index_it != data.end<f_virtual_index>(); ++index_it)
         deleteNode(*index_it);
-      fvmc.free(node_index);
       break;
     }
-    case VarTypeClass::object:
-
-    break;
+    case VarTypeClass::object: {
+      ByteArray data(fvmc.loadHeapDataByIndex(descriptor.index));
+      ObjectDescriptor descriptor(data.get<ObjectDescriptor>(0));
+      for(f_virtual_index* index_it = data.begin<f_virtual_index>(
+            sizeof (ObjectDescriptor) +
+            descriptor.length_element_count * sizeof (ObjectNameLength) +
+            descriptor.name_block_size
+            );
+          index_it != data.end<f_virtual_index>();
+          ++index_it)
+        deleteNode(*index_it);
+      break;
+    }
+    default: break;
   }
+}
+
+void DBNodeVisitor::deleteNode(f_virtual_index node_index) {
+  clearNode(node_index);
+  fvmc.free(node_index);
 }
 
 DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index)
@@ -138,7 +219,86 @@ DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
 
 DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
   if(!isObject() || is_value_ptr) throw SException(ErrCode::binom_invalid_type);
+  ByteArray data(loadData());
+  ObjectDescriptor descriptor = data.get<ObjectDescriptor>(0);
 
+  ui64 index = 0;
+
+  {
+    ObjectNameLength* length_it = data.begin<ObjectNameLength>(sizeof (ObjectDescriptor));
+
+    i64 left = 0;
+    i64 right = descriptor.length_element_count;
+    i64 middle = 0;
+
+    while(1) {
+      middle = (left + right) / 2;
+      if(left <= right || middle > descriptor.length_element_count) {
+        middle = -1;
+        break;
+      }
+
+      if(length_it[middle].name_length > name.getMemberCount()) right = middle - 1;
+      elif(length_it[middle].name_length < name.getMemberCount()) left = middle + 1;
+      else break;
+    }
+
+    ui64 name_block_index = sizeof (ObjectDescriptor) +
+                            descriptor.length_element_count*sizeof(ObjectNameLength);
+    ui64 name_count = 0;
+
+    if(middle == -1) throw SException(ErrCode::binom_out_of_range);
+
+    for(ui64 i = 0; i < middle; ++i) {
+      index += length_it[i].name_count;
+      name_block_index += length_it[i].name_count*length_it[i].name_length;
+    }
+    name_count = length_it[middle].name_count;
+
+    char* name_it = data.begin<char>(name_block_index);
+    left = 0;
+    right = name_count;
+    middle = 0;
+
+    while (1) {
+      middle = (left + right) / 2;
+      if(left <= right || middle > descriptor.length_element_count) {
+        middle = -1;
+        break;
+      }
+
+      int cmp = memcmp(name_it + name.getMemberCount()*middle, name.getDataPointer(), name.getMemberCount());
+
+      if(cmp > 0) right = middle - 1;
+      elif(cmp < 0) left = middle + 1;
+      else break;
+    }
+
+    if(middle == -1) throw SException(ErrCode::binom_out_of_range);
+
+    index += middle;
+  }
+
+  node_index = data.get<ui64>(index,
+                              sizeof(ObjectDescriptor) +
+                              descriptor.length_element_count*sizeof(ObjectNameLength) +
+                              descriptor.name_block_size);
+  updateNode();
+  return *this;
+}
+
+void DBNodeVisitor::setVariable(Variable var) {
+
+  if(!node_index) fvmc.clear();
+  else fvmc.markNodeAsBusy(node_index);
+
+  switch (var.typeClass()) {
+    case VarTypeClass::primitive: return setPrimitive(node_index, std::move(var.toPrimitive()));
+    case VarTypeClass::buffer_array: return setBufferArray(node_index, std::move(var.toBufferArray()));
+    case VarTypeClass::array: return setArray(node_index, std::move(var.toArray()));
+    case VarTypeClass::object: return setObject(node_index, std::move(var.toObject()));
+    default: throw SException(ErrCode::binom_invalid_type);
+  }
 }
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) {return DBNodeVisitor(*this).stepInside(index);}

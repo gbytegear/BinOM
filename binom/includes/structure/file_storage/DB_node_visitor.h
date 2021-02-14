@@ -24,6 +24,12 @@ class DBNodeVisitor {
   f_virtual_index createArray(Array array);
   f_virtual_index createObject(Object object);
 
+  void setPrimitive(f_virtual_index node_index, Primitive primitive);
+  void setBufferArray(f_virtual_index node_index, BufferArray buffer_array);
+  void setArray(f_virtual_index node_index, Array array);
+  void setObject(f_virtual_index node_index, Object object);
+
+  void clearNode(f_virtual_index node_index);
   void deleteNode(f_virtual_index node_index);
 
 public:
@@ -46,9 +52,12 @@ public:
   DBNodeVisitor& stepInside(ui64 index);
   DBNodeVisitor& stepInside(BufferArray name);
 
-  Variable& getVariable() const;
-  Variable& getVariable(ui64 index) const;
-  Variable& getVariable(BufferArray name) const;
+  Variable& getVariable() const; // TODO
+  Variable& getVariable(ui64 index) const; // TODO
+  Variable& getVariable(BufferArray name) const; // TODO
+
+  void setVariable(Variable var);
+  // TODO: push_back/push_front/insert/remove
 
   DBNodeVisitor getChild(ui64 index);
   DBNodeVisitor getChild(BufferArray name);

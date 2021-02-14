@@ -22,7 +22,8 @@ void Variable::destroy() {
     case VarTypeClass::buffer_array: return toBufferArray().destroy();
     case VarTypeClass::array: return toArray().destroy();
     case VarTypeClass::object: return toObject().destroy();
-    case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
+    default: break;
+//    case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
   }
 }
 

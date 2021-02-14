@@ -21,7 +21,7 @@ public:
   ByteArray() = default;
   ByteArray(const void* buffer, ui64 size) : _length(size), array(tryMalloc<byte>(size)) {memcpy(array, buffer, size);}
   ByteArray(const ByteArray& other) : _length(other._length), array(tryMalloc<byte>(_length)) {memcpy(array, other.begin(), _length);}
-  ByteArray(const ByteArray&& other) : _length(other._length), array(other.array) {}
+  ByteArray(ByteArray&& other) : _length(other._length), array(other.array) {other.array = nullptr;}
   ByteArray(ui64 size) : _length(size), array(tryMalloc<byte>(size)) {}
   ByteArray(std::initializer_list<const ByteArray> arrays) {
     for(const ByteArray& byte_array : arrays) {
@@ -169,7 +169,7 @@ public:
   iterator end() const {return array + _length;}
 
   template<typename Type>
-  Type* begin() const {return reinterpret_cast<Type*>(array);}
+  Type* begin(ui64 shift = 0) const {return reinterpret_cast<Type*>(array + shift);}
   template<typename Type>
   Type* end() const {return reinterpret_cast<Type*>(array) + length<Type>();}
 

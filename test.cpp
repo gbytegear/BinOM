@@ -29,21 +29,36 @@ void testVariable() {
 
 void testDB() {
 
-  FileVirtualMemoryController memory("test_db.binomdb");
-  // TODO: Complete & test public interface of FVMC
+//  FileVirtualMemoryController memory("test_db.binomdb");
+//  // TODO: Complete & test public interface of FVMC
 
-  ByteArray data(4096*8);
-  {
-    ui64 i = 0;
-    for(ui64* it = data.begin<ui64>(); it != data.end<ui64>(); (++it, ++i))
-      *it = i;
-  }
-  f_virtual_index node_index = memory.createNode(VarType::array, data);
+//  ByteArray data(4096*8);
+//  {
+//    ui64 i = 0;
+//    for(ui64* it = data.begin<ui64>(); it != data.end<ui64>(); (++it, ++i))
+//      *it = i;
+//  }
+//  f_virtual_index node_index = memory.createNode(VarType::array, data);
 
-  for(ui64 i = 0; i < 4096; ++i) {
-    ByteArray loaded_data(memory.loadHeapDataPart(node_index, i*sizeof(ui64), sizeof(ui64)));
-    std::clog << "Loaded number: " << std::dec << loaded_data.get<ui64>(0) << '\n';
-  }
+//  for(ui64 i = 0; i < 4096; ++i) {
+//    ByteArray loaded_data(memory.loadHeapDataPart(node_index, i*sizeof(ui64), sizeof(ui64)));
+//    std::clog << "Loaded number: " << std::dec << loaded_data.get<ui64>(0) << '\n';
+//  }
+
+  DataBaseContainer db("test_db.binomdb");
+  db.getRoot().setVariable(
+        obj{
+          {"usr", varr{
+             obj{
+               {"id", 0_ui64},
+               {"login", "admin"},
+               {"password", "admin"},
+               {"user_data", obj{}}
+             }
+           }},
+          {"etc", varr{}}
+        }
+   );
 
 }
 

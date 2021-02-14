@@ -158,10 +158,6 @@ public:
 
 
 class FileVirtualMemoryController {
-public:
-
-
-private:
 //public: // WARNING: For testing!!!
   FileIO file;
   NodePageList node_page_list;
@@ -218,8 +214,9 @@ public:
 
   // DB Back-end IO interface
   f_virtual_index createNode(VarType type, ByteArray data);
-  void            updateNode(f_virtual_index node_index, ByteArray data, VarType type = VarType::end);
+  void            updateNode(f_virtual_index node_index, VarType type, ByteArray data);
   void            free(f_virtual_index node_index);
+  void            markNodeAsBusy(f_virtual_index node_index);
 
   ByteArray       loadDataByNode(f_virtual_index node_index);
   ByteArray       loadHeapDataByIndex(f_virtual_index heap_index) { return loadHeapData(heap_index); }
@@ -228,7 +225,7 @@ public:
   ByteArray       loadByteDataByIndex(f_virtual_index byte_index, ValType type) { return loadByteData( byte_index, type); }
   NodeDescriptor  loadNodeDescriptor(f_virtual_index v_index);
 
-  void clear() {file.resize(0);init();}
+  void clear();
 
 };
 

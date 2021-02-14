@@ -120,7 +120,9 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, 
 
 
 
-void FileVirtualMemoryController::init() { // FIXME: Page initialization bug
+void FileVirtualMemoryController::init() {
+  // FIXME: Page initialization bug
+  // Bug in function fread in MinGw 7.3.0 g++ compiler
   if(file.isEmpty()) {
     file.write(0, header);
   } else {
@@ -243,11 +245,12 @@ f_real_index FileVirtualMemoryController::getRealBytePos(f_virtual_index v_index
 }
 
 f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor) {
-  if(header.root_node.type == VarType::end) {
-    header.root_node = descriptor;
-    file.write(offsetof(DBHeader, root_node), descriptor);
-    return 0;
-  }
+// The root node is not involved in finding free nodes
+//  if(header.root_node.type == VarType::end) {
+//    header.root_node = descriptor;
+//    file.write(offsetof(DBHeader, root_node), descriptor);
+//    return 0;
+//  }
 
   if(!header.first_node_page_index)
     createNodePage();
@@ -288,6 +291,13 @@ NodeDescriptor FileVirtualMemoryController::loadNodeDescriptor(f_virtual_index v
   NodeDescriptor descriptor;
   file.read(getRealNodePos(v_index), descriptor);
   return descriptor;
+}
+
+void FileVirtualMemoryController::clear() { // Reconstruct
+  file.resize(0);
+  std::string filename(file.path().c_str());
+  this->~FileVirtualMemoryController();
+  new(this) FileVirtualMemoryController(filename);
 }
 
 void FileVirtualMemoryController::freeNode(f_virtual_index v_index) {
@@ -456,19 +466,7 @@ f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray 
 }
 
 
-void FileVirtualMemoryController::updateNode(f_virtual_index node_index, ByteArray data, VarType type) {
-  NodeDescriptor descriptor(loadNodeDescriptor(node_index));
-  switch (toTypeClass(descriptor.type)) { // Free old data block
-  default: throw SException(ErrCode::binom_invalid_type);
-  case VarTypeClass::primitive:
-    freeByteData(descriptor.index, toValueType(descriptor.type));
-  break;
-  case VarTypeClass::buffer_array:
-  case VarTypeClass::array:
-  case VarTypeClass::object:
-    freeHeapData(descriptor.index);
-  break;
-  }
+void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType type, ByteArray data) {
 
   switch (toTypeClass(type)) { // Alloc new data block
   default: throw SException(ErrCode::binom_invalid_type);
@@ -549,4 +547,11 @@ void FileVirtualMemoryController::free(f_virtual_index node_index) {
     freeHeapData(descriptor.index);
   return;
   }
+}
+
+void FileVirtualMemoryController::markNodeAsBusy(f_virtual_index node_index) {
+  if(node_index == 0) return;
+  NodePageList::PageNode& page = node_page_list[(node_index - 1)/64];
+  page.descriptor.node_map.set((node_index - 1)%64, true);
+  file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
 }

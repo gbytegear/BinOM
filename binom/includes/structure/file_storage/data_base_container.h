@@ -13,7 +13,6 @@ public:
   DataBaseContainer(const char* file_name) : fvmc(file_name) {}
 
   DBNodeVisitor getRoot() {return fvmc;}
-
 };
 
 }
