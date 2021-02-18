@@ -157,6 +157,20 @@ public:
   template<typename Type>
   Type& get(ui64 index, ui64 shift = 0) {return reinterpret_cast<Type*>(array + shift)[index];}
 
+  byte& set(ui64 index, byte value) {return get(index) = value;}
+  template<typename Type>
+  Type& set(ui64 index, ui64 shift, Type value) {return get<Type>(index, shift) = value;}
+  iterator set(ui64 index, ByteArray data) {
+    if(ui64 needed_length = index + _length; needed_length < data._length)
+      array = tryRealloc<byte>(array, _length = needed_length);
+    iterator ret = begin() + index;
+    for(iterator this_it = ret, other_it = data.begin();
+        other_it != data.end();
+        (++this_it, ++other_it))
+      *this_it = *other_it;
+    return ret;
+  }
+
   byte& first() {return *array;}
   byte& last() {return array[_length - 1];}
 
@@ -176,6 +190,12 @@ public:
   const_iterator cbegin() const {return array;}
   const_iterator cend() const {return array + _length;}
 
+  void* unfree() {
+    void* ptr = array;
+    array = nullptr;
+    _length = 0;
+    return ptr;
+  }
 };
 
 

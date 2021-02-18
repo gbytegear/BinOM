@@ -29,6 +29,12 @@ class DBNodeVisitor {
   void setArray(f_virtual_index node_index, Array array);
   void setObject(f_virtual_index node_index, Object object);
 
+  Variable buildVariable(f_virtual_index node_index);
+  Primitive buildPrimitive(NodeDescriptor node_des);
+  BufferArray buildBufferArray(NodeDescriptor node_des);
+  Array buildArray(NodeDescriptor node_des);
+  Object buildObject(NodeDescriptor node_des); // TODO
+
   void clearNode(f_virtual_index node_index);
   void deleteNode(f_virtual_index node_index);
 

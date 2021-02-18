@@ -141,6 +141,48 @@ void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
   fvmc.updateNode(node_index, VarType::object, std::move(data));
 }
 
+Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) {
+  NodeDescriptor node_des(loadNode(node_index));
+  switch (toTypeClass(node_des.type)) {
+    case VarTypeClass::primitive: return std::move(buildPrimitive(node_des).asVar());
+    case VarTypeClass::buffer_array: return std::move(buildBufferArray(node_des).asVar());
+    case VarTypeClass::array: return std::move(buildArray(node_des).asVar());
+    case VarTypeClass::object: return std::move(buildObject(node_des).asVar());
+    default: throw SException(ErrCode::binom_invalid_type);
+  }
+}
+
+Primitive DBNodeVisitor::buildPrimitive(NodeDescriptor node_des) {
+  ByteArray data(1 + toSize(toValueType(node_des.type)));
+  data.set(0,0, node_des.type);
+  data.set(1, fvmc.loadByteDataByIndex(node_des.index, toValueType(node_des.type)));
+  void* ptr = data.unfree();
+  return *reinterpret_cast<Primitive*>(&ptr);
+}
+
+BufferArray DBNodeVisitor::buildBufferArray(NodeDescriptor node_des) {
+  ByteArray data(9 + node_des.size);
+  data.set(0,0, node_des.type);
+  data.set(0, 1, node_des.size/toSize(toValueType(node_des.type)));
+  data.set(0, 9, fvmc.loadHeapDataByIndex(node_des.index));
+  void* ptr = data.unfree();
+  return *reinterpret_cast<BufferArray*>(&ptr);
+}
+
+Array DBNodeVisitor::buildArray(NodeDescriptor node_des) {
+  ByteArray data(9 + node_des.size);
+  data.set(0,0, node_des.type);
+  data.set(0, 1, node_des.size/8);
+  ByteArray node_index_data(fvmc.loadHeapDataByIndex(node_des.index));
+  for(ui64* var_index_it = data.begin<ui64>(9),
+          * node_index_it = node_index_data.begin<ui64>();
+      node_index_it != node_index_data.end<ui64>();
+      (++var_index_it, ++node_index_it))
+    new(var_index_it) Variable(buildVariable(*node_index_it));
+  void* ptr = data.unfree();
+  return *reinterpret_cast<Array*>(&ptr);
+}
+
 void DBNodeVisitor::clearNode(f_virtual_index node_index) {
   NodeDescriptor descriptor = fvmc.loadNodeDescriptor(node_index);
   switch (toTypeClass(descriptor.type)) {
