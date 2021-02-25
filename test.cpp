@@ -46,19 +46,27 @@ void testDB() {
 //  }
 
   DataBaseContainer db("test_db.binomdb");
-  db.getRoot().setVariable(
-        obj{
-          {"usr", varr{
-             obj{
-               {"id", 0_ui64},
-               {"login", "admin"},
-               {"password", "admin"},
-               {"user_data", obj{}}
-             }
-           }},
-          {"etc", varr{}}
-        }
-   );
+
+  Variable struct_for_upload =
+//      varr{255_ui64, "admin", varr{}, obj{{"hello", "world"}}};
+
+      obj{
+        {"usr", varr{
+           obj{ // Error
+             {"id", 255_ui64},
+             {"login", "admin"},
+             {"password", "admin"},
+             {"user_data", obj{}}
+           }
+         }},
+        {"etc", varr{}}
+      };
+
+  db.getRoot().setVariable(struct_for_upload);
+
+  Variable loaded_struct(db.getRoot().getVariable());
+
+  std::clog << "Loaded: " << loaded_struct << '\n';
 
 }
 

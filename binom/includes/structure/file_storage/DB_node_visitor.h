@@ -14,7 +14,7 @@ class DBNodeVisitor {
   bool is_value_ptr = false;
   ui64 value_index = 0;
 
-  NodeDescriptor loadNode(f_virtual_index node_index);
+  NodeDescriptor loadNode(f_virtual_index node_index) const;
   void updateNode();
   ByteArray loadData();
 
@@ -29,11 +29,11 @@ class DBNodeVisitor {
   void setArray(f_virtual_index node_index, Array array);
   void setObject(f_virtual_index node_index, Object object);
 
-  Variable buildVariable(f_virtual_index node_index);
-  Primitive buildPrimitive(NodeDescriptor node_des);
-  BufferArray buildBufferArray(NodeDescriptor node_des);
-  Array buildArray(NodeDescriptor node_des);
-  Object buildObject(NodeDescriptor node_des); // TODO
+  Variable buildVariable(f_virtual_index node_index) const;
+  Primitive buildPrimitive(NodeDescriptor node_des) const;
+  BufferArray buildBufferArray(NodeDescriptor node_des) const;
+  Array buildArray(NodeDescriptor node_des) const;
+  Object buildObject(NodeDescriptor node_des) const;
 
   void clearNode(f_virtual_index node_index);
   void deleteNode(f_virtual_index node_index);
@@ -58,9 +58,9 @@ public:
   DBNodeVisitor& stepInside(ui64 index);
   DBNodeVisitor& stepInside(BufferArray name);
 
-  Variable& getVariable() const; // TODO
-  Variable& getVariable(ui64 index) const; // TODO
-  Variable& getVariable(BufferArray name) const; // TODO
+  Variable getVariable() const; // TODO
+  Variable getVariable(ui64 index) const; // TODO
+  Variable getVariable(BufferArray name) const; // TODO
 
   void setVariable(Variable var);
   // TODO: push_back/push_front/insert/remove

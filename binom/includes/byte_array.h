@@ -42,6 +42,8 @@ public:
     _length = 0;
   }
 
+  bool isEmpty() const {return !_length;}
+
   ui64 length() const {return _length;}
 
   template<typename Type>
@@ -159,7 +161,9 @@ public:
 
   byte& set(ui64 index, byte value) {return get(index) = value;}
   template<typename Type>
-  Type& set(ui64 index, ui64 shift, Type value) {return get<Type>(index, shift) = value;}
+  Type& set(ui64 index, ui64 shift, Type value) {
+    return get<Type>(index, shift) = value;
+  }
   iterator set(ui64 index, ByteArray data) {
     if(ui64 needed_length = index + _length; needed_length < data._length)
       array = tryRealloc<byte>(array, _length = needed_length);

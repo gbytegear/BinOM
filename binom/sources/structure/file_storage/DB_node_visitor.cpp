@@ -3,7 +3,7 @@
 using namespace binom;
 
 
-NodeDescriptor DBNodeVisitor::loadNode(f_virtual_index node_index) {return fvmc.loadNodeDescriptor(node_index);;}
+NodeDescriptor DBNodeVisitor::loadNode(f_virtual_index node_index) const {return fvmc.loadNodeDescriptor(node_index);}
 void DBNodeVisitor::updateNode() {node_descriptor = loadNode(node_index);}
 ByteArray DBNodeVisitor::loadData() {return fvmc.loadDataByNode(node_index);}
 
@@ -27,6 +27,9 @@ f_virtual_index DBNodeVisitor::createBufferArray(BufferArray buffer_array) {
 }
 
 f_virtual_index DBNodeVisitor::createArray(Array array) {
+  if(array.isEmpty())
+    return fvmc.createNode(VarType::array, ByteArray());
+
   ByteArray array_data(array.getMemberCount() * sizeof (f_virtual_index));
   {
     f_virtual_index* index_it = array_data.begin<f_virtual_index>();
@@ -39,6 +42,8 @@ f_virtual_index DBNodeVisitor::createArray(Array array) {
 }
 
 f_virtual_index DBNodeVisitor::createObject(Object object) {
+  if(object.isEmpty())
+    return fvmc.createNode(VarType::object, ByteArray());
   ByteArray name_length_segment,
             name_segment,
             index_segment;
@@ -62,6 +67,8 @@ f_virtual_index DBNodeVisitor::createObject(Object object) {
           );
     ++name_length.name_count;
   }
+
+  name_length_segment.pushBack(name_length);
 
   ObjectDescriptor object_descriptor{
         name_length_segment.length<ObjectNameLength>(),
@@ -87,11 +94,19 @@ void DBNodeVisitor::setPrimitive(f_virtual_index node_index, Primitive primitive
 
 void DBNodeVisitor::setBufferArray(f_virtual_index node_index, BufferArray buffer_array) {
   clearNode(node_index);
+  if(buffer_array.isEmpty()) {
+    fvmc.updateNode(node_index, buffer_array.getType(), ByteArray());
+    return;
+  }
   fvmc.updateNode(node_index, buffer_array.getType(), buffer_array.toByteArray());
 }
 
 void DBNodeVisitor::setArray(f_virtual_index node_index, Array array) {
   clearNode(node_index);
+  if(array.isEmpty()) {
+    fvmc.updateNode(node_index, VarType::array, ByteArray());
+    return;
+  }
   ByteArray array_data(array.getMemberCount() * sizeof (f_virtual_index));
   {
     f_virtual_index* index_it = array_data.begin<f_virtual_index>();
@@ -106,6 +121,10 @@ void DBNodeVisitor::setArray(f_virtual_index node_index, Array array) {
 
 void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
   clearNode(node_index);
+  if(object.isEmpty()) {
+    fvmc.updateNode(node_index, VarType::object, ByteArray());
+    return;
+  }
   ByteArray name_length_segment,
             name_segment,
             index_segment;
@@ -123,7 +142,10 @@ void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
 
     name_segment += var.name.toByteArray();
     index_segment.pushBack<f_virtual_index>(createVariable(var.variable));
+    ++name_length.name_count;
   }
+
+  name_length_segment.pushBack(name_length);
 
   ObjectDescriptor object_descriptor{
         name_length_segment.length<ObjectNameLength>(),
@@ -141,7 +163,7 @@ void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
   fvmc.updateNode(node_index, VarType::object, std::move(data));
 }
 
-Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) {
+Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) const {
   NodeDescriptor node_des(loadNode(node_index));
   switch (toTypeClass(node_des.type)) {
     case VarTypeClass::primitive: return std::move(buildPrimitive(node_des).asVar());
@@ -152,7 +174,7 @@ Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) {
   }
 }
 
-Primitive DBNodeVisitor::buildPrimitive(NodeDescriptor node_des) {
+Primitive DBNodeVisitor::buildPrimitive(NodeDescriptor node_des) const {
   ByteArray data(1 + toSize(toValueType(node_des.type)));
   data.set(0,0, node_des.type);
   data.set(1, fvmc.loadByteDataByIndex(node_des.index, toValueType(node_des.type)));
@@ -160,27 +182,83 @@ Primitive DBNodeVisitor::buildPrimitive(NodeDescriptor node_des) {
   return *reinterpret_cast<Primitive*>(&ptr);
 }
 
-BufferArray DBNodeVisitor::buildBufferArray(NodeDescriptor node_des) {
+BufferArray DBNodeVisitor::buildBufferArray(NodeDescriptor node_des) const {
+  if(node_des.size == 0) return BufferArray(node_des.type);
   ByteArray data(9 + node_des.size);
   data.set(0,0, node_des.type);
-  data.set(0, 1, node_des.size/toSize(toValueType(node_des.type)));
-  data.set(0, 9, fvmc.loadHeapDataByIndex(node_des.index));
+  data.set(0,1, node_des.size/toSize(toValueType(node_des.type)));
+  data.set(9, fvmc.loadHeapDataByIndex(node_des.index));
   void* ptr = data.unfree();
   return *reinterpret_cast<BufferArray*>(&ptr);
 }
 
-Array DBNodeVisitor::buildArray(NodeDescriptor node_des) {
+Array DBNodeVisitor::buildArray(NodeDescriptor node_des) const {
+  if(node_des.size == 0) return Array();
   ByteArray data(9 + node_des.size);
   data.set(0,0, node_des.type);
   data.set(0, 1, node_des.size/8);
   ByteArray node_index_data(fvmc.loadHeapDataByIndex(node_des.index));
+
   for(ui64* var_index_it = data.begin<ui64>(9),
           * node_index_it = node_index_data.begin<ui64>();
       node_index_it != node_index_data.end<ui64>();
       (++var_index_it, ++node_index_it))
     new(var_index_it) Variable(buildVariable(*node_index_it));
+
   void* ptr = data.unfree();
   return *reinterpret_cast<Array*>(&ptr);
+}
+
+Object DBNodeVisitor::buildObject(NodeDescriptor node_des) const {
+  if(node_des.size == 0) return Object();
+
+  // Load data base object data
+  ByteArray db_data(fvmc.loadHeapDataByIndex(node_des.index));
+  ObjectDescriptor& object_descriptor = db_data.get<ObjectDescriptor>(0);
+
+  // Create object buffer and set his properties
+  ByteArray data(9 + object_descriptor.index_count * sizeof(NamedVariable));
+  data.set<VarType>(0,0, VarType::object);
+  data.set<ui64>(0,1,object_descriptor.index_count);
+
+  // Iterators
+  ObjectNameLength* nl_it = db_data.begin<ObjectNameLength>(sizeof(ObjectDescriptor));
+  char* n_it = db_data.begin<char>(sizeof(ObjectDescriptor) +
+                                object_descriptor.length_element_count*sizeof (ObjectNameLength));
+  f_virtual_index* i_it = db_data.begin<f_virtual_index>(sizeof(ObjectDescriptor) +
+                                                      object_descriptor.length_element_count*sizeof (ObjectNameLength) +
+                                                      object_descriptor.name_block_size);
+  NamedVariable* nvar_it = data.begin<NamedVariable>(9);
+
+  // Copy of name length struct for calculate name length
+  ObjectNameLength nl_c = *nl_it;
+
+  while (!!object_descriptor.index_count) {
+
+    // Build name buffer array
+    ByteArray name_data(9 + nl_c.name_length);
+    name_data.set<VarType>(0,0, VarType::byte_array);
+    name_data.set<ui64>(0,1, nl_c.name_length);
+    memcpy(name_data.begin() + 9, n_it, nl_c.name_length);
+    void* n_ptr = name_data.unfree();
+
+    // Create named variable by
+    *reinterpret_cast<void**>(&nvar_it->name) = n_ptr;
+    new(&nvar_it->variable) Variable(buildVariable(*i_it));
+
+    // Iterator shifts
+    ++i_it;
+    n_it += nl_c.name_length;
+    --nl_c.name_count;
+    if(!nl_c.name_count)
+      nl_c = *(--nl_it);
+    ++nvar_it;
+
+    --object_descriptor.index_count;
+  }
+
+  void* ptr = data.unfree();
+  return *reinterpret_cast<Object*>(&ptr);
 }
 
 void DBNodeVisitor::clearNode(f_virtual_index node_index) {
@@ -327,6 +405,10 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
                               descriptor.name_block_size);
   updateNode();
   return *this;
+}
+
+Variable DBNodeVisitor::getVariable() const {
+  return buildVariable(node_index);
 }
 
 void DBNodeVisitor::setVariable(Variable var) {

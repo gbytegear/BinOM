@@ -459,7 +459,7 @@ f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray 
     case VarTypeClass::buffer_array:
     case VarTypeClass::array:
     case VarTypeClass::object:
-    VMemoryBlock data_block = allocHeapData(data);
+    VMemoryBlock data_block = (data.isEmpty())? VMemoryBlock{0,0} : allocHeapData(data);
     NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
     return allocNode(descriptor);
   }
@@ -478,7 +478,7 @@ void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType
   case VarTypeClass::buffer_array:
   case VarTypeClass::array:
   case VarTypeClass::object: {
-    VMemoryBlock data_block = allocHeapData(data);
+    VMemoryBlock data_block = (data.isEmpty())? VMemoryBlock{0,0} : allocHeapData(data);
     NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
     setNode(node_index, descriptor);
   }
