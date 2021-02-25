@@ -41,8 +41,8 @@ class DBNodeVisitor {
 public:
 
   DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index = 0);
-  DBNodeVisitor(DBNodeVisitor& other);
-  DBNodeVisitor(DBNodeVisitor&& other);
+  DBNodeVisitor(const DBNodeVisitor& other);
+  DBNodeVisitor(const DBNodeVisitor&& other);
 
   DBNodeVisitor& operator=(DBNodeVisitor other);
   DBNodeVisitor& operator=(f_virtual_index _node_index);
@@ -65,8 +65,8 @@ public:
   void setVariable(Variable var);
   // TODO: push_back/push_front/insert/remove
 
-  DBNodeVisitor getChild(ui64 index);
-  DBNodeVisitor getChild(BufferArray name);
+  DBNodeVisitor getChild(ui64 index) const;
+  DBNodeVisitor getChild(BufferArray name) const;
 
   DBNodeVisitor operator[](ui64 index);
   DBNodeVisitor operator[](BufferArray name);

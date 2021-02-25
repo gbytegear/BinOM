@@ -251,7 +251,7 @@ Object DBNodeVisitor::buildObject(NodeDescriptor node_des) const {
     n_it += nl_c.name_length;
     --nl_c.name_count;
     if(!nl_c.name_count)
-      nl_c = *(--nl_it);
+      nl_c = *(++nl_it);
     ++nvar_it;
 
     --object_descriptor.index_count;
@@ -299,12 +299,12 @@ DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index 
   : fvmc(fvmc),
     node_index(node_index) {updateNode();}
 
-DBNodeVisitor::DBNodeVisitor(DBNodeVisitor& other)
+DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor& other)
   : fvmc(other.fvmc),
     node_descriptor(other.node_descriptor),
     node_index(other.node_index) {}
 
-DBNodeVisitor::DBNodeVisitor(DBNodeVisitor&& other)
+DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor&& other)
   : fvmc(other.fvmc),
     node_descriptor(other.node_descriptor),
     node_index(other.node_index) {}
@@ -411,8 +411,15 @@ Variable DBNodeVisitor::getVariable() const {
   return buildVariable(node_index);
 }
 
-void DBNodeVisitor::setVariable(Variable var) {
+Variable DBNodeVisitor::getVariable(ui64 index) const {
+  return buildVariable(getChild(index).node_index);
+}
 
+Variable DBNodeVisitor::getVariable(BufferArray name) const {
+  return buildVariable(getChild(name).node_index);
+}
+
+void DBNodeVisitor::setVariable(Variable var) {
   if(!node_index) fvmc.clear();
   else fvmc.markNodeAsBusy(node_index);
 
@@ -425,8 +432,8 @@ void DBNodeVisitor::setVariable(Variable var) {
   }
 }
 
-DBNodeVisitor DBNodeVisitor::getChild(ui64 index) {return DBNodeVisitor(*this).stepInside(index);}
-DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) {return DBNodeVisitor(*this).stepInside(std::move(name));}
+DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
+DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
 
 DBNodeVisitor DBNodeVisitor::operator[](ui64 index) {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::operator[](BufferArray name) {return DBNodeVisitor(*this).stepInside(std::move(name));}
