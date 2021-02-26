@@ -323,7 +323,7 @@ bool DBNodeVisitor::isObject() {return getTypeClass() == VarTypeClass::object;}
 DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
   if(isPrimitive() || isObject() || is_value_ptr) throw SException(ErrCode::binom_invalid_type);
   if(isArray()) {
-    if(node_descriptor.size / sizeof (f_virtual_index) >= index) throw SException(ErrCode::binom_out_of_range);
+    if(node_descriptor.size / sizeof (f_virtual_index) <= index) throw SException(ErrCode::binom_out_of_range);
     node_index = fvmc.loadHeapDataPartByIndex(node_descriptor.index,
                                               index*sizeof(f_virtual_index),
                                               sizeof (f_virtual_index))
@@ -353,7 +353,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
 
     while(1) {
       middle = (left + right) / 2;
-      if(left <= right || middle > descriptor.length_element_count) {
+      if(left > right || middle > descriptor.length_element_count) {
         middle = -1;
         break;
       }
@@ -382,7 +382,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
 
     while (1) {
       middle = (left + right) / 2;
-      if(left <= right || middle > descriptor.length_element_count) {
+      if(left > right || middle > name_count) {
         middle = -1;
         break;
       }
@@ -431,6 +431,8 @@ void DBNodeVisitor::setVariable(Variable var) {
     default: throw SException(ErrCode::binom_invalid_type);
   }
 }
+
+void DBNodeVisitor::pushBack(Variable var) {}
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}

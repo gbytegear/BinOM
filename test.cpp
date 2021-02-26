@@ -52,21 +52,46 @@ void testDB() {
 
       obj{
         {"usr", varr{
-           obj{ // Error
-             {"id", 255_ui64},
-             {"login", "admin"},
-             {"password", "admin"},
-             {"user_data", obj{}}
-           }
+            obj{
+              {"id", 0_ui64},
+              {"login", "admin"},
+              {"password", "admin"},
+              {"user_data", obj{}}
+            },
+            obj{
+              {"id", 1_ui64},
+              {"login", "guest"},
+              {"password", "guest"},
+              {"user_data", obj{}}
+            }
          }},
-        {"etc", varr{}}
+        {"etc", varr{}},
+        {"grp", varr{
+          obj{
+            {"id", 0_ui64},
+            {"name", "admins"},
+            {"user_ids", ui64arr{0}}
+          }
+        }}
       };
 
-  db.getRoot().setVariable(struct_for_upload);
+  DBNodeVisitor node_visitor(db.getRoot());
 
-  Variable loaded_struct(db.getRoot().getVariable());
+  node_visitor.setVariable(struct_for_upload);
 
-  std::clog << "Loaded: " << loaded_struct << '\n';
+  std::clog << "Loaded: "
+            << node_visitor["usr"](0)("password")
+               .getVariable()
+               .toBufferArray()
+               .toString()
+            << '\n';
+
+  std::clog << "Loaded: "
+            << node_visitor["grp"](0)("name")
+               .getVariable()
+               .toBufferArray()
+               .toString()
+            << '\n';
 
 }
 
