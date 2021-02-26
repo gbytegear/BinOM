@@ -58,16 +58,17 @@ public:
   DBNodeVisitor& stepInside(ui64 index);
   DBNodeVisitor& stepInside(BufferArray name);
 
-  Variable getVariable() const; // TODO
-  Variable getVariable(ui64 index) const; // TODO
-  Variable getVariable(BufferArray name) const; // TODO
+  Variable getVariable() const;
+  Variable getVariable(ui64 index) const;
+  Variable getVariable(BufferArray name) const;
 
   void setVariable(Variable var);
-  // TODO: push_back/push_front/insert/remove
   void pushBack(Variable var);
   void pushFront(Variable var);
   void insert(ui64 index, Variable var);
   void insert(BufferArray name, Variable var);
+  void remove(ui64 index);
+  void remove(BufferArray name);
 
 
   DBNodeVisitor getChild(ui64 index) const;

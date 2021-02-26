@@ -268,12 +268,14 @@ void DBNodeVisitor::clearNode(f_virtual_index node_index) {
     case VarTypeClass::buffer_array:
     break;
     case VarTypeClass::array: {
+      if(!descriptor.size) break;
       ByteArray data(fvmc.loadHeapDataByIndex(descriptor.index));
       for(f_virtual_index* index_it = data.begin<f_virtual_index>(); index_it != data.end<f_virtual_index>(); ++index_it)
         deleteNode(*index_it);
       break;
     }
     case VarTypeClass::object: {
+      if(!descriptor.size) break;
       ByteArray data(fvmc.loadHeapDataByIndex(descriptor.index));
       ObjectDescriptor descriptor(data.get<ObjectDescriptor>(0));
       for(f_virtual_index* index_it = data.begin<f_virtual_index>(
@@ -424,15 +426,81 @@ void DBNodeVisitor::setVariable(Variable var) {
   else fvmc.markNodeAsBusy(node_index);
 
   switch (var.typeClass()) {
-    case VarTypeClass::primitive: return setPrimitive(node_index, std::move(var.toPrimitive()));
-    case VarTypeClass::buffer_array: return setBufferArray(node_index, std::move(var.toBufferArray()));
-    case VarTypeClass::array: return setArray(node_index, std::move(var.toArray()));
-    case VarTypeClass::object: return setObject(node_index, std::move(var.toObject()));
+    case VarTypeClass::primitive:
+      setPrimitive(node_index, std::move(var.toPrimitive()));
+    break;
+    case VarTypeClass::buffer_array:
+      setBufferArray(node_index, std::move(var.toBufferArray()));
+    break;
+    case VarTypeClass::array:
+      setArray(node_index, std::move(var.toArray()));
+    break;
+    case VarTypeClass::object:
+      setObject(node_index, std::move(var.toObject()));
+    break;
     default: throw SException(ErrCode::binom_invalid_type);
   }
+
+  updateNode();
 }
 
-void DBNodeVisitor::pushBack(Variable var) {}
+void DBNodeVisitor::pushBack(Variable var) {
+  switch (getTypeClass()) {
+    default:
+      throw SException(ErrCode::binom_invalid_type);
+    case VarTypeClass::array: {
+      ByteArray array_data(loadData());
+      array_data.pushBack(createVariable(var));
+      fvmc.freeNodeData(node_index);
+      fvmc.updateNode(node_index, VarType::array, std::move(array_data));
+      break;
+    }
+    case VarTypeClass::buffer_array: {
+      if((!var.isPrimitive() && !var.isBufferArray()) ||
+         toValueType(var.type()) != toValueType(var.type()))
+        throw SException(ErrCode::binom_invalid_type);
+      ByteArray array_data(loadData());
+      if(var.isPrimitive())
+        array_data.pushBack(var.toPrimitive().getDataPtr(), toSize(toValueType(var.type())));
+      elif(var.isBufferArray())
+        array_data.pushBack(var.toBufferArray().getDataPointer(),
+                            var.toBufferArray().getMemberCount()*var.toBufferArray().getMemberSize());
+      fvmc.freeNodeData(node_index);
+      fvmc.updateNode(node_index, node_descriptor.type, std::move(array_data));
+      break;
+    }
+  }
+  updateNode();
+}
+
+void DBNodeVisitor::pushFront(Variable var) {
+  switch (getTypeClass()) {
+    default:
+      throw SException(ErrCode::binom_invalid_type);
+    case VarTypeClass::array: {
+      ByteArray array_data(loadData());
+      array_data.pushFront(createVariable(var));
+      fvmc.freeNodeData(node_index);
+      fvmc.updateNode(node_index, VarType::array, std::move(array_data));
+     break;
+    }
+    case VarTypeClass::buffer_array: {
+      if((!var.isPrimitive() && !var.isBufferArray()) ||
+         toValueType(var.type()) != toValueType(var.type()))
+        throw SException(ErrCode::binom_invalid_type);
+      ByteArray array_data(loadData());
+      if(var.isPrimitive())
+        array_data.pushFront(var.toPrimitive().getDataPtr(), toSize(toValueType(var.type())));
+      elif(var.isBufferArray())
+        array_data.pushFront(var.toBufferArray().getDataPointer(),
+                            var.toBufferArray().getMemberCount()*var.toBufferArray().getMemberSize());
+      fvmc.freeNodeData(node_index);
+      fvmc.updateNode(node_index, node_descriptor.type, std::move(array_data));
+      break;
+    }
+  }
+  updateNode();
+}
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}

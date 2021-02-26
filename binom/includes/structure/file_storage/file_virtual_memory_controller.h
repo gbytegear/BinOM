@@ -194,7 +194,6 @@ class FileVirtualMemoryController {
   void freeHeapData(f_virtual_index index) {heap_block_list.freeBlock(index);}
 
   // Primitive data management
-  constexpr ui8 toSize(ValType type);
   f_virtual_index allocByteBlock(ValType type);
   f_virtual_index allocByteData(ValType type, ByteArray data);
   void setByteData(f_virtual_index index, ValType type, ByteArray data);
@@ -206,7 +205,7 @@ public:
   FileVirtualMemoryController(const char* filename) : file(filename) {init();}
   FileVirtualMemoryController(std::string filename) : file(filename) {init();}
 
-  // DB Props
+  // DB Info
   f_size  getFileSize() {return file.size();}
   ui64    getNodePageCount() {return node_page_list.getPageCount();}
   ui64    getHeapPageCount() {return heap_page_list.getPageCount();}
@@ -215,6 +214,7 @@ public:
   // DB Back-end IO interface
   f_virtual_index createNode(VarType type, ByteArray data);
   void            updateNode(f_virtual_index node_index, VarType type, ByteArray data);
+  void            freeNodeData(f_virtual_index node_index);
   void            free(f_virtual_index node_index);
   void            markNodeAsBusy(f_virtual_index node_index);
 

@@ -376,15 +376,6 @@ ByteArray FileVirtualMemoryController::loadHeapData(f_virtual_index data_index) 
   return data;
 }
 
-constexpr ui8 FileVirtualMemoryController::toSize(ValType type) {
-  switch (type) {
-    case ValType::byte: return 1;
-    case ValType::word: return 2;
-    case ValType::dword: return 4;
-    case ValType::qword: return 8;
-  }
-}
-
 f_virtual_index FileVirtualMemoryController::allocByteData(ValType type, ByteArray data) {
   f_virtual_index block_index = allocByteBlock(type);
   setByteData(block_index, type, data);
@@ -486,8 +477,24 @@ void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType
 
 }
 
+void FileVirtualMemoryController::freeNodeData(f_virtual_index node_index) {
+  NodeDescriptor descriptor(loadNodeDescriptor(node_index));
+  switch (toTypeClass(descriptor.type)) { // Free data block
+  default: throw SException(ErrCode::binom_invalid_type);
+  case VarTypeClass::primitive:
+    freeByteData(descriptor.index, toValueType(descriptor.type));
+  return;
+  case VarTypeClass::buffer_array:
+  case VarTypeClass::array:
+  case VarTypeClass::object:
+    freeHeapData(descriptor.index);
+  return;
+  }
+}
+
 ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
+  if(descriptor.size == 0) return ByteArray();
   switch (toTypeClass(descriptor.type)) {
   default: throw SException(ErrCode::binom_invalid_type);
   case VarTypeClass::primitive: return loadByteData(descriptor.index, toValueType(descriptor.type));
@@ -498,6 +505,7 @@ ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index
 }
 
 ByteArray FileVirtualMemoryController::loadHeapDataPartByIndex(f_virtual_index heap_index, f_real_index shift, f_size size) {
+  if(!size) return ByteArray();
   MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(heap_index);
   if(data_block.isEmpty()) throw SException(ErrCode::any); // WARNING: Reaplace any
   ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);

@@ -27,6 +27,18 @@ void testVariable() {
             << o << "\n\n";
 }
 
+void printDBInfo(DataBaseContainer& db) {
+  std::clog << std::dec;
+
+  std::clog << "DATABASE INFO:\n"
+               "|File size: " << f32(db.getFileSize())/1024 << " Kb\n" <<
+               "|Node page count: " << db.getNodePageCount() << '\n' <<
+               "|Heap page count: " << db.getHeapPageCount() << '\n' <<
+               "|Byte page count: " << db.getBytePageCount() << "\n"
+               "+----------------\n";
+}
+
+
 void testDB() {
 
 //  FileVirtualMemoryController memory("test_db.binomdb");
@@ -46,51 +58,49 @@ void testDB() {
 //  }
 
   DataBaseContainer db("test_db.binomdb");
+  std::clog << "AFTER INIT "; printDBInfo(db);
 
   Variable struct_for_upload =
-//      varr{255_ui64, "admin", varr{}, obj{{"hello", "world"}}};
+//      obj{
+//        {"usr", varr{
+//            obj{
+//              {"id", 0_ui64},
+//              {"login", "admin"},
+//              {"password", "admin"},
+//              {"user_data", obj{}}
+//            },
+//            obj{
+//              {"id", 1_ui64},
+//              {"login", "guest"},
+//              {"password", "guest"},
+//              {"user_data", obj{}}
+//            }
+//         }},
+//        {"etc", varr{}},
+//        {"grp", varr{
+//          obj{
+//            {"id", 0_ui64},
+//            {"name", "admins"},
+//            {"user_ids", ui64arr{0}}
+//          }
+//        }}
+//      };
+      varr{};
 
-      obj{
-        {"usr", varr{
-            obj{
-              {"id", 0_ui64},
-              {"login", "admin"},
-              {"password", "admin"},
-              {"user_data", obj{}}
-            },
-            obj{
-              {"id", 1_ui64},
-              {"login", "guest"},
-              {"password", "guest"},
-              {"user_data", obj{}}
-            }
-         }},
-        {"etc", varr{}},
-        {"grp", varr{
-          obj{
-            {"id", 0_ui64},
-            {"name", "admins"},
-            {"user_ids", ui64arr{0}}
-          }
-        }}
-      };
+  std::clog << "AFTER ROOT SET "; printDBInfo(db);
 
   DBNodeVisitor node_visitor(db.getRoot());
 
   node_visitor.setVariable(struct_for_upload);
+  node_visitor.pushBack(0_ui64);
+  node_visitor.pushBack("admin");
+  node_visitor[1].pushFront("_admin");
+  node_visitor.pushBack(obj{});
+
+  std::clog << "AFTER BUSH VARIABLES TO ROOT "; printDBInfo(db);
 
   std::clog << "Loaded: "
-            << node_visitor["usr"](0)("password")
-               .getVariable()
-               .toBufferArray()
-               .toString()
-            << '\n';
-
-  std::clog << "Loaded: "
-            << node_visitor["grp"](0)("name")
-               .getVariable()
-               .toBufferArray()
-               .toString()
+            << node_visitor.getVariable()
             << '\n';
 
 }

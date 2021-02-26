@@ -12,6 +12,12 @@ public:
   DataBaseContainer(std::string file_name) : fvmc(std::move(file_name)) {}
   DataBaseContainer(const char* file_name) : fvmc(file_name) {}
 
+  // DB Info
+  inline f_size  getFileSize()      {return fvmc.getFileSize();}
+  inline ui64    getNodePageCount() {return fvmc.getNodePageCount();}
+  inline ui64    getHeapPageCount() {return fvmc.getHeapPageCount();}
+  inline ui64    getBytePageCount() {return fvmc.getBytePageCount();}
+
   DBNodeVisitor getRoot() {return fvmc;}
 };
 
