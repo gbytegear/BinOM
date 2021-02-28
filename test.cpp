@@ -58,7 +58,7 @@ void testDB() {
 //  }
 
   DataBaseContainer db("test_db.binomdb");
-  std::clog << "AFTER INIT "; printDBInfo(db);
+//  std::clog << "AFTER INIT "; printDBInfo(db);
 
   Variable struct_for_upload =
 //      obj{
@@ -87,20 +87,22 @@ void testDB() {
 //      };
       varr{};
 
-  std::clog << "AFTER ROOT SET "; printDBInfo(db);
+//  std::clog << "AFTER ROOT SET "; printDBInfo(db);
 
   DBNodeVisitor node_visitor(db.getRoot());
 
   node_visitor.setVariable(struct_for_upload);
   node_visitor.pushBack(0_ui64);
   node_visitor.pushBack("admin");
-  node_visitor[1].pushFront("_admin");
+  node_visitor[1].pushBack("_admin");
   node_visitor.pushBack(obj{});
+  node_visitor.insert(2, 15_ui8);
+  node_visitor[1].insert(5, "_deamn_cool");
 
-  std::clog << "AFTER BUSH VARIABLES TO ROOT "; printDBInfo(db);
+//  std::clog << "AFTER BUSH VARIABLES TO ROOT "; printDBInfo(db);
 
   std::clog << "Loaded: "
-            << node_visitor.getVariable()
+            << node_visitor[1].getVariable().toBufferArray().toString()
             << '\n';
 
 }
