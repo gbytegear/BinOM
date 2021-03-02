@@ -665,8 +665,70 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
     fvmc.updateNode(node_index, VarType::object, std::move(object_data));
 
   } else {
+    ObjectDescriptor& descriptor = object_data.get<ObjectDescriptor>(0);
+
+    ObjectNameLength* length_block_it = object_data.begin<ObjectNameLength>(sizeof(ObjectDescriptor));
+    char* name_it = object_data.begin<char>(sizeof(ObjectDescriptor) +
+                                            sizeof(ObjectNameLength)*descriptor.length_element_count);
+    f_virtual_index* index_it = object_data.begin<f_virtual_index>(sizeof(ObjectDescriptor) +
+                                                                   sizeof(ObjectNameLength)*descriptor.length_element_count +
+                                                                   descriptor.name_block_size);
+
+    ui64 length_block_pos = 0;
+    bool length_cmp = false;
+    for(ui64 i = 0; i <= descriptor.length_element_count; ++i) {
+      if(i == descriptor.length_element_count ||
+         length_block_it[i].name_length < name.getMemberCount()) {
+        length_block_pos = i;
+        break;
+      } elif(length_block_it[i].name_length == name.getMemberCount()) {
+        length_block_pos = i;
+        length_cmp = true;
+        break;
+      }
+      name_it += length_block_it[i].name_length*length_block_it[i].name_count;
+    }
+
+    length_block_it += length_block_pos;
+
+    if(length_cmp) {
+
+      i64 left = 0,
+          right = length_block_it->name_count,
+          middle = 0;
+
+      while (1) {
+        middle = (left + right)/2;
+        if(left > right) break;
+
+        int cmp = memcmp(name_it + name.getMemberCount()*middle, name.getDataPointer(), name.getMemberCount());
+
+        if(cmp > 0) right = middle-1;
+        elif(cmp < 0) left = middle+1;
+        else throw SException(ErrCode::binom_object_key_error);
+      }
+
+      name_it +=
+          (memcmp(name_it + name.getMemberCount()*middle,
+                  name.getDataPointer(),
+                  name.getMemberCount()) > 0)
+          ? name.getMemberCount()*(middle+1)
+          : name.getMemberCount()*middle;
+
+      // Insertion
+      object_data.insert(name_it, name.getDataPointer(), name.getMemberCount());
+      ++length_block_it->name_count;
+      object_data.insert<f_virtual_index>(index_it, createVariable(var));
+    } else {
+      object_data.insert(name_it, name.getDataPointer(), name.getMemberCount());
+      object_data.insert<ObjectNameLength>(length_block_it, ObjectNameLength{name.getMemberCount(),1});
+      object_data.insert<f_virtual_index>(index_it, createVariable(var));
+    }
+
+    fvmc.updateNode(node_index, VarType::object, std::move(object_data));
 
   }
+  updateNode();
 }
 
 void DBNodeVisitor::remove(ui64 index) {

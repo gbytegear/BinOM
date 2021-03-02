@@ -101,8 +101,11 @@ void testDB() {
 
 //  std::clog << "AFTER BUSH VARIABLES TO ROOT "; printDBInfo(db);
 
+  node_visitor[3].insert("usr", "Hello");
+  node_visitor[3].insert("log", "World"); // BUG!
+
   std::clog << "Loaded: "
-            << node_visitor[1].getVariable().toBufferArray().toString()
+            << node_visitor.getVariable()
             << '\n';
 
 }

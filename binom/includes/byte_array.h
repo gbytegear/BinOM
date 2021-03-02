@@ -13,6 +13,12 @@ class ByteArray {
 
   friend class SharedByteArray;
 
+  ui64 ptoi(void* pos) {
+    if(pos < array || pos > array + _length)
+      throw SException(ErrCode::out_of_range);
+    return ui64(reinterpret_cast<byte*>(pos) - array);
+  }
+
 public:
 
   typedef byte* iterator;
@@ -62,6 +68,13 @@ public:
   ByteArray& insert(ui64 index, const void* buffer, ui64 size);
   ByteArray& insert(ui64 index, const ByteArray& byte_array);
   ByteArray& insert(ui64 index, const ByteArray&& byte_array);
+
+  template<typename Type>
+  inline ByteArray& insert(void* pos, Type type) {return insert(0, ptoi(pos), type);}
+  inline ByteArray& insert(void* pos, byte b) {return insert(ptoi(pos), b);}
+  inline ByteArray& insert(void* pos, const void* buffer, ui64 size) {return insert(ptoi(pos), buffer, size);}
+  inline ByteArray& insert(void* pos, const ByteArray& byte_array) {return insert(ptoi(pos), byte_array);}
+  inline ByteArray& insert(void* pos, const ByteArray&& byte_array) {return insert(ptoi(pos), byte_array);}
 
   template<typename Type>
   ByteArray& remove(ui64 index, ui64 shift, ui64 count = 1) { return remove(index*sizeof(Type)+shift, count*sizeof(Type)); }
