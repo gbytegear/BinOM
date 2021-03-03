@@ -97,7 +97,13 @@ ByteArray& ByteArray::insert(ui64 index, const ByteArray& byte_array) { return i
 ByteArray& ByteArray::insert(ui64 index, const ByteArray&& byte_array) { return insert(index, byte_array.array, byte_array._length); }
 
 ByteArray& ByteArray::remove(ui64 index, ui64 size) {
-  if(index + size >= _length) throw SException(ErrCode::out_of_range);
+  if(index + size == _length) {
+    _length = 0;
+    free(array);
+    array = nullptr;
+    return *this;
+  }
+  if(index + size > _length) throw SException(ErrCode::out_of_range);
   memmove(array + index, array + index + size, (_length -= size) - index);
   array = tryRealloc<byte>(array, _length);
   return *this;

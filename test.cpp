@@ -82,6 +82,9 @@ void testDB() {
   node_visitor[3].insert("login", "World");
   node_visitor[3].insert("password", "World");
 
+  node_visitor[2].remove(5,11);
+  node_visitor.remove(0,4);
+
   std::clog << "AFTER UPDATE "; printDBInfo(db);
 
   std::clog << "Loaded: "

@@ -66,9 +66,9 @@ public:
   void pushBack(Variable var);
   void pushFront(Variable var);
   void insert(ui64 index, Variable var);
-  void insert(BufferArray name, Variable var); // TODO (Current)
-  void remove(ui64 index);
-  void remove(BufferArray name); // TODO
+  void insert(BufferArray name, Variable var);
+  void remove(ui64 index, ui64 count = 1);
+  void remove(BufferArray name); // TODO Current
 
 
   DBNodeVisitor getChild(ui64 index) const;

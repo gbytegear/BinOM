@@ -282,8 +282,9 @@ void DBNodeVisitor::clearNode(f_virtual_index node_index) {
             sizeof (ObjectDescriptor) +
             descriptor.length_element_count * sizeof (ObjectNameLength) +
             descriptor.name_block_size
-            );
-          index_it != data.end<f_virtual_index>();
+            ),
+          *index_end = index_it + descriptor.index_count;
+          index_it != index_end;
           ++index_it)
         deleteNode(*index_it);
       break;
@@ -742,28 +743,33 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
   updateNode();
 }
 
-void DBNodeVisitor::remove(ui64 index) {
+void DBNodeVisitor::remove(ui64 index, ui64 count) {
   switch (getTypeClass()) {
     default:
       throw SException(ErrCode::binom_invalid_type);
     case VarTypeClass::array: {
       ByteArray array_data(loadData());
-      f_virtual_index delete_node_index = array_data.get<f_virtual_index>(index);
-      deleteNode(delete_node_index);
-      array_data.remove<f_virtual_index>(index, 0);
+      f_virtual_index* delete_node_index_it = array_data.begin<f_virtual_index>(index*sizeof(f_virtual_index));
+      for(ui64 i = 0; i < count; ++i)
+        deleteNode(delete_node_index_it[i]);
+      array_data.remove<f_virtual_index>(index, 0, count);
       fvmc.freeNodeData(node_index);
       fvmc.updateNode(node_index, VarType::array, std::move(array_data));
       break;
     }
     case VarTypeClass::buffer_array: {
       ByteArray array_data(loadData());
-      array_data.remove(index*toSize(toValueType(getType())), toSize(toValueType(getType())));
+      array_data.remove(index*toSize(toValueType(getType())), toSize(toValueType(getType()))*count);
       fvmc.freeNodeData(node_index);
       fvmc.updateNode(node_index, node_descriptor.type, std::move(array_data));
       break;
     }
   }
   updateNode();
+}
+
+void DBNodeVisitor::remove(BufferArray name) {
+
 }
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
