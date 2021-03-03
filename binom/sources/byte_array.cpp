@@ -78,7 +78,7 @@ ByteArray& ByteArray::pushBack(const ByteArray&& byte_array) {return pushBack (b
 ByteArray& ByteArray::pushFront(const ByteArray&& byte_array) {return pushFront (byte_array.array, byte_array._length);}
 
 ByteArray& ByteArray::insert(ui64 index, byte b) {
-  if(index >= _length) throw SException(ErrCode::out_of_range);
+  if(index > _length) throw SException(ErrCode::out_of_range);
   array = tryRealloc<byte>(array, ++_length);
   memmove(array + index + 1, array + index, _length - index - 1);
   array[index] = b;
@@ -86,7 +86,7 @@ ByteArray& ByteArray::insert(ui64 index, byte b) {
 }
 
 ByteArray& ByteArray::insert(ui64 index, const void* buffer, ui64 size) {
-  if(index >= _length) throw SException(ErrCode::out_of_range);
+  if(index > _length) throw SException(ErrCode::out_of_range);
   array = tryRealloc<byte>(array, _length += size);
   memmove(array + index + size, array + index, _length - index - size);
   memcpy(array + index, buffer, size);

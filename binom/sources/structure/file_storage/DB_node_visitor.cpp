@@ -678,7 +678,7 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
     bool length_cmp = false;
     for(ui64 i = 0; i <= descriptor.length_element_count; ++i) {
       if(i == descriptor.length_element_count ||
-         length_block_it[i].name_length < name.getMemberCount()) {
+         length_block_it[i].name_length > name.getMemberCount()) {
         length_block_pos = i;
         break;
       } elif(length_block_it[i].name_length == name.getMemberCount()) {
@@ -708,23 +708,34 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
         else throw SException(ErrCode::binom_object_key_error);
       }
 
-      name_it +=
-          (memcmp(name_it + name.getMemberCount()*middle,
-                  name.getDataPointer(),
-                  name.getMemberCount()) > 0)
-          ? name.getMemberCount()*(middle+1)
-          : name.getMemberCount()*middle;
+      name_it += name.getMemberCount()*middle;
+      index_it += middle;
 
       // Insertion
-      object_data.insert(name_it, name.getDataPointer(), name.getMemberCount());
+      ui64 name_index = object_data.pointerToIndex(name_it),
+           index_index = object_data.pointerToIndex(index_it);
       ++length_block_it->name_count;
-      object_data.insert<f_virtual_index>(index_it, createVariable(var));
+      ++descriptor.index_count;
+      descriptor.name_block_size += name.getMemberCount();
+
+      // Insetrion order is important!
+      object_data.insert<f_virtual_index>(0, index_index, createVariable(var));
+      object_data.insert(name_index, name.getDataPointer(), name.getMemberCount());
     } else {
-      object_data.insert(name_it, name.getDataPointer(), name.getMemberCount());
-      object_data.insert<ObjectNameLength>(length_block_it, ObjectNameLength{name.getMemberCount(),1});
-      object_data.insert<f_virtual_index>(index_it, createVariable(var));
+      ui64 name_index = object_data.pointerToIndex(name_it),
+           index_index = object_data.pointerToIndex(index_it),
+           length_block_index = object_data.pointerToIndex(length_block_it);
+      ++descriptor.length_element_count;
+      ++descriptor.index_count;
+      descriptor.name_block_size += name.getMemberCount();
+
+      // Insetrion order is important!
+      object_data.insert<f_virtual_index>(0, index_index, createVariable(var));
+      object_data.insert(name_index, name.getDataPointer(), name.getMemberCount());
+      object_data.insert<ObjectNameLength>(0, length_block_index, ObjectNameLength{name.getMemberCount(),1});
     }
 
+    fvmc.freeNodeData(node_index);
     fvmc.updateNode(node_index, VarType::object, std::move(object_data));
 
   }
