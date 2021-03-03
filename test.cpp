@@ -58,36 +58,10 @@ void testDB() {
 //  }
 
   DataBaseContainer db("test_db.binomdb");
-//  std::clog << "AFTER INIT "; printDBInfo(db);
 
-  Variable struct_for_upload =
-//      obj{
-//        {"usr", varr{
-//            obj{
-//              {"id", 0_ui64},
-//              {"login", "admin"},
-//              {"password", "admin"},
-//              {"user_data", obj{}}
-//            },
-//            obj{
-//              {"id", 1_ui64},
-//              {"login", "guest"},
-//              {"password", "guest"},
-//              {"user_data", obj{}}
-//            }
-//         }},
-//        {"etc", varr{}},
-//        {"grp", varr{
-//          obj{
-//            {"id", 0_ui64},
-//            {"name", "admins"},
-//            {"user_ids", ui64arr{0}}
-//          }
-//        }}
-//      };
-      varr{};
+  Variable struct_for_upload = varr{};
 
-//  std::clog << "AFTER ROOT SET "; printDBInfo(db);
+  std::clog << "WITH 1 EMPTY VAR"; printDBInfo(db);
 
   DBNodeVisitor node_visitor(db.getRoot());
 
@@ -95,14 +69,20 @@ void testDB() {
   node_visitor.pushBack(0_ui64);
   node_visitor.pushBack("admin");
   node_visitor[1].pushBack("_admin");
-  node_visitor.pushBack(obj{});
-  node_visitor.insert(2, 15_ui8);
   node_visitor[1].insert(5, "_deamn_cool");
+  node_visitor.insert(1, 15_ui8);
 
-//  std::clog << "AFTER BUSH VARIABLES TO ROOT "; printDBInfo(db);
+  node_visitor.pushBack(obj{});
 
+  // Object insetrion test
   node_visitor[3].insert("usr", "Hello");
-  node_visitor[3].insert("log", "World"); // BUG!
+  node_visitor[3].insert("log", "World");
+  node_visitor[3].insert("etc", "Hello");
+  node_visitor[3].insert("zth", "World");
+  node_visitor[3].insert("login", "World");
+  node_visitor[3].insert("password", "World");
+
+  std::clog << "AFTER UPDATE "; printDBInfo(db);
 
   std::clog << "Loaded: "
             << node_visitor.getVariable()
