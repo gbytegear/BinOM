@@ -74,16 +74,16 @@ void testDB() {
 
   node_visitor.pushBack(obj{});
 
-  // Object insetrion test
-  node_visitor[3].insert("usr", "Hello");
-  node_visitor[3].insert("log", "World");
-  node_visitor[3].insert("etc", "Hello");
-  node_visitor[3].insert("zth", "World");
-  node_visitor[3].insert("login", "World");
-  node_visitor[3].insert("password", "World");
+  // Object insetrion test // Name sort bug
+  node_visitor[3].insert("zth", "4");
+  node_visitor[3].insert("usr", "3");
+  node_visitor[3].insert("log", "2");
+  node_visitor[3].insert("password", "6");
+  node_visitor[3].insert("login", "5");
+  node_visitor[3].insert("etc", "1");
 
-  node_visitor[2].remove(5,11);
-  node_visitor.remove(0,4);
+//  node_visitor[2].remove(5,11);
+//  node_visitor.remove(0,4);
 
   std::clog << "AFTER UPDATE "; printDBInfo(db);
 

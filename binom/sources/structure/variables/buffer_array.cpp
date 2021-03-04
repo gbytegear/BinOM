@@ -631,9 +631,19 @@ ByteArray BufferArray::toByteArray() const {
   return array;
 }
 
+#define BUFFER_AS_STRING
+
 std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
+#ifdef BUFFER_AS_STRING
+  if(buffer.getType() == VarType::byte_array)
+    os << buffer.toString();
+  else for(const binom::ValueRef &val : buffer)
+    os << val << ' ';
+#else
   for(const binom::ValueRef &val : buffer)
     os << val << ' ';
+#endif
+
   return os;
 }
 

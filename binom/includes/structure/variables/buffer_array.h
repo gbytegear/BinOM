@@ -118,6 +118,7 @@ public:
 
   void* getDataPointer() {return data.bytes + 9;}
   ui64 getDataSize() {return getMemberCount() * getMemberSize();}
+  VarType getType() const {return *data.type;}
 
   ValueRef pushBack(ui64 value);
   ValueRef pushBack(i64 value);
