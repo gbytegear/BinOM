@@ -1,0 +1,36 @@
+
+header {
+    position: fixed;
+    left: 0; top: 0;
+    width: 100vw; height: 50px;
+    display: flex;
+    background-color: var(--theme-color);
+    border-bottom: 4px solid var(--accent-1);
+}
+
+header>button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    height: calc(100% + 4px);
+    box-sizing: border-box;
+    color: var(--accent-1);
+    font-family: LibelSuit;
+    font-size: 1em;
+    border-bottom: 4px solid transparent;
+}
+
+header>button:hover {
+    color: var(--accent-2);
+    border-bottom: 4px solid var(--accent-2);
+    background-color: var(--accent-1);
+}
+
+.header-logo-link {
+    background-color: var(--accent-1);
+}
+
+.header-logo {
+    height: 50px;
+    filter: drop-shadow(0 2px 5px black);
+}

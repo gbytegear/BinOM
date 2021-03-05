@@ -3,12 +3,12 @@
 
 @font-face {
     font-family: LibelSuit;
-    src: url(../fnt/libel-suit-rg.ttf);
+    src: url(../../../src/fnt/libel-suit-rg.ttf);
 }
 
 @font-face {
     font-family: Dosis;
-    src: url(../fnt/dosis/Dosis-Medium.ttf);
+    src: url(../../../src/fnt/dosis/Dosis-Medium.ttf);
 }
 
 :root {
@@ -29,6 +29,7 @@
     font-size: 2em;
 }
 
+
 body {
     background-color: var(--theme-color);
     color: var(--text-color);
@@ -37,8 +38,6 @@ body {
     font-family: Dosis;
     overflow-x: hidden;
 }
-
-img {user-select: none;}
 
 ::selection {
     background-color: var(--accent-1);
