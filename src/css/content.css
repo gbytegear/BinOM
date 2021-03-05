@@ -11,6 +11,9 @@ section {
 .justify-center {justify-content: center;}
 .text-center {text-align: center;}
 .row {flex-direction: row;}
+.row-rev {flex-direction: row-reverse;}
+.row-mob {flex-direction: row;}
+.row-rev-mob {flex-direction: row;}
 .column {flex-direction: column;}
 .hdr-fnt, h1, h2, h3, h4, h5, h6 {font-family: LibelSuit;}
 .text-accent {color: var(--accent-1);}
@@ -162,4 +165,13 @@ section a:active {
     margin-left: 10px;
     padding-left: 5px;
     padding-right: 5px;
+}
+
+@media screen AND (max-width: 980px) {
+    .row {flex-direction: column;}
+    .row-rev {flex-direction: column;}
+    .home>.right {
+        border-left: none;
+        padding-left: 0;
+    }
 }
