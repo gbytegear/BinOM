@@ -97,7 +97,7 @@ ByteArray& ByteArray::insert(ui64 index, const ByteArray& byte_array) { return i
 ByteArray& ByteArray::insert(ui64 index, const ByteArray&& byte_array) { return insert(index, byte_array.array, byte_array._length); }
 
 ByteArray& ByteArray::remove(ui64 index, ui64 size) {
-  if(index + size == _length) {
+  if(!index && size == _length) {
     _length = 0;
     free(array);
     array = nullptr;

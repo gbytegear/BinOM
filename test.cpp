@@ -41,8 +41,8 @@ void printDBInfo(DataBaseContainer& db) {
 
 void testDB() {
 
+//// Windows MinGw fread bug!!!
 //  FileVirtualMemoryController memory("test_db.binomdb");
-//  // TODO: Complete & test public interface of FVMC
 
 //  ByteArray data(4096*8);
 //  {
@@ -74,7 +74,7 @@ void testDB() {
 
   node_visitor.pushBack(obj{});
 
-  // Object insetrion test // Name sort bug
+  // Object insetrion test
   node_visitor[3].insert("zth", "4");
   node_visitor[3].insert("usr", "3");
   node_visitor[3].insert("log", "2");
@@ -82,8 +82,11 @@ void testDB() {
   node_visitor[3].insert("login", "5");
   node_visitor[3].insert("etc", "1");
 
-//  node_visitor[2].remove(5,11);
-//  node_visitor.remove(0,4);
+  // Object remove test
+  node_visitor[3].remove("password");
+  node_visitor[3].remove("usr");
+  node_visitor[3].remove("login");
+  node_visitor[3].remove("log");
 
   std::clog << "AFTER UPDATE "; printDBInfo(db);
 
@@ -100,7 +103,8 @@ int main() {
     std::clog << "===================================================================\n";
     testDB();
 
-    std::clog << "Test ended!\n";
+    std::clog << "Test ended!\n"
+                 "DataBase has been implemented!\n";
 
   } catch(binom::SException except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;

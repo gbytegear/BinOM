@@ -674,6 +674,71 @@ void DBNodeVisitor::remove(ui64 index, ui64 count) {
 }
 
 void DBNodeVisitor::remove(BufferArray name) {
+  if(getTypeClass() != VarTypeClass::object)
+    throw SException(ErrCode::binom_invalid_type);
+  ByteArray object_data(loadData());
+  if(object_data.isEmpty()) throw SException(ErrCode::binom_out_of_range);
+
+  ObjectDescriptor& descriptor = object_data.get<ObjectDescriptor>(0);
+  ObjectNameLength* length_block_it = object_data.begin<ObjectNameLength>(sizeof(ObjectDescriptor));
+  char* name_it = object_data.begin<char>(sizeof(ObjectDescriptor) +
+                                          descriptor.length_element_count*sizeof(ObjectNameLength));
+  f_virtual_index* index_it = object_data.begin<f_virtual_index>(sizeof(ObjectDescriptor) +
+                                                                 descriptor.length_element_count*sizeof(ObjectNameLength) +
+                                                                 descriptor.name_block_size);
+
+  ui64 length_block_pos = 0;
+  for(ui64 i = 0; i <= descriptor.length_element_count; ++i) {
+    if(i == descriptor.length_element_count ||
+       length_block_it[i].name_length > name.getMemberCount()) {
+      throw SException(ErrCode::binom_out_of_range);
+    } elif(length_block_it[i].name_length == name.getMemberCount()) {
+      length_block_pos = i;
+      break;
+    }
+    name_it += length_block_it[i].name_length*length_block_it[i].name_count;
+    index_it += length_block_it[i].name_count;
+  }
+
+  length_block_it += length_block_pos;
+
+  i64 left = 0,
+      right = length_block_it->name_count,
+      middle = 0;
+
+  while (1) {
+    middle = (left + right)/2;
+    if(left > right) throw SException(ErrCode::binom_out_of_range);
+
+    int cmp = memcmp(name_it + name.getMemberCount()*middle, name.getDataPointer(), name.getMemberCount());
+
+    if(cmp > 0) right = middle-1;
+    elif(cmp < 0) left = middle+1;
+    else break;
+  }
+
+  name_it += name.getMemberCount()*middle;
+  index_it += middle;
+
+  ui64 index_index = object_data.pointerToIndex(index_it),
+       length_block_index = object_data.pointerToIndex(length_block_it),
+       name_index = object_data.pointerToIndex(name_it),
+       name_length = length_block_it->name_length,
+       name_count = --length_block_it->name_count;
+  --descriptor.index_count;
+  descriptor.name_block_size -= name.getMemberCount();
+  if(!name_count)
+    --descriptor.length_element_count;
+
+  object_data.remove<f_virtual_index>(0, index_index);
+  object_data.remove(name_index, name_length);
+  if(!name_count)
+    object_data.remove<ObjectNameLength>(0, length_block_index);
+
+
+  fvmc.freeNodeData(node_index);
+  fvmc.updateNode(node_index, VarType::object, std::move(object_data));
+  updateNode();
 
 }
 
