@@ -33,7 +33,7 @@ void Array::msubfrom(void* from, size_t size) {
   mch(old_size - size);
 }
 
-void* Array::clone() {
+void* Array::clone() const {
   ui64 size = msize();
   void* ptr = tryMalloc(size);
   memcpy(ptr, data.ptr, 9);
@@ -70,7 +70,7 @@ Array::Array(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable))) {
 }
 
 Array::Array(Array&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
-Array::Array(Array& other) : data(other.clone()) {}
+Array::Array(const binom::Array& other) : data(other.clone()) {}
 
 ByteArray Array::serialize() const {
   ByteArray serialized;

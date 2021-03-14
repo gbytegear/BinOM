@@ -22,13 +22,16 @@ class Object {
   void msub(size_t sub_size);
   void* maddto(void* to, size_t size);
   void msubfrom(void* from, size_t size);
-  void* clone();
+  void* clone() const;
   void destroy();
 
   friend class Variable;
 public:
   Object();
   Object(obj object);
+  Object(const Object& other) : data(other.clone()) {}
+  Object(Object&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
+
   ~Object() {destroy ();}
 
   ByteArray serialize() const;

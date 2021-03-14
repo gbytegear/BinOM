@@ -3,6 +3,7 @@
 
 #include "file_virtual_memory_controller.h"
 #include "../variables/variable.h"
+#include "../path.h"
 
 namespace binom {
 
@@ -57,6 +58,7 @@ public:
 
   DBNodeVisitor& stepInside(ui64 index);
   DBNodeVisitor& stepInside(BufferArray name);
+  DBNodeVisitor& stepInside(PathNode path);
 
   Variable getVariable() const;
   Variable getVariable(ui64 index) const;
@@ -70,15 +72,17 @@ public:
   void remove(ui64 index, ui64 count = 1);
   void remove(BufferArray name); // TODO Current
 
-
   DBNodeVisitor getChild(ui64 index) const;
   DBNodeVisitor getChild(BufferArray name) const;
+  DBNodeVisitor getChild(PathNode path) const;
 
-  DBNodeVisitor operator[](ui64 index);
-  DBNodeVisitor operator[](BufferArray name);
+  DBNodeVisitor operator[](ui64 index) const;
+  DBNodeVisitor operator[](BufferArray name) const;
+  DBNodeVisitor operator[](PathNode name) const;
 
   DBNodeVisitor& operator()(ui64 index);
   DBNodeVisitor& operator()(BufferArray name);
+  DBNodeVisitor& operator()(PathNode path);
 };
 
 }

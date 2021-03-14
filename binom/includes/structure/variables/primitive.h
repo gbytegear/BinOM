@@ -51,8 +51,8 @@ public:
   Primitive(f32 value);
   Primitive(f64 value);
 
+  Primitive(const Primitive& other);
   Primitive(Primitive&& other);
-  Primitive(Primitive& other);
   Primitive(ValueRef value);
 
   ~Primitive();

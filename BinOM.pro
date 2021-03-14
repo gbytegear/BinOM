@@ -3,8 +3,8 @@ CONFIG -= qt
 include("binom.pri")
 
 linux-g++ | linux-g++-64 | linux-g++-32 {
-CONFIG += gnu++20
-LIBS += -lstdc++fs;
+CONFIG += c++2b
+LIBS += -lstdc++fs -lpthread;
 }
 
 

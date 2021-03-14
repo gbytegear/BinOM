@@ -73,7 +73,7 @@ binom::Primitive::Primitive(binom::f64 value) : data(tryMalloc(9)) {
 }
 
 binom::Primitive::Primitive(binom::Primitive&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
-binom::Primitive::Primitive(binom::Primitive& other) : data(other.clone()) {}
+binom::Primitive::Primitive(const binom::Primitive& other) : data(other.clone()) {}
 
 binom::Primitive::Primitive(binom::ValueRef value) : data(tryMalloc(1 + value.getSize())) {
   data.type[0] = toVarType(value.getType());

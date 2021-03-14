@@ -355,7 +355,7 @@ BufferArray::BufferArray(ByteArray arr) : data(tryMalloc (9 + arr.length())) {
   memcpy(data.bytes + 9, arr.begin(), length());
 }
 
-BufferArray::BufferArray(BufferArray& other) : data(other.clone()) {}
+BufferArray::BufferArray(const BufferArray& other) : data(other.clone()) {}
 BufferArray::BufferArray(BufferArray&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
 ByteArray BufferArray::serialize() const {

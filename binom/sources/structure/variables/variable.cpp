@@ -417,7 +417,7 @@ Variable::Variable(Array array) : data(array.data.ptr) {array.data.ptr = nullptr
 Variable::Variable(Object object) : data(object.data.ptr) {object.data.ptr = nullptr;}
 
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
-Variable::Variable(Variable& other) : data(other.clone()) {}
+Variable::Variable(const Variable& other) : data(other.clone()) {}
 
 ByteArray Variable::serialize() const {
   switch (typeClass()) {

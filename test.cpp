@@ -59,52 +59,68 @@ void testDB() {
 
   DataBaseContainer db("test_db.binomdb");
 
-  Variable struct_for_upload = varr{};
+  Variable struct_for_upload = obj{
+  {"usr", varr{
+    obj{
+      {"id", 0_ui64},
+      {"login", "admin"},
+      {"password", "admin"},
+      {"access_lvl", 0xff_ui8},
+      {"props", obj{
+        {"db_access", 0xff_ui8},
+        {"server_cli_access", 0xff_ui8}
+      }}
+    },
+    obj{
+      {"id", 0_ui64},
+      {"login", "guest"},
+      {"password", "guest"},
+      {"access_lvl", 0x00_ui8},
+      {"props", obj{}}
+    },
+  }},
+  {"grp", varr{
+    obj{
+      {"id", 0_ui64},
+      {"name", "system"},
+      {"owner", 0_ui64},
+      {"members", ui64arr{0_ui64}},
+      {"access_lvl", 0xff_ui8},
+      {"props", obj{
+        {"db_access", 0xff_ui8},
+        {"server_cli_access", 0xff_ui8}
+      }}
+    },
+    obj{
+      {"id", 0_ui64},
+      {"name", "unlogined"},
+      {"owner", 0_ui64},
+      {"members", ui64arr{1_ui64}},
+      {"access_lvl", 0x00_ui8 },
+      {"props", obj{}}
+    }
+  }}
+  };
 
-  std::clog << "WITH 1 EMPTY VAR"; printDBInfo(db);
+  DBNodeVisitor db_root(db.getRoot());
 
-  DBNodeVisitor node_visitor(db.getRoot());
+//  db_root.setVariable(struct_for_upload);
 
-  node_visitor.setVariable(struct_for_upload);
-  node_visitor.pushBack(0_ui64);
-  node_visitor.pushBack("admin");
-  node_visitor[1].pushBack("_admin");
-  node_visitor[1].insert(5, "_deamn_cool");
-  node_visitor.insert(1, 15_ui8);
+  std::clog << "Loaded form database variable: \n"
+            << db_root.getVariable() << '\n';
 
-  node_visitor.pushBack(obj{});
-
-  // Object insetrion test
-  node_visitor[3].insert("zth", "4");
-  node_visitor[3].insert("usr", "3");
-  node_visitor[3].insert("log", "2");
-  node_visitor[3].insert("password", "6");
-  node_visitor[3].insert("login", "5");
-  node_visitor[3].insert("etc", "1");
-
-  // Object remove test
-  node_visitor[3].remove("password");
-  node_visitor[3].remove("usr");
-  node_visitor[3].remove("login");
-  node_visitor[3].remove("log");
-
-  std::clog << "AFTER UPDATE "; printDBInfo(db);
-
-  std::clog << "Loaded: "
-            << node_visitor.getVariable()
-            << '\n';
 
 }
 
-
 int main() {
   try {
-    testVariable();
-    std::clog << "===================================================================\n";
+
+
+
     testDB();
 
-    std::clog << "Test ended!\n"
-                 "DataBase has been implemented!\n";
+
+    std::clog << "Test ended!\n";
 
   } catch(binom::SException except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;

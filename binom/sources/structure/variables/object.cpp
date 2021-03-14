@@ -34,7 +34,7 @@ void Object::msubfrom(void* from, size_t size) {
   mch(old_size - size);
 }
 
-void* Object::clone() {
+void* Object::clone() const {
   ui64 size = msize();
   byte* ptr = tryMalloc<byte>(size);
   memcpy(ptr, data.ptr, 9);

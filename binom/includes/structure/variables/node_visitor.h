@@ -2,6 +2,7 @@
 #define NODE_VISITOR_H
 
 #include "variable.h"
+#include "../path.h"
 
 namespace binom {
 
@@ -56,6 +57,7 @@ public:
 
   NodeVisitor& stepInside(ui64 index);
   NodeVisitor& stepInside(BufferArray name);
+  NodeVisitor& stepInside(PathNode path);
 
   BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
@@ -68,12 +70,15 @@ public:
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
+  NodeVisitor getChild(PathNode path) {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor operator[](ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor operator[](BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
+  NodeVisitor& operator[](PathNode& path) {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor& operator()(ui64 index) {return stepInside(index);}
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
+  NodeVisitor& operator()(PathNode& path) {return stepInside(std::move(path));}
 
   NodeIterator begin();
   NodeIterator end();

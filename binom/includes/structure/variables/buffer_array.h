@@ -78,7 +78,7 @@ public:
 
   BufferArray(ByteArray arr);
 
-  BufferArray(BufferArray& other);
+  BufferArray(const BufferArray& other);
   BufferArray(BufferArray&& other);
 
   ~BufferArray() {destroy();}

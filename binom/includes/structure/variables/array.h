@@ -20,15 +20,15 @@ class Array {
   void msub(size_t sub_size);
   void* maddto(void* to, size_t size);
   void msubfrom(void* from, size_t size);
-  void* clone();
+  void* clone() const;
   void destroy();
 
   friend class Variable;
 public:
   Array();
   Array(varr array);
+  Array(const Array& other);
   Array(Array&& other);
-  Array(Array& other);
   ~Array() {destroy ();}
 
   ByteArray serialize() const;

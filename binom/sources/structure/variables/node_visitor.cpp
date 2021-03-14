@@ -51,6 +51,15 @@ binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::BufferArray name) {
   else throw SException(ErrCode::binom_invalid_type);
 }
 
+binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::PathNode path) {
+  for(const PathNode& path_node : path)
+    switch (path_node.type()) {
+      case PathNodeType::index: stepInside(path_node.index()); continue;
+      case PathNodeType::name: stepInside(path_node.name()); continue;
+    }
+  return *this;
+}
+
 binom::BufferArray& binom::NodeVisitor::rename(binom::BufferArray old_name, binom::BufferArray new_name) {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;

@@ -410,6 +410,15 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
   return *this;
 }
 
+DBNodeVisitor& DBNodeVisitor::stepInside(PathNode path) {
+  for(const PathNode& path_node : path)
+    switch (path_node.type()) {
+      case PathNodeType::index: stepInside(path_node.index()); continue;
+      case PathNodeType::name: stepInside(path_node.name()); continue;
+    }
+  return *this;
+}
+
 Variable DBNodeVisitor::getVariable() const {
   return buildVariable(node_index);
 }
@@ -744,9 +753,12 @@ void DBNodeVisitor::remove(BufferArray name) {
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
+DBNodeVisitor DBNodeVisitor::getChild(PathNode path) const {return DBNodeVisitor(*this).stepInside(std::move(path));}
 
-DBNodeVisitor DBNodeVisitor::operator[](ui64 index) {return DBNodeVisitor(*this).stepInside(index);}
-DBNodeVisitor DBNodeVisitor::operator[](BufferArray name) {return DBNodeVisitor(*this).stepInside(std::move(name));}
+DBNodeVisitor DBNodeVisitor::operator[](ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
+DBNodeVisitor DBNodeVisitor::operator[](BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
+DBNodeVisitor DBNodeVisitor::operator[](PathNode path) const {return DBNodeVisitor(*this).stepInside(std::move(path));}
 
 DBNodeVisitor& DBNodeVisitor::operator()(ui64 index) {return stepInside(index);}
 DBNodeVisitor& DBNodeVisitor::operator()(BufferArray name) {return stepInside(std::move(name));}
+DBNodeVisitor& DBNodeVisitor::operator()(PathNode path) {return stepInside(std::move(path));}

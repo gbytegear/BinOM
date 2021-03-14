@@ -1,5 +1,5 @@
 libbinom.a:
-	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -lstdc++fs -std=gnu++2a
+	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -lstdc++fs -std=c++2a -O3
 	ar cr libbinom.a *.o
 	rm -rf ./*.o
 

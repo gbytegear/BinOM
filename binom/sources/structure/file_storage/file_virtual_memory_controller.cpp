@@ -178,6 +178,7 @@ void FileVirtualMemoryController::init() {
             case VarTypeClass::buffer_array:
             case VarTypeClass::array:
             case VarTypeClass::object:
+              if(descriptor.size == 0) continue; // For empty containers
               heap_block_list.allocBlock(descriptor.index, descriptor.size);
             default:continue;
           }

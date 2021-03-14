@@ -104,7 +104,7 @@ public:
   Variable(Object object);
 
   Variable(Variable&& other);
-  Variable(Variable& other);
+  Variable(const Variable& other);
 
   ~Variable() {destroy();}
 
