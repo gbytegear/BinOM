@@ -431,6 +431,10 @@ Variable DBNodeVisitor::getVariable(BufferArray name) const {
   return buildVariable(getChild(name).node_index);
 }
 
+Variable DBNodeVisitor::getVariable(PathNode path) const {
+  return DBNodeVisitor(*this).stepInside(std::move(path)).getVariable();
+}
+
 void DBNodeVisitor::setVariable(Variable var) {
   if(!node_index) fvmc.clear();
   else fvmc.markNodeAsBusy(node_index);

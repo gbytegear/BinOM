@@ -63,6 +63,7 @@ public:
   Variable getVariable() const;
   Variable getVariable(ui64 index) const;
   Variable getVariable(BufferArray name) const;
+  Variable getVariable(PathNode path) const;
 
   void setVariable(Variable var);
   void pushBack(Variable var);

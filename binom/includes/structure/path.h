@@ -93,6 +93,8 @@ public:
 
 };
 
+typedef PathNode Path;
+
 }
 
 #endif // PATH_H

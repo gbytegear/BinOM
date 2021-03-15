@@ -66,6 +66,7 @@ public:
   Variable& getVariable() const;
   Variable& getVariable(ui64 index) const;
   Variable& getVariable(BufferArray name) const;
+  Variable& getVariable(PathNode path) const;
   BufferArray getName() const;
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
@@ -74,11 +75,11 @@ public:
 
   NodeVisitor operator[](ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor operator[](BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
-  NodeVisitor& operator[](PathNode& path) {return NodeVisitor(*this).stepInside(std::move(path));}
+  NodeVisitor& operator[](PathNode path) {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor& operator()(ui64 index) {return stepInside(index);}
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
-  NodeVisitor& operator()(PathNode& path) {return stepInside(std::move(path));}
+  NodeVisitor& operator()(PathNode path) {return stepInside(std::move(path));}
 
   NodeIterator begin();
   NodeIterator end();

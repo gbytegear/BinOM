@@ -279,9 +279,7 @@ f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor
     // If all pages are busy, create a new page
     if(!page.next)
       createNodePage();
-  }
-
-  throw SException(ErrCode::any);
+  } // NOTE: Infinity loop
 }
 
 void FileVirtualMemoryController::setNode(f_virtual_index v_index, NodeDescriptor descriptor) {
@@ -366,7 +364,7 @@ FileVirtualMemoryController::VMemoryBlock FileVirtualMemoryController::allocHeap
 
 ByteArray FileVirtualMemoryController::loadHeapData(f_virtual_index data_index) {
   MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(data_index);
-  if(data_block.isEmpty()) throw SException(ErrCode::any); // WARNING: Reaplace any
+  if(data_block.isEmpty()) throw SException(ErrCode::binomdb_memory_management_error);
   ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
   ByteArray data(data_block.size);
   ByteArray::iterator data_it = data.begin();
@@ -418,8 +416,7 @@ f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
       byte_count = 0;
       if(!page.next) createBytePage(); // add new page if this page last
       continue;
-    }
-  throw SException(ErrCode::any);
+    } // NOTE: Infinity loop
 }
 
 void FileVirtualMemoryController::setByteData(f_virtual_index index, ValType type, ByteArray data) {
@@ -508,7 +505,7 @@ ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index
 ByteArray FileVirtualMemoryController::loadHeapDataPartByIndex(f_virtual_index heap_index, f_real_index shift, f_size size) {
   if(!size) return ByteArray();
   MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(heap_index);
-  if(data_block.isEmpty()) throw SException(ErrCode::any); // WARNING: Reaplace any
+  if(data_block.isEmpty()) throw SException(ErrCode::binomdb_memory_management_error);
   ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
 
   ByteArray data(size);

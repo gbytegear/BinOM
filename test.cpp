@@ -59,7 +59,7 @@ void testDB() {
 
   DataBaseContainer db("test_db.binomdb");
 
-  Variable struct_for_upload = obj{
+  Variable local = obj{
   {"usr", varr{
     obj{
       {"id", 0_ui64},
@@ -102,27 +102,28 @@ void testDB() {
   }}
   };
 
-  DBNodeVisitor db_root(db.getRoot());
+  DBNodeVisitor db_visitor(db.getRoot());
+  NodeVisitor local_visitor(&local);
 
-//  db_root.setVariable(struct_for_upload);
+//  db_visitor.setVariable(local);
 
   std::clog << "Loaded form database variable: \n"
-            << db_root.getVariable() << '\n';
-
+            << db_visitor.getVariable({"grp",1}) << "\n\n"
+            << "From local variable: \n"
+            << local_visitor.getVariable({"usr",0}) << "\n\n";
 
 }
 
 int main() {
   try {
 
-
-
     testDB();
-
 
     std::clog << "Test ended!\n";
 
-  } catch(binom::SException except) {
+    throw SException(ErrCode::out_of_range, "Exception test");
+
+  } catch(binom::SException& except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;
   } catch(...) {
     std::cerr << "Unknown exception!" << std::endl;

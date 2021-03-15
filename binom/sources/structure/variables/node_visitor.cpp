@@ -100,6 +100,10 @@ binom::Variable& binom::NodeVisitor::getVariable(binom::BufferArray name) const 
   throw SException(ErrCode::binom_invalid_type);
 }
 
+binom::Variable& binom::NodeVisitor::getVariable(binom::PathNode path) const {
+  return NodeVisitor(*this).stepInside(std::move(path)).getVariable();
+}
+
 binom::BufferArray binom::NodeVisitor::getName() const {
   if(ref_type == RefType::named_variable) return ref.named_variable->name;
   throw SException(ErrCode::binom_invalid_type);
