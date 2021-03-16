@@ -22,6 +22,8 @@ enum ErrCode : ui8 {
   binomdb_memory_management_error,
   binomdb_page_isnt_exist,
   binomdb_block_isnt_exist,
+
+  binom_query_invalid_field,
 };
 
 class SException {
@@ -51,6 +53,8 @@ public:
       return                                          "BinOM DB page isn't exist: ";
       case ErrCode::binomdb_block_isnt_exist:
       return                                          "BinOM DB block isn't exist: ";
+      case ErrCode::binom_query_invalid_field:
+      return                                          "BinOM invalid Query field: ";
 
       case ErrCode::any:
       default:

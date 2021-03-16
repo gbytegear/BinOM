@@ -5,6 +5,8 @@
 
 using namespace binom;
 
+DataBaseContainer db("test_db.binomdb");
+
 void testVariable() {
   Variable p(56_ui64);
   Variable bf(ui8arr{1_ui8, 2_ui8, 3_ui8});
@@ -25,6 +27,8 @@ void testVariable() {
             << bf << "\n"
             << a << "\n"
             << o << "\n\n";
+
+  std::clog << "Variable test ended!\n";
 }
 
 void printDBInfo(DataBaseContainer& db) {
@@ -56,8 +60,6 @@ void testDB() {
 //    ByteArray loaded_data(memory.loadHeapDataPart(node_index, i*sizeof(ui64), sizeof(ui64)));
 //    std::clog << "Loaded number: " << std::dec << loaded_data.get<ui64>(0) << '\n';
 //  }
-
-  DataBaseContainer db("test_db.binomdb");
 
   Variable local = obj{
   {"usr", varr{
@@ -105,19 +107,37 @@ void testDB() {
   DBNodeVisitor db_visitor(db.getRoot());
   NodeVisitor local_visitor(&local);
 
-//  db_visitor.setVariable(local);
+  db_visitor.setVariable(local);
 
   std::clog << "Loaded form database variable: \n"
             << db_visitor.getVariable({"grp",1}) << "\n\n"
             << "From local variable: \n"
             << local_visitor.getVariable({"usr",0}) << "\n\n";
 
+
+  std::clog << "DB test ended!\n";
+
 }
+
+
+
+
+
+void testQuery() {
+  Query q{
+    {qprop::element_count, qoper::lower_equal, 10, qrel::OR},
+    {qprop::index, qoper::equal, 12}
+  };
+
+  std::clog << "Query test ended!\n";
+}
+
 
 int main() {
   try {
 
     testDB();
+    testQuery();
 
     std::clog << "Test ended!\n";
 

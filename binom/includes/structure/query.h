@@ -14,8 +14,6 @@ enum class QueryProperty : ui8 {
   index,
   name,
   value,
-
-  path
 };
 
 enum class QueryOperator : ui8 {
@@ -52,15 +50,18 @@ struct Range {
   i64 to;
 };
 
-class QueryField {
 
-  QueryProperty property;
-  Path path;
 
-  QueryOperator operat;
 
+
+
+
+
+/////////////////////////////////////////////////////////////////////////
+
+struct QueryFieldValue {
   QueryFieldValueType value_type;
-  union QueryFieldValue {
+  union Data {
     VarType type;
     VarTypeClass type_class;
     ValType value_type;
@@ -68,45 +69,135 @@ class QueryField {
     Range range;
     BufferArray string;
 
-    QueryFieldValue(VarType type) : type(type) {}
-    QueryFieldValue(VarTypeClass type_class) : type_class(type_class) {}
-    QueryFieldValue(ValType value_type) : value_type(value_type) {}
-    QueryFieldValue(i64 number) : number(number) {}
-    QueryFieldValue(Range range) : range(range) {}
-    QueryFieldValue(BufferArray string) : string(std::move(string)) {}
-    QueryFieldValue(QueryFieldValueType vtype, QueryFieldValue&& other) {
-      switch (vtype) {
-        case QueryFieldValueType::type:
-          type = other.type; return;
-        case QueryFieldValueType::type_class:
-          type_class = other.type_class; return;
-        case QueryFieldValueType::value_type:
-          value_type = other.value_type; return;
-        case QueryFieldValueType::number:
-          number = other.number; return;
-        case QueryFieldValueType::range:
-          range = other.range; return;
-        case QueryFieldValueType::string:
-          string = other.string; return;
-      }
-    }
-  };
+    ~Data();
+    Data(VarType type);
+    Data(VarTypeClass type_class);
+    Data(ValType value_type);
+    Data(i64 number);
+    Data(Range range);
+    Data(BufferArray string);
+    Data(QueryFieldValueType vtype, const Data& other);
+    Data(QueryFieldValueType vtype, Data&& other);
+
+  } data;
+
+  QueryFieldValue(VarType type);
+  QueryFieldValue(VarTypeClass type_class);
+  QueryFieldValue(ValType value_type);
+  QueryFieldValue(i64 number);
+  QueryFieldValue(Range range);
+  QueryFieldValue(BufferArray string);
+  QueryFieldValue(const QueryFieldValue& other);
+  QueryFieldValue(QueryFieldValue&& other);
+  ~QueryFieldValue();
+};
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////
+
+class QueryField {
+
+  QueryFieldValue value;
+  Path* path = nullptr;
+  QueryField* next = nullptr;
+
+  QueryProperty property;
+  QueryOperator operat;
+  QueryNextFieldRelation next_rel = QueryNextFieldRelation::AND;
+
+  bool test();
 
 public:
-//  QueryField(QueryProperty property,
-//             QueryOperator operat,
-//             VarType type)
-//    : property(property),
-//      operat(operat),
-//      value_type()
-//  {}
+
+  class iterator {
+    QueryField* current;
+  public:
+    iterator(QueryField* field);
+    iterator(const iterator& other);
+    iterator(iterator&& other);
+
+    QueryField& operator*() const;
+    QueryField* operator->() const;
+
+    iterator& operator++();
+    iterator operator++(int);
+
+    bool operator==(iterator other) const;
+    bool operator!=(iterator other) const;
+  };
+
+  QueryField(
+      QueryProperty property,
+      QueryOperator operat,
+      QueryFieldValue value,
+      QueryNextFieldRelation next_rel = QueryNextFieldRelation::AND
+      );
+
+  QueryField(
+      QueryProperty property,
+      Path path,
+      QueryOperator operat,
+      QueryFieldValue value,
+      QueryNextFieldRelation next_rel = QueryNextFieldRelation::AND
+      );
+
+  QueryField(const QueryField& other);
+  QueryField(QueryField&& other);
+  QueryField(std::initializer_list<QueryField> field_list);
+  ~QueryField();
+
+  //   Getters
+
+  // Get operation properties
+  QueryProperty getPropertyType() const;
+  Path& getPath() const;
+  QueryOperator getOperatorType() const;
+  QueryNextFieldRelation getNextRealation() const;
+  QueryFieldValueType getValueType() const;
+
+  // Get Value
+  VarType getVarType() const;
+  VarTypeClass getVarTypeClass() const;
+  ValType getValType() const;
+  i64 getNumber() const;
+  Range getRange() const;
+  BufferArray getString() const;
+
+  iterator begin();
+  iterator end();
+
+  // TODO: Public interface...
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////
 
 typedef QueryField Query;
 
 typedef QueryProperty qprop;
 typedef QueryOperator qoper;
 typedef QueryNextFieldRelation qrel;
+typedef QueryFieldValue qval;
 
 }
 

@@ -4,6 +4,7 @@
 #include "file_virtual_memory_controller.h"
 #include "../variables/variable.h"
 #include "../path.h"
+#include "../query.h"
 
 namespace binom {
 

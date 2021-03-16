@@ -3,6 +3,7 @@
 
 #include "variable.h"
 #include "../path.h"
+#include "../query.h"
 
 namespace binom {
 
