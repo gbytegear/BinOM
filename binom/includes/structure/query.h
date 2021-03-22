@@ -48,6 +48,9 @@ enum class QueryFieldValueType : ui8 {
 struct Range {
   i64 from;
   i64 to;
+
+  bool in(i64 number) const {return number >= from && number <= to;}
+  bool out(i64 number) const {return number < from || number > to;}
 };
 
 
@@ -114,6 +117,8 @@ class QueryField {
 
   bool test();
 
+  friend class QueryFieldGroup;
+
 public:
 
   class iterator {
@@ -138,7 +143,7 @@ public:
       QueryOperator operat,
       QueryFieldValue value,
       QueryNextFieldRelation next_rel = QueryNextFieldRelation::AND
-      );
+                                        );
 
   QueryField(
       QueryProperty property,
@@ -146,17 +151,18 @@ public:
       QueryOperator operat,
       QueryFieldValue value,
       QueryNextFieldRelation next_rel = QueryNextFieldRelation::AND
-      );
+                                        );
 
   QueryField(const QueryField& other);
   QueryField(QueryField&& other);
-  QueryField(std::initializer_list<QueryField> field_list);
+  //  QueryField(std::initializer_list<QueryField> field_list);
   ~QueryField();
 
   //   Getters
 
   // Get operation properties
   QueryProperty getPropertyType() const;
+  bool isCurrentNodeTest() const;
   Path& getPath() const;
   QueryOperator getOperatorType() const;
   QueryNextFieldRelation getNextRealation() const;
@@ -167,13 +173,57 @@ public:
   VarTypeClass getVarTypeClass() const;
   ValType getValType() const;
   i64 getNumber() const;
+  ui64 getUNumber() const;
   Range getRange() const;
   BufferArray getString() const;
 
   iterator begin();
   iterator end();
+};
 
-  // TODO: Public interface...
+/////////////////////////////////////////////////////////////////////////
+
+/// TODO: Think - how implement that
+class QueryFieldGroup {
+  QueryField fields;
+  QueryFieldGroup* next = nullptr;
+  QueryNextFieldRelation next_relation;
+
+public:
+  QueryFieldGroup(std::initializer_list<QueryField> field_list,
+                  QueryNextFieldRelation next_relation = QueryNextFieldRelation::OR);
+
+  QueryFieldGroup(std::initializer_list<QueryFieldGroup> field_group_list);
+
+  QueryFieldGroup(const QueryFieldGroup& other);
+
+  QueryFieldGroup(QueryFieldGroup&& other);
+
+  ~QueryFieldGroup();
+
+  QueryField& getFields();
+  QueryNextFieldRelation getNextRealation();
+
+  class iterator {
+    QueryFieldGroup* current;
+  public:
+    iterator(QueryFieldGroup* field_group);
+    iterator(const iterator& other);
+    iterator(iterator&& other);
+
+    QueryFieldGroup& operator*() const;
+    QueryFieldGroup* operator->() const;
+
+    iterator& operator++();
+    iterator operator++(int);
+
+    bool operator==(iterator other) const;
+    bool operator!=(iterator other) const;
+  };
+
+  iterator begin();
+  iterator end();
+
 };
 
 
@@ -192,8 +242,9 @@ public:
 
 /////////////////////////////////////////////////////////////////////////
 
-typedef QueryField Query;
+typedef QueryFieldGroup Query;
 
+typedef QueryField qfield;
 typedef QueryProperty qprop;
 typedef QueryOperator qoper;
 typedef QueryNextFieldRelation qrel;

@@ -5,7 +5,13 @@
 #include "../path.h"
 #include "../query.h"
 
+#include <vector>
+
 namespace binom {
+
+class NodeVisitor;
+
+typedef std::vector<NodeVisitor> NodeVector;
 
 class NodeVisitor {
   enum class RefType : ui8 {
@@ -34,6 +40,8 @@ class NodeVisitor {
   RefType ref_type;
   Ref ref;
 
+  bool test(Query query, ui64 index);
+
 public:
 
   class NodeIterator;
@@ -48,13 +56,15 @@ public:
   NodeVisitor& operator=(ValueRef val);
   NodeVisitor& operator=(const NodeVisitor& other);
 
-  VarType getType();
-  VarTypeClass getTypeClass() {return toTypeClass(getType());}
+  VarType getType() const;
+  VarTypeClass getTypeClass() const {return toTypeClass(getType());}
 
-  bool isPrimitive() {return getTypeClass() == VarTypeClass::primitive;}
-  bool isBufferArray() {return getTypeClass() == VarTypeClass::buffer_array;}
-  bool isArray() {return getTypeClass() == VarTypeClass::array;}
-  bool isObject() {return getTypeClass() == VarTypeClass::object;}
+  bool isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
+  bool isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
+  bool isArray() const {return getTypeClass() == VarTypeClass::array;}
+  bool isObject() const {return getTypeClass() == VarTypeClass::object;}
+
+  ui64 getElementCount() const;
 
   NodeVisitor& stepInside(ui64 index);
   NodeVisitor& stepInside(BufferArray name);
@@ -74,18 +84,22 @@ public:
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
   NodeVisitor getChild(PathNode path) {return NodeVisitor(*this).stepInside(std::move(path));}
 
-  NodeVisitor operator[](ui64 index) {return NodeVisitor(*this).stepInside(index);}
-  NodeVisitor operator[](BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
-  NodeVisitor& operator[](PathNode path) {return NodeVisitor(*this).stepInside(std::move(path));}
+  NodeVisitor operator[](ui64 index) const {return NodeVisitor(*this).stepInside(index);}
+  NodeVisitor operator[](BufferArray name) const {return NodeVisitor(*this).stepInside(std::move(name));}
+  NodeVisitor& operator[](PathNode path) const {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor& operator()(ui64 index) {return stepInside(index);}
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
   NodeVisitor& operator()(PathNode path) {return stepInside(std::move(path));}
 
+  NodeVector find(Query query);
+
   NodeIterator begin();
   NodeIterator end();
 
 };
+
+
 
 class NodeVisitor::NodeIterator {
   Variable* parent = nullptr;

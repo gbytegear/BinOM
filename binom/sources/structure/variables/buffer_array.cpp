@@ -645,4 +645,4 @@ std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
   return os;
 }
 
-const binom::BufferArray operator "" _buffer(const char* c_str) {return c_str;}
+const binom::BufferArray operator "" _vbfr(const char* c_str, std::size_t) {return c_str;}

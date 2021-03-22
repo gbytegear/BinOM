@@ -178,6 +178,6 @@ public:
 }
 
 std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer);
-const binom::BufferArray operator "" _buffer(const char* c_str, const std::size_t);
+const binom::BufferArray operator "" _vbfr(const char* c_str, std::size_t);
 
 #endif

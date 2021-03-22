@@ -5,8 +5,8 @@ using namespace binom;
 
 FileVirtualMemoryController* MemoryBlockList::parent() {
   return reinterpret_cast<FileVirtualMemoryController*>(
-         reinterpret_cast<byte*>(this) -
-         offsetof(FileVirtualMemoryController, heap_block_list));
+        reinterpret_cast<byte*>(this) -
+        offsetof(FileVirtualMemoryController, heap_block_list));
 }
 
 void MemoryBlockList::split(MemoryBlockList::MemoryBlock& block, f_size _size) {
@@ -81,7 +81,7 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_size size) {
         alloc(new_page_block, size);
         return new_page_block;
       }
-  }
+    }
   return empty;
 }
 
@@ -121,7 +121,7 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, 
 
 
 void FileVirtualMemoryController::init() {
-  // FIXME: Page initialization bug
+  // FIXME: MinGw 7.3.0 g++ compiler Page initialization bug
   // Bug in function fread in MinGw 7.3.0 g++ compiler
   if(file.isEmpty()) {
     file.write(0, header);
@@ -231,7 +231,7 @@ void FileVirtualMemoryController::createBytePage() {
 f_real_index FileVirtualMemoryController::getRealNodePos(f_virtual_index v_index) {
   if(v_index == 0) return offsetof(DBHeader, root_node);
   return node_page_list[(v_index - 1) / 64].index + sizeof (NodePageDescriptor) + // Get index of page
-         ((v_index - 1)%64)*sizeof(NodeDescriptor); // Get offset from start of page
+      ((v_index - 1)%64)*sizeof(NodeDescriptor); // Get offset from start of page
 }
 
 f_real_index FileVirtualMemoryController::getRealHeapPos(f_virtual_index v_index) {
@@ -246,12 +246,12 @@ f_real_index FileVirtualMemoryController::getRealBytePos(f_virtual_index v_index
 }
 
 f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor) {
-// The root node is not involved in finding free nodes
-//  if(header.root_node.type == VarType::end) {
-//    header.root_node = descriptor;
-//    file.write(offsetof(DBHeader, root_node), descriptor);
-//    return 0;
-//  }
+  // The root node is not involved in finding free nodes
+  //  if(header.root_node.type == VarType::end) {
+  //    header.root_node = descriptor;
+  //    file.write(offsetof(DBHeader, root_node), descriptor);
+  //    return 0;
+  //  }
 
   if(!header.first_node_page_index)
     createNodePage();
@@ -318,7 +318,7 @@ ByteArray FileVirtualMemoryController::getRealHeapBlocks(f_virtual_index index, 
     ui64 index_in_page = index%heap_data_page_size;
     RealBlock block {
       it->index + sizeof (HeapPageDescriptor) + index_in_page,
-      heap_data_page_size - index_in_page
+          heap_data_page_size - index_in_page
     };
 
     if(block.size >= size) {
@@ -335,7 +335,7 @@ ByteArray FileVirtualMemoryController::getRealHeapBlocks(f_virtual_index index, 
     if((++it).isEnd()) throw SException(ErrCode::binomdb_page_isnt_exist);
     RealBlock block{
       it->index + sizeof (HeapPageDescriptor),
-      heap_data_page_size
+          heap_data_page_size
     };
 
     if(block.size >= size) {
@@ -440,7 +440,7 @@ void FileVirtualMemoryController::freeByteData(f_virtual_index index, ValType ty
 
 f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray data) {
   switch (toTypeClass(type)) {
-  default: throw SException(ErrCode::binom_invalid_type);
+    default: throw SException(ErrCode::binom_invalid_type);
     case VarTypeClass::primitive: {
       NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
       return allocNode(descriptor);
@@ -448,8 +448,8 @@ f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray 
     case VarTypeClass::buffer_array:
     case VarTypeClass::array:
     case VarTypeClass::object:
-    VMemoryBlock data_block = (data.isEmpty())? VMemoryBlock{0,0} : allocHeapData(data);
-    NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
+      VMemoryBlock data_block = (data.isEmpty())? VMemoryBlock{0,0} : allocHeapData(data);
+      NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
     return allocNode(descriptor);
   }
 }
@@ -458,19 +458,19 @@ f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray 
 void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType type, ByteArray data) {
 
   switch (toTypeClass(type)) { // Alloc new data block
-  default: throw SException(ErrCode::binom_invalid_type);
-  case VarTypeClass::primitive: {
-    NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
-    setNode(node_index, descriptor);
-    return;
-  }
-  case VarTypeClass::buffer_array:
-  case VarTypeClass::array:
-  case VarTypeClass::object: {
-    VMemoryBlock data_block = (data.isEmpty())? VMemoryBlock{0,0} : allocHeapData(data);
-    NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
-    setNode(node_index, descriptor);
-  }
+    default: throw SException(ErrCode::binom_invalid_type);
+    case VarTypeClass::primitive: {
+      NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
+      setNode(node_index, descriptor);
+      return;
+    }
+    case VarTypeClass::buffer_array:
+    case VarTypeClass::array:
+    case VarTypeClass::object: {
+      VMemoryBlock data_block = (data.isEmpty())? VMemoryBlock{0,0} : allocHeapData(data);
+      NodeDescriptor descriptor{type, data_block.v_index, data_block.size};
+      setNode(node_index, descriptor);
+    }
   }
 
 }
@@ -478,15 +478,15 @@ void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType
 void FileVirtualMemoryController::freeNodeData(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   switch (toTypeClass(descriptor.type)) { // Free data block
-  default: throw SException(ErrCode::binom_invalid_type);
-  case VarTypeClass::primitive:
-    freeByteData(descriptor.index, toValueType(descriptor.type));
-  return;
-  case VarTypeClass::buffer_array:
-  case VarTypeClass::array:
-  case VarTypeClass::object:
-    freeHeapData(descriptor.index);
-  return;
+    default: throw SException(ErrCode::binom_invalid_type);
+    case VarTypeClass::primitive:
+      freeByteData(descriptor.index, toValueType(descriptor.type));
+    return;
+    case VarTypeClass::buffer_array:
+    case VarTypeClass::array:
+    case VarTypeClass::object:
+      freeHeapData(descriptor.index);
+    return;
   }
 }
 
@@ -494,11 +494,11 @@ ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   if(descriptor.size == 0) return ByteArray();
   switch (toTypeClass(descriptor.type)) {
-  default: throw SException(ErrCode::binom_invalid_type);
-  case VarTypeClass::primitive: return loadByteData(descriptor.index, toValueType(descriptor.type));
-  case VarTypeClass::buffer_array:
-  case VarTypeClass::array:
-  case VarTypeClass::object: return loadHeapData(descriptor.index);
+    default: throw SException(ErrCode::binom_invalid_type);
+    case VarTypeClass::primitive: return loadByteData(descriptor.index, toValueType(descriptor.type));
+    case VarTypeClass::buffer_array:
+    case VarTypeClass::array:
+    case VarTypeClass::object: return loadHeapData(descriptor.index);
   }
 }
 
@@ -543,15 +543,15 @@ void FileVirtualMemoryController::free(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   freeNode(node_index);
   switch (toTypeClass(descriptor.type)) { // Free data block
-  default: throw SException(ErrCode::binom_invalid_type);
-  case VarTypeClass::primitive:
-    freeByteData(descriptor.index, toValueType(descriptor.type));
-  return;
-  case VarTypeClass::buffer_array:
-  case VarTypeClass::array:
-  case VarTypeClass::object:
-    freeHeapData(descriptor.index);
-  return;
+    default: throw SException(ErrCode::binom_invalid_type);
+    case VarTypeClass::primitive:
+      freeByteData(descriptor.index, toValueType(descriptor.type));
+    return;
+    case VarTypeClass::buffer_array:
+    case VarTypeClass::array:
+    case VarTypeClass::object:
+      freeHeapData(descriptor.index);
+    return;
   }
 }
 

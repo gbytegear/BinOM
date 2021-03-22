@@ -124,10 +124,72 @@ void testDB() {
 
 
 void testQuery() {
-  Query q{
-    {qprop::element_count, qoper::lower_equal, 10, qrel::OR},
-    {qprop::index, qoper::equal, 12}
+
+  Variable local = obj{
+  {"usr", varr{
+    obj{
+      {"id", 0_ui64},
+      {"login", "admin"},
+      {"password", "admin"},
+      {"access_lvl", 0xff_ui8},
+      {"props", obj{
+        {"db_access", 0xff_ui8},
+        {"server_cli_access", 0xff_ui8}
+      }}
+    },
+    obj{
+      {"id", 1_ui64},
+      {"login", "guest"},
+      {"password", "guest"},
+      {"access_lvl", 0x00_ui8},
+      {"props", obj{}}
+    },
+  }},
+  {"grp", varr{
+    obj{
+      {"id", 0_ui64},
+      {"name", "system"},
+      {"owner", 0_ui64},
+      {"members", ui64arr{0_ui64}},
+      {"access_lvl", 0xff_ui8},
+      {"props", obj{
+        {"db_access", 0xff_ui8},
+        {"server_cli_access", 0xff_ui8}
+      }}
+    },
+    obj{
+      {"id", 1_ui64},
+      {"name", "unlogined"},
+      {"owner", 0_ui64},
+      {"members", ui64arr{1_ui64}},
+      {"access_lvl", 0x00_ui8 },
+      {"props", obj{}}
+    }
+  }}
   };
+
+  Query q{
+
+    {
+      {
+        {qprop::value, {"id"}, qoper::equal, 0_i64, qrel::OR},
+        {qprop::value, {"login"}, qoper::equal, "guest"_vbfr}, // qrel::AND by default
+      }
+      // qrel::OR by default
+    },
+
+  };
+
+  NodeVisitor node(&local);
+
+  node.stepInside("usr"_vbfr);
+
+  NodeVector node_vector = node.find(q);
+
+  std::clog << "Query result: \n";
+  for(const NodeVisitor& node : node_vector) {
+    std::clog << node.getVariable() << "\n\n";
+  }
 
   std::clog << "Query test ended!\n";
 }
@@ -136,7 +198,7 @@ void testQuery() {
 int main() {
   try {
 
-    testDB();
+//    testDB();
     testQuery();
 
     std::clog << "Test ended!\n";

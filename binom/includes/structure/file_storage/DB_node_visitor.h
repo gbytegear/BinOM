@@ -72,7 +72,7 @@ public:
   void insert(ui64 index, Variable var);
   void insert(BufferArray name, Variable var);
   void remove(ui64 index, ui64 count = 1);
-  void remove(BufferArray name); // TODO Current
+  void remove(BufferArray name);
 
   DBNodeVisitor getChild(ui64 index) const;
   DBNodeVisitor getChild(BufferArray name) const;

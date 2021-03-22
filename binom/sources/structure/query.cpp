@@ -77,7 +77,7 @@ QueryFieldValue::Data::Data(QueryFieldValueType vtype, const QueryFieldValue::Da
     case QueryFieldValueType::range:
       range = other.range; return;
     case QueryFieldValueType::string:
-      string = other.string; return;
+      new(&string) BufferArray(other.string); return;
   }
 }
 
@@ -125,10 +125,11 @@ bool QueryField::test() {
          value.value_type != QueryFieldValueType::range)
         return false;
       switch (operat) {
+        case QueryOperator::in_range: case QueryOperator::out_range:
+        return value.value_type == QueryFieldValueType::range;
         case QueryOperator::equal: case QueryOperator::not_equal:
         case QueryOperator::lower: case QueryOperator::lower_equal:
         case QueryOperator::highter: case QueryOperator::highte_equal:
-        case QueryOperator::in_range: case QueryOperator::out_range:
         return true;
         default: return false;
       }
@@ -137,10 +138,11 @@ bool QueryField::test() {
          value.value_type != QueryFieldValueType::range)
         return false;
       switch (operat) {
+        case QueryOperator::in_range: case QueryOperator::out_range:
+        return value.value_type == QueryFieldValueType::range;
         case QueryOperator::equal: case QueryOperator::not_equal:
         case QueryOperator::lower: case QueryOperator::lower_equal:
         case QueryOperator::highter: case QueryOperator::highte_equal:
-        case QueryOperator::in_range: case QueryOperator::out_range:
         return true;
         default: return false;
       }
@@ -186,7 +188,8 @@ QueryField::QueryField(QueryProperty property, Path path, QueryOperator operat, 
 
 QueryField::QueryField(const QueryField& other)
   : value(other.value),
-    path(other.path),
+    path((other.path)? new Path(*other.path) : nullptr),
+    next(other.next? new QueryField(*other.next) : nullptr),
     property(other.property),
     operat(other.operat),
     next_rel(other.next_rel) {}
@@ -201,15 +204,15 @@ QueryField::QueryField(QueryField&& other)
   other.path = nullptr;
 }
 
-QueryField::QueryField(std::initializer_list<QueryField> field_list)
-  : QueryField(*field_list.begin()) {
-  iterator it = begin();
-  for(const QueryField& field : field_list)
-    if(&field != field_list.begin()) {
-      it->next = new QueryField(field);
-      ++it;
-    }
-}
+//QueryField::QueryField(std::initializer_list<QueryField> field_list)
+//  : QueryField(*field_list.begin()) {
+//  iterator it = begin();
+//  for(const QueryField& field : field_list)
+//    if(&field != field_list.begin()) {
+//      it->next = new QueryField(field);
+//      ++it;
+//    }
+//}
 
 QueryField::~QueryField() {
   if(path) delete path;
@@ -219,14 +222,18 @@ QueryField::~QueryField() {
 }
 
 QueryProperty QueryField::getPropertyType() const {return property;}
+
+bool QueryField::isCurrentNodeTest() const {return path == nullptr;}
 Path& QueryField::getPath() const {return *path;}
 QueryOperator QueryField::getOperatorType() const {return operat;}
 QueryNextFieldRelation QueryField::getNextRealation() const {return next_rel;}
 QueryFieldValueType QueryField::getValueType() const {return value.value_type;}
+
 VarType QueryField::getVarType() const {return value.data.type;}
 VarTypeClass QueryField::getVarTypeClass() const {return value.data.type_class;}
 ValType QueryField::getValType() const {return value.data.value_type;}
 i64 QueryField::getNumber() const {return value.data.number;}
+ui64 QueryField::getUNumber() const {return static_cast<ui64>(value.data.number);}
 Range QueryField::getRange() const {return value.data.range;}
 BufferArray QueryField::getString() const {return value.data.string;}
 
@@ -238,22 +245,70 @@ QueryField::iterator QueryField::end() {return nullptr;}
 
 
 
-/////////////////////////////////////////////////////////////////////////// QueryField::iterator
+//////////////////////////////////////////////////////////////////////////////// QueryField::iterator
 
-QueryField::iterator::iterator(QueryField* field)
-  : current(field) {}
-
-QueryField::iterator::iterator(const QueryField::iterator& other)
-  : current(other.current) {}
-
-QueryField::iterator::iterator(QueryField::iterator&& other)
-  : current(other.current) {}
-
+QueryField::iterator::iterator(QueryField* field) : current(field) {}
+QueryField::iterator::iterator(const QueryField::iterator& other) : current(other.current) {}
+QueryField::iterator::iterator(QueryField::iterator&& other) : current(other.current) {}
 QueryField& QueryField::iterator::operator*() const {return *current;}
 QueryField* QueryField::iterator::operator ->() const {return current;}
-
 QueryField::iterator& QueryField::iterator::operator++() {current = current->next; return *this;}
 QueryField::iterator QueryField::iterator::operator++(int) {QueryField* last = current; current = current->next; return last;}
-
 bool QueryField::iterator::operator==(QueryField::iterator other) const {return current == other.current;}
 bool QueryField::iterator::operator!=(QueryField::iterator other) const {return current != other.current;}
+
+//////////////////////////////////////////////////////////////////////////////// QueryFieldGroup
+
+QueryFieldGroup::QueryFieldGroup(std::initializer_list<QueryField> field_list,
+                                 QueryNextFieldRelation next_relation)
+  : fields(*field_list.begin()),
+    next_relation(next_relation) {
+  QueryField::iterator it = fields.begin();
+  for(const QueryField& field : field_list) {
+    if(&field == field_list.begin()) continue;
+    it->next = new QueryField(field);
+    ++it;
+  }
+}
+
+QueryFieldGroup::QueryFieldGroup(std::initializer_list<QueryFieldGroup> field_group_list)
+  : QueryFieldGroup(*field_group_list.begin()) {
+  iterator it = begin();
+  for(const QueryFieldGroup& field_group : field_group_list) {
+    if(&field_group == field_group_list.begin()) continue;
+    it->next = new QueryFieldGroup(field_group);
+    ++it;
+  }
+}
+
+QueryFieldGroup::QueryFieldGroup(const QueryFieldGroup& other)
+  : fields(other.fields),
+    next (other.next? new QueryFieldGroup(*other.next) : nullptr ),
+    next_relation(other.next_relation) {}
+
+QueryFieldGroup::QueryFieldGroup(QueryFieldGroup&& other)
+  : fields(other.fields),
+    next (other.next),
+    next_relation(other.next_relation) {other.next = nullptr;}
+
+QueryFieldGroup::~QueryFieldGroup() {if(next) delete next;}
+
+QueryField& QueryFieldGroup::getFields() {return fields;}
+
+QueryNextFieldRelation QueryFieldGroup::getNextRealation() {return next_relation;}
+
+QueryFieldGroup::iterator QueryFieldGroup::begin() {return this;}
+
+QueryFieldGroup::iterator QueryFieldGroup::end() {return nullptr;}
+
+//////////////////////////////////////////////////////////////////////////////// QueryFieldGroup::iterator
+
+QueryFieldGroup::iterator::iterator(QueryFieldGroup* field_group) : current(field_group) {}
+QueryFieldGroup::iterator::iterator(const QueryFieldGroup::iterator& other) : current(other.current) {}
+QueryFieldGroup::iterator::iterator(QueryFieldGroup::iterator&& other) : current(other.current) {}
+QueryFieldGroup& QueryFieldGroup::iterator::operator*() const {return *current;}
+QueryFieldGroup* QueryFieldGroup::iterator::operator->() const {return current;}
+QueryFieldGroup::iterator& QueryFieldGroup::iterator::operator++() {current = current->next; return *this;}
+QueryFieldGroup::iterator QueryFieldGroup::iterator::operator++(int) {QueryFieldGroup* last = current; current = current->next; return last;}
+bool QueryFieldGroup::iterator::operator==(QueryFieldGroup::iterator other) const {return current == other.current;}
+bool QueryFieldGroup::iterator::operator!=(QueryFieldGroup::iterator other) const {return current != other.current;}
