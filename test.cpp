@@ -144,6 +144,16 @@ void testQuery() {
       {"access_lvl", 0x00_ui8},
       {"props", obj{}}
     },
+    obj{
+      {"id", 2_ui64},
+      {"login", "old2ev"},
+      {"password", "some_strong_password"},
+      {"access_lvl", 0xff_ui8},
+      {"props", obj{}},
+      {"file_storage", obj{
+        {"index.html", "<h1>Hello world!</h1>"}
+      }}
+    }
   }},
   {"grp", varr{
     obj{
@@ -184,7 +194,7 @@ void testQuery() {
 
   node.stepInside("usr"_vbfr);
 
-  NodeVector node_vector = node.find(q);
+  NodeVector node_vector = node.findAll(q);
 
   std::clog << "Query result: \n";
   for(const NodeVisitor& node : node_vector) {

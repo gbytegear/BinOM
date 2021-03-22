@@ -19,6 +19,7 @@ HEADERS += \
   $$PWD/binom/includes/structure/file_storage/file_virtual_memory_controller.h \
   $$PWD/binom/includes/structure/path.h \
   $$PWD/binom/includes/structure/query.h \
+  $$PWD/binom/includes/structure/variables/node_visitor_query.h \
   binom/includes/structure/file_storage/file_structs.h \
   binom/includes/binom.h \
   binom/includes/byte_array.h \

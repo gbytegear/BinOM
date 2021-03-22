@@ -40,12 +40,13 @@ class NodeVisitor {
   RefType ref_type;
   Ref ref;
 
-  bool test(Query query, ui64 index);
+  bool test(Query query, ui64 index) noexcept;
 
 public:
 
   class NodeIterator;
 
+  NodeVisitor(decltype(nullptr) null);
   NodeVisitor(Variable* var);
   NodeVisitor(NamedVariable* named_var);
   NodeVisitor(ValueRef val);
@@ -59,6 +60,7 @@ public:
   VarType getType() const;
   VarTypeClass getTypeClass() const {return toTypeClass(getType());}
 
+  bool isNull() const;
   bool isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
   bool isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
   bool isArray() const {return getTypeClass() == VarTypeClass::array;}
@@ -92,7 +94,8 @@ public:
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
   NodeVisitor& operator()(PathNode path) {return stepInside(std::move(path));}
 
-  NodeVector find(Query query);
+  NodeVector findAll(Query query);
+  NodeVisitor find(Query query);
 
   NodeIterator begin();
   NodeIterator end();
