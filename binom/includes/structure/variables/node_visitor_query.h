@@ -2,6 +2,7 @@
 
 #include "node_visitor.h"
 
+
 bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
 
   static const auto getRelationResult = [](bool last, QueryNextFieldRelation rel, bool current){
@@ -183,6 +184,7 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
       };
 
 
+      // TODO: RegExp test...
       static auto testString = [&](BufferArray node_string, QueryField& field) {
         if(field.getValueType() != QueryFieldValueType::string) {
           invalidTest();

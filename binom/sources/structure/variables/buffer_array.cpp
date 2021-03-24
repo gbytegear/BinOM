@@ -631,18 +631,4 @@ ByteArray BufferArray::toByteArray() const {
   return array;
 }
 
-std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {
-#ifdef BUFFER_AS_STRING
-  if(buffer.getType() == VarType::byte_array)
-    os << buffer.toString();
-  else for(const binom::ValueRef &val : buffer)
-    os << val << ' ';
-#else
-  for(const binom::ValueRef &val : buffer)
-    os << val << ' ';
-#endif
-
-  return os;
-}
-
 const binom::BufferArray operator "" _vbfr(const char* c_str, std::size_t) {return c_str;}

@@ -102,6 +102,4 @@ public:
 
 }
 
-std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive);
-
 #endif

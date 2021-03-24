@@ -8,6 +8,8 @@ using namespace binom;
 DataBaseContainer db("test_db.binomdb");
 
 void testVariable() {
+  std::clog <<
+  "========================== Variable Test ================================\n";
   Variable p(56_ui64);
   Variable bf(ui8arr{1_ui8, 2_ui8, 3_ui8});
   Variable a(varr{1,2,3,4,5});
@@ -44,6 +46,8 @@ void printDBInfo(DataBaseContainer& db) {
 
 
 void testDB() {
+  std::clog <<
+  "========================= DataBase test =================================\n";
 
 //// Windows MinGw fread bug!!!
 //  FileVirtualMemoryController memory("test_db.binomdb");
@@ -107,12 +111,10 @@ void testDB() {
   DBNodeVisitor db_visitor(db.getRoot());
   NodeVisitor local_visitor(&local);
 
-  db_visitor.setVariable(local);
+//  db_visitor.setVariable(local);
 
   std::clog << "Loaded form database variable: \n"
-            << db_visitor.getVariable({"grp",1}) << "\n\n"
-            << "From local variable: \n"
-            << local_visitor.getVariable({"usr",0}) << "\n\n";
+            << db_visitor.getVariable() << "\n\n";
 
 
   std::clog << "DB test ended!\n";
@@ -124,6 +126,8 @@ void testDB() {
 
 
 void testQuery() {
+  std::clog <<
+  "============================== Query Test ===============================\n";
 
   Variable local = obj{
   {"usr", varr{
@@ -208,12 +212,12 @@ void testQuery() {
 int main() {
   try {
 
-//    testDB();
+    testVariable();
+    testDB();
     testQuery();
 
-    std::clog << "Test ended!\n";
-
-    throw SException(ErrCode::out_of_range, "Exception test");
+    std::clog <<
+    "=========================================================================\n";
 
   } catch(binom::SException& except) {
     std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;

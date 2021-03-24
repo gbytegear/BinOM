@@ -277,16 +277,3 @@ Variable& Object::getVariable(BufferArray name) const {
 
   throw SException(ErrCode::binom_out_of_range, "");
 }
-
-
-
-
-std::ostream& operator<<(std::ostream& os, const binom::Object& object) {
-  os << "Object(" << object.getMemberCount() << ") {\n";
-  ui64 i = 0;
-  for(NamedVariable& nvar : object) {
-    os << nvar.name.toString() << ':' << nvar.variable << '\n';
-    ++i;
-  }
-  return os << "}";
-}

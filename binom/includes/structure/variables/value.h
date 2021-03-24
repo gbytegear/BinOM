@@ -131,6 +131,4 @@ public:
 
 }
 
-std::ostream& operator<<(std::ostream& os, const binom::ValueRef val);
-
 #endif // VALUEPTR_H

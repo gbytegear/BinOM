@@ -165,6 +165,12 @@ struct NamedVariable {
 }
 
 
+std::ostream& operator<<(std::ostream& os, const binom::ValueRef val);
+std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive);
+std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer);
+std::ostream& operator<<(std::ostream& os, const binom::Array& array);
+std::ostream& operator<<(std::ostream& os, const binom::Object& object);
 std::ostream& operator<<(std::ostream& os, const binom::Variable& var);
+
 
 #endif

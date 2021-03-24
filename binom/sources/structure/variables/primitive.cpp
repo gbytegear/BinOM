@@ -107,5 +107,3 @@ binom::Primitive& binom::Primitive::operator=(binom::Primitive other) {
   other.data.ptr = nullptr;
   return *this;
 }
-
-std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive) {return os << *primitive;}

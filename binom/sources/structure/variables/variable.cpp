@@ -446,15 +446,78 @@ Variable& Variable::operator=(Variable other) {
   return *this;
 }
 
+void printIndent(std::ostream& os, ui64 ind, std::string msg = "") {
+  if(!ind)return;
+  for(ui64 i = 0; i < ind; ++i)
+    os << '|';
+  os << ' ' << msg << ' ';
+}
 
 
-std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {
+std::ostream& printWithIndent(std::ostream&, ui64, std::string, const binom::Primitive&);
+std::ostream& printWithIndent(std::ostream&, ui64, std::string, const binom::BufferArray& );
+std::ostream& printWithIndent(std::ostream&, ui64, std::string, const binom::Array&);
+std::ostream& printWithIndent(std::ostream&, ui64, std::string, const binom::Object&);
+
+
+std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Variable& var) {
   switch (var.typeClass()) {
-  case VarTypeClass::primitive: return os << var.toPrimitive();
-    case VarTypeClass::buffer_array: return os << var.toBufferArray();
-    case VarTypeClass::array: return os << var.toArray();
-    case VarTypeClass::object: return os << var.toObject();
-    default: throw SException(ErrCode::binom_invalid_type, "Not implemented!");
+  case VarTypeClass::primitive: return printWithIndent(os, ind, std::move(msg), var.toPrimitive());
+    case VarTypeClass::buffer_array: return printWithIndent(os, ind, std::move(msg), var.toBufferArray());
+    case VarTypeClass::array: return printWithIndent(os, ind, std::move(msg), var.toArray());
+    case VarTypeClass::object: return printWithIndent(os, ind, std::move(msg), var.toObject());
+    default: throw SException(ErrCode::binom_invalid_type);
   }
 }
 
+std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Primitive& primitive) {
+  printIndent(os, ind, msg);
+  return os << *primitive;
+}
+
+std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::BufferArray& buffer) {
+  printIndent(os, ind, msg);
+  for(const binom::ValueRef &val : buffer)
+    os << val << ' ';
+  return os;
+}
+
+std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Array& array) {
+  printIndent(os, ind, msg);
+  os << "Array(" << array.getMemberCount() << ") [\n";
+  ui64 i = 0;
+  for(Variable& var : array) {
+    printWithIndent(os, ind + 1, std::to_string(i)+':', var) << '\n';
+    ++i;
+  }
+  printIndent(os, ind, "");
+  return os << "]";
+}
+
+std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Object& object) {
+  printIndent(os, ind, msg);
+  os << "Object(" << object.getMemberCount() << ") {\n";
+  for(NamedVariable& nvar : object) {
+    printWithIndent(os, ind + 1, nvar.name.toString() + ':', nvar.variable) << '\n';
+  }
+  printIndent(os, ind, "");
+  return os << "}";
+}
+
+
+
+std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {return printWithIndent(os, 0, "", var);}
+
+std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
+  ui8 sym_count = (val.getType() == ValType::byte) ? 2
+                 :(val.getType() == ValType::word) ? 4
+                 :(val.getType() == ValType::dword) ? 8
+                 : 16;
+
+  return os << std::right << std::setw(sym_count) << std::setfill('0') << std::hex << std::uppercase << val.asUnsigned();
+}
+
+std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive) {return printWithIndent(os, 0, "", primitive);}
+std::ostream& operator<<(std::ostream& os, const binom::BufferArray& buffer) {return printWithIndent(os, 0, "", buffer);}
+std::ostream& operator<<(std::ostream& os, const binom::Array& array) {return printWithIndent(os, 0, "", array);}
+std::ostream& operator<<(std::ostream& os, const binom::Object& object) {return printWithIndent(os, 0, "", object);}

@@ -60,6 +60,5 @@ public:
 };
 }
 
-std::ostream& operator<<(std::ostream& os, const binom::Array& array);
 
 #endif

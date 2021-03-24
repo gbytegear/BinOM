@@ -180,16 +180,3 @@ Array& Array::operator=(Array other) {
   other.data.ptr = nullptr;
   return *this;
 }
-
-
-
-
-std::ostream& operator<<(std::ostream& os, const binom::Array& array) {
-  os << "Array(" << array.getMemberCount() << ") [\n";
-  ui64 i = 0;
-  for(Variable& var : array) {
-    os << i << ':' << var << '\n';
-    ++i;
-  }
-  return os << "]";
-}
