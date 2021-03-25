@@ -127,8 +127,8 @@ Build & run:
 ```bash
 # In directory with source files of your project
 $ mkdir -p binom/includes
-$ cp <path to dir with binom source files>/binom/includes/* ./binom/includes
-$ g++ -o test test.cpp -I. -L$PWD -lbinom
+$ cp <path to dir with binom source files>/binom/includes/* ./binom/includes -r
+$ g++ -o test test.cpp -I. -L$PWD -lbinom -lstdc++fs
 $ ./test
 ```
 
