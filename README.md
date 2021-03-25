@@ -135,12 +135,12 @@ $ ./test
 ## Usage BinOM library
 ### BinOM Variable
 
+#### Create BinOM Variable:
+
 ```cpp
 using namespace binom;
 
 //...
-
-// Create BinOM Variable:
 
 Variable var = varr{
   1_ui8,                   // byte
@@ -166,10 +166,11 @@ Variable var = varr{
   }
 };
 
-//...
+```
 
-// Handly getting data from Variable
+#### Handly getting data from Variable:
 
+```cpp
 
 /* toArray() - interpret Variable as Array
  * getVariable(0) - get variable with index 0 from array container
@@ -210,6 +211,55 @@ i64 snumber = var
                  .toPrimitive()
                  .getValue()
                  .asSigned();
+```
+
+#### BinOM type identification:
+
+```cpp
+
+/* Instance of Variable class has methods:
+ * VarType Variable::type() const noexcept;
+ * VarTypeClass Variable::typeClass() const noexcept;
+*/
+
+// Example of usage:
+
+switch(var.type()) {
+  case VarType::byte:        /* do something... */ break;
+  case VarType::word:        /* do something... */ break;
+  case VarType::dword:       /* do something... */ break;
+  case VarType::qword:       /* do something... */ break;
+  case VarType::byte_array:  /* do something... */ break;
+  case VarType::word_array:  /* do something... */ break;
+  case VarType::dword_array: /* do something... */ break;
+  case VarType::qword_array: /* do something... */ break;
+  
+  default:
+  case VarType::invlid_type: /* handle exception */ break;
+}
+
+switch(var.typeClass()) {
+  case VarTypeClass::primitive:    /* do something... */ break;
+  case VarTypeClass::buffer_array: /* do something... */ break;
+  case VarTypeClass::array:        /* do something... */ break;
+  case VarTypeClass::object:       /* do something... */ break;
+  
+  default:
+  case VarTypeClass::invalid_type: /* handle exception */ break;
+}
+
+/* Instance of Primitive  class has method:
+ * ValType Primitive::getValType();
+*/
+
+// Example of usage:
+
+switch(var.toArray().getVariable(0).toPrimitive().getValType()) {
+  case VarType::byte:        /* do something... */ break;
+  case VarType::word:        /* do something... */ break;
+  case VarType::dword:       /* do something... */ break;
+  case VarType::qword:       /* do something... */ break;
+}
 
 ```
 
@@ -218,8 +268,8 @@ i64 snumber = var
 NodeVisitor - interface for traversing the nodes of the BinOM structure
 
 ```cpp
-
-/* var Variable strucuture
+std::cout << "var strucuture:\n" << var << std::endl
+/* var strucuture:
  * Array(11) [
  * | 0: 01
  * | 1: FFFE
@@ -244,7 +294,11 @@ NodeVisitor - interface for traversing the nodes of the BinOM structure
  * |}
  * ]
 */
+```
 
+#### NodeVisitor movement by structure
+
+```cpp
 
 /*
  * NodeVisitor constructs as pointer on root element of structure
@@ -260,27 +314,53 @@ NodeVisitor node_visitor(&var);
  * | 0: 01                    |
  * | 1: FFFE                  | create new
  * ...                        ᐯ
- * | 9: Array(4) [ <--- new NodeVisitor
- * || 0: 01
- * || 1: FFFE
+ * | 10: Object(4) { <--- tmp NodeVisitor
+ * || prop_1: 01
+ * || other_prop_2: FFFE
  * ...
  * 
- * stepInside(2) - move NodeVisitor to child node with index 2
- * | 9: Array(4) [ <--------- *
- * || 0: 01                   | move
- * || 1: FFFE                 ᐯ
- * || 2: 00000003 <--- NodeVisitor
- * || 3: FFFFFFFFFFFFFFFC
- * |]
+ * stepInside("prop with spaces in name") - move NodeVisitor to child node with name "prop with spaces in name"
+ * | 10: Object(4) { <-----------------------------*
+ * || prop_1: 01                                   | move
+ * || other_prop_2: FFFE                           ᐯ
+ * || prop with spaces in name: 00000003 <--- tmp NodeVisitor
+ * || property: FFFFFFFFFFFFFFFC
+ * |}
  * 
  * getValue() - get value reference(ValueRef) from NodeVisitor
  * asUnsigned() - cast value reference(ValueRef) to unsigned 64-bit int
 */
-ui64 number_1 = node_visitor.getChild(9).stepInside(2).getValue().asUnsigned();
-// Analogues: 
-/* ui64 number_1 = node_visitor[9](2).asUnsigned();
- * ui64 number_1 = node_visitor[{9,2}].asUnsigned();
+ui64 number_1 = node_visitor.getChild(10).stepInside("prop with spaces in name").getValue().asUnsigned();
+// Analogues:
+/*   Note:
+ *     operator[](ui64 index) - analogue of getChild(ui64 index)
+ *     operator()(BufferArray name) - analogue of stepInside(BufferArray name)
+ *   ui64 number_1 = node_visitor[9]("prop with spaces in name").asUnsigned();
+ * 
+ *   Note:
+ *     getChild(Path path) - analogue of getChild(ui64 index).stepInside(BufferArray name)
+ *   ui64 number_1 = node_visitor.getChild({9,"prop with spaces in name"});
+ * 
+ *   Note:
+ *     operator[](Path path) - analogue of getChild(Path path)
+ *   ui64 number_1 = node_visitor[{9,"prop with spaces in name"}].asUnsigned();
 */
 
+```
+
+##### WARNING: NodeVisitor can't be moved to parent node!
+
+#### NodeVisitor iteration
+
+```cpp
+
+std::cout << "[ "
+for(NodeVisitor node : node_visitor[{9}]) {
+  i64 number = node.getValue().asSigned();
+  std::cout << number << ' ';
+}
+std::cout << ']';
+
+// Output: [ 1 -2 3 -4 ]
 
 ```
