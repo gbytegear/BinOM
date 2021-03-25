@@ -1,12 +1,13 @@
 # BinOM
 **BinOM** (*Binary Object Model*) - serializtion / deserializtion data format implemnted as C++ library
 
+<!--
 ## Tool Kit
 
 * **BinOM DataBase** - hierarchical database based on BinOM structure
 * **BinOM Hexplorer** - BinOM file editor
 * **BinOM Admin** - BinOM database administrator tool
-
+-->
 ## File Formats
 
 * **.binom** - serialized BinOM data
