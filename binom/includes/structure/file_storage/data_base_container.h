@@ -2,7 +2,7 @@
 #define DATA_BASE_CONTAINER_H
 
 #include "file_virtual_memory_controller.h"
-#include "DB_node_visitor.h"
+#include "data_base_node_visitor.h"
 
 namespace binom {
 

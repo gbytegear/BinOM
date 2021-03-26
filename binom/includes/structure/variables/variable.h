@@ -131,8 +131,7 @@ public:
   Variable& operator=(Variable other);
 
   inline ui64 length() {
-    return
-          (isNull())
+    return isNull()
         ? 0
         : (isBufferArray() || isArray() || isObject())
         ? *reinterpret_cast<ui64*>(data.bytes + 1)

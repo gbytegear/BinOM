@@ -13,6 +13,8 @@ libbinom.so: objects
 
 test: libbinom.a
 	g++-10 test.cpp -L/home/oldev/projects/BinOM -lbinom -lstdc++fs -o test -std=c++20 -O3
+	clear
+	./test
 
 all: libbinom.so libbinom.a test clean_o
 

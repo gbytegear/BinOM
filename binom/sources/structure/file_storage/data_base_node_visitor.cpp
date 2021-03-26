@@ -1,4 +1,4 @@
-#include "binom/includes/structure/file_storage/DB_node_visitor.h"
+#include "binom/includes/structure/file_storage/data_base_node_visitor.h"
 
 using namespace binom;
 
@@ -298,25 +298,31 @@ void DBNodeVisitor::deleteNode(f_virtual_index node_index) {
   fvmc.free(node_index);
 }
 
-DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index)
+DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index, bool is_value_ptr, ui64 value_index)
   : fvmc(fvmc),
-    node_index(node_index) {updateNode();}
+    node_index(node_index),
+    is_value_ptr(is_value_ptr),
+    value_index(value_index) {updateNode();}
 
 DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor& other)
   : fvmc(other.fvmc),
     node_descriptor(other.node_descriptor),
-    node_index(other.node_index) {}
+    node_index(other.node_index),
+    is_value_ptr(other.is_value_ptr),
+    value_index(other.value_index) {}
 
 DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor&& other)
   : fvmc(other.fvmc),
     node_descriptor(other.node_descriptor),
-    node_index(other.node_index) {}
+    node_index(other.node_index),
+    is_value_ptr(other.is_value_ptr),
+    value_index(other.value_index) {}
 
 DBNodeVisitor& DBNodeVisitor::operator=(DBNodeVisitor other) {return *(new(this) DBNodeVisitor(other));}
 DBNodeVisitor& DBNodeVisitor::operator=(f_virtual_index _node_index) {node_index = _node_index; updateNode(); return *this;}
 
-VarType DBNodeVisitor::getType() {return node_descriptor.type;}
-VarTypeClass DBNodeVisitor::getTypeClass() {return toTypeClass(getType());}
+VarType DBNodeVisitor::getType() const {return node_descriptor.type;}
+VarTypeClass DBNodeVisitor::getTypeClass() const {return toTypeClass(getType());}
 
 bool DBNodeVisitor::isPrimitive() {return getTypeClass() == VarTypeClass::primitive;}
 bool DBNodeVisitor::isBufferArray() {return getTypeClass() == VarTypeClass::buffer_array;}
@@ -333,7 +339,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
                  .get<f_virtual_index>(0);
     updateNode();
   } else if(isBufferArray()) {
-    if(node_descriptor.size / toSize(toValueType(getType())) >= index) throw SException(ErrCode::binom_out_of_range);
+    if(node_descriptor.size / toSize(toValueType(getType())) <= index) throw SException(ErrCode::binom_out_of_range);
     value_index = index;
     is_value_ptr = true;
   }
@@ -420,10 +426,27 @@ DBNodeVisitor& DBNodeVisitor::stepInside(PathNode path) {
 }
 
 Variable DBNodeVisitor::getVariable() const {
+  if(is_value_ptr) {
+    ByteArray data = fvmc.loadHeapDataPartByIndex(node_descriptor.index,
+                                                  value_index*toSize(toValueType(getType())),
+                                                  toSize(toValueType(getType())));
+    data.pushFront(toVarType(toValueType(getType())));
+    void* ptr = data.unfree();
+    return *reinterpret_cast<Variable*>(&ptr);
+  }
   return buildVariable(node_index);
 }
 
 Variable DBNodeVisitor::getVariable(ui64 index) const {
+  if(getTypeClass() == VarTypeClass::buffer_array) {
+    DBNodeVisitor node = getChild(index);
+    ByteArray data = fvmc.loadHeapDataPartByIndex(node.node_descriptor.index,
+                                                  node.value_index*toSize(toValueType(node.getType())),
+                                                  toSize(toValueType(node.getType())));
+    data.pushFront(toVarType(toValueType(node.getType())));
+    void* ptr = data.unfree();
+    return *reinterpret_cast<Variable*>(&ptr);
+  }
   return buildVariable(getChild(index).node_index);
 }
 
@@ -766,3 +789,7 @@ DBNodeVisitor DBNodeVisitor::operator[](PathNode path) const {return DBNodeVisit
 DBNodeVisitor& DBNodeVisitor::operator()(ui64 index) {return stepInside(index);}
 DBNodeVisitor& DBNodeVisitor::operator()(BufferArray name) {return stepInside(std::move(name));}
 DBNodeVisitor& DBNodeVisitor::operator()(PathNode path) {return stepInside(std::move(path));}
+
+DBNodeVector DBNodeVisitor::findAll(Query query) {
+
+}

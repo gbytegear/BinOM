@@ -114,7 +114,7 @@ void testDB() {
 //  db_visitor.setVariable(local);
 
   std::clog << "Loaded form database variable: \n"
-            << db_visitor.getVariable() << "\n\n";
+            << db_visitor[{"usr", 0, "login", 1}].getVariable() << "\n\n";
 
 
   std::clog << "DB test ended!\n";
@@ -212,9 +212,9 @@ void testQuery() {
 int main() {
   try {
 
-    testVariable();
+    //testVariable();
     testDB();
-    testQuery();
+    //testQuery();
 
     std::clog <<
     "=========================================================================\n";

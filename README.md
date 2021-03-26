@@ -7,8 +7,8 @@
   * [Usage BinOM library](#usage-binom-library)
     * [BinOM Variable](#binom-variable)
     * [NodeVisitor usage](#nodevisitor-usage)
- <!--
-    * BinOM Variable Data Types interfaces
+    * [BinOM Variable Data Types interfaces](#binom-variable-data-types-interface)
+<!--
     * Serialize BinOM Variable and write to file
     * Create DataBase container
     * DBNodeVisitor Usage
@@ -364,3 +364,7 @@ std::cout << ']';
 // Output: [ 1 -2 3 -4 ]
 
 ```
+
+
+### BinOM Variable Data Types interfaces
+
