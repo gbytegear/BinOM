@@ -791,5 +791,11 @@ DBNodeVisitor& DBNodeVisitor::operator()(BufferArray name) {return stepInside(st
 DBNodeVisitor& DBNodeVisitor::operator()(PathNode path) {return stepInside(std::move(path));}
 
 DBNodeVector DBNodeVisitor::findAll(Query query) {
+//  for(DBNodeVisitor node : *this) {
 
+//  }
+}
+
+DBNodeIterator DBNodeVisitor::begin() {
+  return DBNodeIterator(*this);
 }

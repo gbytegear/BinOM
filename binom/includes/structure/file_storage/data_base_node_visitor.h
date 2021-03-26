@@ -9,6 +9,7 @@
 namespace binom {
 
 class DBNodeVisitor;
+class DBNodeIterator;
 
 typedef std::vector<DBNodeVisitor> DBNodeVector;
 
@@ -99,6 +100,9 @@ public:
   DBNodeVector findAll(Query query);
   DBNodeVisitor find(Query query);
 
+  DBNodeIterator begin();
+  inline decltype(nullptr) end() {return nullptr;}
+
 };
 
 
@@ -137,45 +141,6 @@ union Index {
 
 }
 
-class DBNodeIteratorEnd {
-  VarType type;
-  Index index;
-public:
-  DBNodeIteratorEnd(DBNodeVisitor parent) : type(parent.getType()) {
-    ByteArray data(parent.loadData());
-    switch (parent.getTypeClass()) {
-      default:
-      case binom::VarTypeClass::invalid_type:
-      case binom::VarTypeClass::primitive:
-        throw SException(ErrCode::binom_invalid_type);
-      case binom::VarTypeClass::buffer_array:
-      case binom::VarTypeClass::array:
-        index.array_index = data.length();
-      break;
-      case binom::VarTypeClass::object:
-        ObjectDescriptor& obj_des = data.get<ObjectDescriptor>(0);
-
-        index.object_index.length_block =
-            sizeof (ObjectDescriptor) +
-            obj_des.length_element_count*sizeof(ObjectNameLength);
-
-        index.object_index.name_counter = 0;
-
-        index.object_index.name =
-            sizeof (ObjectDescriptor) +
-            obj_des.length_element_count*sizeof(ObjectNameLength) +
-            obj_des.name_block_size;
-
-        index.object_index.index =
-            obj_des.index_count*sizeof(f_virtual_index) +
-            sizeof (ObjectDescriptor) +
-            obj_des.length_element_count*sizeof(ObjectNameLength) +
-            obj_des.name_block_size;
-      break;
-    }
-  }
-};
-
 
 class DBNodeIterator {
 
@@ -184,7 +149,7 @@ class DBNodeIterator {
   Index index;
 
 public:
-  DBNodeIterator(DBNodeVisitor parent, bool is_end = false)
+  DBNodeIterator(DBNodeVisitor& parent)
     : parent(parent),
       data(parent.loadData()) {
 
@@ -195,27 +160,21 @@ public:
         throw SException(ErrCode::binom_invalid_type);
       case binom::VarTypeClass::buffer_array:
       case binom::VarTypeClass::array:
-        index.array_index = is_end?data.length():0;
+        index.array_index = 0;
       break;
       case binom::VarTypeClass::object:
         ObjectDescriptor& obj_des = data.get<ObjectDescriptor>(0);
 
-        index.object_index.length_block =
-            sizeof (ObjectDescriptor) +
-            (is_end?0:obj_des.length_element_count)*sizeof(ObjectNameLength);
+        index.object_index.length_block = sizeof (ObjectDescriptor);
 
         index.object_index.name_counter =
-            is_end
-            ?0
-           :data.get<ObjectNameLength>(0, index.object_index.length_block).name_count;
+            data.get<ObjectNameLength>(0, index.object_index.length_block).name_count;
 
         index.object_index.name =
             sizeof (ObjectDescriptor) +
-            obj_des.length_element_count*sizeof(ObjectNameLength) +
-            (is_end?obj_des.name_block_size:0);
+            obj_des.length_element_count*sizeof(ObjectNameLength);
 
         index.object_index.index =
-            (is_end?obj_des.index_count:0)*sizeof(f_virtual_index) +
             sizeof (ObjectDescriptor) +
             obj_des.length_element_count*sizeof(ObjectNameLength) +
             obj_des.name_block_size;
@@ -258,9 +217,36 @@ public:
   }
 
   DBNodeVisitor operator*() {
-
+    switch (parent.getTypeClass()) {
+      default:
+      case binom::VarTypeClass::invalid_type:
+      case binom::VarTypeClass::primitive:
+        throw SException(ErrCode::binom_invalid_type);
+      case binom::VarTypeClass::buffer_array:
+      return DBNodeVisitor(parent.fvmc, parent.node_index, true, index.array_index / toSize(toValueType(parent.getType())));
+      case binom::VarTypeClass::array:
+      return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.array_index));
+      case binom::VarTypeClass::object:
+      return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.object_index.index));
+    }
   }
 
+
+  bool isEnd() {
+    switch (parent.getTypeClass()) {
+      default:
+      case binom::VarTypeClass::invalid_type:
+      case binom::VarTypeClass::primitive:
+        throw SException(ErrCode::binom_invalid_type);
+      case binom::VarTypeClass::buffer_array:
+      case binom::VarTypeClass::array:
+      return (data.begin() + index.array_index) == data.end();
+      case binom::VarTypeClass::object:
+      return (data.begin() + index.object_index.index) == data.end();
+    }
+  }
+
+  inline bool operator!=([[maybe_unused]] decltype(nullptr) null) {return !isEnd();}
 
 
 };
