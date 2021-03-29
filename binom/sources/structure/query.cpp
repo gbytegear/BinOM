@@ -146,6 +146,19 @@ bool QueryField::test() {
         return true;
         default: return false;
       }
+    case QueryProperty::node_index:
+      if(value.value_type != QueryFieldValueType::number &&
+         value.value_type != QueryFieldValueType::range)
+        return false;
+      switch (operat) {
+        case QueryOperator::in_range: case QueryOperator::out_range:
+        return value.value_type == QueryFieldValueType::range;
+        case QueryOperator::equal: case QueryOperator::not_equal:
+        case QueryOperator::lower: case QueryOperator::lower_equal:
+        case QueryOperator::highter: case QueryOperator::highte_equal:
+        return true;
+        default: return false;
+      }
     case QueryProperty::name:
       if(value.value_type != QueryFieldValueType::string)
         return false;

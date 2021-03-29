@@ -2,16 +2,17 @@
 
 #include "node_visitor.h"
 
+using namespace binom;
 
-bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
+bool NodeVisitor::test(Query query, ui64 index) noexcept {
 
   static const auto getRelationResult = [](bool last, QueryNextFieldRelation rel, bool current){
     switch (rel) {
-      case binom::QueryNextFieldRelation::AND:
+      case QueryNextFieldRelation::AND:
       return last && current;
-      case binom::QueryNextFieldRelation::OR:
+      case QueryNextFieldRelation::OR:
       return last || current;
-      case binom::QueryNextFieldRelation::XOR:
+      case QueryNextFieldRelation::XOR:
       return last != current;
     }
   };
@@ -56,56 +57,56 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
           return;
         }
         switch (field.getOperatorType()) {
-          case binom::QueryOperator::equal:
+          case QueryOperator::equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number == field.getUNumber()
                                  );
           return;
-          case binom::QueryOperator::not_equal:
+          case QueryOperator::not_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number != field.getUNumber()
                                  );
           return;
-          case binom::QueryOperator::highter:
+          case QueryOperator::highter:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number > field.getUNumber()
                                  );
           return;
-          case binom::QueryOperator::highte_equal:
+          case QueryOperator::highte_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number >= field.getUNumber()
                                  );
           return;
-          case binom::QueryOperator::lower:
+          case QueryOperator::lower:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number < field.getUNumber()
                                  );
           return;
-          case binom::QueryOperator::lower_equal:
+          case QueryOperator::lower_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number <= field.getUNumber()
                                  );
           return;
-          case binom::QueryOperator::in_range:
+          case QueryOperator::in_range:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  field.getRange().in(node_number)
                                  );
           return;
-          case binom::QueryOperator::out_range:
+          case QueryOperator::out_range:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
@@ -123,56 +124,56 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
           return;
         }
         switch (field.getOperatorType()) {
-          case binom::QueryOperator::equal:
+          case QueryOperator::equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number == field.getNumber()
                                  );
           return;
-          case binom::QueryOperator::not_equal:
+          case QueryOperator::not_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number != field.getNumber()
                                  );
           return;
-          case binom::QueryOperator::highter:
+          case QueryOperator::highter:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number > field.getNumber()
                                  );
           return;
-          case binom::QueryOperator::highte_equal:
+          case QueryOperator::highte_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number >= field.getNumber()
                                  );
           return;
-          case binom::QueryOperator::lower:
+          case QueryOperator::lower:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number < field.getNumber()
                                  );
           return;
-          case binom::QueryOperator::lower_equal:
+          case QueryOperator::lower_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_number <= field.getNumber()
                                  );
           return;
-          case binom::QueryOperator::in_range:
+          case QueryOperator::in_range:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  field.getRange().in(node_number)
                                  );
           return;
-          case binom::QueryOperator::out_range:
+          case QueryOperator::out_range:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
@@ -191,42 +192,42 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
           return;
         }
         switch (field.getOperatorType()) {
-          case binom::QueryOperator::equal:
+          case QueryOperator::equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_string == field.getString()
                                  );
           return;
-          case binom::QueryOperator::not_equal:
+          case QueryOperator::not_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_string != field.getString()
                                  );
           return;
-          case binom::QueryOperator::highter:
+          case QueryOperator::highter:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_string > field.getString()
                                  );
           return;
-          case binom::QueryOperator::highte_equal:
+          case QueryOperator::highte_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_string >= field.getString()
                                  );
           return;
-          case binom::QueryOperator::lower:
+          case QueryOperator::lower:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
                                  node_string < field.getString()
                                  );
           return;
-          case binom::QueryOperator::lower_equal:
+          case QueryOperator::lower_equal:
             last_field_value = getRelationResult(
                                  last_field_value,
                                  field_rel,
@@ -242,19 +243,22 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
       switch (field.getPropertyType()) {
 
 
+        // Doesn't support with local structures
+        case QueryProperty::node_index: invalidTest(); break;
 
 
-        case binom::QueryProperty::type:
+
+        case QueryProperty::type:
 
           switch (field.getOperatorType()) {
-            case binom::QueryOperator::equal:
+            case QueryOperator::equal:
               last_field_value = getRelationResult(
                                    last_field_value,
                                    field_rel,
                                    test_node.getType() == field.getVarType()
                                    );
             break;
-            case binom::QueryOperator::not_equal:
+            case QueryOperator::not_equal:
               last_field_value = getRelationResult(
                                    last_field_value,
                                    field_rel,
@@ -269,16 +273,16 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
 
 
 
-        case binom::QueryProperty::type_class:
+        case QueryProperty::type_class:
           switch (field.getOperatorType()) {
-            case binom::QueryOperator::equal:
+            case QueryOperator::equal:
               last_field_value = getRelationResult(
                                    last_field_value,
                                    field_rel,
                                    test_node.getTypeClass() == field.getVarTypeClass()
                                    );
             break;
-            case binom::QueryOperator::not_equal:
+            case QueryOperator::not_equal:
               last_field_value = getRelationResult(
                                    last_field_value,
                                    field_rel,
@@ -292,16 +296,16 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
 
 
 
-        case binom::QueryProperty::value_type:
+        case QueryProperty::value_type:
           switch (field.getOperatorType()) {
-            case binom::QueryOperator::equal:
+            case QueryOperator::equal:
               last_field_value = getRelationResult(
                                    last_field_value,
                                    field_rel,
                                    toValueType(test_node.getType()) == field.getValType()
                                    );
             break;
-            case binom::QueryOperator::not_equal:
+            case QueryOperator::not_equal:
               last_field_value = getRelationResult(
                                    last_field_value,
                                    field_rel,
@@ -316,14 +320,14 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
 
 
 
-        case binom::QueryProperty::element_count:
+        case QueryProperty::element_count:
           testUNumber(test_node.getElementCount(), field);
         break;
 
 
 
 
-        case binom::QueryProperty::index:
+        case QueryProperty::index:
           testUNumber(index, field);
         break;
 
@@ -331,7 +335,7 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
 
 
 
-        case binom::QueryProperty::name: {
+        case QueryProperty::name: {
           BufferArray name = getName(test_node);
           if(!name.getMemberCount()) {
             invalidTest();
@@ -344,11 +348,11 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
 
 
 
-        case binom::QueryProperty::value:
+        case QueryProperty::value:
 
           switch (test_node.getTypeClass()) {
 
-            case binom::VarTypeClass::primitive:
+            case VarTypeClass::primitive:
               testNumber(test_node
                          .getVariable()
                          .toPrimitive()
@@ -356,7 +360,7 @@ bool binom::NodeVisitor::test(binom::Query query, ui64 index) noexcept {
                          .asSigned(), field);
             break;
 
-            case binom::VarTypeClass::buffer_array:
+            case VarTypeClass::buffer_array:
               if(toValueType(test_node.getType()) != ValType::byte)
                 last_field_value = getRelationResult(
                                      last_field_value,

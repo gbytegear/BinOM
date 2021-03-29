@@ -6,24 +6,26 @@
 namespace binom {
 
 enum ErrCode : ui8 {
-  any,
-  memory_allocation_error,
-  memory_free_error,
-  out_of_range,
-  file_open_error,
 
-  binom_invalid_type,
-  binom_out_of_range,
-  binom_object_key_error,
+    // General exceptions
+    any,
+    memory_allocation_error,
+    memory_free_error,
+    out_of_range,
+    file_open_error,
 
-  binomdb_invalid_file,
-  binomdb_invalid_storage_version,
+    // BinOM Exceptions
+    binom_invalid_type,
+    binom_out_of_range,
+    binom_object_key_error,
+    binom_query_invalid_field,
 
-  binomdb_memory_management_error,
-  binomdb_page_isnt_exist,
-  binomdb_block_isnt_exist,
-
-  binom_query_invalid_field,
+    // BinOM DataBase Exceptions
+    binomdb_invalid_file,
+    binomdb_invalid_storage_version,
+    binomdb_memory_management_error,
+    binomdb_page_isnt_exist,
+    binomdb_block_isnt_exist,
 };
 
 class SException {
@@ -34,7 +36,7 @@ public:
   constexpr SException(const ErrCode code, const char* error_string) : _code(code), error_string(error_string) {}
   constexpr SException(const ErrCode code) : _code(code), error_string(nullptr) {}
   ErrCode code() {return _code;}
-  const char* what() {return error_string;}
+  std::string what() {return std::string(ectos(_code)) + error_string;}
   [[noreturn]] inline void throwUp() {throw *this;}
 
   static const char* ectos(ErrCode code) {
@@ -56,14 +58,15 @@ public:
       case ErrCode::binom_query_invalid_field:
       return                                          "BinOM invalid Query field: ";
 
-      case ErrCode::any:
-      default:
-         return                                       "TODO: Write this message: ";
+      case ErrCode::any: return                       "Unknown exception: ";
+      default: return                                 "INVALID ErrCode!: ";
     }
   }
 
 };
 
+
+/// Dynamic Exception (can be used for stack trace)
 class Exception {
   ErrCode _code;
   std::string error_string;
@@ -72,7 +75,7 @@ public:
   Exception(SException except) : _code(except._code), error_string(except.error_string) {}
   Exception(SException except, std::string add_error_string) : _code(except._code), error_string(std::string(except.error_string) + add_error_string) {}
   ErrCode code() {return _code;}
-  std::string what() {return error_string;}
+  std::string what() {return ectos(_code) + error_string;}
   [[noreturn]] inline void throwUp() {throw *this;}
 
   static inline const char* ectos(ErrCode code) {return SException::ectos(code);}
@@ -100,12 +103,12 @@ public:
   ErrLogger& operator<<(std::string str) {return out(str);}
   ErrLogger& operator<<(const char* str) {return out(str);}
 
-  ErrLogger& operator<<(SException except) {
-    return
-         out(SException::ectos(except.code()))
-        .out(except.what()?": ":" ")
-        .out(except.what()?except.what():"");
-  }
+//  ErrLogger& operator<<(SException except) {
+//    return
+//         out(SException::ectos(except.code()))
+//        .out(except.what()?": ":" ")
+//        .out(except.what()?except.what():"");
+//  }
 
   ErrLogger& operator<<(Exception except) {
     out(SException::ectos(except.code()));

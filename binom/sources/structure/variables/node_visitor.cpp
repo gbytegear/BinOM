@@ -1,36 +1,38 @@
 #include "binom/includes/structure/variables/node_visitor.h"
 
-binom::NodeVisitor::NodeVisitor(decltype(nullptr) null) : ref_type(RefType::variable), ref(*reinterpret_cast<Variable**>(&null)) {}
+using namespace binom;
 
-binom::NodeVisitor::NodeVisitor(binom::Variable* var) : ref_type(RefType::variable), ref(var) {}
+NodeVisitor::NodeVisitor(decltype(nullptr) null) : ref_type(RefType::variable), ref(*reinterpret_cast<Variable**>(&null)) {}
 
-binom::NodeVisitor::NodeVisitor(binom::NamedVariable* named_var) : ref_type(RefType::named_variable), ref(named_var) {}
+NodeVisitor::NodeVisitor(Variable* var) : ref_type(RefType::variable), ref(var) {}
 
-binom::NodeVisitor::NodeVisitor(binom::ValueRef val) : ref_type(RefType::value), ref(val) {}
+NodeVisitor::NodeVisitor(NamedVariable* named_var) : ref_type(RefType::named_variable), ref(named_var) {}
 
-binom::NodeVisitor::NodeVisitor(const binom::NodeVisitor& other) : ref_type(other.ref_type), ref(other.ref) {}
+NodeVisitor::NodeVisitor(ValueRef val) : ref_type(RefType::value), ref(val) {}
 
-binom::NodeVisitor& binom::NodeVisitor::operator=(binom::Variable* var) {
+NodeVisitor::NodeVisitor(const NodeVisitor& other) : ref_type(other.ref_type), ref(other.ref) {}
+
+NodeVisitor& NodeVisitor::operator=(Variable* var) {
   ref_type = RefType::variable;
   ref.variable = var;
   return *this;
 }
 
-binom::NodeVisitor& binom::NodeVisitor::operator=(binom::NamedVariable* named_var) {
+NodeVisitor& NodeVisitor::operator=(NamedVariable* named_var) {
   ref_type = RefType::named_variable;
   ref.named_variable = named_var;
   return *this;
 }
 
-binom::NodeVisitor& binom::NodeVisitor::operator=(binom::ValueRef val) {
+NodeVisitor& NodeVisitor::operator=(ValueRef val) {
   ref_type = RefType::value;
   ref.value = val;
   return *this;
 }
 
-binom::NodeVisitor& binom::NodeVisitor::operator=(const binom::NodeVisitor& other) {return *new(this) NodeVisitor(other);}
+NodeVisitor& NodeVisitor::operator=(const NodeVisitor& other) {return *new(this) NodeVisitor(other);}
 
-binom::VarType binom::NodeVisitor::getType() const {
+VarType NodeVisitor::getType() const {
   switch (ref_type) {
     case RefType::variable: return ref.variable->type();
     case RefType::named_variable: return ref.named_variable->variable.type();
@@ -38,7 +40,7 @@ binom::VarType binom::NodeVisitor::getType() const {
   }
 }
 
-bool binom::NodeVisitor::isNull() const {
+bool NodeVisitor::isNull() const {
   return ref.ptr
       ?(
          ref_type == RefType::variable
@@ -52,22 +54,22 @@ bool binom::NodeVisitor::isNull() const {
      : true;
 }
 
-binom::ui64 binom::NodeVisitor::getElementCount() const {
+ui64 NodeVisitor::getElementCount() const {
   switch (getTypeClass()) {
-    case binom::VarTypeClass::primitive:
+    case VarTypeClass::primitive:
     return 1;
-    case binom::VarTypeClass::buffer_array:
+    case VarTypeClass::buffer_array:
     return getVariable().toBufferArray().getMemberCount();
-    case binom::VarTypeClass::array:
+    case VarTypeClass::array:
     return getVariable().toArray().getMemberCount();
-    case binom::VarTypeClass::object:
+    case VarTypeClass::object:
     return getVariable().toObject().getMemberCount();
     default:
     return 0;
   }
 }
 
-binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::ui64 index) {
+NodeVisitor& NodeVisitor::stepInside(ui64 index) {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isArray()) return *this = &var.toArray().getVariable(index);
@@ -75,14 +77,14 @@ binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::ui64 index) {
   else throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::BufferArray name) {
+NodeVisitor& NodeVisitor::stepInside(BufferArray name) {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isObject()) return *this = &var.toObject().getNamedVariable(name);
   else throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::PathNode path) {
+NodeVisitor& NodeVisitor::stepInside(PathNode path) {
   for(const PathNode& path_node : path)
     switch (path_node.type()) {
       case PathNodeType::index: stepInside(path_node.index()); continue;
@@ -91,51 +93,51 @@ binom::NodeVisitor& binom::NodeVisitor::stepInside(binom::PathNode path) {
   return *this;
 }
 
-binom::BufferArray& binom::NodeVisitor::rename(binom::BufferArray old_name, binom::BufferArray new_name) {
+BufferArray& NodeVisitor::rename(BufferArray old_name, BufferArray new_name) {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isObject()) return var.toObject().rename(std::move(old_name), std::move(new_name));
   else throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::ValueRef binom::NodeVisitor::getValue() const {
+ValueRef NodeVisitor::getValue() const {
   if(ref_type == RefType::value) return ref.value;
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isPrimitive()) return var.toPrimitive();
   throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::ValueRef binom::NodeVisitor::getValue(binom::ui64 index) const {
+ValueRef NodeVisitor::getValue(ui64 index) const {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isBufferArray()) return var.toBufferArray().getValue(index);
   else throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::Variable& binom::NodeVisitor::getVariable() const {
+Variable& NodeVisitor::getVariable() const {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   return (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
 }
 
-binom::Variable& binom::NodeVisitor::getVariable(binom::ui64 index) const {
+Variable& NodeVisitor::getVariable(ui64 index) const {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isArray()) return var.toArray().getVariable(index);
   throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::Variable& binom::NodeVisitor::getVariable(binom::BufferArray name) const {
+Variable& NodeVisitor::getVariable(BufferArray name) const {
   if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isObject()) return var.toObject().getVariable(name);
   throw SException(ErrCode::binom_invalid_type);
 }
 
-binom::Variable& binom::NodeVisitor::getVariable(binom::PathNode path) const {
+Variable& NodeVisitor::getVariable(PathNode path) const {
   return NodeVisitor(*this).stepInside(std::move(path)).getVariable();
 }
 
-binom::BufferArray binom::NodeVisitor::getName() const {
+BufferArray NodeVisitor::getName() const {
   if(ref_type == RefType::named_variable) return ref.named_variable->name;
   throw SException(ErrCode::binom_invalid_type);
 }
@@ -143,7 +145,7 @@ binom::BufferArray binom::NodeVisitor::getName() const {
 // Query test function
 #include "binom/includes/structure/variables/node_visitor_query.h"
 
-binom::NodeVector binom::NodeVisitor::findAll(binom::Query query) {
+NodeVector NodeVisitor::findAll(Query query) {
   NodeVector node_vector;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
@@ -154,7 +156,7 @@ binom::NodeVector binom::NodeVisitor::findAll(binom::Query query) {
   return node_vector;
 }
 
-binom::NodeVisitor binom::NodeVisitor::find(binom::Query query) {
+NodeVisitor NodeVisitor::find(Query query) {
   ui64 index = 0;
   for(NodeVisitor node : *this) {
     if(node.test(query, index))
@@ -164,6 +166,6 @@ binom::NodeVisitor binom::NodeVisitor::find(binom::Query query) {
   return nullptr;
 }
 
-binom::NodeVisitor::NodeIterator binom::NodeVisitor::begin() {return NodeIterator(*this);}
+NodeVisitor::NodeIterator NodeVisitor::begin() {return NodeIterator(*this);}
 
-binom::NodeVisitor::NodeIterator binom::NodeVisitor::end() {return NodeIterator(*this, true);}
+NodeVisitor::NodeIterator NodeVisitor::end() {return NodeIterator(*this, true);}

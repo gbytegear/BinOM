@@ -1,7 +1,4 @@
 #include "binom/includes/binom.h"
-#include "binom/includes/structure/file_storage/file_virtual_memory_controller.h"
-#include <cassert>
-#include <cmath>
 
 using namespace binom;
 
@@ -117,9 +114,11 @@ void testDB() {
 //            << db_visitor[{"usr", 0, "login", 1}].getVariable() << "\n\n";
 
   std::clog << "DB OutPut:\n";
-  for(DBNodeVisitor node : db_visitor[{"usr", 0, "password"}]) {
+  for(const DBNodeVisitor &node : db_visitor[{"usr", 0, "password"}]) {
     std::clog << node.getVariable() << "\n\n";
   }
+
+  std::clog << "DB Info:\n" << db.getDBInfo() << '\n';
 
 
   std::clog << "DB test ended!\n";
@@ -205,10 +204,22 @@ void testQuery() {
 
   NodeVector node_vector = node.findAll(q);
 
-  std::clog << "Query result: \n";
+  std::clog << "Local Query result: \n";
   for(const NodeVisitor& node : node_vector) {
     std::clog << node.getVariable() << "\n\n";
   }
+
+  DBNodeVisitor db_node(db.getRoot());
+
+  db_node.stepInside("usr"_vbfr);
+
+  DBNodeVector db_node_vector = db_node.findAll(q);
+
+  std::clog << "DB Query result: \n";
+  for(const DBNodeVisitor& node : db_node_vector) {
+    std::clog << node.getVariable() << "\n\n";
+  }
+
 
   std::clog << "Query test ended!\n";
 }
@@ -217,15 +228,15 @@ void testQuery() {
 int main() {
   try {
 
-    //testVariable();
-    testDB();
-    //testQuery();
+//    testVariable();
+//    testDB();
+    testQuery();
 
     std::clog <<
     "=========================================================================\n";
 
-  } catch(binom::SException& except) {
-    std::cerr << binom::SException::ectos(except.code()) << except.what() << std::endl;
+  } catch(SException& except) {
+    std::cerr << SException::ectos(except.code()) << except.what() << std::endl;
   } catch(...) {
     std::cerr << "Unknown exception!" << std::endl;
   }

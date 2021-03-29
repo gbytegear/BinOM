@@ -18,7 +18,17 @@ public:
   inline ui64    getHeapPageCount() {return fvmc.getHeapPageCount();}
   inline ui64    getBytePageCount() {return fvmc.getBytePageCount();}
 
+  inline Variable getDBInfo() {
+    return obj {
+      {"file_size", ui64(getFileSize())},
+      {"node_page_count", getNodePageCount()},
+      {"heap_page_count", getHeapPageCount()},
+      {"byte_page_count", getBytePageCount()}
+    };
+  }
+
   DBNodeVisitor getRoot() {return fvmc;}
+  DBNodeVisitor getByNodeIndex(f_virtual_index node_index) {return DBNodeVisitor(fvmc, node_index);}
 };
 
 }

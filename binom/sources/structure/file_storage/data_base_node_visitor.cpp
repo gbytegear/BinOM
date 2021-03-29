@@ -323,11 +323,32 @@ DBNodeVisitor& DBNodeVisitor::operator=(f_virtual_index _node_index) {node_index
 
 VarType DBNodeVisitor::getType() const {return node_descriptor.type;}
 VarTypeClass DBNodeVisitor::getTypeClass() const {return toTypeClass(getType());}
+f_virtual_index DBNodeVisitor::getNodeIndex() const {return node_index;}
 
-bool DBNodeVisitor::isPrimitive() {return getTypeClass() == VarTypeClass::primitive;}
-bool DBNodeVisitor::isBufferArray() {return getTypeClass() == VarTypeClass::buffer_array;}
-bool DBNodeVisitor::isArray() {return getTypeClass() == VarTypeClass::array;}
-bool DBNodeVisitor::isObject() {return getTypeClass() == VarTypeClass::object;}
+ui64 DBNodeVisitor::getElementCount() const {
+  switch (getTypeClass()) {
+    case binom::VarTypeClass::primitive: return 1;
+    case binom::VarTypeClass::buffer_array:
+    return node_descriptor.size / toSize(toValueType(getType()));
+    case binom::VarTypeClass::array:
+    return node_descriptor.size / sizeof(f_virtual_index);
+    case binom::VarTypeClass::object:
+    return fvmc
+        .loadHeapDataPartByIndex(node_descriptor.index, 0, sizeof (ObjectDescriptor))
+        .get<ObjectDescriptor>(0,0)
+        .index_count;
+    default:
+    case binom::VarTypeClass::invalid_type:
+    return 0;
+  }
+}
+
+bool DBNodeVisitor::isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
+bool DBNodeVisitor::isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
+bool DBNodeVisitor::isArray() const {return getTypeClass() == VarTypeClass::array;}
+bool DBNodeVisitor::isObject() const {return getTypeClass() == VarTypeClass::object;}
+
+DBNodeVisitor& DBNodeVisitor::snapTo(f_virtual_index node_index) {this->node_index = node_index; updateNode(); return *this;}
 
 DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
   if(isPrimitive() || isObject() || is_value_ptr) throw SException(ErrCode::binom_invalid_type);
@@ -790,10 +811,28 @@ DBNodeVisitor& DBNodeVisitor::operator()(ui64 index) {return stepInside(index);}
 DBNodeVisitor& DBNodeVisitor::operator()(BufferArray name) {return stepInside(std::move(name));}
 DBNodeVisitor& DBNodeVisitor::operator()(PathNode path) {return stepInside(std::move(path));}
 
-DBNodeVector DBNodeVisitor::findAll(Query query) {
-//  for(DBNodeVisitor node : *this) {
+#include "binom/includes/structure/file_storage/data_base_node_visitor_query.h"
 
-//  }
+DBNodeVector DBNodeVisitor::findAll(Query query) {
+  DBNodeVector vector;
+  ui64 index = 0;
+  for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
+    DBNodeVisitor node = *iterator;
+    if(node.test(query, index, iterator.getName()))
+      vector.push_back(node);
+    ++index;
+  }
+  return vector;
+}
+
+DBNodeVisitor DBNodeVisitor::find(Query query) {
+  ui64 index = 0;
+  for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
+    DBNodeVisitor node = *iterator;
+    if(node.test(query, index, iterator.getName()))
+      return node;
+    ++index;
+  }
 }
 
 DBNodeIterator DBNodeVisitor::begin() {

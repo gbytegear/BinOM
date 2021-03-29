@@ -16,6 +16,7 @@ SOURCES += \
 HEADERS += \
   $$PWD/binom/includes/structure/file_storage/data_base_container.h \
   $$PWD/binom/includes/structure/file_storage/data_base_node_visitor.h \
+  $$PWD/binom/includes/structure/file_storage/data_base_node_visitor_query.h \
   $$PWD/binom/includes/structure/file_storage/file_virtual_memory_controller.h \
   $$PWD/binom/includes/structure/path.h \
   $$PWD/binom/includes/structure/query.h \

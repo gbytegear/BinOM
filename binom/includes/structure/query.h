@@ -12,6 +12,7 @@ enum class QueryProperty : ui8 {
   value_type,
   element_count,
   index,
+  node_index,
   name,
   value,
 };

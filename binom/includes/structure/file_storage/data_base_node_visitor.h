@@ -49,7 +49,7 @@ class DBNodeVisitor {
   void clearNode(f_virtual_index node_index);
   void deleteNode(f_virtual_index node_index);
 
-  bool test(Query& query, ui64 index, BufferArray name = "");
+  bool test(Query& query, ui64 index, BufferArray name);
 
 public:
 
@@ -62,12 +62,15 @@ public:
 
   VarType getType() const;
   VarTypeClass getTypeClass() const;
+  f_virtual_index getNodeIndex() const;
+  ui64 getElementCount() const;
 
-  bool isPrimitive();
-  bool isBufferArray();
-  bool isArray();
-  bool isObject();
+  bool isPrimitive() const;
+  bool isBufferArray() const;
+  bool isArray() const;
+  bool isObject() const;
 
+  DBNodeVisitor& snapTo(f_virtual_index node_index);
   DBNodeVisitor& stepInside(ui64 index);
   DBNodeVisitor& stepInside(BufferArray name);
   DBNodeVisitor& stepInside(PathNode path);
@@ -229,6 +232,14 @@ public:
       case binom::VarTypeClass::object:
       return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.object_index.index));
     }
+  }
+
+
+  ByteArray getName() {
+    if(parent.getTypeClass() != VarTypeClass::object)
+      return ByteArray();
+    return ByteArray(&data.get<char>(0, index.object_index.name),
+                     data.get<ObjectNameLength>(0, index.object_index.length_block).name_length);
   }
 
 
