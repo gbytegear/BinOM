@@ -233,9 +233,9 @@ bool DBNodeVisitor::test(Query &query, ui64 index, BufferArray name) {
 
     switch (field.getPropertyType()) {
 
-
-      // Doesn't support with local structures
-      case QueryProperty::node_index: invalidTest(); break;
+      case QueryProperty::node_index:
+        testUNumber(getNodeIndex(), field);
+      break;
 
 
 
