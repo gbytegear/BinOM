@@ -148,6 +148,8 @@ Variable& Object::insert(BufferArray name, Variable var) {
     name.data.ptr = nullptr;
     var.data.ptr = nullptr;
     ++length();
+
+    return member.variable;
   } else {
     i64 left = 0;
     i64 right = length();
@@ -172,6 +174,8 @@ Variable& Object::insert(BufferArray name, Variable var) {
     name.data.ptr = nullptr;
     var.data.ptr = nullptr;
     ++length();
+
+    return member.variable;
   }
 }
 

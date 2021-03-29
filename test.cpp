@@ -7,38 +7,93 @@ DataBaseContainer db("test_db.binomdb");
 void testVariable() {
   std::clog <<
   "========================== Variable Test ================================\n";
-  Variable p(56_ui64);
-  Variable bf(ui8arr{1_ui8, 2_ui8, 3_ui8});
-  Variable a(varr{1,2,3,4,5});
-  Variable o(obj{{"Hello", "World"}, {"Goodby", "World"}});
+//  Variable local = obj{
+//  {"usr", varr{
+//    obj{
+//      {"id", 0_ui64},
+//      {"login", "admin"},
+//      {"password", "admin"},
+//      {"access_lvl", 0xff_ui8},
+//      {"props", obj{
+//        {"db_access", 0xff_ui8},
+//        {"server_cli_access", 0xff_ui8}
+//      }}
+//    },
+//    obj{
+//      {"id", 0_ui64},
+//      {"login", "guest"},
+//      {"password", "guest"},
+//      {"access_lvl", 0x00_ui8},
+//      {"props", obj{}}
+//    },
+//  }},
+//  {"grp", varr{
+//    obj{
+//      {"id", 0_ui64},
+//      {"name", "system"},
+//      {"owner", 0_ui64},
+//      {"members", ui64arr{0_ui64}},
+//      {"access_lvl", 0xff_ui8},
+//      {"props", obj{
+//        {"db_access", 0xff_ui8},
+//        {"server_cli_access", 0xff_ui8}
+//      }}
+//    },
+//    obj{
+//      {"id", 0_ui64},
+//      {"name", "unlogined"},
+//      {"owner", 0_ui64},
+//      {"members", ui64arr{1_ui64}},
+//      {"access_lvl", 0x00_ui8 },
+//      {"props", obj{}}
+//    }
+//  }}
+//  };
 
-  std::clog << p << "\n"
-            << bf << "\n"
-            << a << "\n"
-            << o << "\n\n";
 
-  a = varr{p,bf,a,o};
-  p = 10_ui32;
-  bf = "Hello World";
-  o = obj{{"Hello","Goodby"}, {"World", "World"}};
+//  ByteArray data = local.serialize();
 
-  std::clog << p << "\n"
-            << bf << "\n"
-            << a << "\n"
-            << o << "\n\n";
+//  std::clog << "Serialized data size: " << data.length() << " byte\n";
 
-  std::clog << "Variable test ended!\n";
-}
+//  Variable local_2 = Variable::deserialize(data);
 
-void printDBInfo(DataBaseContainer& db) {
-  std::clog << std::dec;
+//  std::clog << local_2 << '\n';
 
-  std::clog << "DATABASE INFO:\n"
-               "|File size: " << f32(db.getFileSize())/1024 << " Kb\n" <<
-               "|Node page count: " << db.getNodePageCount() << '\n' <<
-               "|Heap page count: " << db.getHeapPageCount() << '\n' <<
-               "|Byte page count: " << db.getBytePageCount() << "\n"
-               "+----------------\n";
+  Variable p = 1_ui64;
+  Variable ba = "Hello World"_vbfr;
+  Variable arr = varr{1_ui8, 2_ui16, 3_ui32, 4_ui64};
+  Variable ob = obj {
+    {"first", 1_ui8},
+    {"second", 2_ui16},
+    {"third", 3_ui32},
+    {"fourth", 4_ui64}
+  };
+
+  ob.toObject().insert("Hello", 5_ui64);
+
+  ByteArray data = p.serialize();
+  p = Variable::deserialize(data);
+
+  std::clog << "P s/d!\n";
+
+  ByteArray data_1 = ba.serialize();
+  ba = Variable::deserialize(data_1);
+
+  std::clog << "BA s/d!\n";
+
+  ByteArray data_2 = arr.serialize();
+  arr = Variable::deserialize(data_2);
+
+  std::clog << "Arr s/d!\n";
+
+  ByteArray data_3 = ob.serialize();
+  std::clog << "Obj s!\n";
+  ob = Variable::deserialize(data_3);
+
+  std::clog << "Obj s/d!\n";
+
+
+
 }
 
 
@@ -108,7 +163,7 @@ void testDB() {
   DBNodeVisitor db_visitor(db.getRoot());
   NodeVisitor local_visitor(&local);
 
-//  db_visitor.setVariable(local);
+  db_visitor.setVariable(local);
 
 //  std::clog << "Loaded form database variable: \n"
 //            << db_visitor[{"usr", 0, "login", 1}].getVariable() << "\n\n";
@@ -191,7 +246,8 @@ void testQuery() {
     {
       {
         {qprop::value, {"id"}, qoper::equal, 0_i64, qrel::OR},
-        {qprop::value, {"login"}, qoper::equal, "guest"_vbfr}, // qrel::AND by default
+        {qprop::value, {"id"}, qoper::equal, 1_i64, qrel::OR},
+//        {qprop::value, {"login"}, qoper::equal, "guest"_vbfr}, // qrel::AND by default
       }
       // qrel::OR by default
     },
@@ -228,9 +284,14 @@ void testQuery() {
 int main() {
   try {
 
-//    testVariable();
+    testVariable();
 //    testDB();
-    testQuery();
+//    testQuery();
+
+//    DBNodeVisitor node(db.getRoot());
+
+//    std::clog << node.getVariable() << '\n';
+
 
     std::clog <<
     "=========================================================================\n";

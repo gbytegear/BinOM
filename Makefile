@@ -12,9 +12,11 @@ libbinom.so: objects
 	g++-10 -fPIC -shared -o libbinom.so *.o
 
 test: libbinom.a
-	g++-10 test.cpp -L/home/oldev/projects/BinOM -lbinom -lstdc++fs -o test -std=c++20 -O3
+	g++-10 test.cpp -L/home/oldev/projects/BinOM -lbinom -lstdc++fs -o test -std=c++20 -O3 -g
 	clear
 	./test
+
+libs: libbinom.a libbinom.so clean_o
 
 all: libbinom.so libbinom.a test clean_o
 
