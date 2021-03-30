@@ -37,6 +37,7 @@ VarType NodeVisitor::getType() const {
     case RefType::variable: return ref.variable->type();
     case RefType::named_variable: return ref.named_variable->variable.type();
     case RefType::value: return toVarType(ref.value.getType());
+    default: return VarType::invlid_type;
   }
 }
 
@@ -70,18 +71,18 @@ ui64 NodeVisitor::getElementCount() const {
 }
 
 NodeVisitor& NodeVisitor::stepInside(ui64 index) {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isArray()) return *this = &var.toArray().getVariable(index);
   elif(var.isBufferArray()) return *this = var.toBufferArray().getValue(index);
-  else throw SException(ErrCode::binom_invalid_type);
+  else throw Exception(ErrCode::binom_invalid_type);
 }
 
 NodeVisitor& NodeVisitor::stepInside(BufferArray name) {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isObject()) return *this = &var.toObject().getNamedVariable(name);
-  else throw SException(ErrCode::binom_invalid_type);
+  else throw Exception(ErrCode::binom_invalid_type);
 }
 
 NodeVisitor& NodeVisitor::stepInside(PathNode path) {
@@ -94,43 +95,43 @@ NodeVisitor& NodeVisitor::stepInside(PathNode path) {
 }
 
 BufferArray& NodeVisitor::rename(BufferArray old_name, BufferArray new_name) {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isObject()) return var.toObject().rename(std::move(old_name), std::move(new_name));
-  else throw SException(ErrCode::binom_invalid_type);
+  else throw Exception(ErrCode::binom_invalid_type);
 }
 
 ValueRef NodeVisitor::getValue() const {
   if(ref_type == RefType::value) return ref.value;
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isPrimitive()) return var.toPrimitive();
-  throw SException(ErrCode::binom_invalid_type);
+  throw Exception(ErrCode::binom_invalid_type);
 }
 
 ValueRef NodeVisitor::getValue(ui64 index) const {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isBufferArray()) return var.toBufferArray().getValue(index);
-  else throw SException(ErrCode::binom_invalid_type);
+  else throw Exception(ErrCode::binom_invalid_type);
 }
 
 Variable& NodeVisitor::getVariable() const {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   return (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
 }
 
 Variable& NodeVisitor::getVariable(ui64 index) const {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isArray()) return var.toArray().getVariable(index);
-  throw SException(ErrCode::binom_invalid_type);
+  throw Exception(ErrCode::binom_invalid_type);
 }
 
 Variable& NodeVisitor::getVariable(BufferArray name) const {
-  if(ref_type == RefType::value) throw SException(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
   if(var.isObject()) return var.toObject().getVariable(name);
-  throw SException(ErrCode::binom_invalid_type);
+  throw Exception(ErrCode::binom_invalid_type);
 }
 
 Variable& NodeVisitor::getVariable(PathNode path) const {
@@ -139,7 +140,7 @@ Variable& NodeVisitor::getVariable(PathNode path) const {
 
 BufferArray NodeVisitor::getName() const {
   if(ref_type == RefType::named_variable) return ref.named_variable->name;
-  throw SException(ErrCode::binom_invalid_type);
+  throw Exception(ErrCode::binom_invalid_type);
 }
 
 // Query test function

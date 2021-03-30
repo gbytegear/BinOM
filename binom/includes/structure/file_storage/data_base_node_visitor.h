@@ -6,6 +6,8 @@
 #include "../path.h"
 #include "../query.h"
 
+#include <vector>
+
 namespace binom {
 
 class DBNodeVisitor;
@@ -51,6 +53,8 @@ class DBNodeVisitor {
 
   bool test(Query& query, ui64 index, BufferArray name);
 
+  DBNodeVisitor(FileVirtualMemoryController& fvmc, decltype(nullptr));
+
 public:
 
   DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index = 0, bool is_value_ptr = false, ui64 value_index = 0);
@@ -65,6 +69,7 @@ public:
   f_virtual_index getNodeIndex() const;
   ui64 getElementCount() const;
 
+  bool isNull() const;
   bool isPrimitive() const;
   bool isBufferArray() const;
   bool isArray() const;
@@ -87,6 +92,7 @@ public:
   void insert(BufferArray name, Variable var);
   void remove(ui64 index, ui64 count = 1);
   void remove(BufferArray name);
+  void remove();
 
   DBNodeVisitor getChild(ui64 index) const;
   DBNodeVisitor getChild(BufferArray name) const;
@@ -109,153 +115,51 @@ public:
 };
 
 
-namespace {
-
-typedef ui64 ArrayIndex;
-struct ObjectIndex {
-  ui64 length_block;
-  ui64 name_counter;
-  ui64 name;
-  ui64 index;
-
-  bool operator==(ObjectIndex other) {
-    return length_block == other.length_block &&
-           name == other.name &&
-           index == other.index;
-  }
-
-  bool operator!=(ObjectIndex other) {
-    return length_block != other.length_block ||
-           name != other.name ||
-           index != other.index;
-  }
-
-};
-
-union Index {
-  ArrayIndex array_index;
-  ObjectIndex object_index;
-  Index(const Index& other)
-    : object_index(other.object_index) {}
-  Index()
-    : object_index{0, 0, 0, 0}
-  {}
-};
-
-}
-
-
 class DBNodeIterator {
+
+  typedef ui64 ArrayIndex;
+  struct ObjectIndex {
+    ui64 length_block;
+    ui64 name_counter;
+    ui64 name;
+    ui64 index;
+
+    bool operator==(ObjectIndex other) {
+      return length_block == other.length_block &&
+             name == other.name &&
+             index == other.index;
+    }
+
+    bool operator!=(ObjectIndex other) {
+      return length_block != other.length_block ||
+             name != other.name ||
+             index != other.index;
+    }
+
+  };
+
+  union Index {
+    ArrayIndex array_index;
+    ObjectIndex object_index;
+    Index(const Index& other)
+      : object_index(other.object_index) {}
+    Index()
+      : object_index{0, 0, 0, 0}
+    {}
+  };
 
   DBNodeVisitor parent;
   ByteArray data;
   Index index;
 
 public:
-  DBNodeIterator(DBNodeVisitor& parent)
-    : parent(parent),
-      data(parent.loadData()) {
-
-    switch (parent.getTypeClass()) {
-      default:
-      case binom::VarTypeClass::invalid_type:
-      case binom::VarTypeClass::primitive:
-        throw SException(ErrCode::binom_invalid_type);
-      case binom::VarTypeClass::buffer_array:
-      case binom::VarTypeClass::array:
-        index.array_index = 0;
-      break;
-      case binom::VarTypeClass::object:
-        ObjectDescriptor& obj_des = data.get<ObjectDescriptor>(0);
-
-        index.object_index.length_block = sizeof (ObjectDescriptor);
-
-        index.object_index.name_counter =
-            data.get<ObjectNameLength>(0, index.object_index.length_block).name_count;
-
-        index.object_index.name =
-            sizeof (ObjectDescriptor) +
-            obj_des.length_element_count*sizeof(ObjectNameLength);
-
-        index.object_index.index =
-            sizeof (ObjectDescriptor) +
-            obj_des.length_element_count*sizeof(ObjectNameLength) +
-            obj_des.name_block_size;
-
-      break;
-    }
-  }
-
-  DBNodeIterator(const DBNodeIterator& other)
-    : parent(other.parent),
-      data(std::move(other.data)),
-      index(other.index) {}
-
-  DBNodeIterator(DBNodeIterator&& other)
-    : parent(other.parent),
-      data(std::move(other.data)),
-      index(other.index) {}
-
-  DBNodeIterator& operator++() {
-    switch (parent.getTypeClass()) {
-      default:
-      case binom::VarTypeClass::invalid_type:
-      case binom::VarTypeClass::primitive:
-        throw SException(ErrCode::binom_invalid_type);
-      case binom::VarTypeClass::buffer_array:
-        index.array_index += toSize(toValueType(parent.getType()));
-      break;
-      case binom::VarTypeClass::array:
-        index.array_index += sizeof(f_virtual_index);
-      break;
-      case binom::VarTypeClass::object:
-        index.object_index.index += sizeof(f_virtual_index);
-        index.object_index.name += data.get<ObjectNameLength>(0, index.object_index.length_block).name_length;
-        --index.object_index.name_counter;
-        if(!index.object_index.name_counter)
-          index.object_index.length_block += sizeof (ObjectNameLength);
-      break;
-    }
-    return *this;
-  }
-
-  DBNodeVisitor operator*() {
-    switch (parent.getTypeClass()) {
-      default:
-      case binom::VarTypeClass::invalid_type:
-      case binom::VarTypeClass::primitive:
-        throw SException(ErrCode::binom_invalid_type);
-      case binom::VarTypeClass::buffer_array:
-      return DBNodeVisitor(parent.fvmc, parent.node_index, true, index.array_index / toSize(toValueType(parent.getType())));
-      case binom::VarTypeClass::array:
-      return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.array_index));
-      case binom::VarTypeClass::object:
-      return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.object_index.index));
-    }
-  }
-
-
-  ByteArray getName() {
-    if(parent.getTypeClass() != VarTypeClass::object)
-      return ByteArray();
-    return ByteArray(&data.get<char>(0, index.object_index.name),
-                     data.get<ObjectNameLength>(0, index.object_index.length_block).name_length);
-  }
-
-
-  bool isEnd() {
-    switch (parent.getTypeClass()) {
-      default:
-      case binom::VarTypeClass::invalid_type:
-      case binom::VarTypeClass::primitive:
-        throw SException(ErrCode::binom_invalid_type);
-      case binom::VarTypeClass::buffer_array:
-      case binom::VarTypeClass::array:
-      return (data.begin() + index.array_index) == data.end();
-      case binom::VarTypeClass::object:
-      return (data.begin() + index.object_index.index) == data.end();
-    }
-  }
+  DBNodeIterator(DBNodeVisitor& parent);
+  DBNodeIterator(const DBNodeIterator& other);
+  DBNodeIterator(DBNodeIterator&& other);
+  DBNodeIterator& operator++();
+  DBNodeVisitor operator*();
+  ByteArray getName();
+  bool isEnd();
 
   inline bool operator!=([[maybe_unused]] decltype(nullptr) null) {return !isEnd();}
 

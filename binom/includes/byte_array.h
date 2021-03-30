@@ -34,11 +34,7 @@ public:
   ui64 length() const {return _length/sizeof(Type);}
   ui64 length() const;
 
-  void reset(ui64 new_length) {
-    _length = new_length;
-    array = tryRealloc<byte>(array, _length);
-    memset(array, 0, _length);
-  }
+  void reset(ui64 new_length);
 
   template<typename Type>
   ByteArray& pushBack(const Type& value) {return pushBack(&value, sizeof (Type));}
@@ -101,7 +97,7 @@ public:
 
   template<typename Type>
   Type takeBack() {
-    if(sizeof (Type) > _length) throw SException(ErrCode::any);
+    if(sizeof (Type) > _length) throw Exception(ErrCode::any);
     Type _new;
     memcpy(&_new, end()-sizeof(Type), sizeof(Type));
     _length -= sizeof(Type);
@@ -110,7 +106,7 @@ public:
 
   template<typename Type>
   Type takeFront() {
-    if(sizeof (Type) > _length) throw SException(ErrCode::any);
+    if(sizeof (Type) > _length) throw Exception(ErrCode::any);
     Type _new;
     memcpy(&_new, begin(), sizeof (Type));
     _length -= sizeof (Type);
@@ -119,11 +115,7 @@ public:
     return _new;
   }
 
-  ui64 pointerToIndex(void* pos) {
-    if(pos < array || pos > array + _length)
-      throw SException(ErrCode::out_of_range);
-    return ui64(reinterpret_cast<byte*>(pos) - array);
-  }
+  ui64 pointerToIndex(void* pos);
 
 
 

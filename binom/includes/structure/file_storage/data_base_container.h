@@ -18,6 +18,8 @@ public:
   inline ui64    getHeapPageCount() {return fvmc.getHeapPageCount();}
   inline ui64    getBytePageCount() {return fvmc.getBytePageCount();}
 
+  bool isUninitializedRoot() {return fvmc.loadNodeDescriptor(0).type == VarType::end;}
+
   inline Variable getDBInfo() {
     return obj {
       {"file_size", ui64(getFileSize())},

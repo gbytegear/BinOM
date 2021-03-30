@@ -5,7 +5,7 @@ using namespace binom;
 
 
 
-///////////////////////////////////////////////////////////////////////// QueryFieldValue
+//  QueryFieldValue
 
 QueryFieldValue::QueryFieldValue(VarType type)
   : value_type(QueryFieldValueType::type),
@@ -92,7 +92,7 @@ QueryFieldValue::Data::Data(QueryFieldValueType vtype, QueryFieldValue::Data&& o
 
 
 
-///////////////////////////////////////////////////////////////////////// QueryField
+// QueryField
 
 bool QueryField::test() {
   switch (property) {
@@ -184,20 +184,21 @@ bool QueryField::test() {
         default: return false;
       }
   }
+  return false;
 }
 
 QueryField::QueryField(QueryProperty property, QueryOperator operat, QueryFieldValue value, QueryNextFieldRelation next_rel)
   : value(std::move(value)),
     property(property),
     operat(operat),
-    next_rel(next_rel) {if(!test()) throw SException(ErrCode::binom_query_invalid_field);}
+    next_rel(next_rel) {if(!test()) throw Exception(ErrCode::binom_query_invalid_field);}
 
 QueryField::QueryField(QueryProperty property, Path path, QueryOperator operat, QueryFieldValue value, QueryNextFieldRelation next_rel)
   : value(std::move(value)),
     path(new Path(std::move(path))),
     property(property),
     operat(operat),
-    next_rel(next_rel) {if(!test()) throw SException(ErrCode::binom_query_invalid_field);}
+    next_rel(next_rel) {if(!test()) throw Exception(ErrCode::binom_query_invalid_field);}
 
 QueryField::QueryField(const QueryField& other)
   : value(other.value),
@@ -216,16 +217,6 @@ QueryField::QueryField(QueryField&& other)
   other.value.data.number = 0;
   other.path = nullptr;
 }
-
-//QueryField::QueryField(std::initializer_list<QueryField> field_list)
-//  : QueryField(*field_list.begin()) {
-//  iterator it = begin();
-//  for(const QueryField& field : field_list)
-//    if(&field != field_list.begin()) {
-//      it->next = new QueryField(field);
-//      ++it;
-//    }
-//}
 
 QueryField::~QueryField() {
   if(path) delete path;
@@ -258,7 +249,7 @@ QueryField::iterator QueryField::end() {return nullptr;}
 
 
 
-//////////////////////////////////////////////////////////////////////////////// QueryField::iterator
+// QueryField::iterator
 
 QueryField::iterator::iterator(QueryField* field) : current(field) {}
 QueryField::iterator::iterator(const QueryField::iterator& other) : current(other.current) {}
@@ -270,7 +261,7 @@ QueryField::iterator QueryField::iterator::operator++(int) {QueryField* last = c
 bool QueryField::iterator::operator==(QueryField::iterator other) const {return current == other.current;}
 bool QueryField::iterator::operator!=(QueryField::iterator other) const {return current != other.current;}
 
-//////////////////////////////////////////////////////////////////////////////// QueryFieldGroup
+// QueryFieldGroup
 
 QueryFieldGroup::QueryFieldGroup(std::initializer_list<QueryField> field_list,
                                  QueryNextFieldRelation next_relation)
@@ -314,7 +305,7 @@ QueryFieldGroup::iterator QueryFieldGroup::begin() {return this;}
 
 QueryFieldGroup::iterator QueryFieldGroup::end() {return nullptr;}
 
-//////////////////////////////////////////////////////////////////////////////// QueryFieldGroup::iterator
+//  QueryFieldGroup::iterator
 
 QueryFieldGroup::iterator::iterator(QueryFieldGroup* field_group) : current(field_group) {}
 QueryFieldGroup::iterator::iterator(const QueryFieldGroup::iterator& other) : current(other.current) {}

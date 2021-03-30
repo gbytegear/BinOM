@@ -8,6 +8,7 @@ namespace binom {
 
 
 class FileVirtualMemoryController;
+class MemoryBlockList;
 
 template<typename DescriptorType>
 class PageList {
@@ -33,7 +34,7 @@ public:
     bool operator!=(PageIterator other) const {return current != other.current;}
     PageIterator& operator+=(ui64 index) {
       while (index != 0) {
-        if(!current) throw SException(ErrCode::binomdb_page_isnt_exist);
+        if(!current) throw Exception(ErrCode::binomdb_page_isnt_exist);
         current = current->next;
         --index;
       }
@@ -62,7 +63,7 @@ public:
       if(index == 0) return node;
       --index;
     }
-    throw SException(ErrCode::binomdb_page_isnt_exist);
+    throw Exception(ErrCode::binomdb_page_isnt_exist);
   }
 
   PageNode* insertPage(f_real_index index, DescriptorType descriptor) {
@@ -158,7 +159,6 @@ public:
 
 
 class FileVirtualMemoryController {
-//public: // WARNING: For testing!!!
   FileIO file;
   NodePageList node_page_list;
   BytePageList byte_page_list;
@@ -217,6 +217,7 @@ public:
   void            freeNodeData(f_virtual_index node_index);
   void            free(f_virtual_index node_index);
   void            markNodeAsBusy(f_virtual_index node_index);
+  bool            isBusyNode(f_virtual_index node_index);
 
   ByteArray       loadDataByNode(f_virtual_index node_index);
   ByteArray       loadHeapDataByIndex(f_virtual_index heap_index) { return loadHeapData(heap_index); }

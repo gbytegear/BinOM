@@ -91,7 +91,7 @@ binom::ByteArray binom::Primitive::serialize() const {return ByteArray(data.ptr,
 
 binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
   VarType type = VarType(*it);
-  if(type < VarType::byte || type > VarType::qword) throw SException(ErrCode::binom_invalid_type);
+  if(type < VarType::byte || type > VarType::qword) throw Exception(ErrCode::binom_invalid_type);
   ++it;
   void* buffer = tryMalloc(1 + getMemberSize(type));
   Primitive var(buffer);

@@ -277,8 +277,7 @@ f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor
     }
 
     // If all pages are busy, create a new page
-    if(!page.next)
-      createNodePage();
+    if(!page.next) createNodePage();
   } // NOTE: Infinity loop
 }
 
@@ -332,7 +331,7 @@ ByteArray FileVirtualMemoryController::getRealHeapBlocks(f_virtual_index index, 
   }
 
   while (size) {
-    if((++it).isEnd()) throw SException(ErrCode::binomdb_page_isnt_exist);
+    if((++it).isEnd()) throw Exception(ErrCode::binomdb_page_isnt_exist);
     RealBlock block{
       it->index + sizeof (HeapPageDescriptor),
           heap_data_page_size
@@ -364,7 +363,7 @@ FileVirtualMemoryController::VMemoryBlock FileVirtualMemoryController::allocHeap
 
 ByteArray FileVirtualMemoryController::loadHeapData(f_virtual_index data_index) {
   MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(data_index);
-  if(data_block.isEmpty()) throw SException(ErrCode::binomdb_memory_management_error);
+  if(data_block.isEmpty()) throw Exception(ErrCode::binomdb_memory_management_error);
   ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
   ByteArray data(data_block.size);
   ByteArray::iterator data_it = data.begin();
@@ -440,7 +439,7 @@ void FileVirtualMemoryController::freeByteData(f_virtual_index index, ValType ty
 
 f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray data) {
   switch (toTypeClass(type)) {
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::primitive: {
       NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
       return allocNode(descriptor);
@@ -458,7 +457,7 @@ f_virtual_index FileVirtualMemoryController::createNode(VarType type, ByteArray 
 void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType type, ByteArray data) {
 
   switch (toTypeClass(type)) { // Alloc new data block
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::primitive: {
       NodeDescriptor descriptor{type, allocByteData(toValueType(type), data)};
       setNode(node_index, descriptor);
@@ -478,13 +477,15 @@ void FileVirtualMemoryController::updateNode(f_virtual_index node_index, VarType
 void FileVirtualMemoryController::freeNodeData(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   switch (toTypeClass(descriptor.type)) { // Free data block
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::primitive:
       freeByteData(descriptor.index, toValueType(descriptor.type));
     return;
     case VarTypeClass::buffer_array:
     case VarTypeClass::array:
     case VarTypeClass::object:
+      if(descriptor.index == 0 &&
+         descriptor.size == 0) return;
       freeHeapData(descriptor.index);
     return;
   }
@@ -494,7 +495,7 @@ ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   if(descriptor.size == 0) return ByteArray();
   switch (toTypeClass(descriptor.type)) {
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::primitive: return loadByteData(descriptor.index, toValueType(descriptor.type));
     case VarTypeClass::buffer_array:
     case VarTypeClass::array:
@@ -505,7 +506,7 @@ ByteArray FileVirtualMemoryController::loadDataByNode(f_virtual_index node_index
 ByteArray FileVirtualMemoryController::loadHeapDataPartByIndex(f_virtual_index heap_index, f_real_index shift, f_size size) {
   if(!size) return ByteArray();
   MemoryBlockList::MemoryBlock data_block = heap_block_list.findBlock(heap_index);
-  if(data_block.isEmpty()) throw SException(ErrCode::binomdb_memory_management_error);
+  if(data_block.isEmpty()) throw Exception(ErrCode::binomdb_memory_management_error);
   ByteArray real_block_array = getRealHeapBlocks(data_block.index, data_block.size);
 
   ByteArray data(size);
@@ -543,7 +544,7 @@ void FileVirtualMemoryController::free(f_virtual_index node_index) {
   NodeDescriptor descriptor(loadNodeDescriptor(node_index));
   freeNode(node_index);
   switch (toTypeClass(descriptor.type)) { // Free data block
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::primitive:
       freeByteData(descriptor.index, toValueType(descriptor.type));
     return;
@@ -560,4 +561,11 @@ void FileVirtualMemoryController::markNodeAsBusy(f_virtual_index node_index) {
   NodePageList::PageNode& page = node_page_list[(node_index - 1)/64];
   page.descriptor.node_map.set((node_index - 1)%64, true);
   file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
+}
+
+bool FileVirtualMemoryController::isBusyNode(f_virtual_index node_index) {
+  if(!node_index) {
+    return header.root_node.type != VarType::end;
+  }
+  return node_page_list[(node_index - 1)/64].descriptor.node_map.get((node_index - 1)%64);
 }

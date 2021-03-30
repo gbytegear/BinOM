@@ -12,7 +12,7 @@ bool ValueRef::asBool() const {
     case ValType::dword: return *ptr.ui32ptr;
     case ValType::qword: return *ptr.ui64ptr;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 ui64 ValueRef::asUnsigned() const {
@@ -22,7 +22,7 @@ ui64 ValueRef::asUnsigned() const {
     case ValType::dword: return *ptr.ui32ptr;
     case ValType::qword: return *ptr.ui64ptr;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 i64 ValueRef::asSigned() const {
@@ -32,7 +32,7 @@ i64 ValueRef::asSigned() const {
     case ValType::dword: return *ptr.i32ptr;
     case ValType::qword: return *ptr.i64ptr;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 f64 ValueRef::asFloat() const {
@@ -42,7 +42,7 @@ f64 ValueRef::asFloat() const {
     case ValType::dword: return *ptr.f32ptr;
     case ValType::qword: return *ptr.f64ptr;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 bool ValueRef::setBool(const bool value) {
@@ -52,7 +52,7 @@ bool ValueRef::setBool(const bool value) {
     case ValType::dword: return *ptr.ui32ptr = static_cast<ui32>(value);
     case ValType::qword: return *ptr.ui64ptr = static_cast<ui64>(value);
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 ui64 ValueRef::setUnsigned(const ui64 value) {
@@ -62,7 +62,7 @@ ui64 ValueRef::setUnsigned(const ui64 value) {
     case ValType::dword: return *ptr.ui32ptr = value;
     case ValType::qword: return *ptr.ui64ptr = value;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 i64 ValueRef::setSigned(const i64 value) {
@@ -72,7 +72,7 @@ i64 ValueRef::setSigned(const i64 value) {
     case ValType::dword: return *ptr.i32ptr = value;
     case ValType::qword: return *ptr.i64ptr = value;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 f64 ValueRef::setFloat(const f64 value) {
@@ -82,7 +82,7 @@ f64 ValueRef::setFloat(const f64 value) {
     case ValType::dword: return *ptr.i32ptr = value;
     case ValType::qword: return *ptr.i64ptr = value;
   }
-  throw SException(ErrCode::binom_invalid_type, "Invalid type");
+  throw Exception(ErrCode::binom_invalid_type, "Invalid type");
 }
 
 ValueIterator& ValueRef::toIterator() {return *reinterpret_cast<ValueIterator*>(this);}

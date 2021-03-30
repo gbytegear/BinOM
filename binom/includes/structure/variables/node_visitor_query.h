@@ -20,7 +20,7 @@ bool NodeVisitor::test(Query query, ui64 index) noexcept {
   static const auto getName = [](NodeVisitor& node) -> BufferArray {
     try {
       return node.getName();
-    }  catch (SException&) {
+    }  catch (Exception&) {
       return "";
     }
   };

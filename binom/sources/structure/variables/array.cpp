@@ -26,7 +26,7 @@ void* Array::maddto(void* to, size_t size) {
 }
 
 void Array::msubfrom(void* from, size_t size) {
-  if(from < data.ptr) throw SException(ErrCode::binom_out_of_range);
+  if(from < data.ptr) throw Exception(ErrCode::binom_out_of_range);
   size_t old_size = msize();
   memmove(from, reinterpret_cast<byte*>(from) + size,
           old_size - (reinterpret_cast<byte*>(from) - data.bytes) - size);
@@ -83,7 +83,7 @@ ByteArray Array::serialize() const {
 
 binom::Array Array::deserialize(ByteArray::iterator& it) {
   VarType type = VarType(*it);
-  if(type != VarType::array) throw SException(ErrCode::binom_invalid_type);
+  if(type != VarType::array) throw Exception(ErrCode::binom_invalid_type);
   ++it;
   Array arr;
   while (VarType(*it) != VarType::end) {
@@ -94,12 +94,12 @@ binom::Array Array::deserialize(ByteArray::iterator& it) {
 }
 
 Variable& Array::getVariable(ui64 index) const {
-  if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of array range");
+  if(index >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of array range");
   return begin()[index];
 }
 
 Variable& Array::insert(ui64 index, Variable var) {
-  if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of array range");
+  if(index > getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of array range");
   Variable* new_var = reinterpret_cast<Variable*>(maddto(data.bytes + msize(), sizeof (Variable)));
   ++length();
   new_var->data.ptr = var.data.ptr;
@@ -124,7 +124,7 @@ Variable& Array::pushFront(Variable var) {
 }
 
 void Array::remove(ui64 index, ui64 n) {
-  if(index + n >= getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(index + n >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   Variable* start = reinterpret_cast<Variable*>(data.bytes + 9 + index*sizeof(Variable));
   {
     Variable* it = start;
@@ -136,7 +136,7 @@ void Array::remove(ui64 index, ui64 n) {
 }
 
 void Array::popBack(ui64 n) {
-  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(n > getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   Variable* start = reinterpret_cast<Variable*>(data.bytes + msize() - n*sizeof(Variable));
   {
     Variable* it = start;
@@ -148,7 +148,7 @@ void Array::popBack(ui64 n) {
 }
 
 void Array::popFront(ui64 n) {
-  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(n > getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   Variable* start = reinterpret_cast<Variable*>(data.bytes + 9);
   {
     Variable* it = start;

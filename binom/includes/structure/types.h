@@ -82,7 +82,7 @@ namespace binom {
           case VarType::word_array: return ValType::word;
           case VarType::dword_array: return ValType::dword;
           case VarType::qword_array: return ValType::qword;
-          default: throw SException(ErrCode::binom_invalid_type, "Variable type can't be convert to value type!");
+          default: throw Exception(ErrCode::binom_invalid_type, "Variable type can't be convert to value type!");
       }
   }
 
@@ -92,6 +92,7 @@ namespace binom {
       case ValType::word: return VarType::word;
       case ValType::dword:return VarType::dword;
       case ValType::qword:return VarType::qword;
+      default: return VarType::invlid_type;
     }
   }
 
@@ -101,6 +102,7 @@ namespace binom {
       case ValType::word: return 2;
       case ValType::dword: return 4;
       case ValType::qword: return 8;
+      default: return 0;
     }
   }
 

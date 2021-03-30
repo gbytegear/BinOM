@@ -11,7 +11,7 @@ void* Variable::clone() const {
     case VarTypeClass::array: return toArray().clone();
     case VarTypeClass::object: return toObject().clone();
     default:
-    case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
+    case VarTypeClass::invalid_type: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 
@@ -23,7 +23,6 @@ void Variable::destroy() {
     case VarTypeClass::array: return toArray().destroy();
     case VarTypeClass::object: return toObject().destroy();
     default: break;
-//    case VarTypeClass::invalid_type: throw SException(ErrCode::binom_invalid_type, "destroy(): Invalid type!");
   }
 }
 
@@ -385,7 +384,7 @@ Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVa
 
         if(it[middle].name > value.name) right = middle - 1;
         elif(it[middle].name < value.name) left = middle + 1;
-        elif(it[middle].name == value.name) throw SException(ErrCode::binom_object_key_error, "");
+        elif(it[middle].name == value.name) throw Exception(ErrCode::binom_object_key_error, "");
       }
 
       for(; (middle < in_count)? it[middle].name < value.name : false ;++middle);
@@ -425,7 +424,7 @@ ByteArray Variable::serialize() const {
     case VarTypeClass::buffer_array: return toBufferArray().serialize();
     case VarTypeClass::array: return toArray().serialize();
     case VarTypeClass::object: return toObject().serialize();
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 
@@ -435,7 +434,7 @@ Variable Variable::deserialize(ByteArray::iterator& it) {
     case VarTypeClass::buffer_array: return std::move(BufferArray::deserialize(it).asVar());
     case VarTypeClass::array: return std::move(Array::deserialize(it).asVar());
     case VarTypeClass::object: return std::move(Object::deserialize(it).asVar());
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 
@@ -466,7 +465,7 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
     case VarTypeClass::buffer_array: return printWithIndent(os, ind, std::move(msg), var.toBufferArray());
     case VarTypeClass::array: return printWithIndent(os, ind, std::move(msg), var.toArray());
     case VarTypeClass::object: return printWithIndent(os, ind, std::move(msg), var.toObject());
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 

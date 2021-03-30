@@ -2,25 +2,11 @@
 
 using namespace binom;
 
-PathNode::PathNode(ui64 index)
-  : _type(PathNodeType::index),
-    value(index)
-{}
-
-PathNode::PathNode(BufferArray name)
-  : _type(PathNodeType::name),
-    value(std::move(name))
-{}
-
-PathNode::PathNode(const char* name)
-  : _type(PathNodeType::name),
-    value(BufferArray(name))
-{}
-
-PathNode::PathNode(int index)
-  : _type(PathNodeType::index),
-    value(ui64(index))
-{}
+PathNode::PathNode(const PathNode::PathLiteral& literal)
+  : _type(literal.type), value(literal.value.index) {
+  if(literal.type == PathNodeType::name)
+    const_cast<PathLiteral&>(literal).value.index = 0;
+}
 
 PathNode::PathNode(const PathNode& other)
   : _type(other._type),
@@ -39,12 +25,12 @@ PathNode::PathNode(PathNode&& other)
     _type(other._type),
     value(_type, std::move(other.value)) {other.next = nullptr;}
 
-PathNode::PathNode(std::initializer_list<PathNode> path)
+PathNode::PathNode(std::initializer_list<PathLiteral> path)
   : PathNode(*path.begin()) {
   iterator it = begin();
-  for(const PathNode& path_node : path) {
+  for(const PathLiteral& path_node : path) {
     if(&path_node == path.begin()) continue;
-    it->next = new PathNode(std::move(path_node));
+    it->next = new PathNode(path_node);
     ++it;
   }
 }
@@ -73,7 +59,7 @@ PathNode::const_iterator PathNode::cend() const {return nullptr;}
 
 PathNode::PathNodeValue::~PathNodeValue() {}
 
-PathNode::PathNodeValue::PathNodeValue(ui8 index)
+PathNode::PathNodeValue::PathNodeValue(ui64 index)
   : index(index) {}
 
 PathNode::PathNodeValue::PathNodeValue(BufferArray name)
@@ -136,3 +122,18 @@ PathNode::const_iterator PathNode::const_iterator::operator++(int) {const_iterat
 bool PathNode::const_iterator::operator==(PathNode::const_iterator other) {return current == other.current;}
 
 bool PathNode::const_iterator::operator!=(PathNode::const_iterator other) {return current != other.current;}
+
+// PathLiteral
+
+PathNode::PathLiteral::PathLiteral(ui64 index) : type(PathNodeType::index), value(index) {}
+
+PathNode::PathLiteral::PathLiteral(int index) : type(PathNodeType::index), value(index) {}
+
+PathNode::PathLiteral::PathLiteral(BufferArray string) : type(PathNodeType::name), value(std::move(string)) {}
+
+PathNode::PathLiteral::PathLiteral(const char* string) : type(PathNodeType::name), value(BufferArray(string)) {}
+
+PathNode::PathLiteral::~PathLiteral() {
+  if(type == PathNodeType::name && value.index != 0)
+    value.string.~BufferArray();
+}

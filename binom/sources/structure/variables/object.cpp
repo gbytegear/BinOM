@@ -1,4 +1,4 @@
-  #include "binom/includes/structure/variables/variable.h"
+#include "binom/includes/structure/variables/variable.h"
 
 using namespace binom;
 
@@ -27,7 +27,7 @@ void* Object::maddto(void* to, size_t size) {
 }
 
 void Object::msubfrom(void* from, size_t size) {
-  if(from < data.ptr) throw SException(ErrCode::binom_out_of_range);
+  if(from < data.ptr) throw Exception(ErrCode::binom_out_of_range);
   size_t old_size = msize();
   memmove(from, reinterpret_cast<byte*>(from) + size,
           old_size - (reinterpret_cast<byte*>(from) - data.bytes) - size);
@@ -89,7 +89,7 @@ Object::Object(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariab
 
         if(it[middle].name > value.name) right = middle - 1;
         elif(it[middle].name < value.name) left = middle + 1;
-        elif(it[middle].name == value.name) throw SException(ErrCode::binom_object_key_error, "");
+        elif(it[middle].name == value.name) throw Exception(ErrCode::binom_object_key_error, "");
       }
 
       for(; (middle < in_count)? it[middle].name < value.name : false ;++middle);
@@ -128,7 +128,7 @@ ByteArray Object::serialize() const {
 
 Object Object::deserialize(ByteArray::iterator& it) {
   VarType type = VarType(*it);
-  if(type != VarType::object) throw SException(ErrCode::binom_invalid_type);
+  if(type != VarType::object) throw Exception(ErrCode::binom_invalid_type);
   ++it;
   Object obj;
   while (VarType(*it) != VarType::end) {
@@ -163,7 +163,7 @@ Variable& Object::insert(BufferArray name, Variable var) {
 
       if(it[middle].name > name) right = middle - 1;
       elif(it[middle].name < name) left = middle + 1;
-      elif(it[middle].name == name) throw SException(ErrCode::binom_object_key_error, "");
+      elif(it[middle].name == name) throw Exception(ErrCode::binom_object_key_error, "");
     }
 
     for(; (middle < length())? it[middle].name < name : false ;++middle);
@@ -199,7 +199,7 @@ void Object::remove(BufferArray name) {
     }
   }
 
-  throw SException(ErrCode::binom_out_of_range, "");
+  throw Exception(ErrCode::binom_out_of_range, "");
 }
 
 BufferArray& Object::rename(BufferArray old_name, BufferArray new_name) {
@@ -217,7 +217,7 @@ BufferArray& Object::rename(BufferArray old_name, BufferArray new_name) {
 
     if(it[middle].name > new_name) right = middle - 1;
     elif(it[middle].name < new_name) left = middle + 1;
-    elif(it[middle].name == new_name) throw SException(ErrCode::binom_object_key_error, "");
+    elif(it[middle].name == new_name) throw Exception(ErrCode::binom_object_key_error, "");
   }
 
   for(; (middle < length())? it[middle].name < new_name : false ;++middle);
@@ -260,7 +260,7 @@ NamedVariable& Object::getNamedVariable(BufferArray name) const {
     elif(it[middle].name == name) return it[middle];
   }
 
-  throw SException(ErrCode::binom_out_of_range, "");
+  throw Exception(ErrCode::binom_out_of_range, "");
 }
 
 Variable& Object::getVariable(BufferArray name) const {
@@ -279,5 +279,5 @@ Variable& Object::getVariable(BufferArray name) const {
     elif(it[middle].name == name) return it[middle].variable;
   }
 
-  throw SException(ErrCode::binom_out_of_range, "");
+  throw Exception(ErrCode::binom_out_of_range, "");
 }

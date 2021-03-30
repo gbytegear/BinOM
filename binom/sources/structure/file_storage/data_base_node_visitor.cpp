@@ -13,7 +13,7 @@ f_virtual_index DBNodeVisitor::createVariable(Variable var) {
     case VarTypeClass::buffer_array: return createBufferArray(std::move(var.toBufferArray()));
     case VarTypeClass::array: return createArray(std::move(var.toArray()));
     case VarTypeClass::object: return createObject(std::move(var.toObject()));
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 
@@ -134,9 +134,11 @@ void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
     if(symbol_count != name_length.name_length) {
       if(object.begin() == &var) {
         name_length.name_length = symbol_count;
+        name_length.name_count = 0;
       } else {
         name_length_segment.pushBack(name_length);
         name_length.name_length = symbol_count;
+        name_length.name_count = 0;
       }
     }
 
@@ -170,7 +172,7 @@ Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) const {
     case VarTypeClass::buffer_array: return std::move(buildBufferArray(node_des).asVar());
     case VarTypeClass::array: return std::move(buildArray(node_des).asVar());
     case VarTypeClass::object: return std::move(buildObject(node_des).asVar());
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 
@@ -298,6 +300,14 @@ void DBNodeVisitor::deleteNode(f_virtual_index node_index) {
   fvmc.free(node_index);
 }
 
+DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, decltype(nullptr))
+  : fvmc(fvmc),
+    node_descriptor{VarType::invlid_type, ui64(-1), ui64(-1)},
+    node_index(ui64(-1)),
+    is_value_ptr(true),
+    value_index(ui64(-1))
+{}
+
 DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index node_index, bool is_value_ptr, ui64 value_index)
   : fvmc(fvmc),
     node_index(node_index),
@@ -343,6 +353,18 @@ ui64 DBNodeVisitor::getElementCount() const {
   }
 }
 
+/*
+fvmc(*reinterpret_cast<FileVirtualMemoryController*>(0)),
+    node_descriptor{VarType::invlid_type, ui64(-1), ui64(-1)},
+    node_index(ui64(-1)),
+    is_value_ptr(true),
+    value_index(ui64(-1))
+*/
+
+bool DBNodeVisitor::isNull() const {
+  return node_descriptor.type == VarType::invlid_type && node_index == ui64(-1) && value_index == ui64(-1);
+}
+
 bool DBNodeVisitor::isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
 bool DBNodeVisitor::isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
 bool DBNodeVisitor::isArray() const {return getTypeClass() == VarTypeClass::array;}
@@ -351,16 +373,16 @@ bool DBNodeVisitor::isObject() const {return getTypeClass() == VarTypeClass::obj
 DBNodeVisitor& DBNodeVisitor::snapTo(f_virtual_index node_index) {this->node_index = node_index; updateNode(); return *this;}
 
 DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
-  if(isPrimitive() || isObject() || is_value_ptr) throw SException(ErrCode::binom_invalid_type);
+  if(isPrimitive() || isObject() || is_value_ptr) throw Exception(ErrCode::binom_invalid_type);
   if(isArray()) {
-    if(node_descriptor.size / sizeof (f_virtual_index) <= index) throw SException(ErrCode::binom_out_of_range);
+    if(node_descriptor.size / sizeof (f_virtual_index) <= index) throw Exception(ErrCode::binom_out_of_range);
     node_index = fvmc.loadHeapDataPartByIndex(node_descriptor.index,
                                               index*sizeof(f_virtual_index),
                                               sizeof (f_virtual_index))
                  .get<f_virtual_index>(0);
     updateNode();
   } else if(isBufferArray()) {
-    if(node_descriptor.size / toSize(toValueType(getType())) <= index) throw SException(ErrCode::binom_out_of_range);
+    if(node_descriptor.size / toSize(toValueType(getType())) <= index) throw Exception(ErrCode::binom_out_of_range);
     value_index = index;
     is_value_ptr = true;
   }
@@ -368,7 +390,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
 }
 
 DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
-  if(!isObject() || is_value_ptr) throw SException(ErrCode::binom_invalid_type);
+  if(!isObject() || is_value_ptr) throw Exception(ErrCode::binom_invalid_type);
   ByteArray data(loadData());
   ObjectDescriptor descriptor = data.get<ObjectDescriptor>(0);
 
@@ -397,7 +419,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
                             descriptor.length_element_count*sizeof(ObjectNameLength);
     ui64 name_count = 0;
 
-    if(middle == -1) throw SException(ErrCode::binom_out_of_range);
+    if(middle == -1) throw Exception(ErrCode::binom_out_of_range);
 
     for(ui64 i = 0; i < middle; ++i) {
       index += length_it[i].name_count;
@@ -424,7 +446,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
       else break;
     }
 
-    if(middle == -1) throw SException(ErrCode::binom_out_of_range);
+    if(middle == -1) throw Exception(ErrCode::binom_out_of_range);
 
     index += middle;
   }
@@ -496,7 +518,7 @@ void DBNodeVisitor::setVariable(Variable var) {
     case VarTypeClass::object:
       setObject(node_index, std::move(var.toObject()));
     break;
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 
   updateNode();
@@ -505,7 +527,7 @@ void DBNodeVisitor::setVariable(Variable var) {
 void DBNodeVisitor::pushBack(Variable var) {
   switch (getTypeClass()) {
     default:
-      throw SException(ErrCode::binom_invalid_type);
+      throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::array: {
       ByteArray array_data(loadData());
       array_data.pushBack(createVariable(var));
@@ -516,7 +538,7 @@ void DBNodeVisitor::pushBack(Variable var) {
     case VarTypeClass::buffer_array: {
       if((!var.isPrimitive() && !var.isBufferArray()) ||
          toValueType(var.type()) != toValueType(var.type()))
-        throw SException(ErrCode::binom_invalid_type);
+        throw Exception(ErrCode::binom_invalid_type);
       ByteArray array_data(loadData());
       if(var.isPrimitive())
         array_data.pushBack(var.toPrimitive().getDataPtr(), toSize(toValueType(var.type())));
@@ -534,7 +556,7 @@ void DBNodeVisitor::pushBack(Variable var) {
 void DBNodeVisitor::pushFront(Variable var) {
   switch (getTypeClass()) {
     default:
-      throw SException(ErrCode::binom_invalid_type);
+      throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::array: {
       ByteArray array_data(loadData());
       array_data.pushFront(createVariable(var));
@@ -545,7 +567,7 @@ void DBNodeVisitor::pushFront(Variable var) {
     case VarTypeClass::buffer_array: {
       if((!var.isPrimitive() && !var.isBufferArray()) ||
          toValueType(var.type()) != toValueType(var.type()))
-        throw SException(ErrCode::binom_invalid_type);
+        throw Exception(ErrCode::binom_invalid_type);
       ByteArray array_data(loadData());
       if(var.isPrimitive())
         array_data.pushFront(var.toPrimitive().getDataPtr(), toSize(toValueType(var.type())));
@@ -563,7 +585,7 @@ void DBNodeVisitor::pushFront(Variable var) {
 void DBNodeVisitor::insert(ui64 index, Variable var) {
   switch (getTypeClass()) {
     default:
-      throw SException(ErrCode::binom_invalid_type);
+      throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::array: {
       ByteArray array_data(loadData());
       array_data.insert<f_virtual_index>(index, 0, createVariable(var));
@@ -574,7 +596,7 @@ void DBNodeVisitor::insert(ui64 index, Variable var) {
     case VarTypeClass::buffer_array: {
       if((!var.isPrimitive() && !var.isBufferArray()) ||
          toValueType(var.type()) != toValueType(var.type()))
-        throw SException(ErrCode::binom_invalid_type);
+        throw Exception(ErrCode::binom_invalid_type);
       ByteArray array_data(loadData());
       if(var.isPrimitive())
         array_data.insert(index, var.toPrimitive().getDataPtr(), toSize(toValueType(var.type())));
@@ -591,7 +613,7 @@ void DBNodeVisitor::insert(ui64 index, Variable var) {
 
 void DBNodeVisitor::insert(BufferArray name, Variable var) {
   if(getTypeClass() != VarTypeClass::object)
-    throw SException(ErrCode::binom_invalid_type);
+    throw Exception(ErrCode::binom_invalid_type);
   ByteArray object_data(loadData());
   if(object_data.isEmpty()) { // If is empty object
     object_data.reset(sizeof(ObjectDescriptor) +
@@ -661,7 +683,7 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
 
         if(cmp > 0) right = middle-1;
         elif(cmp < 0) left = middle+1;
-        else throw SException(ErrCode::binom_object_key_error);
+        else throw Exception(ErrCode::binom_object_key_error);
       }
 
       // Shift if name in object highter then name for insert
@@ -708,7 +730,7 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
 void DBNodeVisitor::remove(ui64 index, ui64 count) {
   switch (getTypeClass()) {
     default:
-      throw SException(ErrCode::binom_invalid_type);
+      throw Exception(ErrCode::binom_invalid_type);
     case VarTypeClass::array: {
       ByteArray array_data(loadData());
       f_virtual_index* delete_node_index_it = array_data.begin<f_virtual_index>(index*sizeof(f_virtual_index));
@@ -732,9 +754,9 @@ void DBNodeVisitor::remove(ui64 index, ui64 count) {
 
 void DBNodeVisitor::remove(BufferArray name) {
   if(getTypeClass() != VarTypeClass::object)
-    throw SException(ErrCode::binom_invalid_type);
+    throw Exception(ErrCode::binom_invalid_type);
   ByteArray object_data(loadData());
-  if(object_data.isEmpty()) throw SException(ErrCode::binom_out_of_range);
+  if(object_data.isEmpty()) throw Exception(ErrCode::binom_out_of_range);
 
   ObjectDescriptor& descriptor = object_data.get<ObjectDescriptor>(0);
   ObjectNameLength* length_block_it = object_data.begin<ObjectNameLength>(sizeof(ObjectDescriptor));
@@ -748,7 +770,7 @@ void DBNodeVisitor::remove(BufferArray name) {
   for(ui64 i = 0; i <= descriptor.length_element_count; ++i) {
     if(i == descriptor.length_element_count ||
        length_block_it[i].name_length > name.getMemberCount()) {
-      throw SException(ErrCode::binom_out_of_range);
+      throw Exception(ErrCode::binom_out_of_range);
     } elif(length_block_it[i].name_length == name.getMemberCount()) {
       length_block_pos = i;
       break;
@@ -765,7 +787,7 @@ void DBNodeVisitor::remove(BufferArray name) {
 
   while (1) {
     middle = (left + right)/2;
-    if(left > right) throw SException(ErrCode::binom_out_of_range);
+    if(left > right) throw Exception(ErrCode::binom_out_of_range);
 
     int cmp = memcmp(name_it + name.getMemberCount()*middle, name.getDataPointer(), name.getMemberCount());
 
@@ -798,6 +820,8 @@ void DBNodeVisitor::remove(BufferArray name) {
   updateNode();
 
 }
+
+void DBNodeVisitor::remove() { deleteNode(node_index); snapTo(0); }
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
@@ -833,8 +857,118 @@ DBNodeVisitor DBNodeVisitor::find(Query query) {
       return node;
     ++index;
   }
+  return DBNodeVisitor(fvmc, nullptr);
 }
 
 DBNodeIterator DBNodeVisitor::begin() {
   return DBNodeIterator(*this);
+}
+
+
+
+
+
+// Node Iterator
+
+DBNodeIterator::DBNodeIterator(DBNodeVisitor& parent)
+  : parent(parent),
+    data(parent.loadData()) {
+
+  switch (parent.getTypeClass()) {
+    default:
+    case binom::VarTypeClass::invalid_type:
+    case binom::VarTypeClass::primitive:
+      throw Exception(ErrCode::binom_invalid_type);
+    case binom::VarTypeClass::buffer_array:
+    case binom::VarTypeClass::array:
+      index.array_index = 0;
+    break;
+    case binom::VarTypeClass::object:
+      ObjectDescriptor& obj_des = data.get<ObjectDescriptor>(0);
+
+      index.object_index.length_block = sizeof (ObjectDescriptor);
+
+      index.object_index.name_counter =
+          data.get<ObjectNameLength>(0, index.object_index.length_block).name_count;
+
+      index.object_index.name =
+          sizeof (ObjectDescriptor) +
+          obj_des.length_element_count*sizeof(ObjectNameLength);
+
+      index.object_index.index =
+          sizeof (ObjectDescriptor) +
+          obj_des.length_element_count*sizeof(ObjectNameLength) +
+          obj_des.name_block_size;
+
+    break;
+  }
+}
+
+DBNodeIterator::DBNodeIterator(const DBNodeIterator& other)
+  : parent(other.parent),
+    data(std::move(other.data)),
+    index(other.index) {}
+
+DBNodeIterator::DBNodeIterator(DBNodeIterator&& other)
+  : parent(other.parent),
+    data(std::move(other.data)),
+    index(other.index) {}
+
+DBNodeIterator& DBNodeIterator::operator++() {
+  switch (parent.getTypeClass()) {
+    default:
+    case binom::VarTypeClass::invalid_type:
+    case binom::VarTypeClass::primitive:
+      throw Exception(ErrCode::binom_invalid_type);
+    case binom::VarTypeClass::buffer_array:
+      index.array_index += toSize(toValueType(parent.getType()));
+    break;
+    case binom::VarTypeClass::array:
+      index.array_index += sizeof(f_virtual_index);
+    break;
+    case binom::VarTypeClass::object:
+      index.object_index.index += sizeof(f_virtual_index);
+      index.object_index.name += data.get<ObjectNameLength>(0, index.object_index.length_block).name_length;
+      --index.object_index.name_counter;
+      if(!index.object_index.name_counter)
+        index.object_index.length_block += sizeof (ObjectNameLength);
+    break;
+  }
+  return *this;
+}
+
+DBNodeVisitor DBNodeIterator::operator*() {
+  switch (parent.getTypeClass()) {
+    default:
+    case binom::VarTypeClass::invalid_type:
+    case binom::VarTypeClass::primitive:
+      throw Exception(ErrCode::binom_invalid_type);
+    case binom::VarTypeClass::buffer_array:
+    return DBNodeVisitor(parent.fvmc, parent.node_index, true, index.array_index / toSize(toValueType(parent.getType())));
+    case binom::VarTypeClass::array:
+    return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.array_index));
+    case binom::VarTypeClass::object:
+    return DBNodeVisitor(parent.fvmc, data.get<f_virtual_index>(0, index.object_index.index));
+  }
+}
+
+ByteArray DBNodeIterator::getName() {
+  if(parent.getTypeClass() != VarTypeClass::object)
+    return ByteArray();
+  return ByteArray(&data.get<char>(0, index.object_index.name),
+                   data.get<ObjectNameLength>(0, index.object_index.length_block).name_length);
+}
+
+bool DBNodeIterator::isEnd() {
+  switch (parent.getTypeClass()) {
+    default:
+    case binom::VarTypeClass::invalid_type:
+    case binom::VarTypeClass::primitive:
+      throw Exception(ErrCode::binom_invalid_type);
+    case binom::VarTypeClass::buffer_array:
+    case binom::VarTypeClass::array:
+    return (data.begin() + index.array_index) == data.end();
+    case binom::VarTypeClass::object:
+    return (data.begin() + index.object_index.index) == data.end();
+  }
 }

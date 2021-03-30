@@ -9,6 +9,7 @@ bool DBNodeVisitor::test(Query &query, ui64 index, BufferArray name) {
 
   static const auto getRelationResult = [](bool last, QueryNextFieldRelation rel, bool current){
     switch (rel) {
+      default:
       case QueryNextFieldRelation::AND:
       return last && current;
       case QueryNextFieldRelation::OR:

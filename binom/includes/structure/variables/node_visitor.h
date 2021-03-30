@@ -117,7 +117,7 @@ class NodeVisitor::NodeIterator {
         case VarTypeClass::buffer_array: value_it = is_end? parent.toBufferArray().end() : parent.toBufferArray().begin(); return;
         case VarTypeClass::array:        variable = is_end? parent.toArray().end() : parent.toArray().begin(); return;
         case VarTypeClass::object:       named_variable = is_end? parent.toObject().end() : parent.toObject().begin(); return;
-        default: throw SException(ErrCode::binom_invalid_type);
+        default: throw Exception(ErrCode::binom_invalid_type);
       }
     }
 
@@ -126,7 +126,7 @@ class NodeVisitor::NodeIterator {
         case VarTypeClass::buffer_array: value_it = other.value_it; return;
         case VarTypeClass::array:        variable = other.variable; return;
         case VarTypeClass::object:       named_variable = other.named_variable; return;
-        default: throw SException(ErrCode::binom_invalid_type);
+        default: throw Exception(ErrCode::binom_invalid_type);
       }
     }
 
@@ -156,7 +156,7 @@ public:
       case VarTypeClass::buffer_array: ++ptr.value_it; break;
       case VarTypeClass::array:        ++ptr.variable; break;
       case VarTypeClass::object:       ++ptr.named_variable; break;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
     return *this;
   }
@@ -167,7 +167,7 @@ public:
       case VarTypeClass::buffer_array: ++ptr.value_it; break;
       case VarTypeClass::array:        ++ptr.variable; break;
       case VarTypeClass::object:       ++ptr.named_variable; break;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
     return tmp;
   }
@@ -177,7 +177,7 @@ public:
       case VarTypeClass::buffer_array: --ptr.value_it; break;
       case VarTypeClass::array:        --ptr.variable; break;
       case VarTypeClass::object:       --ptr.named_variable; break;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
     return *this;
   }
@@ -188,7 +188,7 @@ public:
       case VarTypeClass::buffer_array: --ptr.value_it; break;
       case VarTypeClass::array:        --ptr.variable; break;
       case VarTypeClass::object:       --ptr.named_variable; break;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
     return tmp;
   }
@@ -199,7 +199,7 @@ public:
       case VarTypeClass::buffer_array: return ptr.value_it == other.ptr.value_it;
       case VarTypeClass::array:        return ptr.variable == other.ptr.variable;
       case VarTypeClass::object:       return ptr.named_variable == other.ptr.named_variable;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 
@@ -209,7 +209,7 @@ public:
        case VarTypeClass::buffer_array: return ptr.value_it != other.ptr.value_it;
        case VarTypeClass::array:        return ptr.variable != other.ptr.variable;
        case VarTypeClass::object:       return ptr.named_variable != other.ptr.named_variable;
-       default: throw SException(ErrCode::binom_invalid_type);
+       default: throw Exception(ErrCode::binom_invalid_type);
      }
   }
 
@@ -218,7 +218,7 @@ public:
       case VarTypeClass::buffer_array: return *ptr.value_it;
       case VarTypeClass::array:        return ptr.variable;
       case VarTypeClass::object:       return ptr.named_variable;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 

@@ -10,7 +10,7 @@ ui64 BufferArray::msize() const {
     case VarType::word_array: return 9 + length()*2;
     case VarType::dword_array: return 9 + length()*4;
     case VarType::qword_array: return 9 + length()*8;
-    default: throw SException(ErrCode::binom_invalid_type);
+    default: throw Exception(ErrCode::binom_invalid_type);
   }
 }
 
@@ -35,7 +35,7 @@ void* BufferArray::maddto(void* to, size_t size) {
 }
 
 void BufferArray::msubfrom(void* from, size_t size) {
-  if(from < data.ptr) throw SException(ErrCode::binom_out_of_range);
+  if(from < data.ptr) throw Exception(ErrCode::binom_out_of_range);
   size_t old_size = msize();
   memmove(from, reinterpret_cast<byte*>(from) + size,
           old_size - (reinterpret_cast<byte*>(from) - data.bytes) - size);
@@ -83,7 +83,7 @@ ui64 BufferArray::fromChainNumber(ByteArray::iterator& it) {
 }
 
 BufferArray::BufferArray(VarType type) : data(nullptr){
-  if(type < VarType::byte_array || type > VarType::qword_array) throw SException(ErrCode::binom_invalid_type);
+  if(type < VarType::byte_array || type > VarType::qword_array) throw Exception(ErrCode::binom_invalid_type);
   data.ptr = tryMalloc (9);
   *data.type = type;
   length() = 0;
@@ -368,7 +368,7 @@ ByteArray BufferArray::serialize() const {
 
 BufferArray BufferArray::deserialize(binom::ByteArray::iterator& it) {
   VarType type = VarType(*it);
-  if(type < VarType::byte_array || type > VarType::qword_array) throw SException(ErrCode::binom_invalid_type);
+  if(type < VarType::byte_array || type > VarType::qword_array) throw Exception(ErrCode::binom_invalid_type);
   ++it;
   ui64 length = fromChainNumber(it);
   void* buffer = tryMalloc(9 + length*getMemberSize(type));
@@ -446,7 +446,7 @@ BufferArray::iterator BufferArray::pushFront(const BufferArray& other) {
 }
 
 ValueRef BufferArray::insert(const ui64 index, const ui64 value) {
-    if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+    if(index > getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
     ValueRef val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
     val.setUnsigned(value);
@@ -455,7 +455,7 @@ ValueRef BufferArray::insert(const ui64 index, const ui64 value) {
 }
 
 ValueRef BufferArray::insert(const ui64 index, const i64 value) {
-    if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+    if(index > getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
     ValueRef val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
     val.setSigned(value);
@@ -464,7 +464,7 @@ ValueRef BufferArray::insert(const ui64 index, const i64 value) {
 }
 
 ValueRef BufferArray::insert(const ui64 index, const f64 value) {
-    if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+    if(index > getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
     ValueRef val(*data.type, maddto(data.bytes + 9 + index*member_size, member_size));
     val.setFloat(value);
@@ -473,7 +473,7 @@ ValueRef BufferArray::insert(const ui64 index, const f64 value) {
 }
 
 BufferArray::iterator BufferArray::insert(const ui64 index, const BufferArray& other) {
-    if(index > getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+    if(index > getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of buffer array range!");
     ui8 member_size = getMemberSize();
     iterator it(*data.type, maddto(data.bytes + 9 + index*member_size, other.getMemberCount() * member_size)), ret(it);
     for(const ValueRef &val : other) {
@@ -485,27 +485,27 @@ BufferArray::iterator BufferArray::insert(const ui64 index, const BufferArray& o
 }
 
 void BufferArray::popBack(const ui64 n) {
-  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(n > getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   size_t member_size = getMemberSize();
   msubfrom(data.bytes + msize() - member_size*n, member_size*n);
   length() -= n;
 }
 
 void BufferArray::popFront(const ui64 n) {
-  if(n > getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(n > getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   msubfrom(data.bytes + 9, getMemberSize()*n);
   length() -= n;
 }
 
 void BufferArray::remove(const ui64 index, const ui64 n) {
-  if(index + n >= getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(index + n >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   size_t member_size = getMemberSize();
   msubfrom(data.bytes + 9 + index*member_size, member_size*n);
   length() -= n;
 }
 
 BufferArray BufferArray::subarr(const ui64 index, const ui64 n) {
-  if(index + n >= getMemberCount()) throw SException(ErrCode::binom_out_of_range);
+  if(index + n >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   ui8 member_size = getMemberSize();
   byte* ptr = tryMalloc<byte>(9 + n*member_size);
   *reinterpret_cast<VarType*>(ptr) = *data.type;

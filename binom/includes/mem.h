@@ -26,7 +26,7 @@ Type* tryMalloc() {
   MDBG("|Allocated:" << sizeof(Type) << '\n'
     << "|Allocated addess:" << static_cast<void*>(ptr) << '\n')
 
-  if(ptr == nullptr) throw binom::SException(binom::ErrCode::memory_allocation_error, "Memory type allocation error!");
+  if(ptr == nullptr) throw binom::Exception(binom::ErrCode::memory_allocation_error, "Memory type allocation error!");
   else return ptr;
 }
 
@@ -39,7 +39,7 @@ Type* tryMalloc(size_t count) {
   MDBG("|Allocated:" << sizeof(Type)*count << '\n'
     << "|Allocated addess:" << static_cast<void*>(ptr) << '\n')
 
-  if(ptr == nullptr) throw binom::SException(binom::ErrCode::memory_allocation_error, "Memory array allocation error!");
+  if(ptr == nullptr) throw binom::Exception(binom::ErrCode::memory_allocation_error, "Memory array allocation error!");
   else return ptr;
 }
 
@@ -53,7 +53,7 @@ Type* tryRealloc(Type* ptr, size_t count) {
     << "|Reallocated from:" << ptr << '\n'
     << "|Reallocated to:" << new_ptr << '\n')
 
-  if(new_ptr == nullptr) throw binom::SException(binom::ErrCode::memory_allocation_error, "Memory array allocation error!");
+  if(new_ptr == nullptr) throw binom::Exception(binom::ErrCode::memory_allocation_error, "Memory array allocation error!");
   else return new_ptr;
 }
 

@@ -34,7 +34,7 @@ bool ByteArray::isEmpty() const {return !_length;}
 ui64 ByteArray::length() const {return _length;}
 
 byte& ByteArray::operator[](ui64 index) {
-  if(index >= _length) throw SException(ErrCode::out_of_range);
+  if(index >= _length) throw Exception(ErrCode::out_of_range);
   return array[index];
 }
 
@@ -78,7 +78,7 @@ ByteArray& ByteArray::pushBack(const ByteArray&& byte_array) {return pushBack (b
 ByteArray& ByteArray::pushFront(const ByteArray&& byte_array) {return pushFront (byte_array.array, byte_array._length);}
 
 ByteArray& ByteArray::insert(ui64 index, byte b) {
-  if(index > _length) throw SException(ErrCode::out_of_range);
+  if(index > _length) throw Exception(ErrCode::out_of_range);
   array = tryRealloc<byte>(array, ++_length);
   memmove(array + index + 1, array + index, _length - index - 1);
   array[index] = b;
@@ -86,7 +86,7 @@ ByteArray& ByteArray::insert(ui64 index, byte b) {
 }
 
 ByteArray& ByteArray::insert(ui64 index, const void* buffer, ui64 size) {
-  if(index > _length) throw SException(ErrCode::out_of_range);
+  if(index > _length) throw Exception(ErrCode::out_of_range);
   array = tryRealloc<byte>(array, _length += size);
   memmove(array + index + size, array + index, _length - index - size);
   memcpy(array + index, buffer, size);
@@ -103,14 +103,14 @@ ByteArray& ByteArray::remove(ui64 index, ui64 size) {
     array = nullptr;
     return *this;
   }
-  if(index + size > _length) throw SException(ErrCode::out_of_range);
+  if(index + size > _length) throw Exception(ErrCode::out_of_range);
   memmove(array + index, array + index + size, (_length -= size) - index);
   array = tryRealloc<byte>(array, _length);
   return *this;
 }
 
 ByteArray ByteArray::takeBack(ui64 size) {
-  if(size > _length) throw SException(ErrCode::any);
+  if(size > _length) throw Exception(ErrCode::any);
   ByteArray _new(size);
   memcpy(_new.begin(), end()-size, size);
   _length -= size;
@@ -129,14 +129,26 @@ bool ByteArray::isEqual(const ByteArray& other) {
   return true;
 }
 
+void ByteArray::reset(ui64 new_length) {
+  _length = new_length;
+  array = tryRealloc<byte>(array, _length);
+  memset(array, 0, _length);
+}
+
 ByteArray ByteArray::takeFront(ui64 size) {
-  if(size > _length) throw SException(ErrCode::any);
+  if(size > _length) throw Exception(ErrCode::any);
   ByteArray _new(size);
   memcpy(_new.begin(), begin(), size);
   _length -= size;
   memmove(begin(), begin() + size, _length);
   array = tryRealloc<byte>(array, _length);
   return _new;
+}
+
+ui64 ByteArray::pointerToIndex(void* pos) {
+  if(pos < array || pos > array + _length)
+    throw Exception(ErrCode::out_of_range);
+  return ui64(reinterpret_cast<byte*>(pos) - array);
 }
 
 ByteArray& ByteArray::operator+=(byte b) {return pushBack (b);}

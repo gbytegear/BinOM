@@ -11,6 +11,29 @@ enum class PathNodeType : ui8 {
 };
 
 class PathNode {
+public:
+  class PathLiteral {
+    PathNodeType type;
+    union PathLiteralValue {
+      ui64 index;
+      BufferArray string;
+      PathLiteralValue(ui64 index) : index(index) {}
+      PathLiteralValue(const BufferArray& string) : string(std::move(string)) {}
+      PathLiteralValue(BufferArray&& string) : string(std::move(string)) {}
+      ~PathLiteralValue() {}
+    } value;
+    friend class PathNode;
+  public:
+    PathLiteral(ui64 index);
+    PathLiteral(int index);
+    PathLiteral(BufferArray string);
+    PathLiteral(const char* string);
+    PathLiteral(const PathLiteral& other) = delete;
+    PathLiteral(PathLiteral&& other) = delete;
+    ~PathLiteral();
+  };
+private:
+
   friend class iterator;
 
   PathNode* next = nullptr;
@@ -22,26 +45,20 @@ class PathNode {
 
     ~PathNodeValue();
 
-    PathNodeValue(ui8 index);
+    PathNodeValue(ui64 index);
     PathNodeValue(BufferArray name);
     PathNodeValue(PathNodeType type, const PathNodeValue& value);
 
     PathNodeValue(PathNodeType type, PathNodeValue&& value);
 
   } value;
-public:
-  PathNode(ui64 index);
-  PathNode(BufferArray name);
 
-  // For literal init
-  PathNode(const char* name);
-  PathNode(int index);
+  PathNode(const PathLiteral& literal);
+public:
 
   PathNode(const PathNode& other);
-
   PathNode(PathNode&& other);
-
-  PathNode(std::initializer_list<PathNode> path);
+  PathNode(std::initializer_list<PathLiteral> path);
 
   ~PathNode();
 

@@ -1,9 +1,11 @@
 SOURCES += \
-  $$PWD/binom/sources/byte_array.cpp \
-  $$PWD/binom/sources/structure/file_storage/data_base_node_visitor.cpp \
-  $$PWD/binom/sources/structure/file_storage/file_virtual_memory_controller.cpp \
-  $$PWD/binom/sources/structure/path.cpp \
-  $$PWD/binom/sources/structure/query.cpp \
+  binom/sources/binom.cpp \
+  binom/sources/byte_array.cpp \
+  binom/sources/structure/file_storage/data_base_node_visitor.cpp \
+  binom/sources/structure/file_storage/file_io.cpp \
+  binom/sources/structure/file_storage/file_virtual_memory_controller.cpp \
+  binom/sources/structure/path.cpp \
+  binom/sources/structure/query.cpp \
   binom/sources/structure/mem.cpp \
   binom/sources/structure/variables/value.cpp \
   binom/sources/structure/variables/variable.cpp \
@@ -12,15 +14,14 @@ SOURCES += \
   binom/sources/structure/variables/array.cpp \
   binom/sources/structure/variables/object.cpp \
   binom/sources/structure/variables/node_visitor.cpp
-
 HEADERS += \
-  $$PWD/binom/includes/structure/file_storage/data_base_container.h \
-  $$PWD/binom/includes/structure/file_storage/data_base_node_visitor.h \
-  $$PWD/binom/includes/structure/file_storage/data_base_node_visitor_query.h \
-  $$PWD/binom/includes/structure/file_storage/file_virtual_memory_controller.h \
-  $$PWD/binom/includes/structure/path.h \
-  $$PWD/binom/includes/structure/query.h \
-  $$PWD/binom/includes/structure/variables/node_visitor_query.h \
+  /binom/includes/structure/file_storage/data_base_container.h \
+  /binom/includes/structure/file_storage/data_base_node_visitor.h \
+  binom/includes/structure/file_storage/data_base_node_visitor_query.h \
+  binom/includes/structure/file_storage/file_virtual_memory_controller.h \
+  binom/includes/structure/path.h \
+  binom/includes/structure/query.h \
+  binom/includes/structure/variables/node_visitor_query.h \
   binom/includes/structure/file_storage/file_structs.h \
   binom/includes/binom.h \
   binom/includes/byte_array.h \

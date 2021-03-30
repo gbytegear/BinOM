@@ -21,7 +21,7 @@ class Primitive {
       case VarType::word: return 3;
       case VarType::dword: return 5;
       case VarType::qword: return 9;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 
@@ -69,7 +69,7 @@ public:
       case VarType::word: return 2;
       case VarType::dword: return 4;
       case VarType::qword: return 8;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 
@@ -79,7 +79,7 @@ public:
       case VarType::word: return 2;
       case VarType::dword: return 4;
       case VarType::qword: return 8;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 

@@ -96,7 +96,7 @@ public:
       case VarType::word_array: return 2;
       case VarType::dword_array: return 4;
       case VarType::qword_array: return 8;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 
@@ -106,13 +106,13 @@ public:
       case VarType::word_array: return 2;
       case VarType::dword_array: return 4;
       case VarType::qword_array: return 8;
-      default: throw SException(ErrCode::binom_invalid_type);
+      default: throw Exception(ErrCode::binom_invalid_type);
     }
   }
 
 
   inline ValueRef getValue(ui64 index) const {
-    if(index >= getMemberCount()) throw SException(ErrCode::binom_out_of_range, "Out of buffer array range!");
+    if(index >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of buffer array range!");
     return begin()[index];
   }
 
