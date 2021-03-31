@@ -8,7 +8,6 @@ int main() {
 
     DataBaseContainer db("db.binomdb");
 
-
     if(db.isUninitializedRoot()) {
       DBNodeVisitor root_node(db.getRoot());
       f_virtual_index users_node = 0;
@@ -61,7 +60,19 @@ int main() {
 
     }
 
+
     std::clog << "DB:\n" << db.getRoot().getVariable() << '\n';
+
+    BinOMFile binom_file("db.binom");
+
+    Variable data;
+    binom_file
+        .write(db.getRoot().getVariable())
+        .load(data);
+
+    std::clog << "DataBase has been backuped:\n"
+              << data << '\n';
+
 
     std::clog <<
     "=========================================================================\n";

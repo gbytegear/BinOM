@@ -14,6 +14,17 @@ FileIO::FileIO(const char* filename) : file_path(filename), file(fs::exists(file
 
 FileIO::FileIO(std::string filename) : FileIO(filename.c_str()) {}
 
+FileIO::FileIO(const FileIO& other)
+  : FileIO(other.file_path.string()) {}
+
+FileIO::FileIO(FileIO&& other)
+  : file_path(other.file_path), file(other.file) {
+  other.file = nullptr;
+  other.file_path.clear();
+}
+
+FileIO::~FileIO() {close();}
+
 void FileIO::close() {
   if(file) fclose(file);
   file_path.clear();

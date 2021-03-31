@@ -35,6 +35,9 @@ public:
   FileIO() = default;
   FileIO(const char* filename);
   FileIO(std::string filename);
+  FileIO(const FileIO& other);
+  FileIO(FileIO&& other);
+  ~FileIO();
 
   void close();
   bool open(const char* filename);

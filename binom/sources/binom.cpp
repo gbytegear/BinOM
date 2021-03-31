@@ -2,25 +2,35 @@
 
 using namespace binom;
 
-ui64 saveToFile(std::string filename, Variable var) {
-  FILE* file = fs::exists(filename)
-               ? fopen64(filename.c_str(), "r+")
-               : fopen64(filename.c_str(), "w+");
+BinOMFile::BinOMFile(std::string filename)
+  : file(filename)
+{}
 
-  if(!file) throw Exception(ErrCode::file_open_error);
-  ByteArray serialized = var.serialize();
-  ui64 count = fwrite (serialized.begin (), 1, serialized.length (), file);
-  fclose (file);
-  return count;
+BinOMFile::BinOMFile(const BinOMFile& other)
+  : file(other.file) {}
+
+BinOMFile::BinOMFile(BinOMFile&& other)
+  : file(std::move(other.file)) {}
+
+BinOMFile& BinOMFile::write(Variable data) {
+  ByteArray serialized = data.serialize();
+  file.write(0, serialized);
+  return *this;
 }
 
-Variable loadFromFile(std::string filename) {
-  FILE* file = fopen64(filename.c_str(), "r+");
-  if(!file) throw Exception(ErrCode::file_open_error);
-  fseeko64 (file, 0, SEEK_END);
-  ui64 size = ftello64(file);
-  fseeko64 (file, 0, SEEK_SET);
-  ByteArray serialized(size);
-  fread(serialized.begin (), 1, serialized.length(), file);
+BinOMFile& BinOMFile::load(Variable& data) {
+  data = load();
+  return *this;
+}
+
+BinOMFile& BinOMFile::backup(DataBaseContainer& db) {
+  // TODO this
+  return *this;
+}
+
+Variable BinOMFile::load() {
+  ByteArray serialized(file.size());
+  file.read(0, serialized.begin(), serialized.length());
   return Variable::deserialize(serialized);
 }
+

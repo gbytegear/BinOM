@@ -6,8 +6,20 @@
 
 namespace binom {
 
-ui64 saveToFile(std::string filename, Variable var);
-Variable loadFromFile(std::string filename);
+class BinOMFile {
+  FileIO file;
+public:
+  BinOMFile(std::string filename);
+  BinOMFile(const BinOMFile& other);
+  BinOMFile(BinOMFile&& other);
+
+  BinOMFile& write(Variable data);
+  BinOMFile& load(Variable& data);
+  BinOMFile& backup(DataBaseContainer& db);
+
+  Variable load();
+
+};
 
 }
 
