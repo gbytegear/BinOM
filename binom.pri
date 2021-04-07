@@ -15,8 +15,8 @@ SOURCES += \
   binom/sources/structure/variables/object.cpp \
   binom/sources/structure/variables/node_visitor.cpp
 HEADERS += \
-  /binom/includes/structure/file_storage/data_base_container.h \
-  /binom/includes/structure/file_storage/data_base_node_visitor.h \
+  binom/includes/structure/file_storage/data_base_container.h \
+  binom/includes/structure/file_storage/data_base_node_visitor.h \
   binom/includes/structure/file_storage/data_base_node_visitor_query.h \
   binom/includes/structure/file_storage/file_virtual_memory_controller.h \
   binom/includes/structure/path.h \

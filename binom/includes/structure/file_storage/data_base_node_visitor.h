@@ -21,14 +21,14 @@ class DBNodeVisitor {
   friend class DBNodeIteratorEnd;
 
   FileVirtualMemoryController& fvmc;
-  NodeDescriptor node_descriptor;
+  mutable NodeDescriptor node_descriptor;
   f_virtual_index node_index = 0;
 
   bool is_value_ptr = false;
   ui64 value_index = 0;
 
   NodeDescriptor loadNode(f_virtual_index node_index) const;
-  void updateNode();
+  void updateNode() const;
   ByteArray loadData();
 
   f_virtual_index createVariable(Variable var);
@@ -70,6 +70,7 @@ public:
   ui64 getElementCount() const;
 
   bool isNull() const;
+  bool isIterable() const;
   bool isPrimitive() const;
   bool isBufferArray() const;
   bool isArray() const;

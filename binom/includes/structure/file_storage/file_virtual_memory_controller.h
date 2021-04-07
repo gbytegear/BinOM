@@ -3,6 +3,7 @@
 
 #include "file_io.h"
 #include "file_structs.h"
+#include "../rwguard.h"
 
 namespace binom {
 
@@ -151,6 +152,82 @@ public:
 
   MemoryBlockIterator begin() {return &_first;}
   MemoryBlockIterator end() {return nullptr;}
+
+};
+
+
+
+
+class RWSyncMap {
+
+  struct RWSyncMapNode {
+    f_virtual_index node_index;
+    RWGuard* guard;
+    RWSyncMapNode(f_virtual_index node_index)
+      : node_index(node_index), guard(new RWGuard()) {}
+    ~RWSyncMapNode() {if(guard) delete guard;}
+  };
+
+  std::mutex map_mtx;
+  ui64 length = 0;
+  RWSyncMapNode* map = nullptr;
+
+public:
+  RWSyncMap() = default;
+
+  RWGuard* get(f_virtual_index node_index) {
+    map_mtx.lock();
+
+    RWGuard* result;
+
+    if(!map) {
+      length = 1;
+      return (map = new RWSyncMapNode(node_index))->guard;
+    }
+
+    i64 left = 0;
+    i64 right = length;
+    i64 middle;
+
+    do {
+      middle = (left + right) / 2;
+
+      if(middle >= static_cast<i64>(length) ||
+         left > right ||
+         (middle == 0 && map[middle].node_index > node_index))
+        break;
+
+      if(map[middle].node_index > node_index) right = middle - 1;
+      elif(map[middle].node_index < node_index) left = middle + 1;
+      elif(map[middle].node_index == node_index) {
+        result = map[middle].guard;
+        map_mtx.unlock();
+        return result;
+      }
+
+    } while(true);
+
+    ++length;
+    map = tryRealloc<RWSyncMapNode>(map, length);
+
+    if(middle == 0) {
+      memmove(map + 1, map, (length - 1) * sizeof(RWSyncMapNode));
+      RWGuard* result = (new(map) RWSyncMapNode(node_index))->guard;
+      map_mtx.unlock();
+      return result;
+    } elif(middle == static_cast<i64>(length)) {
+      result = (new(map + length - 1) RWSyncMapNode(node_index))->guard;
+      map_mtx.unlock();
+      return result;
+    }
+
+    if(map[middle].node_index < node_index) ++middle;
+    memmove(map + middle, map + middle + 1, (length - middle - 1) * sizeof(RWSyncMapNode));
+    result = (new(map + middle) RWSyncMapNode(node_index))->guard;
+    map_mtx.unlock();
+    return result;
+
+  }
 
 };
 

@@ -82,7 +82,7 @@ namespace binom {
           case VarType::word_array: return ValType::word;
           case VarType::dword_array: return ValType::dword;
           case VarType::qword_array: return ValType::qword;
-          default: throw Exception(ErrCode::binom_invalid_type, "Variable type can't be convert to value type!");
+          default: throw Exception(ErrCode::binom_invalid_type);
       }
   }
 

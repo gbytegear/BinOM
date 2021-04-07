@@ -61,7 +61,6 @@ struct Range {
 
 
 
-/////////////////////////////////////////////////////////////////////////
 
 struct QueryFieldValue {
   QueryFieldValueType value_type;
@@ -104,7 +103,6 @@ struct QueryFieldValue {
 
 
 
-/////////////////////////////////////////////////////////////////////////
 
 class QueryField {
 
@@ -182,9 +180,7 @@ public:
   iterator end();
 };
 
-/////////////////////////////////////////////////////////////////////////
 
-/// TODO: Think - how implement that
 class QueryFieldGroup {
   QueryField fields;
   QueryFieldGroup* next = nullptr;

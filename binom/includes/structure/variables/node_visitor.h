@@ -61,10 +61,12 @@ public:
   VarTypeClass getTypeClass() const {return toTypeClass(getType());}
 
   bool isNull() const;
+  bool isInvalid() const {return getTypeClass() == VarTypeClass::invalid_type;}
   bool isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
   bool isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
   bool isArray() const {return getTypeClass() == VarTypeClass::array;}
   bool isObject() const {return getTypeClass() == VarTypeClass::object;}
+  bool isIterable() const  {return !isPrimitive();}
 
   ui64 getElementCount() const;
 
@@ -81,6 +83,14 @@ public:
   Variable& getVariable(BufferArray name) const;
   Variable& getVariable(PathNode path) const;
   BufferArray getName() const;
+
+  void setVariable(Variable var);
+  void pushBack(Variable var);
+  void pushFront(Variable var);
+  void insert(ui64 index, Variable var);
+  void insert(BufferArray name, Variable var);
+  void remove(ui64 index, ui64 count = 1);
+  void remove(BufferArray name);
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}

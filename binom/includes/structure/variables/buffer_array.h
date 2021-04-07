@@ -136,6 +136,7 @@ public:
   ValueRef insert(const ui64 index, const i64 value);
   ValueRef insert(const ui64 index, const f64 value);
   iterator insert(const ui64 index, const BufferArray& other);
+  inline ValueRef insert(ui64 index, const ValueRef value) {return insert(index, value.asUnsigned());}
 
   void popBack(const ui64 n = 1);
   void popFront(const ui64 n = 1);

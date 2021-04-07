@@ -4,7 +4,7 @@ using namespace binom;
 
 
 NodeDescriptor DBNodeVisitor::loadNode(f_virtual_index node_index) const {return fvmc.loadNodeDescriptor(node_index);}
-void DBNodeVisitor::updateNode() {node_descriptor = loadNode(node_index);}
+void DBNodeVisitor::updateNode() const {node_descriptor = loadNode(node_index);}
 ByteArray DBNodeVisitor::loadData() {return fvmc.loadDataByNode(node_index);}
 
 f_virtual_index DBNodeVisitor::createVariable(Variable var) {
@@ -331,11 +331,12 @@ DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor&& other)
 DBNodeVisitor& DBNodeVisitor::operator=(DBNodeVisitor other) {return *(new(this) DBNodeVisitor(other));}
 DBNodeVisitor& DBNodeVisitor::operator=(f_virtual_index _node_index) {node_index = _node_index; updateNode(); return *this;}
 
-VarType DBNodeVisitor::getType() const {return node_descriptor.type;}
+VarType DBNodeVisitor::getType() const {updateNode(); return node_descriptor.type;}
 VarTypeClass DBNodeVisitor::getTypeClass() const {return toTypeClass(getType());}
 f_virtual_index DBNodeVisitor::getNodeIndex() const {return node_index;}
 
 ui64 DBNodeVisitor::getElementCount() const {
+  updateNode();
   switch (getTypeClass()) {
     case binom::VarTypeClass::primitive: return 1;
     case binom::VarTypeClass::buffer_array:
@@ -353,17 +354,11 @@ ui64 DBNodeVisitor::getElementCount() const {
   }
 }
 
-/*
-fvmc(*reinterpret_cast<FileVirtualMemoryController*>(0)),
-    node_descriptor{VarType::invlid_type, ui64(-1), ui64(-1)},
-    node_index(ui64(-1)),
-    is_value_ptr(true),
-    value_index(ui64(-1))
-*/
-
 bool DBNodeVisitor::isNull() const {
   return node_descriptor.type == VarType::invlid_type && node_index == ui64(-1) && value_index == ui64(-1);
 }
+
+bool DBNodeVisitor::isIterable() const {return !isPrimitive();}
 
 bool DBNodeVisitor::isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
 bool DBNodeVisitor::isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
@@ -373,6 +368,7 @@ bool DBNodeVisitor::isObject() const {return getTypeClass() == VarTypeClass::obj
 DBNodeVisitor& DBNodeVisitor::snapTo(f_virtual_index node_index) {this->node_index = node_index; updateNode(); return *this;}
 
 DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
+  updateNode();
   if(isPrimitive() || isObject() || is_value_ptr) throw Exception(ErrCode::binom_invalid_type);
   if(isArray()) {
     if(node_descriptor.size / sizeof (f_virtual_index) <= index) throw Exception(ErrCode::binom_out_of_range);
@@ -390,6 +386,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
 }
 
 DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
+  updateNode();
   if(!isObject() || is_value_ptr) throw Exception(ErrCode::binom_invalid_type);
   ByteArray data(loadData());
   ObjectDescriptor descriptor = data.get<ObjectDescriptor>(0);
@@ -460,6 +457,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
 }
 
 DBNodeVisitor& DBNodeVisitor::stepInside(PathNode path) {
+  updateNode();
   for(const PathNode& path_node : path)
     switch (path_node.type()) {
       case PathNodeType::index: stepInside(path_node.index()); continue;
@@ -469,6 +467,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(PathNode path) {
 }
 
 Variable DBNodeVisitor::getVariable() const {
+  updateNode();
   if(is_value_ptr) {
     ByteArray data = fvmc.loadHeapDataPartByIndex(node_descriptor.index,
                                                   value_index*toSize(toValueType(getType())),
@@ -481,6 +480,7 @@ Variable DBNodeVisitor::getVariable() const {
 }
 
 Variable DBNodeVisitor::getVariable(ui64 index) const {
+  updateNode();
   if(getTypeClass() == VarTypeClass::buffer_array) {
     DBNodeVisitor node = getChild(index);
     ByteArray data = fvmc.loadHeapDataPartByIndex(node.node_descriptor.index,
@@ -525,6 +525,7 @@ void DBNodeVisitor::setVariable(Variable var) {
 }
 
 void DBNodeVisitor::pushBack(Variable var) {
+  updateNode();
   switch (getTypeClass()) {
     default:
       throw Exception(ErrCode::binom_invalid_type);
@@ -554,6 +555,7 @@ void DBNodeVisitor::pushBack(Variable var) {
 }
 
 void DBNodeVisitor::pushFront(Variable var) {
+  updateNode();
   switch (getTypeClass()) {
     default:
       throw Exception(ErrCode::binom_invalid_type);
@@ -583,6 +585,7 @@ void DBNodeVisitor::pushFront(Variable var) {
 }
 
 void DBNodeVisitor::insert(ui64 index, Variable var) {
+  updateNode();
   switch (getTypeClass()) {
     default:
       throw Exception(ErrCode::binom_invalid_type);
@@ -612,6 +615,7 @@ void DBNodeVisitor::insert(ui64 index, Variable var) {
 }
 
 void DBNodeVisitor::insert(BufferArray name, Variable var) {
+  updateNode();
   if(getTypeClass() != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
   ByteArray object_data(loadData());
@@ -728,6 +732,7 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
 
 
 void DBNodeVisitor::remove(ui64 index, ui64 count) {
+  updateNode();
   switch (getTypeClass()) {
     default:
       throw Exception(ErrCode::binom_invalid_type);
@@ -753,6 +758,7 @@ void DBNodeVisitor::remove(ui64 index, ui64 count) {
 }
 
 void DBNodeVisitor::remove(BufferArray name) {
+  updateNode();
   if(getTypeClass() != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
   ByteArray object_data(loadData());
@@ -839,6 +845,7 @@ DBNodeVisitor& DBNodeVisitor::operator()(PathNode path) {return stepInside(std::
 
 DBNodeVector DBNodeVisitor::findAll(Query query) {
   DBNodeVector vector;
+  if(!isIterable()) return vector;
   ui64 index = 0;
   for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
     DBNodeVisitor node = *iterator;
@@ -850,6 +857,7 @@ DBNodeVector DBNodeVisitor::findAll(Query query) {
 }
 
 DBNodeVisitor DBNodeVisitor::find(Query query) {
+  if(!isIterable()) return DBNodeVisitor(fvmc, nullptr);
   ui64 index = 0;
   for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
     DBNodeVisitor node = *iterator;

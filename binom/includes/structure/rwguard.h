@@ -3,65 +3,89 @@
 
 #include <mutex>
 #include <condition_variable>
-#include <functional>
 
 class RWGuard {
-  std::condition_variable reader_condition;
-  std::condition_variable writer_condition;
+
+  uint32_t reader_count = 0;
+  bool writer = false;
+  uint32_t reader_wait_count = 0;
+  uint32_t writer_wait_count = 0;
+
   std::mutex mtx;
-  uint32_t active_writers;
-  uint32_t waiting_writers;
-  uint32_t active_readers;
+  std::condition_variable read_condition;
+  std::condition_variable write_condition;
 
 public:
+
   RWGuard()
-    : reader_condition(),
-      writer_condition(),
+    : reader_count(0),
+      writer(false),
+      reader_wait_count(0),
+      writer_wait_count(0),
       mtx(),
-      active_writers(0),
-      waiting_writers(0),
-      active_readers(0)
-  {}
+      read_condition(),
+      write_condition() {}
 
-  void lockR() {
-    std::unique_lock<std::mutex> lk(mtx);
-    while ( waiting_writers )
-      reader_condition.wait(lk);
-    ++active_readers;
+  void readLock() {
+    std::unique_lock lk(mtx);
+    ++reader_wait_count;
+    read_condition.wait(lk, [&](){return !writer_wait_count;});
+    --reader_wait_count;
+    ++reader_count;
     lk.unlock();
   }
 
-  void unlockR() {
-    std::unique_lock<std::mutex> lk(mtx);
-    --active_readers;
+  void readUnlock() {
+    std::unique_lock lk(mtx);
+    --reader_count;
     lk.unlock();
-    writer_condition.notify_one();
+    write_condition.notify_one();
   }
 
-  void lockW() {
-    std::unique_lock<std::mutex> lk(mtx);
-    ++waiting_writers;
-    while ( active_readers || active_writers )
-      writer_condition.wait(lk);
-    ++active_writers;
+  void writeLock() {
+    std::unique_lock lk(mtx);
+    ++writer_wait_count;
+    write_condition.wait(lk, [&](){return (!reader_count && !writer);});
+    --writer_wait_count;
+    writer = true;
     lk.unlock();
   }
 
-  void unlockW() {
-    std::unique_lock<std::mutex> lk(mtx);
-    --waiting_writers;
-    --active_writers;
-    if(waiting_writers)
-      writer_condition.notify_one();
+  void writeUnlock() {
+    std::unique_lock lk(mtx);
+    writer = false;
+    if(writer_wait_count)
+      write_condition.notify_one();
     else
-      reader_condition.notify_all();
+      read_condition.notify_all();
     lk.unlock();
   }
 
+  void readToWrite() {
+    std::unique_lock lk(mtx);
+    --reader_count;
+    ++writer_wait_count;
+    write_condition.wait(lk, [&](){return (!reader_count && !writer);});
+    --writer_wait_count;
+    writer = true;
+    lk.unlock();
+  }
 
+  void writeToRead() {
+    std::unique_lock lk(mtx);
+    writer = false;
+    if(writer_wait_count)
+      write_condition.notify_one();
+    else
+      read_condition.notify_all();
 
-  inline void writeSync(std::function<void()> callback) {lockW();callback();unlockW();}
-  inline void readSync(std::function<void()> callback) {lockR();callback();unlockR();}
+    ++reader_wait_count;
+    read_condition.wait(lk, [&](){return !writer_wait_count;});
+    --reader_wait_count;
+    ++reader_count;
+    lk.unlock();
+  }
+
 
 };
 

@@ -37,6 +37,7 @@ class Variable {
   friend class Table;
 
   friend struct NamedVariable;
+  friend class NodeVisitor;
 
 public:
 

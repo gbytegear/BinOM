@@ -143,11 +143,118 @@ BufferArray NodeVisitor::getName() const {
   throw Exception(ErrCode::binom_invalid_type);
 }
 
+void NodeVisitor::setVariable(Variable var) {
+  if(ref_type == RefType::value)
+  switch (ref_type) {
+    case binom::NodeVisitor::RefType::variable:
+      ref.variable->destroy();
+      new(ref.variable) Variable(std::move(var));
+    break;
+    case binom::NodeVisitor::RefType::named_variable:
+      ref.named_variable->variable.destroy();
+      new(&ref.named_variable->variable) Variable(std::move(var));
+    break;
+    case binom::NodeVisitor::RefType::value: throw Exception(ErrCode::binom_invalid_type);
+  }
+}
+
+void NodeVisitor::pushBack(Variable var) {
+  switch (getTypeClass()) {
+    default: return;
+
+    case binom::VarTypeClass::buffer_array:
+      switch (var.typeClass()) {
+        case binom::VarTypeClass::primitive:
+          getVariable().toBufferArray().pushBack(var.toPrimitive().getValue());
+        break;
+        case binom::VarTypeClass::buffer_array:
+          getVariable().toBufferArray().pushBack(var.toBufferArray());
+        break;
+        default: return;
+      }
+    break;
+
+    case binom::VarTypeClass::array:
+      getVariable().toArray().pushBack(std::move(var));
+    break;
+  }
+}
+
+void NodeVisitor::pushFront(Variable var) {
+  switch (getTypeClass()) {
+    default: return;
+
+    case binom::VarTypeClass::buffer_array:
+      switch (var.typeClass()) {
+        case binom::VarTypeClass::primitive:
+          getVariable().toBufferArray().pushFront(var.toPrimitive().getValue());
+        break;
+        case binom::VarTypeClass::buffer_array:
+          getVariable().toBufferArray().pushFront(var.toBufferArray());
+        break;
+        default: return;
+      }
+    break;
+
+    case binom::VarTypeClass::array:
+      getVariable().toArray().pushFront(std::move(var));
+    break;
+  }
+}
+
+void NodeVisitor::insert(ui64 index, Variable var) {
+  switch (getTypeClass()) {
+    default: return;
+
+    case VarTypeClass::buffer_array:
+      switch (var.typeClass()) {
+        case VarTypeClass::primitive:
+          getVariable().toBufferArray().insert(index, var.toPrimitive().getValue());
+        break;
+
+        case VarTypeClass::buffer_array:
+          getVariable().toBufferArray().insert(index, var.toBufferArray());
+        break;
+        default: return;
+      }
+    break;
+
+    case VarTypeClass::array:
+      getVariable().toArray().insert(index, std::move(var));
+    break;
+  }
+}
+
+void NodeVisitor::insert(BufferArray name, Variable var) {
+  if(getType() != VarType::object) return;
+  getVariable().toObject().insert(std::move(name), std::move(var));
+}
+
+void NodeVisitor::remove(ui64 index, ui64 count) {
+  switch (getTypeClass()) {
+    default: return;
+
+    case VarTypeClass::array:
+      getVariable().toArray().remove(index, count);
+    break;
+
+    case VarTypeClass::buffer_array:
+      getVariable().toBufferArray().remove(index, count);
+    break;
+  }
+}
+
+void NodeVisitor::remove(BufferArray name) {
+  if(getType() != VarType::object) return;
+  getVariable().toObject().remove(std::move(name));
+}
+
 // Query test function
 #include "binom/includes/structure/variables/node_visitor_query.h"
 
 NodeVector NodeVisitor::findAll(Query query) {
   NodeVector node_vector;
+  if(!isIterable()) return node_vector;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
     if(node.test(query, index))
@@ -158,6 +265,7 @@ NodeVector NodeVisitor::findAll(Query query) {
 }
 
 NodeVisitor NodeVisitor::find(Query query) {
+  if(isIterable()) return nullptr;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
     if(node.test(query, index))
