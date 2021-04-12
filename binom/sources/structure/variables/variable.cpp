@@ -1,4 +1,5 @@
 #include "binom/includes/structure/variables/variable.h"
+#include "binom/includes/structure/variables/node_visitor.h"
 
 
 using namespace binom;
@@ -357,7 +358,7 @@ Variable::Variable(varr array) : data(tryMalloc(9 + array.size()*sizeof(Variable
   }
 }
 
-Variable::Variable(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
+Variable::Variable(vobj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
   data.type[0] = VarType::object;
   *reinterpret_cast<ui64*>(data.bytes + 1) = object.size();
   i64 in_count = 0;
@@ -444,6 +445,8 @@ Variable& Variable::operator=(Variable other) {
   other.data.ptr = nullptr;
   return *this;
 }
+
+NodeVisitor Variable::getNode() {return NodeVisitor(this);}
 
 void printIndent(std::ostream& os, ui64 ind, std::string msg = "") {
   if(!ind)return;

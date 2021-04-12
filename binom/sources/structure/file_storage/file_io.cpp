@@ -8,11 +8,9 @@ bool FileIO::seek(ui64 pos) {return !fseeko64(file, pos, SEEK_SET);}
 
 bool FileIO::rseek(ui64 rpos) {return !fseeko64(file, rpos, SEEK_END);}
 
-FileIO::FileIO(const char* filename) : file_path(filename), file(fs::exists(file_path)? fopen64(filename, "r+") : fopen64(filename, "w+")) {
+FileIO::FileIO(std::string filename) : file_path(filename), file(fs::exists(file_path)? fopen64(filename.c_str(), "r+") : fopen64(filename.c_str(), "w+")) {
   if(!file) throw Exception(ErrCode::file_open_error);
 }
-
-FileIO::FileIO(std::string filename) : FileIO(filename.c_str()) {}
 
 FileIO::FileIO(const FileIO& other)
   : FileIO(other.file_path.string()) {}
@@ -30,18 +28,18 @@ void FileIO::close() {
   file_path.clear();
 }
 
-bool FileIO::open(const char* filename) {
+bool FileIO::open(std::string filename) {
   close();
-  file = fs::exists(filename)? fopen64(filename, "rb+") : fopen64(filename, "wb+");
+  file = fs::exists(filename)? fopen64(filename.c_str(), "rb+") : fopen64(filename.c_str(), "wb+");
   file_path = filename;
   return !!file;
 }
 
-bool FileIO::open(std::string filename) {return open(filename.c_str());}
-
 ui64 FileIO::size() {fseeko64(file, 0, SEEK_END); return ftello64(file);}
 
 bool FileIO::isExist() {return fs::exists(file_path);}
+
+bool FileIO::isExist(std::string file_path) {return fs::exists(file_path);}
 
 std::filesystem::__cxx11::path FileIO::path() const {return file_path;}
 

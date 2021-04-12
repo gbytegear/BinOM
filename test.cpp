@@ -15,7 +15,7 @@ int main() {
 
       root_node.setVariable(
 
-            obj{
+            vobj{
               {"user", varr{}},
               {"message", varr{}}
             }
@@ -27,7 +27,7 @@ int main() {
 
       db.getByNodeIndex(users_node).pushBack(
 
-            obj{
+            vobj{
               {"login", "admin"},
               {"password", "admin"},
               {"access_lvl", 0xFF_ui8}
@@ -37,7 +37,7 @@ int main() {
 
       db.getByNodeIndex(users_node).pushBack(
 
-            obj{
+            vobj{
               {"login", "guest"},
               {"password", "guest"},
               {"access_lvl", 0x00_ui8}
@@ -50,7 +50,7 @@ int main() {
 
       db.getByNodeIndex(message_node).pushBack(
 
-            obj{
+            vobj{
               {"from", db.getByNodeIndex(users_node).find({{{qprop::value, {"login"}, qoper::equal, "admin"_vbfr }}}).getNodeIndex()},
               {"to", db.getByNodeIndex(users_node).find({{{qprop::value, {"login"}, qoper::equal, "guest"_vbfr }}}).getNodeIndex()},
               {"content", "You are entered in system with Guest account, please login with your account"}

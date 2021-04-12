@@ -28,7 +28,7 @@ class Object {
   friend class Variable;
 public:
   Object();
-  Object(obj object);
+  Object(vobj object);
   Object(const Object& other) : data(other.clone()) {}
   Object(Object&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
@@ -49,7 +49,7 @@ public:
 
   NamedVariable& getNamedVariable(BufferArray name) const;
   Variable& getVariable(BufferArray name) const;
-  inline Variable& operator[](BufferArray name) const {return getVariable(name);}
+  inline Variable& operator[](BufferArray name) const {return getVariable(std::move(name));}
 
 
   ObjectIterator begin() const {return reinterpret_cast<ObjectIterator>(data.bytes + 9);}

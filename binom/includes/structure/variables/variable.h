@@ -97,7 +97,7 @@ public:
   Variable(varr array);
 
   // Object
-  Variable(obj object);
+  Variable(vobj object);
 
   Variable(Primitive primitive);
   Variable(BufferArray buffer_array);
@@ -119,15 +119,27 @@ public:
   inline VarTypeClass typeClass() const noexcept   {return (data.type == nullptr)? VarTypeClass::invalid_type :toTypeClass(*data.type);}
   inline bool isNull() const noexcept              {return data.type == nullptr;}
 
+  // Type class checks
   inline bool isPrimitive() const noexcept         {return typeClass() == VarTypeClass::primitive;}
   inline bool isBufferArray() const noexcept       {return typeClass() == VarTypeClass::buffer_array;}
   inline bool isArray() const noexcept             {return typeClass() == VarTypeClass::array;}
   inline bool isObject() const noexcept            {return typeClass() == VarTypeClass::object;}
+  inline bool isByte() const noexcept              {return (isPrimitive() || isBufferArray())? toValueType(type()) == ValType::byte : false;}
+  inline bool isWord() const noexcept              {return (isPrimitive() || isBufferArray())? toValueType(type()) == ValType::word : false;}
+  inline bool isDword() const noexcept             {return (isPrimitive() || isBufferArray())? toValueType(type()) == ValType::dword : false;}
+  inline bool isQword() const noexcept             {return (isPrimitive() || isBufferArray())? toValueType(type()) == ValType::qword : false;}
 
+  // Type casts
   inline Primitive& toPrimitive() const noexcept         {return const_cast<Primitive&>(data.primitive);}
   inline BufferArray& toBufferArray() const noexcept     {return const_cast<BufferArray&>(data.buffer_array);}
   inline Array& toArray() const noexcept                 {return const_cast<Array&>(data.array);}
   inline Object& toObject() const noexcept               {return const_cast<Object&>(data.object);}
+
+  // Member access
+  inline Variable& getVariable(ui64 index) const         {return toArray().getVariable(index);}
+  inline Variable& getVariable(BufferArray name) const   {return toObject().getVariable(name);}
+  inline ValueRef getValue() const                       {return toPrimitive().getValue();}
+  inline ValueRef getValue(ui64 index) const             {return toBufferArray().getValue(index);}
 
   Variable& operator=(Variable other);
 
@@ -139,6 +151,7 @@ public:
         : 1;
   }
 
+  NodeVisitor getNode();
 
 };
 

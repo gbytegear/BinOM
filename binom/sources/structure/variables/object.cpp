@@ -62,7 +62,7 @@ Object::Object() : data(tryMalloc(9)) {
   length() = 0;
 }
 
-Object::Object(obj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
+Object::Object(vobj object) : data(tryMalloc(9 + object.size()*sizeof(NamedVariable))) {
   data.type[0] = VarType::object;
   *reinterpret_cast<ui64*>(data.bytes + 1) = object.size();
   i64 in_count = 0;

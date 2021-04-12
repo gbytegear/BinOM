@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#define elif else if
+
 namespace binom {
 
 typedef uint8_t ui8;

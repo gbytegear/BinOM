@@ -33,27 +33,25 @@ class FileIO {
 
 public:
   FileIO() = default;
-  FileIO(const char* filename);
   FileIO(std::string filename);
   FileIO(const FileIO& other);
   FileIO(FileIO&& other);
   ~FileIO();
 
   void close();
-  bool open(const char* filename);
 
-  inline bool open(std::string filename);
+  bool open(std::string filename);
 
   ui64 size();
   bool isExist();
+  static bool isExist(std::string file_path);
   fs::path path() const;
+  bool isEmpty();
 
   ui64 resize(ui64 new_size);
   ui64 addSize(ui64 add);
   ui64 subSize(ui64 sub);
 
-
-  bool isEmpty();
 
   bool write(ui64 index, const void* buffer, ui64 size);
   template<typename Type>

@@ -21,8 +21,6 @@
 #error "Unsupported architecture!"
 #endif
 
-#define elif else if
-
 
 namespace binom {
   enum class VarType : byte {
@@ -121,6 +119,10 @@ namespace binom {
   typedef Variable* ArrayIterator;
   typedef NamedVariable* ObjectIterator;
 
+  // Node Visitors
+  class NodeVisitor;
+  class DBNodeVisitor;
+
   // Initilizers
   typedef std::initializer_list<ui8> ui8arr;
   typedef std::initializer_list<i8> i8arr;
@@ -131,7 +133,7 @@ namespace binom {
   typedef std::initializer_list<ui64> ui64arr;
   typedef std::initializer_list<i64> i64arr;
   typedef std::initializer_list<Variable> varr;
-  typedef std::initializer_list<NamedVariable> obj;
+  typedef std::initializer_list<NamedVariable> vobj;
 }
 
 #endif

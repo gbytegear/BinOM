@@ -21,7 +21,7 @@ public:
   bool isUninitializedRoot() {return fvmc.loadNodeDescriptor(0).type == VarType::end;}
 
   inline Variable getDBInfo() {
-    return obj {
+    return vobj {
       {"file_size", ui64(getFileSize())},
       {"node_page_count", getNodePageCount()},
       {"heap_page_count", getHeapPageCount()},
