@@ -238,12 +238,12 @@ struct BitMap {
 //! Version of data base
 struct DBVersion {
   const char name[6] = "BinOM";
-  const ui64 major = 0;
-  const ui64 minor = 0;
+  const ui16 major = 0;
+  const ui16 minor = 0;
 };
 
 //! Current version of data base
-constexpr DBVersion current{"BinOM", 0, 1};
+constexpr DBVersion current{"BinOM", 1, 0};
 
 //! Descriptor of node page
 struct NodePageDescriptor {

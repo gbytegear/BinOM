@@ -29,12 +29,15 @@ class Variable {
   void* clone() const;
   void destroy();
 
+  inline void throwIfNot(VarTypeClass type_class) const {
+    if(type_class != typeClass())
+      throw Exception(ErrCode::binom_invalid_type, "Bad Variable-cast!");
+  }
+
   friend class Primitive;
   friend class BufferArray;
   friend class Array;
   friend class Object;
-  friend class Matrix;
-  friend class Table;
 
   friend struct NamedVariable;
   friend class NodeVisitor;
@@ -130,16 +133,16 @@ public:
   inline bool isQword() const noexcept             {return (isPrimitive() || isBufferArray())? toValueType(type()) == ValType::qword : false;}
 
   // Type casts
-  inline Primitive& toPrimitive() const noexcept         {return const_cast<Primitive&>(data.primitive);}
-  inline BufferArray& toBufferArray() const noexcept     {return const_cast<BufferArray&>(data.buffer_array);}
-  inline Array& toArray() const noexcept                 {return const_cast<Array&>(data.array);}
-  inline Object& toObject() const noexcept               {return const_cast<Object&>(data.object);}
+  inline Primitive& toPrimitive() const         {throwIfNot(VarTypeClass::primitive); return const_cast<Primitive&>(data.primitive);}
+  inline BufferArray& toBufferArray() const     {throwIfNot(VarTypeClass::buffer_array); return const_cast<BufferArray&>(data.buffer_array);}
+  inline Array& toArray() const                 {throwIfNot(VarTypeClass::array); return const_cast<Array&>(data.array);}
+  inline Object& toObject() const               {throwIfNot(VarTypeClass::object); return const_cast<Object&>(data.object);}
 
   // Member access
-  inline Variable& getVariable(ui64 index) const         {return toArray().getVariable(index);}
-  inline Variable& getVariable(BufferArray name) const   {return toObject().getVariable(name);}
-  inline ValueRef getValue() const                       {return toPrimitive().getValue();}
-  inline ValueRef getValue(ui64 index) const             {return toBufferArray().getValue(index);}
+  inline Variable& getVariable(ui64 index) const         {throwIfNot(VarTypeClass::array); return toArray().getVariable(index);}
+  inline Variable& getVariable(BufferArray name) const   {throwIfNot(VarTypeClass::object); return toObject().getVariable(name);}
+  inline ValueRef getValue() const                       {throwIfNot(VarTypeClass::primitive); return toPrimitive().getValue();}
+  inline ValueRef getValue(ui64 index) const             {throwIfNot(VarTypeClass::buffer_array); return toBufferArray().getValue(index);}
 
   Variable& operator=(Variable other);
 

@@ -48,6 +48,16 @@ public:
   i64 setSigned(const i64 value);
   f64 setFloat(const f64 value);
 
+  inline ui8 asUi8() const {return asUnsigned();}
+  inline ui16 asUi16() const {return asUnsigned();}
+  inline ui32 asUi32() const {return asUnsigned();}
+  inline ui64 asUi64() const {return asUnsigned();}
+
+  inline i8 asI8() const {return asSigned();}
+  inline i16 asI16() const {return asSigned();}
+  inline i32 asI32() const {return asSigned();}
+  inline i64 asI64() const {return asSigned();}
+
   inline ValueIterator& toIterator();
 
   inline bool operator=(const bool value) {return setBool(value);}

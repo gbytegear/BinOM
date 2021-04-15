@@ -281,3 +281,23 @@ Variable& Object::getVariable(BufferArray name) const {
 
   throw Exception(ErrCode::binom_out_of_range, "");
 }
+
+Array Object::getNameArray() {
+  ByteArray buffer(1 + 8 + getMemberCount()*PTR_SZ);
+  buffer[0] = byte(VarType::array);
+  buffer.set<ui64>(0,1,getMemberCount());
+  BufferArray* it = buffer.begin<BufferArray>(9);
+  for(NamedVariable& named : *this) {*it = named.name;++it;}
+  void* ptr = buffer.unfree();
+  return *reinterpret_cast<Array*>(&ptr);
+}
+
+Array Object::getMemberArray() {
+  ByteArray buffer(1 + 8 + getMemberCount()*PTR_SZ);
+  buffer[0] = byte(VarType::array);
+  buffer.set<ui64>(0,1,getMemberCount());
+  Variable* it = buffer.begin<Variable>(9);
+  for(NamedVariable& named : *this) {*it = named.variable;++it;}
+  void* ptr = buffer.unfree();
+  return *reinterpret_cast<Array*>(&ptr);
+}

@@ -97,6 +97,8 @@ public:
 
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 
+  BufferArray toBufferArray();
+
   void* getDataPtr() {return data.bytes + 1;}
 };
 

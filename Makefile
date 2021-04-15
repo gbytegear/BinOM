@@ -32,4 +32,4 @@ libs: libbinom.a libbinom.so
 all: libs
 
 clean:
-	rm -rf ./*.o ./*.a test ./*.binom ./*.binomdb ./lbinom/
+	rm -rf ./*.o ./*.a test ./*.binom ./*.binomdb ./lbinom/ *.pro.user

@@ -80,6 +80,7 @@ public:
 
   BufferArray(const BufferArray& other);
   BufferArray(BufferArray&& other);
+  BufferArray(Primitive primitive);
 
   ~BufferArray() {destroy();}
 

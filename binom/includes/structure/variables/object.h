@@ -51,9 +51,11 @@ public:
   Variable& getVariable(BufferArray name) const;
   inline Variable& operator[](BufferArray name) const {return getVariable(std::move(name));}
 
-
   ObjectIterator begin() const {return reinterpret_cast<ObjectIterator>(data.bytes + 9);}
   ObjectIterator end() const {return reinterpret_cast<ObjectIterator>(data.bytes + msize());}
+
+  Array getNameArray();
+  Array getMemberArray();
 
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 };

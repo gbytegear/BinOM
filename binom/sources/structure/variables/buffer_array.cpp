@@ -358,6 +358,28 @@ BufferArray::BufferArray(ByteArray arr) : data(tryMalloc (9 + arr.length())) {
 BufferArray::BufferArray(const BufferArray& other) : data(other.clone()) {}
 BufferArray::BufferArray(BufferArray&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 
+BufferArray::BufferArray(Primitive primitive) : data(tryMalloc(9 + toSize(primitive.getValType()))) {
+  switch (primitive.getValType()) {
+    case binom::ValType::byte:
+      data.type[0] = VarType::byte_array;
+      data.bytes[9] = primitive.getValue().asUi8();
+    break;
+    case binom::ValType::word:
+      data.type[0] = VarType::word_array;
+      *reinterpret_cast<ui16*>(data.bytes + 9) = primitive.getValue().asUi16();
+    break;
+    case binom::ValType::dword:
+      data.type[0] = VarType::dword_array;
+      *reinterpret_cast<ui32*>(data.bytes + 9) = primitive.getValue().asUi32();
+    break;
+    case binom::ValType::qword:
+      data.type[0] = VarType::qword_array;
+      *reinterpret_cast<ui64*>(data.bytes + 9) = primitive.getValue().asUi64();
+    break;
+  }
+  length() = 1;
+}
+
 ByteArray BufferArray::serialize() const {
   ByteArray bytes(1);
   bytes[0] = byte(*data.type);

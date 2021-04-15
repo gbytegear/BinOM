@@ -1,14 +1,15 @@
  #include "binom/includes/binom.h"
 
-class CLI {
-    static CLI* single;
-    CLI(int argc, char* argv[]) {single = this;}
-public:
-    static int exec(int argc, char* argv[]) {
-        CLI cli(argc, argv);
-        return 0;
-    }
-};
+#include <functional>
+#include <iostream>
+#include <map>
 
-int main(int argc, char* argv[]) {return CLI::exec(argc, argv);}
+using namespace binom;
+
+typedef std::vector<std::string> args_t;
+typedef std::map<const char*, std::function<void(args_t)>> CommandMap;
+
+
+
+int main(int argc, char* argv[]) {}
 

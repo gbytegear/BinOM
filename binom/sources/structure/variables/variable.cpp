@@ -3,7 +3,6 @@
 
 
 using namespace binom;
-// Constructor
 
 void* Variable::clone() const {
   switch (toTypeClass(*data.type)) {

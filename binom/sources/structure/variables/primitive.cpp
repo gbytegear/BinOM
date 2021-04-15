@@ -101,6 +101,10 @@ binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
   return var;
 }
 
+binom::BufferArray binom::Primitive::toBufferArray() {
+
+}
+
 binom::Primitive& binom::Primitive::operator=(binom::Primitive other) {
   destroy();
   data.ptr = other.data.ptr;
