@@ -8,7 +8,7 @@ bool FileIO::seek(ui64 pos) {return !fseeko64(file, pos, SEEK_SET);}
 
 bool FileIO::rseek(ui64 rpos) {return !fseeko64(file, rpos, SEEK_END);}
 
-FileIO::FileIO(std::string filename) : file_path(filename), file(fs::exists(file_path)? fopen64(filename.c_str(), "r+") : fopen64(filename.c_str(), "w+")) {
+FileIO::FileIO(std::string filename) : file_path(filename), file(fs::exists(file_path)? fopen64(filename.c_str(), "rb+") : fopen64(filename.c_str(), "wb+")) {
   if(!file) throw Exception(ErrCode::file_open_error);
 }
 
@@ -41,7 +41,7 @@ bool FileIO::isExist() {return fs::exists(file_path);}
 
 bool FileIO::isExist(std::string file_path) {return fs::exists(file_path);}
 
-std::filesystem::__cxx11::path FileIO::path() const {return file_path;}
+fs::path FileIO::path() const {return file_path;}
 
 ui64 FileIO::resize(ui64 new_size) {
   fs::resize_file(file_path, new_size);

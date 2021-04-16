@@ -293,7 +293,7 @@ NodeDescriptor FileVirtualMemoryController::loadNodeDescriptor(f_virtual_index v
 
 void FileVirtualMemoryController::clear() { // Reconstruct
   file.resize(0);
-  std::string filename(file.path().c_str());
+  std::string filename(file.path().string());
   this->~FileVirtualMemoryController();
   new(this) FileVirtualMemoryController(filename);
 }
