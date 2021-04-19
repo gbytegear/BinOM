@@ -10,8 +10,9 @@ enum class PathNodeType : ui8 {
   name
 };
 
-class PathNode {
+class Path {
 public:
+
   class PathLiteral {
     PathNodeType type;
     union PathLiteralValue {
@@ -22,7 +23,7 @@ public:
       PathLiteralValue(BufferArray&& string) : string(std::move(string)) {}
       ~PathLiteralValue() {}
     } value;
-    friend class PathNode;
+    friend class Path;
   public:
     PathLiteral(ui64 index);
     PathLiteral(int index);
@@ -32,45 +33,22 @@ public:
     PathLiteral(PathLiteral&& other) = delete;
     ~PathLiteral();
   };
-private:
 
-  friend class iterator;
+  class PathNode {
+    PathNodeType* ptr;
+  public:
+    PathNode(void* ptr);
 
-  PathNode* next = nullptr;
-
-  PathNodeType _type;
-  union PathNodeValue {
-    ui64 index;
-    BufferArray name;
-
-    ~PathNodeValue();
-
-    PathNodeValue(ui64 index);
-    PathNodeValue(BufferArray name);
-    PathNodeValue(PathNodeType type, const PathNodeValue& value);
-
-    PathNodeValue(PathNodeType type, PathNodeValue&& value);
-
-  } value;
-
-  PathNode(const PathLiteral& literal);
-public:
-
-  PathNode(const PathNode& other);
-  PathNode(PathNode&& other);
-  PathNode(std::initializer_list<PathLiteral> path);
-
-  ~PathNode();
-
-  PathNodeType type() const;
-  ui8 index() const;
-  BufferArray name() const;
+    PathNodeType type() const;
+    ui64 index() const;
+    BufferArray name() const;
+  };
 
   class iterator {
-    friend class PathNode;
-    PathNode* current;
+    friend class Path;
+    PathNodeType* ptr;
   public:
-    iterator(PathNode* current);
+    iterator(void* ptr);
     iterator(iterator& other);
     iterator(iterator&& other);
 
@@ -78,39 +56,27 @@ public:
     PathNode* operator->();
 
     iterator& operator++();
+
     iterator operator++(int);
 
     bool operator==(iterator other);
     bool operator!=(iterator other);
   };
 
-  class const_iterator {
-    friend class PathNode;
-    const PathNode* current;
-  public:
-    const_iterator(const PathNode* current);
-    const_iterator(const_iterator& other);
-    const_iterator(const_iterator&& other);
+private:
+  ByteArray data;
+public:
+  Path(std::initializer_list<PathLiteral> path);
 
-    const PathNode& operator*();
-    const PathNode* operator->();
+  Path(const Path& other);
+  Path(Path&& other);
 
-    const_iterator& operator++();
-    const_iterator operator++(int);
-
-    bool operator==(const_iterator other);
-    bool operator!=(const_iterator other);
-  };
+  bool isEmpty();
 
   iterator begin();
   iterator end();
 
-  const_iterator cbegin() const;
-  const_iterator cend() const;
-
 };
-
-typedef PathNode Path;
 
 }
 

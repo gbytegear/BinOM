@@ -72,7 +72,7 @@ public:
 
   NodeVisitor& stepInside(ui64 index);
   NodeVisitor& stepInside(BufferArray name);
-  NodeVisitor& stepInside(Path path);
+  NodeVisitor& stepInside(PathNode path);
 
   BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
@@ -81,7 +81,7 @@ public:
   Variable& getVariable() const;
   Variable& getVariable(ui64 index) const;
   Variable& getVariable(BufferArray name) const;
-  Variable& getVariable(Path path) const;
+  Variable& getVariable(PathNode path) const;
   BufferArray getName() const;
 
   void setVariable(Variable var);
@@ -94,15 +94,15 @@ public:
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
-  NodeVisitor getChild(Path path) {return NodeVisitor(*this).stepInside(std::move(path));}
+  NodeVisitor getChild(PathNode path) {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor operator[](ui64 index) const {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor operator[](BufferArray name) const {return NodeVisitor(*this).stepInside(std::move(name));}
-  NodeVisitor& operator[](Path path) const {return NodeVisitor(*this).stepInside(std::move(path));}
+  NodeVisitor& operator[](PathNode path) const {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor& operator()(ui64 index) {return stepInside(index);}
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
-  NodeVisitor& operator()(Path path) {return stepInside(std::move(path));}
+  NodeVisitor& operator()(PathNode path) {return stepInside(std::move(path));}
 
   NodeVector findAll(Query query);
   NodeVisitor find(Query query);

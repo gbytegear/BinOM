@@ -456,9 +456,9 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
   return *this;
 }
 
-DBNodeVisitor& DBNodeVisitor::stepInside(PathNode path) {
+DBNodeVisitor& DBNodeVisitor::stepInside(Path path) {
   updateNode();
-  for(const PathNode& path_node : path)
+  for(const Path::PathNode& path_node : path)
     switch (path_node.type()) {
       case PathNodeType::index: stepInside(path_node.index()); continue;
       case PathNodeType::name: stepInside(path_node.name()); continue;
@@ -497,7 +497,7 @@ Variable DBNodeVisitor::getVariable(BufferArray name) const {
   return buildVariable(getChild(name).node_index);
 }
 
-Variable DBNodeVisitor::getVariable(PathNode path) const {
+Variable DBNodeVisitor::getVariable(Path path) const {
   return DBNodeVisitor(*this).stepInside(std::move(path)).getVariable();
 }
 
@@ -831,15 +831,15 @@ void DBNodeVisitor::remove() { deleteNode(node_index); snapTo(0); }
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
-DBNodeVisitor DBNodeVisitor::getChild(PathNode path) const {return DBNodeVisitor(*this).stepInside(std::move(path));}
+DBNodeVisitor DBNodeVisitor::getChild(Path path) const {return DBNodeVisitor(*this).stepInside(std::move(path));}
 
 DBNodeVisitor DBNodeVisitor::operator[](ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::operator[](BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
-DBNodeVisitor DBNodeVisitor::operator[](PathNode path) const {return DBNodeVisitor(*this).stepInside(std::move(path));}
+DBNodeVisitor DBNodeVisitor::operator[](Path path) const {return DBNodeVisitor(*this).stepInside(std::move(path));}
 
 DBNodeVisitor& DBNodeVisitor::operator()(ui64 index) {return stepInside(index);}
 DBNodeVisitor& DBNodeVisitor::operator()(BufferArray name) {return stepInside(std::move(name));}
-DBNodeVisitor& DBNodeVisitor::operator()(PathNode path) {return stepInside(std::move(path));}
+DBNodeVisitor& DBNodeVisitor::operator()(Path path) {return stepInside(std::move(path));}
 
 #include "binom/includes/structure/file_storage/data_base_node_visitor_query.h"
 

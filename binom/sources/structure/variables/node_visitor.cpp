@@ -85,8 +85,8 @@ NodeVisitor& NodeVisitor::stepInside(BufferArray name) {
   else throw Exception(ErrCode::binom_invalid_type);
 }
 
-NodeVisitor& NodeVisitor::stepInside(PathNode path) {
-  for(const PathNode& path_node : path)
+NodeVisitor& NodeVisitor::stepInside(Path path) {
+  for(const Path::PathNode& path_node : path)
     switch (path_node.type()) {
       case PathNodeType::index: stepInside(path_node.index()); continue;
       case PathNodeType::name: stepInside(path_node.name()); continue;
@@ -134,7 +134,7 @@ Variable& NodeVisitor::getVariable(BufferArray name) const {
   throw Exception(ErrCode::binom_invalid_type);
 }
 
-Variable& NodeVisitor::getVariable(PathNode path) const {
+Variable& NodeVisitor::getVariable(Path path) const {
   return NodeVisitor(*this).stepInside(std::move(path)).getVariable();
 }
 

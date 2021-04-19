@@ -79,12 +79,12 @@ public:
   DBNodeVisitor& snapTo(f_virtual_index node_index);
   DBNodeVisitor& stepInside(ui64 index);
   DBNodeVisitor& stepInside(BufferArray name);
-  DBNodeVisitor& stepInside(Path path);
+  DBNodeVisitor& stepInside(PathNode path);
 
   Variable getVariable() const;
   Variable getVariable(ui64 index) const;
   Variable getVariable(BufferArray name) const;
-  Variable getVariable(Path path) const;
+  Variable getVariable(PathNode path) const;
 
   void setVariable(Variable var);
   void pushBack(Variable var);
@@ -97,15 +97,15 @@ public:
 
   DBNodeVisitor getChild(ui64 index) const;
   DBNodeVisitor getChild(BufferArray name) const;
-  DBNodeVisitor getChild(Path path) const;
+  DBNodeVisitor getChild(PathNode path) const;
 
   DBNodeVisitor operator[](ui64 index) const;
   DBNodeVisitor operator[](BufferArray name) const;
-  DBNodeVisitor operator[](Path name) const;
+  DBNodeVisitor operator[](PathNode name) const;
 
   DBNodeVisitor& operator()(ui64 index);
   DBNodeVisitor& operator()(BufferArray name);
-  DBNodeVisitor& operator()(Path path);
+  DBNodeVisitor& operator()(PathNode path);
 
   DBNodeVector findAll(Query query);
   DBNodeVisitor find(Query query);
