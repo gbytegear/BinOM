@@ -402,6 +402,16 @@ BufferArray BufferArray::deserialize(binom::ByteArray::iterator& it) {
   return buffer_array;
 }
 
+ui64 BufferArray::serializedSize(ByteArray::iterator it) {
+  ui8 element_size;
+  if(VarType type = VarType(*it); type < VarType::byte_array || type > VarType::qword_array)
+    throw Exception(ErrCode::binom_invalid_type);
+  else element_size = toSize(toValueType(type));
+  ByteArray::iterator l_it = ++it;
+  ui64 size = fromChainNumber(it) + (it - l_it);
+  return size;
+}
+
 ValueRef BufferArray::pushBack(ui64 value) {
     ValueRef val(*data.type, madd(getMemberSize()));
     val.setUnsigned(value);
@@ -653,4 +663,4 @@ ByteArray BufferArray::toByteArray() const {
   return array;
 }
 
-const binom::BufferArray operator "" _vbfr(const char* c_str, std::size_t) {return c_str;}
+const binom::BufferArray operator ""_vbfr(const char* c_str, std::size_t) {return c_str;}

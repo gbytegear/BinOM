@@ -11,6 +11,7 @@ enum ErrCode : ui8 {
     memory_free_error,
     out_of_range,
     file_open_error,
+    invalid_data,
 
     // BinOM Exceptions
     binom_invalid_type,
@@ -36,6 +37,7 @@ class Exception {
       case ErrCode::memory_free_error: return         "Memory free error";
       case ErrCode::out_of_range: return              "Out of range";
       case ErrCode::file_open_error: return           "File open error";
+      case ErrCode::invalid_data: return              "Invalid data";
 
       case ErrCode::binom_invalid_type: return        "Invalid BinOM type";
       case ErrCode::binom_out_of_range: return        "Out of BinOM container range";

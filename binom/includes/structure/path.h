@@ -61,12 +61,28 @@ public:
 
     bool operator==(iterator other);
     bool operator!=(iterator other);
+    bool operator>(iterator other);
+    bool operator>=(iterator other);
+    bool operator<(iterator other);
+    bool operator<=(iterator other);
   };
 
 private:
   ByteArray data;
+  bool isValid() {
+    iterator it_end = end();
+    for(iterator it = begin(); it != it_end; ++it) {
+      if(it > it_end) return false;
+      PathNode& path_node = *it;
+      PathNodeType type = path_node.type();
+      if( type != PathNodeType::index && type != PathNodeType::name ) return false;
+    }
+    return true;
+  }
+  Path(ByteArray data);
 public:
   Path(std::initializer_list<PathLiteral> path);
+  Path();
 
   Path(const Path& other);
   Path(Path&& other);
@@ -75,6 +91,9 @@ public:
 
   iterator begin();
   iterator end();
+
+  ByteArray toByteArray() const;
+  static Path fromByteArray(ByteArray path);
 
 };
 

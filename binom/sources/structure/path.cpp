@@ -42,6 +42,8 @@ Path::Path(std::initializer_list<Path::PathLiteral> path) {
 
 Path::Path(const Path& other) : data(other.data) {}
 
+Path::Path(ByteArray data) : data(std::move(data)) {if(!isValid())throw Exception(ErrCode::invalid_data, "Invalid path buffer!");}
+
 Path::Path(Path&& other) : data(std::move(other.data)) {}
 
 bool Path::isEmpty() {return data.isEmpty();}
@@ -49,6 +51,10 @@ bool Path::isEmpty() {return data.isEmpty();}
 Path::iterator Path::begin() {return data.begin<void*>();}
 
 Path::iterator Path::end() {return reinterpret_cast<void*>(data.end());}
+
+ByteArray Path::toByteArray() const {return data;}
+
+Path Path::fromByteArray(ByteArray path) {return path;}
 
 Path::PathNode::PathNode(void* ptr) : ptr(reinterpret_cast<PathNodeType*>(ptr)) {}
 
@@ -105,3 +111,11 @@ Path::iterator Path::iterator::operator++(int) {
 bool Path::iterator::operator==(Path::iterator other) {return ptr == other.ptr;}
 
 bool Path::iterator::operator!=(Path::iterator other) {return ptr != other.ptr;}
+
+bool Path::iterator::operator>(Path::iterator other) {return ptr > other.ptr;}
+
+bool Path::iterator::operator>=(Path::iterator other) {return ptr >= other.ptr;}
+
+bool Path::iterator::operator<(Path::iterator other) {return ptr < other.ptr;}
+
+bool Path::iterator::operator<=(Path::iterator other) {return ptr <= other.ptr;}
