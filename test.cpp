@@ -1,8 +1,11 @@
 #include "binom/includes/binom.h"
 
+const char SEPARATOR[] = "=========================================================================\n";
+
 using namespace binom;
 
 void testDB() {
+  std::clog << "FUNCTION: " << __FUNCTION__ << "()\n";
 
   {
     FileIO file("db.binomdb");
@@ -51,12 +54,6 @@ void testDB() {
     ;
 
 
-    Query q = {{QProp::value, {"login"}, QOper::equal, "admin"_vbfr }};
-    for(Query::QueryEpression& exp : q) {
-      std::clog << "Hello\n";
-    }
-
-
     db.getByNodeIndex(message_node).pushBack(
 
           vobj{
@@ -79,17 +76,107 @@ void testDB() {
       .write(db.getRoot().getVariable())
       .load(data);
 
+  std::clog << SEPARATOR;
+
   std::clog << "DataBase has been backuped:\n"
             << data << '\n';
+
+  std::clog << SEPARATOR;
+
+}
+
+void testQuery() {
+  std::clog << "FUNCTION: " << __FUNCTION__ << "()\n";
+  Variable data = vobj {
+    {"usr", varr{
+      vobj{
+        {"login", "admin"},
+        {"password", "admin"},
+        {"access_lvl", 0xFF_ui8},
+        {"files", vobj{
+          {"config.json",
+                  "{\n"
+                  "  \"login\":\"admin\",\n"
+                  "  \"password\":\"admin\",\n"
+                  "  \"access_lvl\":255\n"
+                  "}"
+          }
+        }}
+      },
+      vobj{
+        {"login", "any_user"},
+        {"password", "any_password"},
+        {"access_lvl", 0x7F_ui8},
+        {"files", vobj{
+          {"any.txt", "Hello, World!"}
+        }}
+      },
+      vobj{
+        {"login", "other_user"},
+        {"password", "other_password"},
+        {"access_lvl", 0x7F_ui8},
+        {"files", vobj{}}
+      },
+    }},
+    {"grp", varr{
+      vobj{
+        {"name", "any_group"},
+        {"owner", "any_user"},
+        {"members", varr{
+          "any_user",
+          "other_user"
+        }}
+      },
+      vobj{
+        {"name", "other_group"},
+        {"owner", "admin"},
+        {"members", varr{
+          "admin",
+          "any_user"
+        }}
+      }
+    }}
+  };
+
+  NodeVisitor node(&data);
+
+  std::clog << "Structure:\n" << node.getVariable() << '\n';
+
+  std::clog << SEPARATOR;
+
+  std::clog << "Files of all users:\n";
+  for(NodeVisitor user_node : node["usr"].findAll({{QProp::element_count, {"files"}, QOper::highter, 0}}))
+    for(NodeVisitor file_node : user_node["files"])
+      std::clog << file_node.getName().toString() << ":\n"
+                << file_node.getVariable().toBufferArray().toString() << "\n\n";
+
+  std::clog << SEPARATOR;
+
+  for(NodeVisitor group_node : node["grp"]) {
+    std::clog << "Group \"" << group_node["name"].getVariable().toBufferArray().toString() << "\" members:\n";
+    for(NodeVisitor user_login_node : group_node["members"]) {
+      std::clog << node["usr"]
+                   .find({
+                           {QProp::value,
+                            {"login"},
+                            QOper::equal,
+                            user_login_node
+                              .getVariable()
+                              .toBufferArray()}
+                         }).getVariable()
+          << "\n\n";
+    }
+  }
+
+  std::clog << SEPARATOR;
+
 }
 
 int main() {
   try {
 
     testDB();
-
-    std::clog <<
-    "=========================================================================\n";
+    testQuery();
 
   } catch(Exception& except) {
     std::cerr << except.what() << std::endl;

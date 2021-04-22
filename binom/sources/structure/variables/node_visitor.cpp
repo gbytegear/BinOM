@@ -252,8 +252,7 @@ void NodeVisitor::remove(BufferArray name) {
 // Query test function
 #include "binom/includes/structure/variables/node_visitor_query.h"
 
-NodeVector NodeVisitor::findAll(Query query) {
-  NodeVector node_vector;
+NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
   if(!isIterable()) return node_vector;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
@@ -265,7 +264,7 @@ NodeVector NodeVisitor::findAll(Query query) {
 }
 
 NodeVisitor NodeVisitor::find(Query query) {
-  if(isIterable()) return nullptr;
+  if(!isIterable()) return nullptr;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
     if(node.test(query, index))

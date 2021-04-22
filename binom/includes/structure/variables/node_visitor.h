@@ -104,7 +104,7 @@ public:
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
   NodeVisitor& operator()(Path path) {return stepInside(std::move(path));}
 
-  NodeVector findAll(Query query);
+  NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
   NodeVisitor find(Query query);
 
   NodeIterator begin();
