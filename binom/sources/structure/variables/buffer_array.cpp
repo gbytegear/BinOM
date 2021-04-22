@@ -403,13 +403,12 @@ BufferArray BufferArray::deserialize(binom::ByteArray::iterator& it) {
 }
 
 ui64 BufferArray::serializedSize(ByteArray::iterator it) {
-  ui8 element_size;
-  if(VarType type = VarType(*it); type < VarType::byte_array || type > VarType::qword_array)
-    throw Exception(ErrCode::binom_invalid_type);
-  else element_size = toSize(toValueType(type));
-  ByteArray::iterator l_it = ++it;
-  ui64 size = fromChainNumber(it) + (it - l_it);
-  return size;
+  ByteArray::iterator old_it = it;
+  VarType type = VarType(*it);
+  if(type < VarType::byte_array || type > VarType::qword_array) throw Exception(ErrCode::binom_invalid_type);
+  ++it;
+  it += fromChainNumber(it) * getMemberSize(type);
+  return it - old_it;
 }
 
 ValueRef BufferArray::pushBack(ui64 value) {

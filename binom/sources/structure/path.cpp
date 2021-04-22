@@ -46,6 +46,8 @@ Path::Path(ByteArray data) : data(std::move(data)) {if(!isValid())throw Exceptio
 
 Path::Path(Path&& other) : data(std::move(other.data)) {}
 
+Path::Path() {}
+
 bool Path::isEmpty() {return data.isEmpty();}
 
 Path::iterator Path::begin() {return data.begin<void*>();}

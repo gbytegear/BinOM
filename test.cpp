@@ -3,6 +3,12 @@
 using namespace binom;
 
 void testDB() {
+
+  {
+    FileIO file("db.binomdb");
+    file.resize(0);
+  }
+
   DataBaseContainer db("db.binomdb");
 
   if(db.isUninitializedRoot()) {
@@ -45,11 +51,17 @@ void testDB() {
     ;
 
 
+    Query q = {{QProp::value, {"login"}, QOper::equal, "admin"_vbfr }};
+    for(Query::QueryEpression& exp : q) {
+      std::clog << "Hello\n";
+    }
+
+
     db.getByNodeIndex(message_node).pushBack(
 
           vobj{
-            {"from", db.getByNodeIndex(users_node).find({{{qprop::value, {"login"}, qoper::equal, "admin"_vbfr }}}).getNodeIndex()},
-            {"to", db.getByNodeIndex(users_node).find({{{qprop::value, {"login"}, qoper::equal, "guest"_vbfr }}}).getNodeIndex()},
+            {"from", db.getByNodeIndex(users_node).find({{QProp::value, {"login"}, QOper::equal, "admin"_vbfr }}).getNodeIndex()},
+            {"to", db.getByNodeIndex(users_node).find({{QProp::value, {"login"}, QOper::equal, "guest"_vbfr }}).getNodeIndex()},
             {"content", "You are entered in system with Guest account, please login with your account"}
           }
 

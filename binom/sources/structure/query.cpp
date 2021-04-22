@@ -4,6 +4,16 @@ using namespace binom;
 
 #ifdef NEW_QUERY
 
+Query::Flag::Flag(QProp prop, QOper oper, bool has_path, QValType val_type, QRel next_rel)
+  : prop(prop),
+    oper(oper),
+    has_path(has_path),
+    val_type(val_type),
+    next_rel(next_rel) {}
+
+
+
+
 Query::QValue::Data::~Data() {}
 Query::QValue::Data::Data(VarType type) : type(type) {}
 Query::QValue::Data::Data(VarTypeClass type_class) : type_class(type_class) {}
@@ -11,6 +21,24 @@ Query::QValue::Data::Data(ValType value_type) : value_type(value_type) {}
 Query::QValue::Data::Data(i64 number) : number(number) {}
 Query::QValue::Data::Data(Range range) : range(range) {}
 Query::QValue::Data::Data(BufferArray string) : string(std::move(string)) {}
+
+Query::QValue::Data::Data(QValType vtype, const Query::QValue::Data& other) {
+    switch (vtype) {
+        case QValType::type:
+            type = other.type; return;
+        case QValType::type_class:
+            type_class = other.type_class; return;
+        case QValType::value_type:
+            value_type = other.value_type; return;
+        case QValType::number:
+            number = other.number; return;
+        case QValType::range:
+            range = other.range; return;
+        case QValType::string:
+            new(&string) BufferArray(other.string); return;
+    }
+}
+
 
 
 
@@ -37,8 +65,12 @@ Query::QValue::QValue(Range range)
     data(range) {}
 
 Query::QValue::QValue(BufferArray string)
-  : value_type(QValType::string),
-    data(std::move(string)) {}
+    : value_type(QValType::string),
+      data(std::move(string)) {}
+
+Query::QValue::QValue(binom::Query::QValue&& other)
+    : value_type(other.value_type),
+      data(other.value_type, other.data) {}
 
 
 Query::QValue::~QValue() {
@@ -90,12 +122,12 @@ Query::iterator Query::end() {return data.end();}
 
 
 Query::QueryLiteral::QueryLiteral(QProp prop, Path path, QOper oper, QValue val, QRel next_rel)
-  : flag{prop, oper, !path.isEmpty(), val.value_type, next_rel},
+  : flag(prop, oper, !path.isEmpty(), val.value_type, next_rel),
     path(path),
     value(std::move(val)) {}
 
 Query::QueryLiteral::QueryLiteral(QProp prop, QOper oper, QValue val, QRel next_rel)
-  : flag{prop, oper, false, val.value_type, next_rel},
+  : flag(prop, oper, false, val.value_type, next_rel),
     path(),
     value(std::move(val)) {}
 
@@ -166,7 +198,7 @@ Query::Flag& Query::QueryEpression::getFlag() {return *reinterpret_cast<Flag*>(i
 byte* Query::QueryEpression::getDataPointer() {
   return reinterpret_cast<byte*>(it + sizeof(Flag) + (
                                    hasPath()
-                                   ? (*reinterpret_cast<ui64*>(it + 1) + sizeof(ui64))
+                                   ? (*reinterpret_cast<ui64*>(it + sizeof(Flag)) + sizeof(ui64))
                                    : 0
                                      )
                                  );
@@ -187,9 +219,14 @@ Path Query::QueryEpression::getPath() {
 VarType Query::QueryEpression::getVarType() {return *reinterpret_cast<VarType*>(getDataPointer());}
 VarTypeClass Query::QueryEpression::getVarTypeClass() {return *reinterpret_cast<VarTypeClass*>(getDataPointer());}
 ValType Query::QueryEpression::getValType() {return *reinterpret_cast<ValType*>(getDataPointer());}
+
+ui64 Query::QueryEpression::getUNumber() {return *reinterpret_cast<ui64*>(getDataPointer());}
 i64 Query::QueryEpression::getNumber() {return *reinterpret_cast<i64*>(getDataPointer());}
 Range Query::QueryEpression::getRange() {return *reinterpret_cast<Range*>(getDataPointer());}
-BufferArray Query::QueryEpression::getString() {ByteArray::iterator it = getDataPointer();return BufferArray::deserialize(it);}
+BufferArray Query::QueryEpression::getString() {
+  ByteArray::iterator it = getDataPointer();
+  return BufferArray::deserialize(it);
+}
 
 Query::iterator Query::QueryEpression::begin() {
   ByteArray::iterator it = getDataPointer();

@@ -1,4 +1,4 @@
-//#define NEW_QUERY
+#define NEW_QUERY
 #ifdef NEW_QUERY
 
 #ifndef QUERY_H
@@ -120,6 +120,8 @@ struct Query::Flag {
   // Octet #2
   QValType val_type : 3;
   QRel next_rel : 2;
+
+  Flag(QProp prop, QOper oper, bool has_path, QValType val_type, QRel next_rel);
 };
 
 struct Query::QValue {
@@ -139,6 +141,7 @@ struct Query::QValue {
     Data(i64 number);
     Data(Range range);
     Data(BufferArray string);
+    Data(QValType vtype, const Data& other);
   } data;
 
   QValue(VarType type);
@@ -208,12 +211,12 @@ public:
   VarType getVarType();
   VarTypeClass getVarTypeClass();
   ValType getValType();
+  ui64 getUNumber();
   i64 getNumber();
   Range getRange();
   BufferArray getString();
 
   iterator begin();
-
   iterator end();
 };
 

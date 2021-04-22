@@ -89,7 +89,7 @@ NodeVisitor& NodeVisitor::stepInside(Path path) {
   for(const Path::PathNode& path_node : path)
     switch (path_node.type()) {
       case PathNodeType::index: stepInside(path_node.index()); continue;
-      case PathNodeType::name: stepInside(path_node.name()); continue;
+      case PathNodeType::name:  stepInside(path_node.name()); continue;
     }
   return *this;
 }
