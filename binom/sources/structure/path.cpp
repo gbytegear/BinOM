@@ -42,13 +42,24 @@ Path::Path(std::initializer_list<Path::PathLiteral> path) {
 
 Path::Path(const Path& other) : data(other.data) {}
 
+bool Path::isValid() {
+  iterator it_end = end();
+  for(iterator it = begin(); it != it_end; ++it) {
+    if(it > it_end) return false;
+    PathNode& path_node = *it;
+    PathNodeType type = path_node.type();
+    if( type != PathNodeType::index && type != PathNodeType::name ) return false;
+  }
+  return true;
+}
+
 Path::Path(ByteArray data) : data(std::move(data)) {if(!isValid())throw Exception(ErrCode::invalid_data, "Invalid path buffer!");}
 
 Path::Path(Path&& other) : data(std::move(other.data)) {}
 
 Path::Path() {}
 
-bool Path::isEmpty() {return data.isEmpty();}
+bool Path::isEmpty() const {return data.isEmpty();}
 
 Path::iterator Path::begin() {return data.begin<void*>();}
 

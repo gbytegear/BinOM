@@ -102,10 +102,18 @@ private:
 
   static ByteArray buildSubexpression(QExprInitList& exprs);
 
+  Query(ByteArray data);
 public:
   Query(QExprInitList exprs);
+
+  bool isEmpty() const;
+
   iterator begin();
   iterator end();
+
+  ByteArray toByteArray() const;
+  static Query fromByteArray(ByteArray data);
+
 };
 
 struct Query::Flag {

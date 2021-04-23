@@ -138,6 +138,47 @@ void testQuery() {
     }}
   };
 
+  DataBaseContainer db("qtest.binomdb");
+  if(db.isUninitializedRoot()) {
+    db.getRoot().setVariable(data);
+  }
+
+  DBNodeVisitor db_node(db.getRoot());
+
+  std::clog << "Structure:\n" << db_node.getVariable() << '\n';
+
+  std::clog << SEPARATOR;
+
+  std::clog << "Files of all users:\n";
+  for(DBNodeVisitor user_node : db_node["usr"].findAll({{QProp::element_count, {"files"}, QOper::highter, 0}}))
+    for(DBNodeVisitor file_node : user_node["files"])
+      std::clog << file_node.getVariable().toBufferArray().toString() << "\n\n";
+
+  std::clog << SEPARATOR;
+
+  for(DBNodeVisitor group_node : db_node["grp"]) {
+    std::clog << "Group \"" << group_node["name"].getVariable().toBufferArray().toString() << "\" members:\n";
+    for(DBNodeVisitor user_login_node : group_node["members"]) {
+      std::clog << db_node["usr"]
+          .find({
+                  {QProp::value,
+                   {"login"},
+                   QOper::equal,
+                   user_login_node
+                   .getVariable()
+                   .toBufferArray()}
+                }).getVariable()
+          << "\n\n";
+    }
+  }
+
+  std::clog << SEPARATOR;
+
+
+
+
+
+
   NodeVisitor node(&data);
 
   std::clog << "Structure:\n" << node.getVariable() << '\n';

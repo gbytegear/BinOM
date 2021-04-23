@@ -110,11 +110,18 @@ ByteArray Query::buildSubexpression(Query::QExprInitList& exprs) {
   return data;
 }
 
+Query::Query(ByteArray data) : data(std::move(data)) {}
+
 Query::Query(Query::QExprInitList exprs)
   : data(buildSubexpression(exprs)) {}
 
+bool Query::isEmpty() const {return data.isEmpty();}
+
 Query::iterator Query::begin() {return data.begin();}
 Query::iterator Query::end() {return data.end();}
+
+ByteArray Query::toByteArray() const {return data;}
+Query Query::fromByteArray(ByteArray data) {return data;}
 
 
 

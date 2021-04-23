@@ -257,7 +257,7 @@ NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
   ui64 index = 0;
   for(NodeVisitor node : *this) {
     if(node.test(query, index))
-      node_vector.push_back(node);
+      node_vector.pushBack(node);
     ++index;
   }
   return node_vector;
@@ -277,3 +277,35 @@ NodeVisitor NodeVisitor::find(Query query) {
 NodeVisitor::NodeIterator NodeVisitor::begin() {return NodeIterator(*this);}
 
 NodeVisitor::NodeIterator NodeVisitor::end() {return NodeIterator(*this, true);}
+
+void NodeVisitor::ifNotNull(std::function<void ()> callback) {if(!isNull())callback();}
+
+void NodeVisitor::foreach(std::function<void (NodeVisitor&)> callback) {
+  if(!isIterable()) return;
+  for(NodeVisitor node : *this) callback(node);
+}
+
+NodeVector::NodeVector(NodeVector&& other) : data(std::move(other.data)) {}
+NodeVector::NodeVector(const NodeVector& other) : data(other.data) {}
+void NodeVector::pushBack(NodeVisitor node) {data.pushBack(node);}
+NodeVisitor& NodeVector::get(ui64 index) {return data.get<NodeVisitor>(index);}
+NodeVisitor& NodeVector::operator[](ui64 index) {return get(index);}
+ui64 NodeVector::length() {return data.length<NodeVisitor>();}
+NodeVector::iterator NodeVector::begin() {return data.begin<NodeVisitor>();}
+NodeVector::iterator NodeVector::end() {return reinterpret_cast<iterator>(data.end());}
+void NodeVector::foreach(std::function<void (NodeVisitor&)> callback) {for(NodeVisitor& node : *this)callback(node);}
+
+Array NodeVector::toArray() {
+  ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
+  array_data.get<VarType>(0) = VarType::array;
+  array_data.get<ui64>(0, 1) = length();
+  iterator it = begin();
+  for(Variable& var : array_data.get<Array>(0))
+    new(&var) Variable(it->getVariable());
+  void* ptr = array_data.unfree();
+  return *reinterpret_cast<Array*>(&ptr);
+}
+
+Variable NodeVector::buildFromTemplate(VTemplate templ) {
+  // TODO...
+}

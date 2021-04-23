@@ -2,16 +2,34 @@
 #define NODE_VISITOR_H
 
 #include "variable.h"
-#include "../path.h"
-#include "../query.h"
+#include "../vtemplate.h"
 
 #include <vector>
+#include <functional>
 
 namespace binom {
 
 class NodeVisitor;
 
-typedef std::vector<NodeVisitor> NodeVector;
+class NodeVector {
+  ByteArray data;
+public:
+  typedef NodeVisitor* iterator;
+  NodeVector() = default;
+  NodeVector(NodeVector&& other);
+  NodeVector(const NodeVector& other);
+  void pushBack(NodeVisitor node);
+  NodeVisitor& get(ui64 index);
+  NodeVisitor& operator[](ui64 index);
+  ui64 length();
+  iterator begin();
+  iterator end();
+  void foreach(std::function<void(NodeVisitor&)> callback);
+
+  Array toArray();
+  Variable buildFromTemplate(VTemplate templ);
+
+};
 
 class NodeVisitor {
   enum class RefType : ui8 {
@@ -109,6 +127,12 @@ public:
 
   NodeIterator begin();
   NodeIterator end();
+
+
+  // Functional
+
+  void ifNotNull(std::function<void()> callback);
+  void foreach(std::function<void(NodeVisitor&)> callback);
 
 };
 
