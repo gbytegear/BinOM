@@ -12,7 +12,7 @@ void testDB() {
     file.resize(0);
   }
 
-  DataBaseContainer db("db.binomdb");
+  BinOMDataBase db("db.binomdb");
 
   if(db.isUninitializedRoot()) {
     DBNodeVisitor root_node(db.getRoot());
@@ -138,7 +138,7 @@ void testQuery() {
     }}
   };
 
-  DataBaseContainer db("qtest.binomdb");
+  BinOMDataBase db("qtest.binomdb");
   if(db.isUninitializedRoot()) {
     db.getRoot().setVariable(data);
   }
@@ -186,10 +186,14 @@ void testQuery() {
   std::clog << SEPARATOR;
 
   std::clog << "Files of all users:\n";
-  for(NodeVisitor user_node : node["usr"].findAll({{QProp::element_count, {"files"}, QOper::highter, 0}}))
-    for(NodeVisitor file_node : user_node["files"])
+
+  node["usr"]
+      .findAll({{QProp::element_count, {"files"}, QOper::highter, 0}})
+      .foreach([&](NodeVisitor& node) {
+    for(NodeVisitor file_node : node["files"])
       std::clog << file_node.getName().toString() << ":\n"
                 << file_node.getVariable().toBufferArray().toString() << "\n\n";
+  });
 
   std::clog << SEPARATOR;
 

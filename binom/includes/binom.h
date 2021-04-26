@@ -2,7 +2,7 @@
 #define BINOM_H
 
 #include "structure/variables/node_visitor.h"
-#include "structure/file_storage/data_base_container.h"
+#include "structure/file_storage/data_base.h"
 
 namespace binom {
 
@@ -20,7 +20,7 @@ public:
 
   BinOMFile& write(Variable data);
   BinOMFile& load(Variable& data);
-  BinOMFile& backup(DataBaseContainer& db);
+  BinOMFile& backup(BinOMDataBase& db);
 
   Variable load();
 

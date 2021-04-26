@@ -112,6 +112,8 @@ public:
 
   ~Variable() {destroy();}
 
+  static Variable create(VarType type);
+
   ByteArray serialize() const;
   static Variable deserialize(ByteArray::iterator& it);
   static inline Variable deserialize(ByteArray serialized) {ByteArray::iterator it = serialized.begin(); return deserialize(it);}
@@ -152,6 +154,15 @@ public:
         : (isBufferArray() || isArray() || isObject())
         ? *reinterpret_cast<ui64*>(data.bytes + 1)
         : 1;
+  }
+
+  inline bool contains(BufferArray name) const { if(!isObject()) return false; else return toObject().contains(std::move(name)); }
+  inline bool inRange(ui64 index) const {
+      switch (typeClass()) {
+          case VarTypeClass::array: return toArray().inRange(index);
+          case VarTypeClass::buffer_array: return toBufferArray().inRange(index);
+          default: return false;
+      }
   }
 
   NodeVisitor getNode();

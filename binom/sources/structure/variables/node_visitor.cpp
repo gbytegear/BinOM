@@ -278,7 +278,13 @@ NodeVisitor::NodeIterator NodeVisitor::begin() {return NodeIterator(*this);}
 
 NodeVisitor::NodeIterator NodeVisitor::end() {return NodeIterator(*this, true);}
 
-void NodeVisitor::ifNotNull(std::function<void ()> callback) {if(!isNull())callback();}
+NodeVisitor& NodeVisitor::ifNotNull(std::function<void (NodeVisitor&)> callback) {
+  if(!isNull())callback(*this);return *this;
+}
+
+NodeVisitor& NodeVisitor::ifNull(std::function<void (NodeVisitor&)> callback) {
+  if(isNull())callback(*this);return *this;
+}
 
 void NodeVisitor::foreach(std::function<void (NodeVisitor&)> callback) {
   if(!isIterable()) return;
@@ -304,8 +310,4 @@ Array NodeVector::toArray() {
     new(&var) Variable(it->getVariable());
   void* ptr = array_data.unfree();
   return *reinterpret_cast<Array*>(&ptr);
-}
-
-Variable NodeVector::buildFromTemplate(VTemplate templ) {
-  // TODO...
 }

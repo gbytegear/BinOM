@@ -418,6 +418,23 @@ Variable::Variable(Object object) : data(object.data.ptr) {object.data.ptr = nul
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Variable::Variable(const Variable& other) : data(other.clone()) {}
 
+Variable Variable::create(VarType type) {
+  switch (type) {
+    case binom::VarType::byte:
+    case binom::VarType::word:
+    case binom::VarType::dword:
+    case binom::VarType::qword: return Primitive(type);
+    case binom::VarType::byte_array:
+    case binom::VarType::word_array:
+    case binom::VarType::dword_array:
+    case binom::VarType::qword_array: return BufferArray(type);
+    case binom::VarType::array: return Array();
+    case binom::VarType::object: return Object();
+    case binom::VarType::end:
+    case binom::VarType::invlid_type: return nullptr;
+  }
+}
+
 ByteArray Variable::serialize() const {
   switch (typeClass()) {
     case VarTypeClass::primitive: return toPrimitive().serialize();

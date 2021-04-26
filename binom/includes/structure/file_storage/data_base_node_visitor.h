@@ -6,14 +6,31 @@
 #include "../path.h"
 #include "../query.h"
 
-#include <vector>
+#include <functional>
 
 namespace binom {
 
 class DBNodeVisitor;
 class DBNodeIterator;
 
-typedef std::vector<DBNodeVisitor> DBNodeVector;
+//typedef std::vector<DBNodeVisitor> DBNodeVector;
+class DBNodeVector {
+  ByteArray data;
+public:
+  typedef DBNodeVisitor* iterator;
+  DBNodeVector() = default;
+  DBNodeVector(DBNodeVector&& other);
+  DBNodeVector(const DBNodeVector& other);
+  void pushBack(DBNodeVisitor node);
+  DBNodeVisitor& get(ui64 index);
+  DBNodeVisitor& operator[](ui64 index);
+  ui64 length();
+  iterator begin();
+  iterator end();
+  void foreach(std::function<void(DBNodeVisitor&)> callback);
+
+  Array toArray();
+};
 
 class DBNodeVisitor {
 
@@ -107,11 +124,18 @@ public:
   DBNodeVisitor& operator()(BufferArray name);
   DBNodeVisitor& operator()(Path path);
 
-  DBNodeVector findAll(Query query);
+  DBNodeVector findAll(Query query, DBNodeVector vector = DBNodeVector());
   DBNodeVisitor find(Query query);
 
   DBNodeIterator begin();
   inline decltype(nullptr) end() {return nullptr;}
+
+
+  //functional
+
+  DBNodeVisitor& ifNotNull(std::function<void(DBNodeVisitor&)> callback);
+  DBNodeVisitor& ifNull(std::function<void(DBNodeVisitor&)> callback);
+  void foreach(std::function<void(DBNodeVisitor&)> callback);
 
 };
 

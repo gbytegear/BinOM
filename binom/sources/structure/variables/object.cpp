@@ -140,6 +140,24 @@ Object Object::deserialize(ByteArray::iterator& it) {
   return obj;
 }
 
+bool Object::contains(BufferArray name) const {
+  i64 left = 0;
+  i64 right = length();
+  i64 middle = 0;
+
+  NamedVariable* it = reinterpret_cast<NamedVariable*>(data.bytes + 9);
+
+  while (left <= right) {
+    middle = (left + right) / 2;
+    if(middle > length()) break;
+
+    if(it[middle].name > name) right = middle - 1;
+    elif(it[middle].name < name) left = middle + 1;
+    elif(it[middle].name == name) return true;
+  }
+  return false;
+}
+
 Variable& Object::insert(BufferArray name, Variable var) {
   if(!length()) {
     NamedVariable& member = *reinterpret_cast<NamedVariable*>(madd(sizeof (NamedVariable)));

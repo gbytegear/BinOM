@@ -36,6 +36,7 @@ public:
 
   inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
+  inline bool inRange(ui64 index) const {return length() > index;}
 
   Variable& getVariable(ui64 index) const;
 

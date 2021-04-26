@@ -85,6 +85,7 @@ public:
   ~BufferArray() {destroy();}
 
   VarType getType() {return *data.type;}
+  inline bool inRange(ui64 index) const {return length() > index;}
 
   ByteArray serialize() const;
   static BufferArray deserialize(ByteArray::iterator& it);

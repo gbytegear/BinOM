@@ -2,7 +2,8 @@
 #define NODE_VISITOR_H
 
 #include "variable.h"
-#include "../vtemplate.h"
+#include "../path.h"
+#include "../query.h"
 
 #include <vector>
 #include <functional>
@@ -27,8 +28,6 @@ public:
   void foreach(std::function<void(NodeVisitor&)> callback);
 
   Array toArray();
-  Variable buildFromTemplate(VTemplate templ);
-
 };
 
 class NodeVisitor {
@@ -131,7 +130,8 @@ public:
 
   // Functional
 
-  void ifNotNull(std::function<void()> callback);
+  NodeVisitor& ifNotNull(std::function<void(NodeVisitor&)> callback);
+  NodeVisitor& ifNull(std::function<void(NodeVisitor&)> callback);
   void foreach(std::function<void(NodeVisitor&)> callback);
 
 };

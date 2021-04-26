@@ -23,7 +23,7 @@ BinOMFile& BinOMFile::load(Variable& data) {
   return *this;
 }
 
-BinOMFile& BinOMFile::backup(DataBaseContainer& db) {
+BinOMFile& BinOMFile::backup(BinOMDataBase& db) {
   // TODO this
   return *this;
 }

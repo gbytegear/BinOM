@@ -34,6 +34,7 @@ class Primitive {
   Primitive(void* buffer) : data(buffer) {}
 
 public:
+  Primitive(VarType type);
   Primitive() : data(nullptr) {}
   // Bool init
   Primitive(bool value);

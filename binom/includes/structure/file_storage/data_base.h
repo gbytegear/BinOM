@@ -1,16 +1,16 @@
-#ifndef DATA_BASE_CONTAINER_H
-#define DATA_BASE_CONTAINER_H
+#ifndef DATA_BASE_H
+#define DATA_BASE_H
 
 #include "file_virtual_memory_controller.h"
 #include "data_base_node_visitor.h"
 
 namespace binom {
 
-class DataBaseContainer {
+class BinOMDataBase {
   FileVirtualMemoryController fvmc;
 public:
-  DataBaseContainer(std::string file_name) : fvmc(std::move(file_name)) {}
-  DataBaseContainer(const char* file_name) : fvmc(file_name) {}
+  BinOMDataBase(std::string file_name) : fvmc(std::move(file_name)) {}
+  BinOMDataBase(const char* file_name) : fvmc(file_name) {}
 
   // DB Info
   inline f_size  getFileSize()      {return fvmc.getFileSize();}
@@ -35,4 +35,4 @@ public:
 
 }
 
-#endif // DATA_BASE_CONTAINER_H
+#endif // DATA_BASE_H

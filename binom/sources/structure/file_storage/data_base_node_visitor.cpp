@@ -843,14 +843,13 @@ DBNodeVisitor& DBNodeVisitor::operator()(Path path) {return stepInside(std::move
 
 #include "binom/includes/structure/file_storage/data_base_node_visitor_query.h"
 
-DBNodeVector DBNodeVisitor::findAll(Query query) {
-  DBNodeVector vector;
+DBNodeVector DBNodeVisitor::findAll(Query query, DBNodeVector vector) {
   if(!isIterable()) return vector;
   ui64 index = 0;
   for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
     DBNodeVisitor node = *iterator;
     if(node.test(query, index, iterator.getName()))
-      vector.push_back(node);
+      vector.pushBack(node);
     ++index;
   }
   return vector;
@@ -870,6 +869,18 @@ DBNodeVisitor DBNodeVisitor::find(Query query) {
 
 DBNodeIterator DBNodeVisitor::begin() {
   return DBNodeIterator(*this);
+}
+
+DBNodeVisitor& DBNodeVisitor::ifNotNull(std::function<void (DBNodeVisitor&)> callback) {
+  if(!isNull()) callback(*this); return *this;
+}
+
+DBNodeVisitor& DBNodeVisitor::ifNull(std::function<void (DBNodeVisitor&)> callback) {
+  if(isNull()) callback(*this); return *this;
+}
+
+void DBNodeVisitor::foreach(std::function<void (DBNodeVisitor&)> callback) {
+  if(isIterable()) for(DBNodeVisitor node : *this) callback(node);
 }
 
 
@@ -979,4 +990,23 @@ bool DBNodeIterator::isEnd() {
     case binom::VarTypeClass::object:
     return (data.begin() + index.object_index.index) == data.end();
   }
+}
+
+DBNodeVector::DBNodeVector(DBNodeVector&& other) : data(std::move(other.data)) {}
+DBNodeVector::DBNodeVector(const DBNodeVector& other) : data(other.data) {}
+void DBNodeVector::pushBack(DBNodeVisitor node) {data.pushBack(node);}
+DBNodeVisitor& DBNodeVector::get(ui64 index) {return data.get<DBNodeVisitor>(index);}
+ui64 DBNodeVector::length() {return data.length<DBNodeVisitor>();}
+DBNodeVector::iterator DBNodeVector::begin() {return data.begin<DBNodeVisitor>();}
+DBNodeVector::iterator DBNodeVector::end() {return reinterpret_cast<iterator>(data.end());}
+void DBNodeVector::foreach(std::function<void (DBNodeVisitor&)> callback) {for(DBNodeVisitor& node : *this) callback(node);}
+Array DBNodeVector::toArray() {
+  ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
+  array_data.get<VarType>(0) = VarType::array;
+  array_data.get<ui64>(0, 1) = length();
+  iterator it = begin();
+  for(Variable& var : array_data.get<Array>(0))
+    new(&var) Variable(it->getVariable());
+  void* ptr = array_data.unfree();
+  return *reinterpret_cast<Array*>(&ptr);
 }

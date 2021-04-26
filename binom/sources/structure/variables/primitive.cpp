@@ -13,6 +13,11 @@ void* binom::Primitive::clone() const {
   return ptr;
 }
 
+binom::Primitive::Primitive(binom::VarType type) : data(tryMalloc(1 + toSize(toValueType(type)))) {
+  data.type[0] = type;
+  memset(data.bytes + 1, 0, toSize(toValueType(type)));
+}
+
 
 binom::Primitive::Primitive(bool value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
