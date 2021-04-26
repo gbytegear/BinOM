@@ -94,6 +94,16 @@ namespace binom {
     }
   }
 
+  inline VarType toVarBufferType(ValType type) {
+    switch (type) {
+      case ValType::byte: return VarType::byte_array;
+      case ValType::word: return VarType::word_array;
+      case ValType::dword:return VarType::dword_array;
+      case ValType::qword:return VarType::qword_array;
+      default: return VarType::invlid_type;
+    }
+  }
+
   constexpr ui8 toSize(ValType type) {
     switch (type) {
       case ValType::byte: return 1;

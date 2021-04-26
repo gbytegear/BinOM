@@ -1,6 +1,6 @@
 #pragma once
 
-#include "node_visitor.h"
+#include "binom/includes/structure/variables/node_visitor.h"
 
 using namespace binom;
 

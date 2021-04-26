@@ -107,7 +107,12 @@ binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
 }
 
 binom::BufferArray binom::Primitive::toBufferArray() {
-
+  ByteArray data(1 + sizeof(ui64) + toSize(toValueType(getType())));
+  data.get<VarType>(0) = toVarBufferType(toValueType(getType()));
+  data.get<ui64>(0, 1) = 1;
+  memcpy(data.begin() + 1 + sizeof(ui64), getDataPtr(), toSize(toValueType(getType())));
+  void* ptr = data.unfree();
+  return *reinterpret_cast<BufferArray*>(&ptr);
 }
 
 binom::Primitive& binom::Primitive::operator=(binom::Primitive other) {

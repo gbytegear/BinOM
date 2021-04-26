@@ -181,7 +181,10 @@ Variable& Object::insert(BufferArray name, Variable var) {
 
       if(it[middle].name > name) right = middle - 1;
       elif(it[middle].name < name) left = middle + 1;
-      elif(it[middle].name == name) throw Exception(ErrCode::binom_object_key_error, "");
+      elif(it[middle].name == name) {
+        it[middle].variable = var;
+        return it[middle].variable;
+      }
     }
 
     for(; (middle < length())? it[middle].name < name : false ;++middle);
@@ -258,8 +261,15 @@ Object& Object::operator=(Object other) {
   return *this;
 }
 
-Variable& Object::operator+=(NamedVariable named_variable) {
-  return insert(named_variable.name, named_variable.variable);
+Object& Object::operator +=(NamedVariable named_variable) {
+  insert(named_variable.name, named_variable.variable);
+  return *this;
+}
+
+Object& Object::operator+=(Object other) {
+  for(NamedVariable& named_variable : other)
+    insert(named_variable.name, named_variable.variable);
+  return *this;
 }
 
 NamedVariable& Object::getNamedVariable(BufferArray name) const {

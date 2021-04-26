@@ -1,4 +1,5 @@
 SOURCES += \
+  binom/sources/structure/rwguard.cpp \
   binom/sources/binom.cpp \
   binom/sources/byte_array.cpp \
   binom/sources/structure/file_storage/data_base_node_visitor.cpp \
@@ -14,14 +15,16 @@ SOURCES += \
   binom/sources/structure/variables/array.cpp \
   binom/sources/structure/variables/object.cpp \
   binom/sources/structure/variables/node_visitor.cpp
+# Included to source:
+#  binom/sources/structure/file_storage/data_base_node_visitor_query.h
+#  binom/sources/structure/variables/node_visitor_query.h
+
 HEADERS += \
-  $$PWD/binom/includes/structure/file_storage/data_base.h \
+  binom/includes/structure/file_storage/data_base.h \
   binom/includes/structure/file_storage/data_base_node_visitor.h \
-  binom/includes/structure/file_storage/data_base_node_visitor_query.h \
   binom/includes/structure/file_storage/file_virtual_memory_controller.h \
   binom/includes/structure/path.h \
   binom/includes/structure/query.h \
-  binom/includes/structure/variables/node_visitor_query.h \
   binom/includes/structure/file_storage/file_structs.h \
   binom/includes/binom.h \
   binom/includes/byte_array.h \

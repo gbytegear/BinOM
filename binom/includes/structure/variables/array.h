@@ -51,7 +51,7 @@ public:
   void clear();
 
   inline Variable& operator[](ui64 index) const {return getVariable(index);}
-  Variable& operator+=(Variable var);
+  Array& operator+=(Variable var);
   Array& operator=(Array other);
 
   ArrayIterator begin() const {return reinterpret_cast<ArrayIterator>(data.bytes + 9);}

@@ -841,7 +841,7 @@ DBNodeVisitor& DBNodeVisitor::operator()(ui64 index) {return stepInside(index);}
 DBNodeVisitor& DBNodeVisitor::operator()(BufferArray name) {return stepInside(std::move(name));}
 DBNodeVisitor& DBNodeVisitor::operator()(Path path) {return stepInside(std::move(path));}
 
-#include "binom/includes/structure/file_storage/data_base_node_visitor_query.h"
+#include "data_base_node_visitor_query.h"
 
 DBNodeVector DBNodeVisitor::findAll(Query query, DBNodeVector vector) {
   if(!isIterable()) return vector;

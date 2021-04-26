@@ -46,7 +46,8 @@ public:
   BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
   Object& operator=(Object other);
-  Variable& operator+=(NamedVariable named_variable);
+  Object& operator+=(NamedVariable named_variable);
+  Object& operator+=(Object other);
 
   NamedVariable& getNamedVariable(BufferArray name) const;
   Variable& getVariable(BufferArray name) const;

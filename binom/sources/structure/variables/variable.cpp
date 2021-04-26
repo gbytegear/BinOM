@@ -431,7 +431,8 @@ Variable Variable::create(VarType type) {
     case binom::VarType::array: return Array();
     case binom::VarType::object: return Object();
     case binom::VarType::end:
-    case binom::VarType::invlid_type: return nullptr;
+    case binom::VarType::invlid_type:
+    default: return nullptr;
   }
 }
 

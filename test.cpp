@@ -1,6 +1,6 @@
 #include "binom/includes/binom.h"
 
-const char SEPARATOR[] = "=========================================================================\n";
+const char SEPARATOR[] = "=========================================================================\n\n\n\n";
 
 using namespace binom;
 

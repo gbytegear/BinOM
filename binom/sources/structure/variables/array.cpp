@@ -166,12 +166,12 @@ void Array::clear() {
   length() = 0;
 }
 
-Variable& Array::operator+=(Variable var) {
+Array& Array::operator+=(Variable var) {
   Variable* new_var = reinterpret_cast<Variable*>(madd(sizeof (Variable)));
   ++length();
   new_var->data.ptr = var.data.ptr;
   var.data.ptr = nullptr;
-  return *new_var;
+  return *this;
 }
 
 Array& Array::operator=(Array other) {
