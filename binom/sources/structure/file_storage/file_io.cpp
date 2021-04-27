@@ -24,7 +24,10 @@ FileIO::FileIO(FileIO&& other)
 FileIO::~FileIO() {close();}
 
 void FileIO::close() {
-  if(file) fclose(file);
+  if(file) {
+    fclose(file);
+    file = nullptr;
+  }
   file_path.clear();
 }
 
@@ -37,22 +40,22 @@ bool FileIO::open(std::string filename) {
 
 ui64 FileIO::size() {fseeko64(file, 0, SEEK_END); return ftello64(file);}
 
-bool FileIO::isExist() {return fs::exists(file_path);}
-
 bool FileIO::isExist(std::string file_path) {return fs::exists(file_path);}
-
-fs::path FileIO::path() const {return file_path;}
+bool FileIO::isExist() {return fs::exists(file_path);}
+bool FileIO::isOpen() {return !!file;}
 
 ui64 FileIO::resize(ui64 new_size) {
   fs::resize_file(file_path, new_size);
   return size();
 }
 
+fs::path FileIO::path() const {return file_path;}
+
 ui64 FileIO::addSize(ui64 add) {ui64 pos = size();resize(pos + add);return pos;}
 
 ui64 FileIO::subSize(ui64 sub) {return resize(size() - sub);}
 
-bool FileIO::isEmpty() {return size() == 0;}
+bool FileIO::isEmpty() {return isOpen()? size() == 0 : true;}
 
 bool FileIO::write(ui64 index, const void* buffer, ui64 size) {
   seek(index);

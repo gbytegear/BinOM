@@ -949,8 +949,11 @@ DBNodeIterator& DBNodeIterator::operator++() {
       index.object_index.index += sizeof(f_virtual_index);
       index.object_index.name += data.get<ObjectNameLength>(0, index.object_index.length_block).name_length;
       --index.object_index.name_counter;
-      if(!index.object_index.name_counter)
-        index.object_index.length_block += sizeof (ObjectNameLength);
+      if(!index.object_index.name_counter) {
+        index.object_index.length_block += sizeof(ObjectNameLength);
+        index.object_index.name_counter =
+            data.get<ObjectNameLength>(0, index.object_index.length_block).name_count;
+      }
     break;
   }
   return *this;

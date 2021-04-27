@@ -12,9 +12,10 @@ FileVirtualMemoryController* MemoryBlockList::parent() {
 void MemoryBlockList::split(MemoryBlockList::MemoryBlock& block, f_size _size) {
   MemoryBlock* new_block = new MemoryBlock{block.index + _size, block.size - _size, block.used, block.next, &block};
   if(block.next) block.next->prev = new_block;
+  else _last = new_block;
   block.next = new_block;
   block.size = _size;
-  if(&block == _last) _last = block.next;
+//  if(&block == _last) _last = block.next;
 }
 
 void MemoryBlockList::alloc(MemoryBlockList::MemoryBlock& block, f_size _size) {
@@ -32,6 +33,8 @@ void MemoryBlockList::free(MemoryBlockList::MemoryBlock& block) {
       block.next = it->next;
       if(it->next)
         it->next->prev = &block;
+      else
+        _last = &block;
       delete it;
       it = block.next;
     }

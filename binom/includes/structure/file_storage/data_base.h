@@ -9,8 +9,12 @@ namespace binom {
 class BinOMDataBase {
   FileVirtualMemoryController fvmc;
 public:
-  BinOMDataBase(std::string file_name) : fvmc(std::move(file_name)) {}
-  BinOMDataBase(const char* file_name) : fvmc(file_name) {}
+  BinOMDataBase(std::string file_name, Variable init_struct = nullptr)
+    : fvmc(std::move(file_name)) {
+    if(isUninitializedRoot() && !init_struct.isNull())
+      getRoot().setVariable(init_struct);
+  }
+
 
   // DB Info
   inline f_size  getFileSize()      {return fvmc.getFileSize();}

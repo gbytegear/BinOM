@@ -45,6 +45,7 @@ class Variable {
 public:
 
   Variable() : data(nullptr) {}
+  Variable(decltype(nullptr)) : data(nullptr) {}
 
   // Bool init
   Variable(bool value);

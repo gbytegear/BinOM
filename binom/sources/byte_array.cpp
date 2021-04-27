@@ -192,3 +192,11 @@ void* ByteArray::unfree() {
   _length = 0;
   return ptr;
 }
+
+ByteArray& ByteArray::operator=(ByteArray other) {
+  if(array) free(array);
+  _length = other._length;
+  array = other.array;
+  other.array = nullptr;
+  return *this;
+}

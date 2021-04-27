@@ -1,4 +1,4 @@
-#ifndef FILE_IO_H
+﻿#ifndef FILE_IO_H
 #define FILE_IO_H
 
 #include "../types.h"
@@ -43,10 +43,11 @@ public:
   bool open(std::string filename);
 
   ui64 size();
-  bool isExist();
   static bool isExist(std::string file_path);
-  fs::path path() const;
+  bool isExist();
+  bool isOpen();
   bool isEmpty();
+  fs::path path() const;
 
   ui64 resize(ui64 new_size);
   ui64 addSize(ui64 add);

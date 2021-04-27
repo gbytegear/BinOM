@@ -131,6 +131,8 @@ public:
 
   void* unfree();
 
+  ByteArray& operator=(ByteArray other);
+
   byte& operator[](ui64 index);                             // byte& get(ui64) alias operator
   ByteArray& operator+=(byte b);                            // ByteArray& pushBack(byte) alias operator
   ByteArray& operator+=(const ByteArray& byte_array);       // ByteArray& pushBack(const ByteArray&) alias operator
