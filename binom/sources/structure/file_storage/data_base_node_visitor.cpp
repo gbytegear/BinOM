@@ -1003,7 +1003,7 @@ ui64 DBNodeVector::length() {return data.length<DBNodeVisitor>();}
 DBNodeVector::iterator DBNodeVector::begin() {return data.begin<DBNodeVisitor>();}
 DBNodeVector::iterator DBNodeVector::end() {return reinterpret_cast<iterator>(data.end());}
 DBNodeVector& DBNodeVector::foreach(std::function<void (DBNodeVisitor&)> callback) {for(DBNodeVisitor& node : *this) callback(node); return *this;}
-DBNodeVector& DBNodeVector::ifEmpty(std::function<void ()> callback) {if(length() == 0) callback();}
+DBNodeVector& DBNodeVector::ifEmpty(std::function<void ()> callback) {if(length() == 0) callback();return *this;}
 Array DBNodeVector::toArray() {
   ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
   array_data.get<VarType>(0) = VarType::array;

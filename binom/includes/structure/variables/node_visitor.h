@@ -25,7 +25,8 @@ public:
   ui64 length();
   iterator begin();
   iterator end();
-  void foreach(std::function<void(NodeVisitor&)> callback);
+  NodeVector& foreach(std::function<void(NodeVisitor&)> callback);
+  NodeVector& ifEmpty(std::function<void()> callback);
 
   Array toArray();
 };

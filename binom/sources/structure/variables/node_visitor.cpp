@@ -299,7 +299,8 @@ NodeVisitor& NodeVector::operator[](ui64 index) {return get(index);}
 ui64 NodeVector::length() {return data.length<NodeVisitor>();}
 NodeVector::iterator NodeVector::begin() {return data.begin<NodeVisitor>();}
 NodeVector::iterator NodeVector::end() {return reinterpret_cast<iterator>(data.end());}
-void NodeVector::foreach(std::function<void (NodeVisitor&)> callback) {for(NodeVisitor& node : *this)callback(node);}
+NodeVector& NodeVector::foreach(std::function<void (NodeVisitor&)> callback) {for(NodeVisitor& node : *this)callback(node);return *this;}
+NodeVector& NodeVector::ifEmpty(std::function<void ()> callback) {if(length() == 0) callback(); return *this;}
 
 Array NodeVector::toArray() {
   ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
