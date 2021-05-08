@@ -33,3 +33,6 @@
 
 # Qt Profiles
 *.pro.*
+
+# Builded library
+lbinom/*
