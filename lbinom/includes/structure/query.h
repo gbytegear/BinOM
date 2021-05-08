@@ -106,11 +106,6 @@ private:
 public:
   Query(QExprInitList exprs);
 
-  Query(const Query& other);
-  Query(Query&& other);
-  Query& operator=(const Query& other);
-  Query& operator=(Query&& other);
-
   bool isEmpty() const;
 
   iterator begin();

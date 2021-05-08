@@ -15,7 +15,6 @@ void MemoryBlockList::split(MemoryBlockList::MemoryBlock& block, f_size _size) {
   else _last = new_block;
   block.next = new_block;
   block.size = _size;
-//  if(&block == _last) _last = block.next;
 }
 
 void MemoryBlockList::alloc(MemoryBlockList::MemoryBlock& block, f_size _size) {
@@ -124,8 +123,6 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, 
 
 
 void FileVirtualMemoryController::init() {
-  // FIXME: MinGw 7.3.0 g++ compiler Page initialization bug
-  // Bug in function fread in MinGw 7.3.0 g++ compiler
   if(file.isEmpty()) {
     file.write(0, header);
   } else {

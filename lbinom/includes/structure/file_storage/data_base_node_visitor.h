@@ -27,9 +27,7 @@ public:
   ui64 length();
   iterator begin();
   iterator end();
-
-  DBNodeVector& foreach(std::function<void(DBNodeVisitor&)> callback);
-  DBNodeVector& ifEmpty(std::function<void()> callback);
+  void foreach(std::function<void(DBNodeVisitor&)> callback);
 
   Array toArray();
 };
@@ -136,7 +134,7 @@ public:
   //functional
 
   DBNodeVisitor& ifNotNull(std::function<void(DBNodeVisitor&)> callback);
-  DBNodeVisitor& ifNull(std::function<void()> callback);
+  DBNodeVisitor& ifNull(std::function<void(DBNodeVisitor&)> callback);
   void foreach(std::function<void(DBNodeVisitor&)> callback);
 
 };

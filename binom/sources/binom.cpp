@@ -65,12 +65,12 @@ BinOMFile::BinOMFile(BinOMFile&& other)
 
 BinOMFile& BinOMFile::operator=(const BinOMFile& other) {
   file.close();
-  return *(new(this) BinOMFile(other));
+  return *new(this) BinOMFile(other);
 }
 
 BinOMFile& BinOMFile::operator=(BinOMFile&& other) {
   file.close();
-  return *(new(this) BinOMFile(std::move(other)));
+  return *new(this) BinOMFile(std::move(other));
 }
 
 BinOMFile& BinOMFile::write(Variable data) {

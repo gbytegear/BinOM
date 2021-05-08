@@ -115,6 +115,12 @@ Query::Query(ByteArray data) : data(std::move(data)) {}
 Query::Query(Query::QExprInitList exprs)
   : data(buildSubexpression(exprs)) {}
 
+Query::Query(const Query& other) : data(other.data) {}
+Query::Query(Query&& other) : data(std::move(other.data)) {}
+
+Query& Query::operator=(Query&& other) {this->~Query(); return *new(this) Query(std::move(other));}
+Query& Query::operator=(const Query& other) {this->~Query();return *new(this) Query(other);}
+
 bool Query::isEmpty() const {return data.isEmpty();}
 
 Query::iterator Query::begin() {return data.begin();}

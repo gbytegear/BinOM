@@ -131,7 +131,7 @@ public:
   // Functional
 
   NodeVisitor& ifNotNull(std::function<void(NodeVisitor&)> callback);
-  NodeVisitor& ifNull(std::function<void()> callback);
+  NodeVisitor& ifNull(std::function<void(NodeVisitor&)> callback);
   void foreach(std::function<void(NodeVisitor&)> callback);
 
 };

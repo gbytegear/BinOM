@@ -875,8 +875,8 @@ DBNodeVisitor& DBNodeVisitor::ifNotNull(std::function<void (DBNodeVisitor&)> cal
   if(!isNull()) callback(*this); return *this;
 }
 
-DBNodeVisitor& DBNodeVisitor::ifNull(std::function<void (DBNodeVisitor&)> callback) {
-  if(isNull()) callback(*this); return *this;
+DBNodeVisitor& DBNodeVisitor::ifNull(std::function<void ()> callback) {
+  if(isNull()) callback(); return *this;
 }
 
 void DBNodeVisitor::foreach(std::function<void (DBNodeVisitor&)> callback) {
@@ -1002,7 +1002,8 @@ DBNodeVisitor& DBNodeVector::get(ui64 index) {return data.get<DBNodeVisitor>(ind
 ui64 DBNodeVector::length() {return data.length<DBNodeVisitor>();}
 DBNodeVector::iterator DBNodeVector::begin() {return data.begin<DBNodeVisitor>();}
 DBNodeVector::iterator DBNodeVector::end() {return reinterpret_cast<iterator>(data.end());}
-void DBNodeVector::foreach(std::function<void (DBNodeVisitor&)> callback) {for(DBNodeVisitor& node : *this) callback(node);}
+DBNodeVector& DBNodeVector::foreach(std::function<void (DBNodeVisitor&)> callback) {for(DBNodeVisitor& node : *this) callback(node); return *this;}
+DBNodeVector& DBNodeVector::ifEmpty(std::function<void ()> callback) {if(length() == 0) callback();}
 Array DBNodeVector::toArray() {
   ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
   array_data.get<VarType>(0) = VarType::array;

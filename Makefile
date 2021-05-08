@@ -27,7 +27,7 @@ libs: libbinom.a libbinom.so
 	mkdir lbinom -p
 	mv libbinom.a lbinom
 	mv libbinom.so lbinom
-	cp binom/includes/* lbinom -r
+	cp binom/includes lbinom -r
 
 all: libs
 

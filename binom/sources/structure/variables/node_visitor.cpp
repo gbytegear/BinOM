@@ -282,8 +282,8 @@ NodeVisitor& NodeVisitor::ifNotNull(std::function<void (NodeVisitor&)> callback)
   if(!isNull())callback(*this);return *this;
 }
 
-NodeVisitor& NodeVisitor::ifNull(std::function<void (NodeVisitor&)> callback) {
-  if(isNull())callback(*this);return *this;
+NodeVisitor& NodeVisitor::ifNull(std::function<void ()> callback) {
+  if(isNull())callback();return *this;
 }
 
 void NodeVisitor::foreach(std::function<void (NodeVisitor&)> callback) {

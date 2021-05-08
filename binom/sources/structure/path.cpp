@@ -57,13 +57,36 @@ Path::Path(ByteArray data) : data(std::move(data)) {if(!isValid())throw Exceptio
 
 Path::Path(Path&& other) : data(std::move(other.data)) {}
 
+inline Path& Path::operator=(Path&& other) {this->~Path(); return *new(this) Path(std::move(other));}
+inline Path& Path::operator=(const Path& other) {this->~Path(); return *new(this) Path(other);}
+
 Path::Path() {}
 
 bool Path::isEmpty() const {return data.isEmpty();}
 
-Path::iterator Path::begin() {return data.begin<void*>();}
+bool Path::operator==(const Path& other) const {
+  iterator
+      this_it = begin(),
+      other_it = other.begin(),
+      this_end = end(),
+      other_end = other.end();
+  for(;this_it != this_end && other_it != other_end;(++this_it, ++other_it)) {
+    if(this_it->type() != other_it->type()) return false;
+    switch (this_it->type()) {
+      case binom::PathNodeType::index:
+        if(this_it->index() != other_it->index()) return false;
+      break;
+      case binom::PathNodeType::name:
+        if(this_it->name() != other_it->name()) return false;
+      break;
+    }
+  }
+  return this_it == this_end && other_it == other_end;
+}
 
-Path::iterator Path::end() {return reinterpret_cast<void*>(data.end());}
+Path::iterator Path::begin() const {return data.begin<void*>();}
+
+Path::iterator Path::end() const {return reinterpret_cast<void*>(data.end());}
 
 ByteArray Path::toByteArray() const {return data;}
 

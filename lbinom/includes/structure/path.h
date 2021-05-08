@@ -1,4 +1,4 @@
-﻿#ifndef PATH_H
+#ifndef PATH_H
 #define PATH_H
 
 #include "variables/variable.h"
@@ -27,15 +27,11 @@ public:
 
   Path(const Path& other);
   Path(Path&& other);
-  Path& operator=(const Path& other);
-  Path& operator=(Path&& other);
 
   bool isEmpty() const;
-  bool operator==(const Path& other) const;
-  inline bool operator!=(const Path& other) const {return !(*this == other);}
 
-  iterator begin() const;
-  iterator end() const;
+  iterator begin();
+  iterator end();
 
   ByteArray toByteArray() const;
   static Path fromByteArray(ByteArray path);
