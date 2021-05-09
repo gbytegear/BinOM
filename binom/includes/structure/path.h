@@ -27,12 +27,19 @@ public:
 
   Path(const Path& other);
   Path(Path&& other);
-  Path& operator=(const Path& other);
-  Path& operator=(Path&& other);
+  inline Path& operator=(const Path& other) {this->~Path(); return *new(this) Path(other);}
+  inline Path& operator=(Path&& other) {this->~Path(); return *new(this) Path(std::move(other));}
 
   bool isEmpty() const;
   bool operator==(const Path& other) const;
   inline bool operator!=(const Path& other) const {return !(*this == other);}
+
+  Path& pushBack(BufferArray name);
+  Path& pushBack(ui64 index);
+  inline Path& operator+=(BufferArray name) {return pushBack(std::move(name));}
+  inline Path& operator+=(ui64 index) {return pushBack(index);}
+  inline Path operator+(BufferArray name) {return Path(*this).pushBack(std::move(name));}
+  inline Path operator+(ui64 index) {return Path(*this).pushBack(index);}
 
   iterator begin() const;
   iterator end() const;

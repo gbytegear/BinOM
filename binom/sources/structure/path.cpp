@@ -40,7 +40,6 @@ Path::Path(std::initializer_list<Path::PathLiteral> path) {
   }
 }
 
-Path::Path(const Path& other) : data(other.data) {}
 
 bool Path::isValid() {
   iterator it_end = end();
@@ -56,9 +55,7 @@ bool Path::isValid() {
 Path::Path(ByteArray data) : data(std::move(data)) {if(!isValid())throw Exception(ErrCode::invalid_data, "Invalid path buffer!");}
 
 Path::Path(Path&& other) : data(std::move(other.data)) {}
-
-inline Path& Path::operator=(Path&& other) {this->~Path(); return *new(this) Path(std::move(other));}
-inline Path& Path::operator=(const Path& other) {this->~Path(); return *new(this) Path(other);}
+Path::Path(const Path& other) : data(other.data) {}
 
 Path::Path() {}
 
@@ -82,6 +79,34 @@ bool Path::operator==(const Path& other) const {
     }
   }
   return this_it == this_end && other_it == other_end;
+}
+
+//Path& Path::pushBack(Path::PathLiteral path_literal) {
+//  switch (path_literal.type) {
+//    case binom::PathNodeType::index:
+//      data.pushBack<PathNodeType>(PathNodeType::index);
+//      data.pushBack<ui64>(path_literal.value.index);
+//    break;
+//    case binom::PathNodeType::name:
+//      data.pushBack<PathNodeType>(PathNodeType::name);
+//      data.pushBack<ui64>(path_literal.value.string.getMemberCount());
+//      data.pushBack(path_literal.value.string.toByteArray());
+//    break;
+//  }
+//  return *this;
+//}
+
+Path& Path::pushBack(BufferArray name) {
+  data.pushBack<PathNodeType>(PathNodeType::name);
+  data.pushBack<ui64>(name.getMemberCount());
+  data.pushBack(name.toByteArray());
+  return *this;
+}
+
+Path& Path::pushBack(ui64 index) {
+  data.pushBack<PathNodeType>(PathNodeType::index);
+  data.pushBack<ui64>(index);
+  return *this;
 }
 
 Path::iterator Path::begin() const {return data.begin<void*>();}
