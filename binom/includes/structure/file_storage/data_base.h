@@ -27,6 +27,12 @@ public:
     return *new(this) BinOMDataBase(std::move(other));
   }
 
+  static bool isValid(std::string file_name) {
+    FileIO file(file_name);
+    DBVersion version;
+    file.read(0, version);
+    return !memcmp(&version, &current, sizeof (DBVersion));
+  }
 
   // DB Info
   inline f_size  getFileSize()      {return fvmc.getFileSize();}

@@ -331,7 +331,13 @@ DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor&& other)
 DBNodeVisitor& DBNodeVisitor::operator=(DBNodeVisitor other) {return *(new(this) DBNodeVisitor(other));}
 DBNodeVisitor& DBNodeVisitor::operator=(f_virtual_index _node_index) {node_index = _node_index; updateNode(); return *this;}
 
-VarType DBNodeVisitor::getType() const {updateNode(); return node_descriptor.type;}
+VarType DBNodeVisitor::getType() const {
+  updateNode();
+  return (is_value_ptr)
+      ?toVarType(toValueType(node_descriptor.type))
+      :node_descriptor.type;
+}
+
 VarTypeClass DBNodeVisitor::getTypeClass() const {return toTypeClass(getType());}
 f_virtual_index DBNodeVisitor::getNodeIndex() const {return node_index;}
 

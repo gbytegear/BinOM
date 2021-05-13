@@ -208,9 +208,10 @@ bool NodeVisitor::test(Query query, ui64 index) noexcept {
 
     bool getRelationResult(bool last, QRel rel, bool current) {
       switch (rel) {
-        case binom::QRel::AND:  return last && current;
-        case binom::QRel::OR:   return last || current;
-        case binom::QRel::XOR:  return last != current;
+          default: return false;
+          case binom::QRel::AND:  return last && current;
+          case binom::QRel::OR:   return last || current;
+          case binom::QRel::XOR:  return last != current;
       }
     }
 

@@ -7,6 +7,9 @@ const char SEPARATOR[] = "======================================================
 using namespace binom;
 
 void testDB() {
+  if(fs::exists("test.binomdb"))
+    std::clog << "DB file is exist\n"
+                 "File is valid: " << BinOMDataBase::isValid("test.binomdb") << '\n';
   BinOMDataBase db("test.binomdb",
                    vobj {
                      {"usr", varr{
