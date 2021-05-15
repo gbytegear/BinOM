@@ -124,7 +124,7 @@ Variable& Array::pushFront(Variable var) {
 }
 
 void Array::remove(ui64 index, ui64 n) {
-  if(index + n >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
+  if(index + n > getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
   Variable* start = reinterpret_cast<Variable*>(data.bytes + 9 + index*sizeof(Variable));
   {
     Variable* it = start;

@@ -88,6 +88,7 @@ public:
   f_virtual_index getNodeIndex() const;
   ui64 getElementCount() const;
 
+  bool isEmpty() const;
   bool isNull() const;
   bool isIterable() const;
   bool isPrimitive() const;

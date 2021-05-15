@@ -107,6 +107,16 @@ void testDB() {
     std::cerr << "No results were found for your search\n";
   });
 
+  BinOMFile file("backup.binom");
+  file.write(db);
+
+  Variable var = file.load();
+  NodeVisitor node(&var);
+  node("grp");
+  node.remove(0);
+
+  std::clog << var << '\n';
+
 
 }
 

@@ -360,6 +360,20 @@ ui64 DBNodeVisitor::getElementCount() const {
   }
 }
 
+bool DBNodeVisitor::isEmpty() const {
+  switch (getTypeClass()) {
+    case binom::VarTypeClass::primitive:
+    return false;
+    case binom::VarTypeClass::buffer_array:
+    case binom::VarTypeClass::array:
+    case binom::VarTypeClass::object:
+    return !node_descriptor.size;
+    default:
+    case binom::VarTypeClass::invalid_type:
+    return true;
+  }
+}
+
 bool DBNodeVisitor::isNull() const {
   return node_descriptor.type == VarType::invlid_type && node_index == ui64(-1) && value_index == ui64(-1);
 }
@@ -897,7 +911,9 @@ void DBNodeVisitor::foreach(std::function<void (DBNodeVisitor&)> callback) {
 
 DBNodeIterator::DBNodeIterator(DBNodeVisitor& parent)
   : parent(parent),
-    data(parent.loadData()) {
+    data() {
+  if(!parent.isEmpty())
+    data = parent.loadData();
 
   switch (parent.getTypeClass()) {
     default:
@@ -909,6 +925,7 @@ DBNodeIterator::DBNodeIterator(DBNodeVisitor& parent)
       index.array_index = 0;
     break;
     case binom::VarTypeClass::object:
+      if(parent.isEmpty()) return;
       ObjectDescriptor& obj_des = data.get<ObjectDescriptor>(0);
 
       index.object_index.length_block = sizeof (ObjectDescriptor);
@@ -995,8 +1012,10 @@ bool DBNodeIterator::isEnd() {
       throw Exception(ErrCode::binom_invalid_type);
     case binom::VarTypeClass::buffer_array:
     case binom::VarTypeClass::array:
+      if(parent.isEmpty()) return true;
     return (data.begin() + index.array_index) == data.end();
     case binom::VarTypeClass::object:
+      if(parent.isEmpty()) return true;
     return (data.begin() + index.object_index.index) == data.end();
   }
 }
