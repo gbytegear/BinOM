@@ -463,6 +463,88 @@ Variable& Variable::operator=(Variable other) {
   return *this;
 }
 
+bool Variable::operator==(Variable other) const {
+  if(type() != other.type()) return false;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive() == other.toPrimitive();
+    case binom::VarTypeClass::buffer_array: return toBufferArray() == other.toBufferArray();
+    case binom::VarTypeClass::array: return toArray() == other.toArray();
+    case binom::VarTypeClass::object: return toObject() == other.toObject();
+    case binom::VarTypeClass::invalid_type: return true;
+  }
+}
+
+bool Variable::operator!=(Variable other) const {
+  if(type() != other.type()) return true;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive() != other.toPrimitive();
+    case binom::VarTypeClass::buffer_array: return toBufferArray() != other.toBufferArray();
+    case binom::VarTypeClass::array: return toArray() != other.toArray();
+    case binom::VarTypeClass::object: return toObject() != other.toObject();
+    case binom::VarTypeClass::invalid_type: return false;
+  }
+}
+
+bool Variable::operator<(Variable other) const {
+  if(type() < other.type()) return true;
+  elif(type() > other.type()) return false;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive() < other.toPrimitive();
+    case binom::VarTypeClass::buffer_array: return toBufferArray() < other.toBufferArray();
+    case binom::VarTypeClass::array: return toArray() < other.toArray();
+    case binom::VarTypeClass::object: return toObject() < other.toObject();
+    case binom::VarTypeClass::invalid_type: return false;
+  }
+}
+
+bool Variable::operator<=(Variable other) const {
+  if(type() < other.type()) return true;
+  elif(type() > other.type()) return false;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive() <= other.toPrimitive();
+    case binom::VarTypeClass::buffer_array: return toBufferArray() <= other.toBufferArray();
+    case binom::VarTypeClass::array: return toArray() <= other.toArray();
+    case binom::VarTypeClass::object: return toObject() <= other.toObject();
+    case binom::VarTypeClass::invalid_type: return false;
+  }
+}
+
+bool Variable::operator>(Variable other) const {
+  if(type() > other.type()) return true;
+  elif(type() < other.type()) return false;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive() > other.toPrimitive();
+    case binom::VarTypeClass::buffer_array: return toBufferArray() > other.toBufferArray();
+    case binom::VarTypeClass::array: return toArray() > other.toArray();
+    case binom::VarTypeClass::object: return toObject() > other.toObject();
+    case binom::VarTypeClass::invalid_type: return false;
+  }
+}
+
+bool Variable::operator>=(Variable other) const {
+  if(type() > other.type()) return true;
+  elif(type() < other.type()) return false;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive() >= other.toPrimitive();
+    case binom::VarTypeClass::buffer_array: return toBufferArray() >= other.toBufferArray();
+    case binom::VarTypeClass::array: return toArray() >= other.toArray();
+    case binom::VarTypeClass::object: return toObject() >= other.toObject();
+    case binom::VarTypeClass::invalid_type: return false;
+  }
+}
+
+i8 Variable::getCompare(Variable other) const {
+  if(type() > other.type()) return 1;
+  elif(type() < other.type()) return -1;
+  switch (typeClass()) {
+    case binom::VarTypeClass::primitive: return toPrimitive().getCompare(std::move(other.toPrimitive()));
+    case binom::VarTypeClass::buffer_array: return toBufferArray().getCompare(std::move(other.toBufferArray()));
+    case binom::VarTypeClass::array: return toArray().getCompare(std::move(other.toArray()));
+    case binom::VarTypeClass::object: return toObject().getCompare(std::move(other.toObject()));
+    case binom::VarTypeClass::invalid_type: return false;
+  }
+}
+
 NodeVisitor Variable::getNode() {return NodeVisitor(this);}
 
 void printIndent(std::ostream& os, ui64 ind, std::string msg = "") {

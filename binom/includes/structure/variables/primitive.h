@@ -58,8 +58,8 @@ public:
 
   ~Primitive();
 
-  VarType getType() {return *data.type;}
-  ValType getValType() {return toValueType(*data.type);}
+  VarType getType() const {return *data.type;}
+  ValType getValType() const {return toValueType(*data.type);}
 
   ByteArray serialize() const;
   static Primitive deserialize(ByteArray::iterator& it);
@@ -95,6 +95,15 @@ public:
   inline f64 operator=(const f64 value) {return (**this).setFloat(value);}
 
   Primitive& operator=(Primitive other);
+
+  bool operator==(Primitive other) const;
+  bool operator!=(Primitive other) const;
+  bool operator>(Primitive other) const;
+  bool operator>=(Primitive other) const;
+  bool operator<(Primitive other) const;
+  bool operator<=(Primitive other) const;
+
+  i8 getCompare(Primitive other) const;
 
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 

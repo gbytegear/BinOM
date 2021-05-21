@@ -106,6 +106,48 @@ binom::Primitive binom::Primitive::deserialize(binom::ByteArray::iterator& it) {
   return var;
 }
 
+bool binom::Primitive::operator==(binom::Primitive other) const {
+  if(getType() != other.getType()) return false;
+  return getValue() == other.getValue();
+}
+
+bool binom::Primitive::operator!=(binom::Primitive other) const {
+  if(getType() != other.getType()) return true;
+  return getValue() != other.getValue();
+}
+
+bool binom::Primitive::operator>(binom::Primitive other) const {
+  if(getType() > other.getType()) return true;
+  elif(getType() < other.getType()) return false;
+  return getValue() > other.getValue();
+}
+
+bool binom::Primitive::operator>=(binom::Primitive other) const {
+  if(getType() > other.getType()) return true;
+  elif(getType() == other.getType()) return getValue() >= other.getValue();
+  return false;
+}
+
+bool binom::Primitive::operator<(binom::Primitive other) const {
+  if(getType() < other.getType()) return true;
+  elif(getType() > other.getType()) return false;
+  return getValue() < other.getValue();
+}
+
+bool binom::Primitive::operator<=(binom::Primitive other) const {
+  if(getType() < other.getType()) return true;
+  elif(getType() == other.getType()) return getValue() <= other.getValue();
+  return false;
+}
+
+binom::i8 binom::Primitive::getCompare(binom::Primitive other) const {
+  if(getType() > other.getType()) return 1;
+  elif(getType() < other.getType()) return -1;
+  if(getValue() > other.getValue()) return 1;
+  elif(getValue() < other.getValue()) return -1;
+  return 0;
+}
+
 binom::BufferArray binom::Primitive::toBufferArray() {
   ByteArray data(1 + sizeof(ui64) + toSize(toValueType(getType())));
   data.get<VarType>(0) = toVarBufferType(toValueType(getType()));

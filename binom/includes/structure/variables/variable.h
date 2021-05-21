@@ -157,6 +157,15 @@ public:
         : 1;
   }
 
+  bool operator==(Variable other) const;
+  bool operator!=(Variable other) const;
+  bool operator<(Variable other) const;
+  bool operator<=(Variable other) const;
+  bool operator>(Variable other) const;
+  bool operator>=(Variable other) const;
+
+  i8 getCompare(Variable other) const;
+
   inline bool contains(BufferArray name) const { if(!isObject()) return false; else return toObject().contains(std::move(name)); }
   inline bool inRange(ui64 index) const {
       switch (typeClass()) {

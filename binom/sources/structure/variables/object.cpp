@@ -266,6 +266,106 @@ Object& Object::operator +=(NamedVariable named_variable) {
   return *this;
 }
 
+bool Object::operator==(Object other) const {
+  if(length() != other.length()) return false;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    if(nvar.name != it->name ||
+       nvar.variable != it->variable) return false;
+    ++it;
+  }
+  return true;
+}
+
+bool Object::operator!=(Object other) const {
+  if(length() != other.length()) return true;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    if(nvar.name != it->name ||
+       nvar.variable != it->variable) return true;
+    ++it;
+  }
+  return false;
+}
+
+bool Object::operator<(Object other) const {
+  if(length() < other.length()) return true;
+  elif(length() > other.length()) return false;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    i8 cmp = nvar.name.getCompare(it->name);
+    if(cmp > 0) return false;
+    elif(cmp < 0) return true;
+    cmp = nvar.variable.getCompare(it->variable);
+    if(cmp > 0) return false;
+    elif(cmp < 0) return true;
+    ++it;
+  }
+  return false;
+}
+
+bool Object::operator<=(Object other) const {
+  if(length() < other.length()) return true;
+  elif(length() > other.length()) return false;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    i8 cmp = nvar.name.getCompare(it->name);
+    if(cmp > 0) return false;
+    elif(cmp < 0) return true;
+    cmp = nvar.variable.getCompare(it->variable);
+    if(cmp > 0) return false;
+    elif(cmp < 0) return true;
+    ++it;
+  }
+  return true;
+}
+
+bool Object::operator>(Object other) const {
+  if(length() < other.length()) return false;
+  elif(length() > other.length()) return true;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    i8 cmp = nvar.name.getCompare(it->name);
+    if(cmp > 0) return true;
+    elif(cmp < 0) return false;
+    cmp = nvar.variable.getCompare(it->variable);
+    if(cmp > 0) return true;
+    elif(cmp < 0) return false;
+    ++it;
+  }
+  return false;
+}
+
+bool Object::operator>=(Object other) const {
+  if(length() < other.length()) return false;
+  elif(length() > other.length()) return true;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    i8 cmp = nvar.name.getCompare(it->name);
+    if(cmp > 0) return true;
+    elif(cmp < 0) return false;
+    cmp = nvar.variable.getCompare(it->variable);
+    if(cmp > 0) return true;
+    elif(cmp < 0) return false;
+    ++it;
+  }
+  return true;
+}
+
+i8 Object::getCompare(Object other) const {
+  if(length() > other.length()) return 1;
+  elif(length() < other.length()) return -1;
+  ObjectIterator it = other.begin();
+  for(NamedVariable& nvar : *this) {
+    i8 ncmp = nvar.name.getCompare(it->name);
+    if(ncmp) return ncmp;
+    i8 cmp = nvar.variable.getCompare(it->variable);
+    if(cmp) return cmp;
+    ++it;
+  }
+  return 0;
+}
+
 Object& Object::operator+=(Object other) {
   for(NamedVariable& named_variable : other)
     insert(named_variable.name, named_variable.variable);

@@ -49,6 +49,15 @@ public:
   Object& operator+=(NamedVariable named_variable);
   Object& operator+=(Object other);
 
+  bool operator==(Object other) const;
+  bool operator!=(Object other) const;
+  bool operator<(Object other) const;
+  bool operator<=(Object other) const;
+  bool operator>(Object other) const;
+  bool operator>=(Object other) const;
+
+  i8 getCompare(Object other) const;
+
   NamedVariable& getNamedVariable(BufferArray name) const;
   Variable& getVariable(BufferArray name) const;
   inline Variable& operator[](BufferArray name) const {return getVariable(std::move(name));}

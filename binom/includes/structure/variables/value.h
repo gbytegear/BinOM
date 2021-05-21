@@ -65,8 +65,15 @@ public:
   inline i64 operator=(const i64 value) {return setSigned(value);}
   inline f64 operator=(const f64 value) {return setFloat(value);}
   ValueRef& operator=(const ValueRef& other);
-  ValueRef& operator<<(const ValueRef& other); //!< Set value from other to this
-  ValueRef& operator>>(ValueRef& other) const; //!< Set value from this to other
+//  ValueRef& operator<<(const ValueRef& other); //!< Set value from other to this
+//  ValueRef& operator>>(ValueRef& other) const; //!< Set value from this to other
+
+  inline bool operator==(ValueRef other) const {return asUi64() == other.asUi64();}
+  inline bool operator!=(ValueRef other) const {return asUi64() != other.asUi64();}
+  inline bool operator>(ValueRef other) const {return asUi64() > other.asUi64();}
+  inline bool operator>=(ValueRef other) const {return asUi64() >= other.asUi64();}
+  inline bool operator<(ValueRef other) const {return asUi64() < other.asUi64();}
+  inline bool operator<=(ValueRef other) const {return asUi64() <= other.asUi64();}
 };
 
 

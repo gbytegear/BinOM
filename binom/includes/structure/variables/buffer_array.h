@@ -158,12 +158,14 @@ public:
 
   BufferArray& operator=(BufferArray other);
 
-  bool operator==(const BufferArray& other) const;
-  inline bool operator!=(const BufferArray& other) const {return !(*this == other);}
-  bool operator>(const BufferArray& other) const;
-  bool operator<(const BufferArray& other) const;
-  bool operator>=(const BufferArray& other) const;
-  bool operator<=(const BufferArray& other) const;
+  bool operator==(BufferArray other) const;
+  inline bool operator!=(BufferArray other) const {return !(*this == std::move(other));}
+  bool operator>(BufferArray other) const;
+  bool operator<(BufferArray other) const;
+  bool operator>=(BufferArray other) const;
+  bool operator<=(BufferArray other) const;
+
+  i8 getCompare(BufferArray other) const;
 
   iterator begin() const;
   iterator end() const;

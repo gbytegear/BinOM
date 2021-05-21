@@ -555,7 +555,7 @@ BufferArray& BufferArray::operator=(BufferArray other) {
   return *this;
 }
 
-bool BufferArray::operator==(const BufferArray& other) const {
+bool BufferArray::operator==(binom::BufferArray other) const {
   if(*data.type != *other.data.type || length() != other.length()) return false;
   ValueIterator this_it = begin();
   ValueIterator other_it = other.begin();
@@ -565,7 +565,7 @@ bool BufferArray::operator==(const BufferArray& other) const {
   return true;
 }
 
-bool BufferArray::operator>(const BufferArray& other) const {
+bool BufferArray::operator>(binom::BufferArray other) const {
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -582,7 +582,7 @@ bool BufferArray::operator>(const BufferArray& other) const {
   return false;
 }
 
-bool BufferArray::operator<(const BufferArray& other) const {
+bool BufferArray::operator<(binom::BufferArray other) const {
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -599,7 +599,7 @@ bool BufferArray::operator<(const BufferArray& other) const {
   return false;
 }
 
-bool BufferArray::operator>=(const BufferArray& other) const {
+bool BufferArray::operator>=(BufferArray other) const {
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -616,7 +616,7 @@ bool BufferArray::operator>=(const BufferArray& other) const {
   return true;
 }
 
-bool BufferArray::operator<=(const BufferArray& other) const {
+bool BufferArray::operator<=(binom::BufferArray other) const {
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -631,6 +631,20 @@ bool BufferArray::operator<=(const BufferArray& other) const {
     if(this_it->asUnsigned() < other_it->asUnsigned()) return true;
     else if(this_it->asUnsigned() > other_it->asUnsigned()) return false;
   return true;
+}
+
+i8 BufferArray::getCompare(BufferArray other) const {
+  if(getType() > other.getType()) return 1;
+  elif(getType() < other.getType()) return -1;
+  if(length() > other.length()) return 1;
+  elif(length() < other.length()) return -1;
+  ValueIterator it = other.begin();
+  for(ValueRef val : *this) {
+    if(val > *it) return 1;
+    elif(val < *it) return -1;
+    ++it;
+  }
+  return 0;
 }
 
 BufferArray::iterator BufferArray::begin() const {return ValueIterator(*data.type, data.bytes + 9);}

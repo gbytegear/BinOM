@@ -54,6 +54,15 @@ public:
   Array& operator+=(Variable var);
   Array& operator=(Array other);
 
+  bool operator==(Array other) const;
+  bool operator!=(Array other) const;
+  bool operator<(Array other) const;
+  bool operator<=(Array other) const;
+  bool operator>(Array other) const;
+  bool operator>=(Array other) const;
+
+  ui8 getCompare(Array other) const;
+
   ArrayIterator begin() const {return reinterpret_cast<ArrayIterator>(data.bytes + 9);}
   ArrayIterator end() const {return reinterpret_cast<ArrayIterator>(data.bytes + msize());}
 

@@ -180,3 +180,87 @@ Array& Array::operator=(Array other) {
   other.data.ptr = nullptr;
   return *this;
 }
+
+bool Array::operator==(Array other) const {
+  if(length() != other.length()) return false;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    if(var != *it) return false;
+    ++it;
+  }
+  return true;
+}
+
+bool Array::operator!=(Array other) const {
+  if(length() != other.length()) return true;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    if(var != *it) return true;
+    ++it;
+  }
+  return false;
+}
+
+bool Array::operator<(Array other) const {
+  if(length() < other.length()) return true;
+  elif(length() > other.length()) return false;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    i8 cmp = var.getCompare(*it);
+    if(cmp < 0) return true;
+    elif(cmp > 0) return false;
+    ++it;
+  }
+  return false;
+}
+
+bool Array::operator<=(Array other) const {
+  if(length() < other.length()) return true;
+  elif(length() > other.length()) return false;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    i8 cmp = var.getCompare(*it);
+    if(cmp < 0) return true;
+    elif(cmp > 0) return false;
+    ++it;
+  }
+  return true;
+}
+
+bool Array::operator>(Array other) const {
+  if(length() > other.length()) return true;
+  elif(length() < other.length()) return false;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    i8 cmp = var.getCompare(*it);
+    if(cmp < 0) return false;
+    elif(cmp > 0) return true;
+    ++it;
+  }
+  return false;
+}
+
+bool Array::operator>=(Array other) const {
+  if(length() > other.length()) return true;
+  elif(length() < other.length()) return false;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    i8 cmp = var.getCompare(*it);
+    if(cmp < 0) return false;
+    elif(cmp > 0) return true;
+    ++it;
+  }
+  return true;
+}
+
+ui8 Array::getCompare(Array other) const {
+  if(length() > other.length()) return 1;
+  elif(length() < other.length()) return -1;
+  ArrayIterator it = other.begin();
+  for(Variable& var : *this) {
+    i8 cmp = var.getCompare(*it);
+    if(cmp) return cmp;
+    ++it;
+  }
+  return 0;
+}
