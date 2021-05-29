@@ -36,7 +36,7 @@ namespace binom {
     array               = 0x09,
     object              = 0x0A,
 
-    invlid_type         = 0xFF
+    invalid_type         = 0xFF
   };
 
   enum class ValType : byte {
@@ -90,7 +90,7 @@ namespace binom {
       case ValType::word: return VarType::word;
       case ValType::dword:return VarType::dword;
       case ValType::qword:return VarType::qword;
-      default: return VarType::invlid_type;
+      default: return VarType::invalid_type;
     }
   }
 
@@ -100,7 +100,7 @@ namespace binom {
       case ValType::word: return VarType::word_array;
       case ValType::dword:return VarType::dword_array;
       case ValType::qword:return VarType::qword_array;
-      default: return VarType::invlid_type;
+      default: return VarType::invalid_type;
     }
   }
 

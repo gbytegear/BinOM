@@ -1,7 +1,7 @@
 #ifndef BINOM_H
 #define BINOM_H
 
-#include "structure/variables/node_visitor.h"
+#include "structure/union_node_visitor.h"
 #include "structure/file_storage/data_base.h"
 
 namespace binom {

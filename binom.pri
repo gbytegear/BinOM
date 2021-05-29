@@ -1,4 +1,5 @@
 SOURCES += \
+  $$PWD/binom/sources/structure/union_node_visitor.cpp \
   binom/sources/structure/rwguard.cpp \
   binom/sources/binom.cpp \
   binom/sources/byte_array.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
 #  binom/sources/structure/variables/node_visitor_query.h
 
 HEADERS += \
+  $$PWD/binom/includes/structure/union_node_visitor.h \
   binom/includes/structure/file_storage/data_base.h \
   binom/includes/structure/file_storage/data_base_node_visitor.h \
   binom/includes/structure/file_storage/file_virtual_memory_controller.h \

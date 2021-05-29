@@ -37,7 +37,7 @@ VarType NodeVisitor::getType() const {
     case RefType::variable: return ref.variable->type();
     case RefType::named_variable: return ref.named_variable->variable.type();
     case RefType::value: return toVarType(ref.value.getType());
-    default: return VarType::invlid_type;
+    default: return VarType::invalid_type;
   }
 }
 

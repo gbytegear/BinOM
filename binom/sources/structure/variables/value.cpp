@@ -93,12 +93,7 @@ ValueRef& ValueRef::operator=(const ValueRef& other) {
   return *this;
 }
 
-//ValueRef& ValueRef::operator<<(const ValueRef& other) {
-//  setUnsigned(other.asUnsigned());
-//  return *this;
-//}
-
-//ValueRef& ValueRef::operator>>(ValueRef& other) const {
-//  other.setUnsigned(asUnsigned());
-//  return *const_cast<ValueRef*>(this);
-//}
+ValueRef& ValueRef::operator<<(const ValueRef& other) {
+  setUnsigned(other.asUnsigned());
+  return *this;
+}

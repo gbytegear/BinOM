@@ -77,13 +77,41 @@ void RWGuard::writeToRead() {
 
 
 
+RWSyncMap::RWSyncMapNode* RWSyncMap::getIfExist(f_virtual_index node_index) {
+  map_mtx.lock();
+  i64 left = 0;
+  i64 right = length;
+  i64 middle;
+
+  // Find node
+  do {
+    middle = (left + right) / 2;
+
+    if(middle >= static_cast<i64>(length) ||
+       left > right ||
+       (middle == 0 && map[middle].node_index > node_index))
+      break;
+
+    if(map[middle].node_index > node_index) right = middle - 1;
+    elif(map[middle].node_index < node_index) left = middle + 1;
+    elif(map[middle].node_index == node_index) {
+      map_mtx.unlock();
+      return map + middle;
+    }
+
+  } while(true);
+  return nullptr;
+}
+
 RWGuard* RWSyncMap::get(f_virtual_index node_index) {
   map_mtx.lock();
 
   RWGuard* result;
 
+  // If map is empty
   if(!map) {
     length = 1;
+    map_mtx.unlock();
     return (map = new RWSyncMapNode(node_index))->guard;
   }
 
@@ -91,6 +119,7 @@ RWGuard* RWSyncMap::get(f_virtual_index node_index) {
   i64 right = length;
   i64 middle;
 
+  // Find node
   do {
     middle = (left + right) / 2;
 
@@ -109,6 +138,8 @@ RWGuard* RWSyncMap::get(f_virtual_index node_index) {
 
   } while(true);
 
+
+  // Insert new node
   ++length;
   map = tryRealloc<RWSyncMapNode>(map, length);
 
@@ -129,6 +160,28 @@ RWGuard* RWSyncMap::get(f_virtual_index node_index) {
   map_mtx.unlock();
   return result;
 
+}
+
+void RWSyncMap::tryRemove(f_virtual_index node_index) {
+  RWSyncMapNode* sync_node_ptr;
+  if(!(sync_node_ptr = getIfExist(node_index))) return;
+  map_mtx.lock();
+  if(!sync_node_ptr->guard->isFree()) {
+    map_mtx.unlock();
+    return;
+  }
+
+  if(map == sync_node_ptr) {
+    delete map;
+    map = nullptr;
+    length = 0;
+    return;
+  }
+
+  memmove(sync_node_ptr, sync_node_ptr + 1, (length - (sync_node_ptr - map)) + 1);
+  map = tryRealloc<RWSyncMapNode>(map, --length);
+
+  map_mtx.unlock();
 }
 
 RWSyncMap::RWSyncMapNode::RWSyncMapNode(f_virtual_index node_index)

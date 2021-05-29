@@ -121,7 +121,7 @@ public:
 
   inline void* getDataPointer() const {return data.ptr;}
 
-  inline VarType type() const noexcept             {return (data.type == nullptr)? VarType::invlid_type :*data.type;}
+  inline VarType type() const noexcept             {return (data.type == nullptr)? VarType::invalid_type :*data.type;}
   inline VarTypeClass typeClass() const noexcept   {return (data.type == nullptr)? VarTypeClass::invalid_type :toTypeClass(*data.type);}
   inline bool isNull() const noexcept              {return data.type == nullptr;}
 

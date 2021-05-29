@@ -302,7 +302,7 @@ void DBNodeVisitor::deleteNode(f_virtual_index node_index) {
 
 DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, decltype(nullptr))
   : fvmc(fvmc),
-    node_descriptor{VarType::invlid_type, ui64(-1), ui64(-1)},
+    node_descriptor{VarType::invalid_type, ui64(-1), ui64(-1)},
     node_index(ui64(-1)),
     is_value_ptr(true),
     value_index(ui64(-1))
@@ -375,8 +375,10 @@ bool DBNodeVisitor::isEmpty() const {
 }
 
 bool DBNodeVisitor::isNull() const {
-  return node_descriptor.type == VarType::invlid_type && node_index == ui64(-1) && value_index == ui64(-1);
+  return node_descriptor.type == VarType::invalid_type && node_index == ui64(-1) && value_index == ui64(-1);
 }
+
+bool DBNodeVisitor::isInvalid() const {return getTypeClass() == VarTypeClass::invalid_type;}
 
 bool DBNodeVisitor::isIterable() const {return !isPrimitive();}
 

@@ -90,6 +90,7 @@ public:
 
   bool isEmpty() const;
   bool isNull() const;
+  bool isInvalid() const;
   bool isIterable() const;
   bool isPrimitive() const;
   bool isBufferArray() const;
@@ -121,7 +122,7 @@ public:
 
   DBNodeVisitor operator[](ui64 index) const;
   DBNodeVisitor operator[](BufferArray name) const;
-  DBNodeVisitor operator[](Path name) const;
+  DBNodeVisitor operator[](Path path) const;
 
   DBNodeVisitor& operator()(ui64 index);
   DBNodeVisitor& operator()(BufferArray name);

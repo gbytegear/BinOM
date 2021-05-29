@@ -29,6 +29,8 @@ public:
   void writeUnlock();
   void readToWrite();
   void writeToRead();
+
+  inline bool isFree() {return !reader_count && !reader_wait_count && !writer && !writer_wait_count;}
 };
 
 
@@ -38,7 +40,6 @@ typedef ui64 f_virtual_index;
 
 
 class RWSyncMap {
-
   struct RWSyncMapNode {
     f_virtual_index node_index;
     RWGuard* guard;
@@ -50,9 +51,12 @@ class RWSyncMap {
   ui64 length = 0;
   RWSyncMapNode* map = nullptr;
 
+  RWSyncMapNode* getIfExist(f_virtual_index node_index);
+
 public:
   RWSyncMap() = default;
   RWGuard* get(f_virtual_index node_index);
+  void tryRemove(f_virtual_index node_index);
 };
 
 }

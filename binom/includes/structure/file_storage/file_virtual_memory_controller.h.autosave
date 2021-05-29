@@ -259,7 +259,7 @@ public:
   ByteArray       loadByteDataByIndex(f_virtual_index byte_index, ValType type) { return loadByteData( byte_index, type); }
   NodeDescriptor  loadNodeDescriptor(f_virtual_index v_index);
 
-
+  
 
   void clear();
 
