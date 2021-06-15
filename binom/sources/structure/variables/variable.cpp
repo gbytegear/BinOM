@@ -1,5 +1,6 @@
 #include "binom/includes/structure/variables/variable.h"
 #include "binom/includes/structure/variables/node_visitor.h"
+#include <sstream>
 
 
 using namespace binom;
@@ -595,11 +596,21 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
   return os << "]";
 }
 
+std::string nameToString(binom::BufferArray buffer) {
+  std::stringstream str;
+  for(const binom::ValueRef &val : buffer)
+    str << val << ' ';
+  return str.str();
+}
+
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Object& object) {
   printIndent(os, ind, msg);
   os << "Object(" << object.getMemberCount() << ") {\n";
   for(NamedVariable& nvar : object) {
-    printWithIndent(os, ind + 1, nvar.name.toString() + ':', nvar.variable) << '\n';
+    if(nvar.name.getType() == VarType::byte_array)
+      printWithIndent(os, ind + 1, nvar.name.toString() + ':', nvar.variable) << '\n';
+    else
+      printWithIndent(os, ind + 1, '[' + nameToString(nvar.name) + "]:", nvar.variable) << '\n';
   }
   printIndent(os, ind, "");
   return os << "}";

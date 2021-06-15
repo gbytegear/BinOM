@@ -60,6 +60,8 @@ class NodeVisitor {
 
   bool test(Query query, ui64 index) noexcept;
 
+  friend class UnionNodeVisitor;
+
 public:
 
   class NodeIterator;

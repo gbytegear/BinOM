@@ -82,10 +82,13 @@ UnionNodeVisitor& UnionNodeVisitor::operator=(NamedVariable* named_var) {
 
 VisitorType UnionNodeVisitor::getVisitorType() const {return type;}
 
+NodeVisitor& UnionNodeVisitor::toRAMVistor() const {if(type != VisitorType::RAM) throw Exception(ErrCode::binom_invalid_visitor); return *visitor.ram_visitor;}
+DBNodeVisitor& UnionNodeVisitor::toDBVisitor() const {if(type != VisitorType::DB) throw Exception(ErrCode::binom_invalid_visitor); return *visitor.db_visitor;}
+
 VarType UnionNodeVisitor::getType() const {
   switch (type) {
-    case binom::VisitorType::undefied: return VarType::invalid_type;
-    case binom::VisitorType::RAM:
+  case binom::VisitorType::undefied: return VarType::invalid_type;
+  case binom::VisitorType::RAM:
     return visitor.ram_visitor->getType();
     case binom::VisitorType::DB:
     return visitor.db_visitor->getType();
@@ -362,4 +365,22 @@ void UnionNodeVisitor::foreach(std::function<void (UnionNodeVisitor)> callback) 
     case binom::VisitorType::DB:
       for(DBNodeVisitor node : *visitor.db_visitor) callback(node);
   }
+}
+
+Variable UnionNodeVisitor::getInfo() {
+  Object obj = {
+    {"visitor_type", ui8(type)}
+  };
+
+  switch (type) {
+  case binom::VisitorType::undefied:
+  break;
+  case binom::VisitorType::RAM:
+    obj.insert("pos", ui64(visitor.ram_visitor->ref.ptr));
+  break;
+  case binom::VisitorType::DB:
+    obj.insert("pos", ui64(visitor.db_visitor->getNodeIndex()));
+  break;
+  }
+  return obj.asVar();
 }

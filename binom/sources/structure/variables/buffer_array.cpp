@@ -556,6 +556,7 @@ BufferArray& BufferArray::operator=(BufferArray other) {
 }
 
 bool BufferArray::operator==(binom::BufferArray other) const {
+  if(getType() != other.getType()) return false;
   if(*data.type != *other.data.type || length() != other.length()) return false;
   ValueIterator this_it = begin();
   ValueIterator other_it = other.begin();
@@ -566,6 +567,8 @@ bool BufferArray::operator==(binom::BufferArray other) const {
 }
 
 bool BufferArray::operator>(binom::BufferArray other) const {
+  if(getType() > other.getType()) return true;
+  if(getType() < other.getType()) return false;
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -583,6 +586,8 @@ bool BufferArray::operator>(binom::BufferArray other) const {
 }
 
 bool BufferArray::operator<(binom::BufferArray other) const {
+  if(getType() < other.getType()) return true;
+  if(getType() > other.getType()) return false;
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -600,6 +605,7 @@ bool BufferArray::operator<(binom::BufferArray other) const {
 }
 
 bool BufferArray::operator>=(BufferArray other) const {
+  if(getType() > other.getType()) return true;
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -617,6 +623,7 @@ bool BufferArray::operator>=(BufferArray other) const {
 }
 
 bool BufferArray::operator<=(binom::BufferArray other) const {
+  if(getType() < other.getType()) return true;
   {
     ui64 this_size = length(),
         other_size = other.length();
@@ -639,7 +646,7 @@ i8 BufferArray::getCompare(BufferArray other) const {
   if(length() > other.length()) return 1;
   elif(length() < other.length()) return -1;
   ValueIterator it = other.begin();
-  for(ValueRef val : *this) {
+  for(const ValueRef &val : *this) {
     if(val > *it) return 1;
     elif(val < *it) return -1;
     ++it;

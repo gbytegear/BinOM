@@ -47,6 +47,9 @@ public:
 
   VisitorType getVisitorType() const;
 
+  NodeVisitor& toRAMVistor() const;
+  DBNodeVisitor& toDBVisitor() const;
+
   VarType getType() const;
   VarTypeClass getTypeClass() const;
 
@@ -96,6 +99,10 @@ public:
   UnionNodeVisitor& ifNotNull(std::function<void (UnionNodeVisitor&)> callback);
   UnionNodeVisitor& ifNull(std::function<void()> callback);
   void foreach(std::function<void(UnionNodeVisitor)> callback);
+
+  // Other
+
+  Variable getInfo();
 };
 
 }

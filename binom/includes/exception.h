@@ -1,8 +1,10 @@
 #include "ctypes.h"
 #include <string>
+#include <exception>
 
 namespace binom {
 
+/// Exceptions categories
 enum ErrCode : ui8 {
 
     // General exceptions
@@ -18,6 +20,7 @@ enum ErrCode : ui8 {
     binom_out_of_range,
     binom_object_key_error,
     binom_query_invalid_field,
+    binom_invalid_visitor,
 
     // BinOM DataBase Exceptions
     binomdb_invalid_file,
@@ -27,7 +30,7 @@ enum ErrCode : ui8 {
     binomdb_block_isnt_exist,
 };
 
-class Exception {
+class Exception : public std::exception {
   ErrCode _code;
   const char* error_string = nullptr;
 
@@ -42,6 +45,7 @@ class Exception {
       case ErrCode::binom_invalid_type: return        "Invalid BinOM type";
       case ErrCode::binom_out_of_range: return        "Out of BinOM container range";
       case ErrCode::binom_object_key_error: return    "Invalide object key";
+      case ErrCode::binom_invalid_visitor: return     "Invalide visitor";
 
       case ErrCode::binomdb_invalid_file: return      "BinOM DB invalid file";
       case ErrCode::binomdb_invalid_storage_version:
@@ -61,10 +65,11 @@ class Exception {
   }
 
 public:
-  constexpr Exception(const ErrCode code, const char* error_string) : _code(code), error_string(error_string) {}
-  constexpr Exception(const ErrCode code) : _code(code), error_string(nullptr) {}
+  Exception(const ErrCode code, const char* error_string) : std::exception(), _code(code), error_string(error_string) {}
+  Exception(const ErrCode code) : std::exception(), _code(code), error_string(nullptr) {}
   ErrCode code() const {return _code;}
-  std::string what() const {
+  const char* what() const noexcept {return ectos(_code);}
+  std::string full() const {
     return error_string
         ? std::string(ectos(_code)) + ": " + error_string
         : std::string(ectos(_code));
