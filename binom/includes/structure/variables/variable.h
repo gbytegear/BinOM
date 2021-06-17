@@ -209,5 +209,4 @@ std::ostream& operator<<(std::ostream& os, const binom::Array& array);
 std::ostream& operator<<(std::ostream& os, const binom::Object& object);
 std::ostream& operator<<(std::ostream& os, const binom::Variable& var);
 
-
 #endif

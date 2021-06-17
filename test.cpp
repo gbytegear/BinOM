@@ -1,19 +1,31 @@
 #include "binom/includes/binom.h"
 
 #include <ctime>
+#include <functional>
 
 const char SEPARATOR[] = "=========================================================================\n\n";
 
 using namespace binom;
 
 void testAnything() {
-  Object test_obj = {
-    {ui64arr{65535,65535}, "big name"},
-    {ui64arr{255,65535}, "big name"},
-    {"test", "prop"}
+  time_t t;
+  Object f_block = {
+    {"index", 0_ui32},
+    {"nonce", 0_ui64},
+    {"data", "data"},
+    {"hash", ""},
+    {"time", 0_i64}
+  };
+  Object block = {
+    {"index", 1_ui32},
+    {"nonce", 0_ui64},
+    {"data", "data"},
+    {"hash", std::hash<std::string>{}(std::move((char*)f_block.serialize().unfree()))},
+    {"time", 0_i64}
   };
 
-  std::cout << test_obj << '\n';
+  std::cout << toTypeString(block["hash"].type()) << '\n';
+
 }
 
 int main() {

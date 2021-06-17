@@ -114,6 +114,45 @@ namespace binom {
     }
   }
 
+  inline const char* toTypeString(VarType type) {
+    switch (type) {
+    case binom::VarType::end: return "end";
+    case binom::VarType::byte:  return "byte";
+    case binom::VarType::word: return "word";
+    case binom::VarType::dword: return "dword";
+    case binom::VarType::qword:  return "qword";
+    case binom::VarType::byte_array: return "byte_array";
+    case binom::VarType::word_array: return "word_array";
+    case binom::VarType::dword_array: return "dword_array";
+    case binom::VarType::qword_array: return "qword_array";
+    case binom::VarType::array: return "array";
+    case binom::VarType::object:  return "object";
+    default:
+    case binom::VarType::invalid_type: return "invalid_type";
+    }
+  }
+
+  inline const char* toTypeString(VarTypeClass type_class) {
+    switch (type_class) {
+    case binom::VarTypeClass::primitive: return "primitive";
+    case binom::VarTypeClass::buffer_array: return "buffer_array";
+    case binom::VarTypeClass::array: return "array";
+    case binom::VarTypeClass::object: return "object";
+    default:
+    case binom::VarTypeClass::invalid_type: return "invalid_type";
+    }
+  }
+
+  inline const char* toTypeString(ValType val_type) {
+    switch (val_type) {
+    case binom::ValType::byte: return "byte";
+    case binom::ValType::word: return "word";
+    case binom::ValType::dword: return "dword";
+    case binom::ValType::qword: return "qword";
+    default: return "invalid_type";
+    }
+  }
+
   // Basic
   class Variable;
   class Primitive;
