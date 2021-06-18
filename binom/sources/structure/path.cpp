@@ -117,6 +117,52 @@ ByteArray Path::toByteArray() const {return data;}
 
 Path Path::fromByteArray(ByteArray path) {return path;}
 
+// name_1.name_2[10].name_3
+Path Path::fromString(std::string str) {
+  ByteArray data;
+  size_t start = 0;
+  for(size_t i = 0; i < str.length(); ++i) {
+    switch (str[i]) {
+      default: continue;
+      case '.': // name.
+        if(start == i) continue; // name_1...name_2 (many dots)
+        data.pushBack<PathNodeType>(PathNodeType::name);
+        data.pushBack<ui64>(i - start);
+        data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
+        start = i + 1;
+      continue;
+      case '[': // [5]
+        if(start < i) { // name[5]
+          data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ui64>(i - start);
+          data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
+        }
+        start = i + 1;
+        for(;i < str.length() && str[i] != ']'; ++i)
+          if(str[i] < '0' && str[i] > '9') throw Exception(ErrCode::invalid_data);
+        data.pushBack<PathNodeType>(PathNodeType::index);
+        data.pushBack<ui64>(std::stoull(str.substr(start, i - start)));
+        start = i + 1;
+      continue;
+    }
+  }
+
+
+  if(start < str.length() - 1) {
+    data.pushBack<PathNodeType>(PathNodeType::name);
+    data.pushBack<ui64>(str.length() - start);
+    data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
+  }
+
+//  std::clog << "Parsed path:\n";
+//  for(PathNode node : Path::fromByteArray(data)) {
+//    std::clog << "Path node type: "<< ((node.type() == PathNodeType::index) ? "index" : "name")
+//              << "\nPath node value: " << ((node.type() == PathNodeType::index) ? std::to_string(node.index()) : node.name().toString()) << "\n\n";
+//  }
+
+  return Path::fromByteArray(data);
+}
+
 Path::PathNode::PathNode(void* ptr) : ptr(reinterpret_cast<PathNodeType*>(ptr)) {}
 
 PathNodeType Path::PathNode::type() const {return *ptr;}

@@ -118,7 +118,7 @@ public:
 
   NodeVisitor operator[](ui64 index) const {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor operator[](BufferArray name) const {return NodeVisitor(*this).stepInside(std::move(name));}
-  NodeVisitor& operator[](Path path) const {return NodeVisitor(*this).stepInside(std::move(path));}
+  NodeVisitor operator[](Path path) const {return NodeVisitor(*this).stepInside(std::move(path));}
 
   NodeVisitor& operator()(ui64 index) {return stepInside(index);}
   NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}

@@ -149,7 +149,7 @@ bool Object::contains(BufferArray name) const {
 
   while (left <= right) {
     middle = (left + right) / 2;
-    if(middle > length()) break;
+    if(middle >= length()) break;
 
     if(it[middle].name > name) right = middle - 1;
     elif(it[middle].name < name) left = middle + 1;
@@ -381,7 +381,7 @@ NamedVariable& Object::getNamedVariable(BufferArray name) const {
 
   while (left <= right) {
     middle = (left + right) / 2;
-    if(middle > length()) break;
+    if(middle >= length()) break;
 
     if(it[middle].name > name) right = middle - 1;
     elif(it[middle].name < name) left = middle + 1;
@@ -400,7 +400,7 @@ Variable& Object::getVariable(BufferArray name) const {
 
   while (left <= right) {
     middle = (left + right) / 2;
-    if(middle > length()) break;
+    if(middle >= length()) break;
 
     if(it[middle].name > name) right = middle - 1;
     elif(it[middle].name < name) left = middle + 1;

@@ -46,6 +46,7 @@ public:
 
   ByteArray toByteArray() const;
   static Path fromByteArray(ByteArray path);
+  static Path fromString(std::string str);
 
 };
 

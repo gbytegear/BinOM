@@ -5,6 +5,8 @@
 
 using namespace binom;
 
+OutputManip binom::output_manip;
+
 void* Variable::clone() const {
   switch (toTypeClass(*data.type)) {
     case VarTypeClass::primitive: return toPrimitive().clone();
@@ -579,6 +581,8 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
 
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::BufferArray& buffer) {
   printIndent(os, ind, msg);
+  if(buffer.getType() == VarType::byte_array && output_manip.buffer_array == OutputManip::BufferArray::STRING)
+    return os << buffer.toString();
   for(const binom::ValueRef &val : buffer)
     os << val << ' ';
   return os;
@@ -621,12 +625,33 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
 std::ostream& operator<<(std::ostream& os, const binom::Variable& var) {return printWithIndent(os, 0, "", var);}
 
 std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
+
   ui8 sym_count = (val.getType() == ValType::byte) ? 2
                  :(val.getType() == ValType::word) ? 4
                  :(val.getType() == ValType::dword) ? 8
                  : 16;
 
-  return os << std::right << std::setw(sym_count) << std::setfill('0') << std::hex << std::uppercase << val.asUnsigned();
+  switch (output_manip.primitive) {
+    case OutputManip::HEX:
+    return os << std::right << std::setw(sym_count) << std::setfill('0') << std::hex << std::uppercase << val.asUnsigned()
+              << std::resetiosflags(std::ios_base::basefield);
+    case OutputManip::SIGNED:
+      switch (val.getType()) {
+        case binom::ValType::byte: return os << static_cast<i16>(val.asI8());
+        case binom::ValType::word: return os << val.asI16();
+        case binom::ValType::dword: return os << val.asI32();
+        case binom::ValType::qword: return os << val.asI64();
+      }
+    case OutputManip::UNSIGNED:
+      switch (val.getType()) {
+        case binom::ValType::byte: return os << static_cast<ui16>(val.asUi8());
+        case binom::ValType::word: return os << val.asUi16();
+        case binom::ValType::dword: return os << val.asUi32();
+        case binom::ValType::qword: return os << val.asUi64();
+      }
+    break;
+
+  }
 }
 
 std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive) {return printWithIndent(os, 0, "", primitive);}

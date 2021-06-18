@@ -6,6 +6,9 @@ objects:
 objects_dbg:
 	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -lstdc++fs -std=c++17 -O3 -g
 
+objects_tk: objects
+	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC
+
 # Remove all objects
 clean_o:
 	rm -rf *.o
@@ -29,7 +32,11 @@ libs: libbinom.a libbinom.so
 	mv libbinom.so lbinom
 	cp binom/includes lbinom -r
 
-all: libs
+# BinOM Command Line ToolKit
+toolkit: objects_tk
+	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -g
+
+all: libs toolkit
 
 clean:
 	rm -rf ./*.o ./*.a test ./*.binom ./*.binomdb ./lbinom/ *.pro.user

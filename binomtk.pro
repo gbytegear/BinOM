@@ -16,8 +16,13 @@ win32 {
 }
 
 SOURCES += \
-    test.cpp \
-    toolkit.cpp
+    toolkit.cpp \
+    toolkit/tools.cpp \
+    toolkit/utils.cpp
 
 SUBDIRS += \
     BinOM_tools.pro
+
+HEADERS += \
+    toolkit/tools.h \
+    toolkit/utils.h

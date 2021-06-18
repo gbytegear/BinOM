@@ -199,8 +199,26 @@ struct NamedVariable {
   }
 };
 
-}
+struct OutputManip {
 
+  bool print_type = false;
+
+  enum Primitive : ui8 {
+    HEX,
+    SIGNED,
+    UNSIGNED
+  } primitive = HEX;
+
+  enum BufferArray : ui8 {
+    PRIMITIVE,
+    STRING
+  } buffer_array = STRING;
+
+};
+
+extern OutputManip output_manip;
+
+}
 
 std::ostream& operator<<(std::ostream& os, const binom::ValueRef val);
 std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive);
