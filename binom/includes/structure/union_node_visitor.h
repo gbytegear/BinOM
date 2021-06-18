@@ -9,7 +9,7 @@ namespace binom {
 enum class VisitorType : ui8 {
   undefied,
   RAM,
-  DB,
+  DB
 };
 
 class UnionNodeVisitor {

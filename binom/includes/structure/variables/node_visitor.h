@@ -87,6 +87,8 @@ public:
   bool isArray() const {return getTypeClass() == VarTypeClass::array;}
   bool isObject() const {return getTypeClass() == VarTypeClass::object;}
   bool isIterable() const  {return !isPrimitive();}
+  bool isNamed() const {return ref_type == RefType::named_variable;}
+  bool isValueRef() const {return ref_type == RefType::value;}
 
   ui64 getElementCount() const;
 

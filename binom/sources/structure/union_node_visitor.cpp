@@ -340,11 +340,11 @@ UnionNodeVisitor UnionNodeVisitor::getChild(Path path) const {return UnionNodeVi
 
 UnionNodeVisitor UnionNodeVisitor::find(Query query) {
   switch (type) {
-    case binom::VisitorType::undefied: return UnionNodeVisitor();
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->find(std::move(query));
     case binom::VisitorType::DB:
     return visitor.db_visitor->find(std::move(query));
+    default: return UnionNodeVisitor();
   }
 }
 

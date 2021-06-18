@@ -172,6 +172,8 @@ public:
   const_iterator cbegin() const;
   const_iterator cend() const;
 
+  inline operator std::string() const { return toString(); }
+
   std::string toString() const;
   std::wstring toWString() const;
   ByteArray toByteArray() const;

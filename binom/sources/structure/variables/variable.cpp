@@ -418,6 +418,8 @@ Variable::Variable(BufferArray buffer_array) : data(buffer_array.data.ptr) {buff
 Variable::Variable(Array array) : data(array.data.ptr) {array.data.ptr = nullptr;}
 Variable::Variable(Object object) : data(object.data.ptr) {object.data.ptr = nullptr;}
 
+Variable::Variable(ValueRef ref) : Variable(Primitive(ref)) {}
+
 Variable::Variable(Variable&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 Variable::Variable(const Variable& other) : data(other.clone()) {}
 

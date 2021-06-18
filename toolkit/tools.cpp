@@ -3,13 +3,14 @@
 using namespace binom;
 
 
-const char help_str[] = ""
+const char help_str[] =
 "Tools:\n\n"
 "* cat - print BinOM-file tree\n"
 "$ binomtk cat -file <file_name_#1> <file_name_#2> ... <file_name_#n>\n\n"
 "* sn - show nodes from BinOM-file\n"
 "$ binomtk sn -file <file_name> -path <path_to_node_#1> <path_to_node#2> ... <file_name_#n>\n\n"
-"";
+"* create - create BinOM-file\n"
+"$ binomtk create";
 
 std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map = {
 
@@ -23,26 +24,17 @@ std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map 
   }
 
   for(binom::Variable& file_name : args.getVariable("file").toArray()) {
-    std::string file_name_str = file_name.toBufferArray().toString();
-    if(!FileIO::isExist(file_name_str)) {
-      std::cerr << "File with name \"" << file_name_str << "\" isn't exist\n";
-      continue;
-    }
-    try {
-      if(BinOMDataBase::isValid(file_name_str)) {
-        BinOMDataBase db(file_name_str);
-        std::clog << "File \"" << file_name_str << "\" type - Data base:\n" << db.getRoot().getVariable() << "\n\n";
-      } else {
-        BinOMFile file(file_name_str);
-        std::clog << "File \"" << file_name_str << "\" type - Serialized data:\n" << file.load() << "\n\n";
-      }
-    } catch (Exception& except) {
+    std::string file_name_str = file_name.toBufferArray();
+    openFile(file_name_str,
+    [&](BinOMDataBase db)->void {
+      std::clog << "File \"" << file_name_str << "\" type - Data base:\n" << db.getRoot().getVariable() << "\n\n";
+    },
+    [&](BinOMFile file) {
+      std::clog << "File \"" << file_name_str << "\" type - Serialized data:\n" << file.load() << "\n\n";
+    },
+    [](Exception& except) {
       std::cerr << except.full() << '\n';
-      continue;
-    } catch(std::exception& except) {
-      std::cerr << except.what() << '\n';
-      continue;
-    }
+    });
   }
 
   return nullptr;
@@ -63,58 +55,94 @@ std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map 
     std::exit(-1);
   }
 
-  std::string file_name = args.getVariable("file").getVariable(0).toBufferArray().toString();
-  if(!FileIO::isExist(file_name)) {
-    std::cerr << "File with name \"" << file_name << "\" isn't exist\n";
-    std::exit(-1);
-  }
+  std::string file_name_str = args.getVariable("file").getVariable(0).toBufferArray();
 
-  if(BinOMDataBase::isValid(file_name)) {
-    BinOMDataBase db(file_name);
+  openFile(file_name_str,
+  [&](BinOMDataBase db)->void {
     DBNodeVisitor node = db.getRoot();
 
     for(Variable& path_var : args.getVariable("path").toArray()) {
       try {
-        DBNodeVisitor finded = node[Path::fromString(path_var.toBufferArray().toString())];
+        DBNodeVisitor finded = node[Path::fromString(path_var.toBufferArray())];
         if(finded.isNull()) throw Exception(ErrCode::binom_out_of_range);
-        std::clog << "Path: " << path_var.toBufferArray().toString()
+        std::cout << "Path: " << path_var.toBufferArray().toString()
                   << "\n|Type: " << toTypeString(finded.getType())
                   << "\n|Value: " << finded.getVariable() << "\n\n";
       } catch (Exception& except) {
         if(except.code() == ErrCode::binom_out_of_range)
-          std::cerr << "Path: " << path_var.toBufferArray().toString()
+          std::cout << "Path: " << path_var.toBufferArray().toString()
                     << "\n|Node not found!\n\n";
         else
-          std::cerr << "Path: " << path_var.toBufferArray().toString()
+          std::cout << "Path: " << path_var.toBufferArray().toString()
                     << "\n|" << except.full() << "\n\n";
       }
     }
-
-  } else {
-    Variable var = BinOMFile(file_name).load();
+  },
+  [&](BinOMFile file) {
+    Variable var = file.load();
     NodeVisitor node(&var);
 
     for(Variable& path_var : args.getVariable("path").toArray()) {
       try {
         NodeVisitor finded(node[Path::fromString(path_var.toBufferArray().toString())]);
         if(finded.isNull()) throw Exception(ErrCode::binom_out_of_range);
-        std::clog << "Path: " << path_var.toBufferArray().toString()
+        std::cout << "Path: " << path_var.toBufferArray().toString()
                   << "\n|Type: " << toTypeString(finded.getType())
-                  << "\n|Value: " << finded.getVariable() << "\n\n";
+                  << "\n|Value: " << (finded.isValueRef()? finded.getValue() : finded.getVariable()) << "\n\n";
       } catch (Exception& except) {
         if(except.code() == ErrCode::binom_out_of_range)
-          std::cerr << "Path: " << path_var.toBufferArray().toString()
+          std::cout << "Path: " << path_var.toBufferArray().toString()
                     << "\n|Node not found!\n\n";
         else
-          std::cerr << "Path: " << path_var.toBufferArray().toString()
+          std::cout << "Path: " << path_var.toBufferArray().toString()
                     << "\n|" << except.full() << "\n\n";
       }
     }
-
-  }
+  },
+  [](Exception& except) {
+    std::cerr << except.full() << '\n';
+  });
 
   return nullptr;
 }},
+
+
+
+{"create",
+[]([[maybe_unused]]binom::Variable args)->binom::Variable{
+  std::string path;
+  FileType file_type = FileType::invalid;
+  if(!args.contains("file")) {
+    std::clog << "Enter file name: ";
+    std::cin >> path;
+  } else path = args["file"][0].toBufferArray();
+
+  while (file_type == FileType::invalid) {
+    if(!args.contains("file-type")) {
+      std::string str;
+      std::clog << "Enter file type(serialized/data_base): ";
+      std::cin >> str;
+      file_type = toFileType(args["file-type"][0].toBufferArray());
+    } else {
+      file_type = toFileType(args["file-type"][0].toBufferArray());
+      args.toObject().remove("file-type");
+    }
+  }
+
+
+  switch (file_type) {
+    case FileType::data_base:
+
+    break;
+    case FileType::serialized_data:
+
+    break;
+    default: throw Exception(ErrCode::binom_invalid_type);
+  }
+
+
+  return nullptr;
+}}
 
 };
 
@@ -137,21 +165,16 @@ void fromatOutput(Array output_rules) {
 
 int execute(Variable args) {
 
-  if(args.contains("h") || args.contains("help")) {
+  if(args.contains("h") ||
+     args.contains("help") ||
+     !args.contains("tool-name")) {
     std::clog << help_str;
     std::exit(0);
   }
 
-
-  if(!args.contains("tool-name")) {
-    std::cerr << "Expected tool-name: binom-tools <tool-name> or ... -tool-name <tool-name>\n"
-                 "type -h or -help for print help\n";
-    std::exit(-1);
-  }
-
   if(args.contains("format-output")) fromatOutput(args.getVariable("format-output").toArray());
 
-  std::string tool_name = args.getVariable("tool-name").getVariable(0).toBufferArray().toString();
+  std::string tool_name = args.getVariable("tool-name").getVariable(0).toBufferArray();
   auto tool_it = tool_map.find(tool_name);
   if(tool_it == tool_map.cend()) {
     std::cerr << "Unexpected tool-name\n";

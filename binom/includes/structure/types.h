@@ -44,6 +44,8 @@ namespace binom {
       word                = 0x01,
       dword               = 0x02,
       qword               = 0x03,
+
+      invalid_type         = 0xFF
   };
 
   enum class VarTypeClass : byte {
@@ -80,7 +82,7 @@ namespace binom {
           case VarType::word_array: return ValType::word;
           case VarType::dword_array: return ValType::dword;
           case VarType::qword_array: return ValType::qword;
-          default: throw Exception(ErrCode::binom_invalid_type);
+        default: return ValType::invalid_type;
       }
   }
 
@@ -127,8 +129,7 @@ namespace binom {
     case binom::VarType::qword_array: return "qword_array";
     case binom::VarType::array: return "array";
     case binom::VarType::object:  return "object";
-    default:
-    case binom::VarType::invalid_type: return "invalid_type";
+    default: return "invalid_type";
     }
   }
 

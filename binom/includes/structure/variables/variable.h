@@ -108,6 +108,9 @@ public:
   Variable(Array array);
   Variable(Object object);
 
+  // By value reference
+  Variable(ValueRef ref);
+
   Variable(Variable&& other);
   Variable(const Variable& other);
 
@@ -146,6 +149,9 @@ public:
   inline Variable& getVariable(BufferArray name) const   {throwIfNot(VarTypeClass::object); return toObject().getVariable(name);}
   inline ValueRef getValue() const                       {throwIfNot(VarTypeClass::primitive); return toPrimitive().getValue();}
   inline ValueRef getValue(ui64 index) const             {throwIfNot(VarTypeClass::buffer_array); return toBufferArray().getValue(index);}
+
+  inline Variable& operator[](ui64 index) const          {return getVariable(index);}
+  inline Variable& operator[](BufferArray name) const    {return getVariable(std::move(name));}
 
   Variable& operator=(Variable other);
 
