@@ -114,6 +114,7 @@ public:
   void insert(BufferArray name, Variable var);
   void remove(ui64 index, ui64 count = 1);
   void remove(BufferArray name);
+  void remove(Path path);
   void remove();
 
   DBNodeVisitor getChild(ui64 index) const;

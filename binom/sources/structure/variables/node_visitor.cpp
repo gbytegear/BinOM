@@ -249,6 +249,22 @@ void NodeVisitor::remove(BufferArray name) {
   getVariable().toObject().remove(std::move(name));
 }
 
+void NodeVisitor::remove(Path path) {
+  Path::PathNode last_node = *path.begin();
+  NodeVisitor visitor(*this);
+  for(const Path::PathNode& path_node : path) {
+    switch (last_node.type()) {
+      case PathNodeType::index: visitor.stepInside(last_node.index()); continue;
+      case PathNodeType::name:  visitor.stepInside(last_node.name()); continue;
+    }
+    last_node = path_node;
+  }
+  switch (last_node.type()) {
+    case binom::PathNodeType::index: visitor.remove(last_node.index()); break;
+    case binom::PathNodeType::name: visitor.remove(last_node.name()); break;
+  }
+}
+
 // Query test function
 #include "node_visitor_query.h"
 

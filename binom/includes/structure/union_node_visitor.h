@@ -79,6 +79,7 @@ public:
   void insert(BufferArray name, Variable var);
   void remove(ui64 index, ui64 count = 1);
   void remove(BufferArray name);
+  void remove(Path path);
 
   UnionNodeVisitor getChild(ui64 index) const;
   UnionNodeVisitor getChild(BufferArray name) const;
@@ -86,7 +87,9 @@ public:
 
   UnionNodeVisitor operator[](ui64 index) const {return getChild(index);}
   UnionNodeVisitor operator[](BufferArray name) const {return getChild(std::move(name));}
-  UnionNodeVisitor operator[](Path path) const {return getChild(std::move(path));}
+  UnionNodeVisitor operator[](Path path) const {
+    return getChild(std::move(path));
+  }
 
   UnionNodeVisitor& operator()(ui64 index) {return stepInside(index);}
   UnionNodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}

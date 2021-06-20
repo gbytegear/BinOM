@@ -849,6 +849,22 @@ void DBNodeVisitor::remove(BufferArray name) {
 
 }
 
+void DBNodeVisitor::remove(Path path) {
+  Path::PathNode last_node = *path.begin();
+  DBNodeVisitor visitor(*this);
+  for(const Path::PathNode& path_node : path) {
+    switch (last_node.type()) {
+      case PathNodeType::index: visitor.stepInside(last_node.index()); continue;
+      case PathNodeType::name:  visitor.stepInside(last_node.name()); continue;
+    }
+    last_node = path_node;
+  }
+  switch (last_node.type()) {
+    case binom::PathNodeType::index: visitor.remove(last_node.index()); break;
+    case binom::PathNodeType::name: visitor.remove(last_node.name()); break;
+  }
+}
+
 void DBNodeVisitor::remove() { deleteNode(node_index); snapTo(0); }
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}

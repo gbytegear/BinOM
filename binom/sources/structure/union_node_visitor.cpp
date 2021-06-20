@@ -5,7 +5,7 @@ using namespace binom;
 UnionNodeVisitor::Visitor::Visitor(Variable* var) : ram_visitor(new NodeVisitor(var)) {}
 UnionNodeVisitor::Visitor::Visitor(NodeVisitor& visitor) : ram_visitor(new NodeVisitor(visitor)) {}
 UnionNodeVisitor::Visitor::Visitor(DBNodeVisitor& visitor) : db_visitor(new DBNodeVisitor(visitor)) {}
-UnionNodeVisitor::Visitor::Visitor(UnionNodeVisitor::Visitor&& other) : ram_visitor(other.ram_visitor) {}
+UnionNodeVisitor::Visitor::Visitor(UnionNodeVisitor::Visitor&& other) : ram_visitor(other.ram_visitor) {other.ram_visitor = nullptr;}
 
 UnionNodeVisitor::Visitor::Visitor(UnionNodeVisitor::Visitor& other, VisitorType type) {
   switch (type) {
@@ -21,7 +21,7 @@ UnionNodeVisitor::UnionNodeVisitor(NodeVisitor&& other) : type(VisitorType::RAM)
 UnionNodeVisitor::UnionNodeVisitor(const DBNodeVisitor& other) : type(VisitorType::DB), visitor(const_cast<DBNodeVisitor&>(other)) {}
 UnionNodeVisitor::UnionNodeVisitor(DBNodeVisitor&& other) : type(VisitorType::DB), visitor(other) {}
 UnionNodeVisitor::UnionNodeVisitor(Variable* var) : type(VisitorType::RAM), visitor(var) {}
-UnionNodeVisitor::UnionNodeVisitor(UnionNodeVisitor&& other) : type(other.type), visitor(std::move(other.visitor)) {}
+UnionNodeVisitor::UnionNodeVisitor(UnionNodeVisitor&& other) : type(other.type), visitor(std::move(other.visitor)) {other.visitor.ram_visitor = nullptr; other.type = VisitorType::undefied;}
 UnionNodeVisitor::UnionNodeVisitor(const UnionNodeVisitor& other) : type(other.type), visitor(const_cast<UnionNodeVisitor&>(other).visitor, other.type) {}
 
 UnionNodeVisitor::~UnionNodeVisitor() {
@@ -331,6 +331,16 @@ void UnionNodeVisitor::remove(BufferArray name) {
     return visitor.ram_visitor->remove(std::move(name));
     case binom::VisitorType::DB:
     return visitor.db_visitor->remove(std::move(name));
+  }
+}
+
+void UnionNodeVisitor::remove(Path path) {
+  switch (type) {
+    case binom::VisitorType::undefied: return;
+    case binom::VisitorType::RAM:
+    return visitor.ram_visitor->remove(std::move(path));
+    case binom::VisitorType::DB:
+    return visitor.db_visitor->remove(std::move(path));
   }
 }
 

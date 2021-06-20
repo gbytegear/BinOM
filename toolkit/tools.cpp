@@ -10,7 +10,9 @@ const char help_str[] =
 "* sn - show nodes from BinOM-file\n"
 "$ binomtk sn -file <file_name> -path <path_to_node_#1> <path_to_node#2> ... <file_name_#n>\n\n"
 "* create - create BinOM-file\n"
-"$ binomtk create";
+"$ binomtk create [optional: -file <file_name>]\n\n"
+"* edit - edit BinOM-file\n"
+"$ binomtk edit -file <file_name>\n\n";
 
 std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map = {
 
@@ -109,7 +111,7 @@ std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map 
 
 
 {"create",
-[]([[maybe_unused]]binom::Variable args)->binom::Variable{
+[](binom::Variable args)->binom::Variable{
   std::string path;
   FileType file_type = FileType::invalid;
   if(!args.contains("file")) {
@@ -122,27 +124,56 @@ std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map 
       std::string str;
       std::clog << "Enter file type(serialized/data_base): ";
       std::cin >> str;
-      file_type = toFileType(args["file-type"][0].toBufferArray());
+      file_type = toFileType(str);
     } else {
       file_type = toFileType(args["file-type"][0].toBufferArray());
       args.toObject().remove("file-type");
     }
   }
 
+  std::clog << "# Enter root element:\n";
+  Variable var = inputVariable();
+
 
   switch (file_type) {
-    case FileType::data_base:
-
-    break;
-    case FileType::serialized_data:
-
-    break;
+    case FileType::data_base: {
+      if(FileIO::isExist(path))FileIO(path).resize(0); // Clear file if exist
+      BinOMDataBase db(path, var);
+      editContainer(db.getRoot());
+    } break;
+    case FileType::serialized_data:{
+      BinOMFile file(path);
+      editContainer(&var);
+      file.write(var);
+    } break;
     default: throw Exception(ErrCode::binom_invalid_type);
   }
 
+  return nullptr;
+}},
 
+
+{"edit",
+[](binom::Variable args)->binom::Variable{
+  if(!args.contains("file")) {
+    std::cerr << "Expected file name: -file <file_name>\n";
+    std::exit(-1);
+  }
+
+  std::string file_name_str = args.getVariable("file").getVariable(0).toBufferArray();
+
+  openFile(file_name_str,
+  [](BinOMDataBase db) {
+    editContainer(db.getRoot());
+  },
+  [](BinOMFile file) {
+    Variable var = file.load();
+    editContainer(&var);
+    file.write(var);
+  });
   return nullptr;
 }}
+
 
 };
 

@@ -113,6 +113,7 @@ public:
   void insert(BufferArray name, Variable var);
   void remove(ui64 index, ui64 count = 1);
   void remove(BufferArray name);
+  void remove(Path path);
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
