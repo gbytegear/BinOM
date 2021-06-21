@@ -19,7 +19,9 @@ SOURCES += \
     toolkit.cpp \
 #    toolkit/tools.cpp \
  \#    toolkit/utils.cpp
-    toolkit/cli.cpp
+    toolkit/cli.cpp \
+    toolkit/commands.cpp \
+    toolkit/utils.cpp
 
 SUBDIRS += \
     BinOM_tools.pro
@@ -29,4 +31,5 @@ SUBDIRS += \
 #    toolkit/utils.h
 
 HEADERS += \
-    toolkit/cli.h
+    toolkit/cli.h \
+    toolkit/utils.h

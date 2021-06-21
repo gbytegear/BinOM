@@ -2,6 +2,11 @@
 
 using namespace binom;
 
+void NodeVisitor::setNull() {
+  ref_type = RefType::variable;
+  ref.ptr = nullptr;
+}
+
 NodeVisitor::NodeVisitor(decltype(nullptr) null) : ref_type(RefType::variable), ref(*reinterpret_cast<Variable**>(&null)) {}
 
 NodeVisitor::NodeVisitor(Variable* var) : ref_type(RefType::variable), ref(var) {}
@@ -71,26 +76,50 @@ ui64 NodeVisitor::getElementCount() const {
 }
 
 NodeVisitor& NodeVisitor::stepInside(ui64 index) {
-  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) {
+    setNull();
+    return *this;
+  }
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
-  if(var.isArray()) return *this = &var.toArray().getVariable(index);
-  elif(var.isBufferArray()) return *this = var.toBufferArray().getValue(index);
-  else throw Exception(ErrCode::binom_invalid_type);
+  try {
+    if(var.isArray()) return *this = &var.toArray().getVariable(index);
+    elif(var.isBufferArray()) return *this = var.toBufferArray().getValue(index);
+    else {
+      setNull();
+      return *this;
+    }
+  } catch(const Exception&) {
+    setNull();
+    return *this;
+  }
 }
 
 NodeVisitor& NodeVisitor::stepInside(BufferArray name) {
-  if(ref_type == RefType::value) throw Exception(ErrCode::binom_invalid_type);
+  if(ref_type == RefType::value) {
+    setNull();
+    return *this;
+  }
   Variable& var = (ref_type == RefType::variable)? *ref.variable : ref.named_variable->variable;
-  if(var.isObject()) return *this = &var.toObject().getNamedVariable(name);
-  else throw Exception(ErrCode::binom_invalid_type);
+  if(var.isObject()) try {
+    return *this = &var.toObject().getNamedVariable(name);
+  } catch(const Exception&) {
+    setNull();
+    return *this;
+  }
+  else {
+    setNull();
+    return *this;
+  }
 }
 
 NodeVisitor& NodeVisitor::stepInside(Path path) {
   for(const Path::PathNode& path_node : path)
-    switch (path_node.type()) {
-      case PathNodeType::index: stepInside(path_node.index()); continue;
-      case PathNodeType::name:  stepInside(path_node.name()); continue;
-    }
+    if(isNull()) return *this;
+    else
+      switch (path_node.type()) {
+        case PathNodeType::index: stepInside(path_node.index()); continue;
+        case PathNodeType::name:  stepInside(path_node.name()); continue;
+      }
   return *this;
 }
 

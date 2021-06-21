@@ -2,6 +2,8 @@
 
 using namespace binom;
 
+static const CLI* cli_obj_ptr = nullptr;
+
 const char HELP_TEXT[] =
 "Usage: binomtk <Command>...\n"
 "Description: BinOM structure management toolkit.\n\n"
@@ -76,6 +78,8 @@ const binom::Object CLI::arg_tmpl = vobj {
 
 };
 
+
+const Object& CLI::getArgs() {return cli_obj_ptr->args;}
 
 Object CLI::paresArgs(int argc, char* argv[]) {
   Object args;
@@ -178,6 +182,15 @@ Object CLI::paresArgs(int argc, char* argv[]) {
   return args;
 }
 
+void CLI::requredArg(BufferArray name,
+                     VarType requred_type,
+                     const char* exist_err,
+                     const char* type_err) {
+  if(!CLI::getArgs().contains(name)) throw Exception(ErrCode::invalid_data, exist_err);
+  if(requred_type != VarType::invalid_type)
+    if(CLI::getArgs()[name].type() == requred_type) throw Exception(ErrCode::invalid_data, type_err);
+}
+
 void CLI::formatOutput(BufferArray format) {
   for(ValueRef value : format)
     switch (value.asI8()) {
@@ -201,52 +214,90 @@ void CLI::printLicense() {
   std::exit(0);
 }
 
+void CLI::exec() {
+  if(!args.contains("cmd"))
+    throw Exception(ErrCode::invalid_data, "Doesn't enter command");
+  elif(auto it = commands.find(args["cmd"].toBufferArray()); it == commands.cend())
+      throw Exception(ErrCode::invalid_data, "Command isn't exist");
+  else
+  it->second();
+}
+
 CLI::CLI(int argc, char* argv[]) : args(paresArgs(--argc, ++argv)) {
+  if(!cli_obj_ptr)cli_obj_ptr = this;
+  else {
+    std::cerr << "CLI is exist!\n";
+    std::exit(-1);
+  }
+
+  // Pre-excution
   if(args.contains("showargs")) std::clog << "Parsed args: " << args << "\n\n";
   if(args.contains("h") || args.contains("help") || args.contains("-help")) printHelp();
   if(args.contains("l") || args.contains("license") || args.contains("-license")) printLicense();
   if(args.contains("outflag")) formatOutput(args["outflag"].toBufferArray());
 
-  // TODO: Execution
+  exec();
+  std::exit(0);
 }
 
-std::istream& operator>>(std::istream& is, VarType& type) {
+std::istream& binom::operator>>(std::istream& is, VarType& type) {
+  static const char values[] =
+"| 1 - byte\n"
+"| 2 - word\n"
+"| 3 - dword\n"
+"| 4 - qword\n"
+"| 5 - byte array\n"
+"| 6 - word array\n"
+"| 7 - dword array\n"
+"| 8 - qword array\n"
+"| 9 - array\n"
+"| 10 - object\n";
+
   ui16 number;
-  do {
+  while(true) {
     is >> number;
-    if(VarType(number) < VarType::byte || VarType(number) > VarType::object) {
-      std::cerr << "Invalid type\nTry again: ";
-      continue;
-    }
-  } while(false);
+    if(VarType(number) < VarType::byte || VarType(number) > VarType::object)
+      std::cerr << "Invalid type\n"<< values <<"Try again: ";
+    else break;
+  }
   type = static_cast<VarType>(number);
   return is;
 }
 
-std::istream& operator>>(std::istream& is, VarTypeClass& type_class) {
+std::istream& binom::operator>>(std::istream& is, VarTypeClass& type_class) {
+  static const char values[] =
+"| 1 - primitive\n"
+"| 2 - buffer array\n"
+"| 3 - array\n"
+"| 4 - object\n";
+
   ui16 number;
-  do {
+  while(true) {
     is >> number;
-    if(VarTypeClass(number) < VarTypeClass::primitive || VarTypeClass(number) > VarTypeClass::object) {
-      std::cerr << "Invalid type class\nTry again: ";
-      continue;
-    }
-  } while(false);
+    if(VarTypeClass(number) < VarTypeClass::primitive ||
+       VarTypeClass(number) > VarTypeClass::object)
+      std::cerr << "Invalid type class\n"<< values <<"Try again: ";
+    else break;
+  }
   type_class = static_cast<VarTypeClass>(number);
   return is;
 }
 
-std::istream& operator>>(std::istream& is, ValType& val_type) {
+std::istream& binom::operator>>(std::istream& is, ValType& val_type) {
+  static const char values[] =
+"| 1 - byte\n"
+"| 2 - word\n"
+"| 3 - dword\n"
+"| 4 - qword\n";
+
   ui16 number;
-
-  do {
+  while(true)  {
     is >> number;
-    if(ValType(number) > ValType::qword) {
-      std::cerr << "Invalid value type\nTry again: ";
-      continue;
-    }
-  } while(false);
+    if(ValType(number - 1) > ValType::qword)
+      std::cerr << "Invalid value type\n"<< values <<"Try again: ";
+    else break;
+  }
 
-  val_type = static_cast<ValType>(number);
+  val_type = static_cast<ValType>(number - 1);
   return is;
 }

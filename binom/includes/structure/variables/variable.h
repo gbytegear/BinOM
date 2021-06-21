@@ -47,6 +47,8 @@ public:
   Variable() : data(nullptr) {}
   Variable(decltype(nullptr)) : data(nullptr) {}
 
+  Variable(VarType type);
+
   // Bool init
   Variable(bool value);
 

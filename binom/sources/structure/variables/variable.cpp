@@ -29,6 +29,16 @@ void Variable::destroy() {
   }
 }
 
+Variable::Variable(VarType type) : data(nullptr)  {
+  switch (toTypeClass(type)) {
+    case binom::VarTypeClass::primitive: new(this) Primitive(type); break;
+    case binom::VarTypeClass::buffer_array: new(this) BufferArray(type); break;
+    case binom::VarTypeClass::array: new(this) Array(); break;
+    case binom::VarTypeClass::object: new(this) Object(); break;
+    case binom::VarTypeClass::invalid_type: break;
+  }
+}
+
 Variable::Variable(bool value) : data(tryMalloc(2)) {
   data.type[0] = VarType::byte;
   reinterpret_cast<bool*>(data.bytes)[1] = value;
