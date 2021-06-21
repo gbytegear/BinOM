@@ -386,6 +386,7 @@ bool DBNodeVisitor::isPrimitive() const {return getTypeClass() == VarTypeClass::
 bool DBNodeVisitor::isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
 bool DBNodeVisitor::isArray() const {return getTypeClass() == VarTypeClass::array;}
 bool DBNodeVisitor::isObject() const {return getTypeClass() == VarTypeClass::object;}
+bool DBNodeVisitor::isValueRef() const {return is_value_ptr;}
 
 DBNodeVisitor& DBNodeVisitor::snapTo(f_virtual_index node_index) {this->node_index = node_index; updateNode(); return *this;}
 
@@ -850,14 +851,20 @@ void DBNodeVisitor::remove(BufferArray name) {
 }
 
 void DBNodeVisitor::remove(Path path) {
+  if(Path::iterator it = ++path.begin();it == path.end())
+    switch (it->type()) {
+    case binom::PathNodeType::index: remove(it->index()); return;
+    case binom::PathNodeType::name: remove(it->name()); return;
+    }
+
   Path::PathNode last_node = *path.begin();
   DBNodeVisitor visitor(*this);
-  for(const Path::PathNode& path_node : path) {
+  for(Path::iterator it = ++path.begin(), end = path.end(); it != end ; ++it) {
     switch (last_node.type()) {
-      case PathNodeType::index: visitor.stepInside(last_node.index()); continue;
-      case PathNodeType::name:  visitor.stepInside(last_node.name()); continue;
+      case PathNodeType::index: visitor.stepInside(last_node.index()); break;
+      case PathNodeType::name:  visitor.stepInside(last_node.name()); break;
     }
-    last_node = path_node;
+    last_node = *it;
   }
   switch (last_node.type()) {
     case binom::PathNodeType::index: visitor.remove(last_node.index()); break;

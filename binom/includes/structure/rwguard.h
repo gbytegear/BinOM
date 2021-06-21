@@ -59,6 +59,71 @@ public:
   void tryRemove(f_virtual_index node_index);
 };
 
+enum class LockerType : ui8 {
+  free, read, write
+};
+
+class RWScopedLock {
+  RWSyncMap& map;
+  f_virtual_index index = 0;
+  RWGuard* guard = nullptr;
+  LockerType type = LockerType::free;
+public:
+  RWScopedLock(RWSyncMap& map, f_virtual_index index, LockerType type = LockerType::free)
+    : map(map), index(index), guard(map.get(index)), type(type) {
+    switch (type) {
+    case binom::LockerType::free: break;
+    case binom::LockerType::read: guard->readLock(); break;
+    case binom::LockerType::write: guard->writeLock(); break;
+    }
+  }
+
+  ~RWScopedLock() {
+    unlock();
+    map.tryRemove(index);
+  }
+
+  void readLock() {
+    unlock();
+    guard->readLock();
+    type = LockerType::read;
+  }
+
+  void writeLock() {
+    unlock();
+    guard->writeLock();
+    type = LockerType::write;
+  }
+
+  void unlock() {
+    switch (type) {
+    case binom::LockerType::free: break;
+    case binom::LockerType::read: guard->readUnlock(); break;
+    case binom::LockerType::write: guard->writeUnlock(); break;
+    }
+    type = LockerType::free;
+  }
+
+  void readToWrite() {
+    switch (type) {
+    case binom::LockerType::free: guard->writeLock(); break;
+    case binom::LockerType::read: guard->readToWrite(); break;
+    case binom::LockerType::write: break;
+    }
+    type = LockerType::write;
+  }
+
+  void writeToRead() {
+    switch (type) {
+    case binom::LockerType::free: guard->readLock(); break;
+    case binom::LockerType::read: break;
+    case binom::LockerType::write: guard->writeToRead(); break;
+    }
+    type = LockerType::read;
+  }
+
+};
+
 }
 
 

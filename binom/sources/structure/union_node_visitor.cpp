@@ -87,6 +87,7 @@ DBNodeVisitor& UnionNodeVisitor::toDBVisitor() const {if(type != VisitorType::DB
 
 VarType UnionNodeVisitor::getType() const {
   switch (type) {
+  default:
   case binom::VisitorType::undefied: return VarType::invalid_type;
   case binom::VisitorType::RAM:
     return visitor.ram_visitor->getType();

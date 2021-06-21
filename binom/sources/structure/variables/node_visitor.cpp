@@ -250,14 +250,20 @@ void NodeVisitor::remove(BufferArray name) {
 }
 
 void NodeVisitor::remove(Path path) {
+  if(Path::iterator it = ++path.begin();it == path.end())
+    switch (it->type()) {
+    case binom::PathNodeType::index: remove(it->index()); return;
+    case binom::PathNodeType::name: remove(it->name()); return;
+    }
+
   Path::PathNode last_node = *path.begin();
   NodeVisitor visitor(*this);
-  for(const Path::PathNode& path_node : path) {
+  for(Path::iterator it = ++path.begin(), end = path.end(); it != end ; ++it) {
     switch (last_node.type()) {
-      case PathNodeType::index: visitor.stepInside(last_node.index()); continue;
-      case PathNodeType::name:  visitor.stepInside(last_node.name()); continue;
+      case PathNodeType::index: visitor.stepInside(last_node.index()); break;
+      case PathNodeType::name:  visitor.stepInside(last_node.name()); break;
     }
-    last_node = path_node;
+    last_node = *it;
   }
   switch (last_node.type()) {
     case binom::PathNodeType::index: visitor.remove(last_node.index()); break;

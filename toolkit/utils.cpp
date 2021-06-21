@@ -121,7 +121,9 @@ BufferArray inputBufferArray(ValType type) {
       if(answer == 'y') {
         std::string str;
         std::clog << "Enter string: ";
-        std::cin >> str;
+        std::cin.ignore();
+        std::getline(std::cin, str);
+//        std::cin >> str;
         return BufferArray(str);
       }
     } while (answer != 'n');
@@ -293,8 +295,9 @@ void editContainer(UnionNodeVisitor root) {
     "| 0. Exit\n"
     "| 1. Add variable\n"
     "| 2. Change variable\n"
-    "| 3. Remove variable\n";
-    command = inputUInt("Enter command code", 0, 3);
+    "| 3. Remove variable\n" <<
+     ((root.getVisitorType() == VisitorType::DB)? "| 4. Print node index\n" : "");
+    command = inputUInt("Enter command code", 0, (root.getVisitorType() == VisitorType::DB)?4:3);
     switch (command) {
       case 0: return;
 
@@ -306,7 +309,8 @@ void editContainer(UnionNodeVisitor root) {
           try {
             std::string str;
             std::clog << "Enter path: ";
-            std::cin >> str;
+            std::cin.ignore();
+            std::getline(std::cin, str);
             if(str == ".") {
               node = root;
             } else
@@ -378,7 +382,7 @@ void editContainer(UnionNodeVisitor root) {
           } continue;
           default: throw Exception(ErrCode::binom_invalid_type);
         }
-      }
+      } continue;
 
 
 
@@ -388,7 +392,8 @@ void editContainer(UnionNodeVisitor root) {
           try {
             std::string str;
             std::clog << "Enter path: ";
-            std::cin >> str;
+            std::cin.ignore();
+            std::getline(std::cin, str);
             if(str == ".") {
               node = root;
             } else node = root[Path::fromString(str)];
@@ -407,15 +412,45 @@ void editContainer(UnionNodeVisitor root) {
           try {
             std::string str;
             std::clog << "Enter path: ";
-            std::cin >> str;
+            std::cin.ignore();
+            std::getline(std::cin, str);
             root.remove(Path::fromString(str));
           }  catch (Exception& except) {
             std::cerr << except.full() << '\n';
             continue;
           }
         } while(false);
-      }
+      } continue;
+
+    case 4:{
+      DBNodeVisitor node = root.toDBVisitor();
+      std::string str;
+      do {
+        try {
+          std::clog << "Enter path: ";
+          std::cin.ignore();
+          std::getline(std::cin, str);
+          if(str != ".")
+            node(Path::fromString(str));
+
+          if(node.isValueRef()) {
+            std::clog << "Node is pointer on value in buffer array!\n";
+            continue;
+          }
+        }  catch (Exception& except) {
+          std::cerr << except.full() << '\n';
+          continue;
+        }
+      } while(false);
+
+      std::cout << "Path: " << str << "\nNode index: " << node.getNodeIndex() << "\n\n";
+
+    } continue;
+
+
     }
+
+
   } catch(Exception& except) {
     std::cerr << except.full() << '\n';
     continue;

@@ -96,6 +96,7 @@ public:
   bool isBufferArray() const;
   bool isArray() const;
   bool isObject() const;
+  bool isValueRef() const;
 
   DBNodeVisitor& snapTo(f_virtual_index node_index);
   DBNodeVisitor& stepInside(ui64 index);

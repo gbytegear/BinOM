@@ -172,6 +172,86 @@ std::map<std::string, std::function<binom::Variable(binom::Variable)>> tool_map 
     file.write(var);
   });
   return nullptr;
+}},
+
+
+{"convert",
+[](binom::Variable args)->binom::Variable {
+  if(!args.contains("file")) {
+    std::cerr << "Expected file name: -file <file_name_#1> <file_name_#2> ... <file_name_#n>\n";
+    std::exit(-1);
+  }
+
+  for(binom::Variable& file_name : args.getVariable("file").toArray()) {
+    std::string file_name_str = file_name.toBufferArray();
+    openFile(file_name_str,
+    [&](BinOMDataBase db)->void {
+      std::clog << "Type of \"" << file_name_str << "\" file is DataBase\n";
+
+      FileType file_type = FileType::invalid;
+      while (file_type == FileType::invalid) {
+        if(!args.contains("file-type")) {
+          std::string str;
+          std::clog << "Enter file type(serialized/data_base): ";
+          std::cin.ignore();
+          std::getline(std::cin, str);
+          file_type = toFileType(str);
+        } else {
+          file_type = toFileType(args["file-type"][0].toBufferArray());
+          args.toObject().remove("file-type");
+        }
+      }
+
+      switch (file_type) {
+      case FileType::serialized_data:{
+        std::string str;
+        std::clog << "Enter new file name: ";
+        std::cin.ignore();
+        std::getline(std::cin, str);
+        BinOMFile(str).write(db);
+        std::clog << "File with name \"" << str << "\" has been writed!\n";
+      } break;
+      default:
+      case FileType::data_base:
+      case FileType::invalid:
+      break;
+      }
+    },
+    [&](BinOMFile file) {
+      std::clog << "Type of \"" << file_name_str << "\" file is Serialized storage\n";
+
+      FileType file_type = FileType::invalid;
+      while (file_type == FileType::invalid) {
+        if(!args.contains("file-type")) {
+          std::string str;
+          std::clog << "Enter file type(serialized/data_base): ";
+          std::cin >> str;
+          file_type = toFileType(str);
+        } else {
+          file_type = toFileType(args["file-type"][0].toBufferArray());
+          args.toObject().remove("file-type");
+        }
+      }
+
+      switch (file_type) {
+      case FileType::data_base:{
+        std::string str;
+        std::clog << "Enter new file name: ";
+        std::cin >> str;
+        BinOMDataBase db(str, file.load());
+        std::clog << "File with name \"" << str << "\" has been writed!\n";
+      } break;
+      case FileType::invalid:
+      break;
+      }
+
+    },
+    [](Exception& except) {
+      std::cerr << except.full() << '\n';
+    });
+
+    return nullptr;
+  }
 }}
 
 
