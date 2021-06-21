@@ -1,0 +1,57 @@
+Usage: binomtk <Command>...
+Description: BinOM structure management toolkit.
+
+Commands:
+|
+| * cat - print BinOM-files content
+| $ binomtk cat <file_#1> <file_#2> ... <file_#N>
+|
+| * pnode - print nodes from BinOM-file
+|           path example: name[0]name_1.name_2
+| $ binomtk pnode <file> <path_to_node_#1> <path_to_node_#2> ... <path_to_node_#N>
+|
+| * mk - create BinOM-file
+| $ binomtk mk [optional:<file>]
+|
+| * edit - edit BinOM-file
+| $ binomtk edit [optional:<file>]
+|
++
+
+Optional flags:
+|
+| * help - print this manual
+| $ binomtk -help [or:-h, --help]
+|
+| * license - print license
+| $ binomtk -license [or:-l, --license]
+|
+| * outflag - change BinOM-tree output mode
+|             primitive: 's' - signed int, 'u' - unsigned int, 'h' - hex
+|             buffer array: 'p' - primitive array, 't' - string
+| $ binomtk -outflag hp (primitive - hex, buffer array - primitive array)
+|
++
+
+MIT License
+
+Copyright (c) 2020 Max Shemendiuk
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+

@@ -2,7 +2,7 @@
 #define UNION_NODE_VISITOR_H
 
 #include "variables/node_visitor.h"
-#include "file_storage/data_base_node_visitor.h"
+#include "file_storage/data_base.h"
 
 namespace binom {
 
