@@ -40,10 +40,12 @@ libs: libbinom.a libbinom.so
 	mv libbinom.a lbinom
 	mv libbinom.so lbinom
 	cp binom/includes lbinom -r
+        make clean_o
 
 # BinOM Command Line ToolKit
 toolkit: objects_tk
 	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -g
+        make clean_o
 
 all: libs toolkit
 

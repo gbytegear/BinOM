@@ -166,6 +166,20 @@ const std::map<BufferArray, command_t> CLI::commands = {
               "File isn't entered! Example: \n"
               "$ binomtk pnode <file> <path_to_node_#1> <path_to_node_#2> ... <path_to_node_#N>\n");
    clearConsole();
+
+   if(std::string file_name =  getArgs()["file"].toBufferArray();
+   FileIO::isExist(file_name)) {
+     if(BinOMDataBase::isValid(file_name)) {
+       BinOMDataBase db(file_name);
+       editValue(db.getRoot());
+     } else {
+       BinOMFile file(file_name);
+       Variable content = file.load();
+       editValue(&content);
+       file.write(content);
+     }
+   } else std::cerr << "File \"" << file_name << "\" isn't exist";
+
 }},
 
 };
