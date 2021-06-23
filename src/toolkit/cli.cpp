@@ -14,9 +14,9 @@ const char HELP_TEXT[] =
 "|           path example: name[0]name_1.name_2\n"
 "| $ binomtk pnode <file> <path_to_node_#1> <path_to_node_#2> ... <path_to_node_#N>\n|\n"
 "| * mk - create BinOM-file\n"
-"| $ binomtk mk [optional:<file>]\n|\n"
+"| $ binomtk mk <file>\n|\n"
 "| * edit - edit BinOM-file\n"
-"| $ binomtk edit [optional:<file>]\n|\n"
+"| $ binomtk edit <file>\n|\n"
 "+\n\n"
 "Optional flags:\n|\n"
 "| * help - print this manual\n"
@@ -216,7 +216,7 @@ void CLI::printLicense() {
 
 void CLI::exec() {
   if(!args.contains("cmd"))
-    throw Exception(ErrCode::invalid_data, "Doesn't enter command");
+    printHelp();
   elif(auto it = commands.find(args["cmd"].toBufferArray()); it == commands.cend())
       throw Exception(ErrCode::invalid_data, "Command isn't exist");
   else

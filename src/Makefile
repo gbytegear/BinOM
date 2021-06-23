@@ -1,10 +1,10 @@
 # Compile objects for libraries
 objects:
-	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -std=c++17 -O3 -fPIC
+	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -std=c++17 -O3 -fPIC -w
 
 # Compile objects for Tcp
 objects_tcp:
-	g++ -c -I./TcpServer ./TcpServer/tcp/src/*.cpp -std=c++17 -O3 -fPIC
+	g++ -c -I./TcpServer ./TcpServer/tcp/src/*.cpp -std=c++17 -O3 -fPIC -w
 
 # Compile objects for test (with debug symbols)
 objects_dbg:
@@ -14,8 +14,13 @@ objects_dbg:
 objects_tcp_dbg:
 	g++ -c -I./TcpServer ./TcpServer/tcp/src/*.cpp -std=c++17 -O3 -g -fPIC
 
+# Compile objects for ToolKit
 objects_tk: objects
-	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC
+	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC -w
+
+# Compile objects for ToolKit (with debug symbols)
+objects_tk_dbg: objects_dbg
+	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC -g
 
 # Remove all objects
 clean_o:
@@ -40,12 +45,17 @@ libs: libbinom.a libbinom.so
 	mv libbinom.a lbinom
 	mv libbinom.so lbinom
 	cp binom/includes lbinom -r
-        make clean_o
+	make clean_o
+
+# BinOM Command Line ToolKit (with debug symbols)
+toolkit_dbg: objects_tk_dbg
+	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -w
+	make clean_o
 
 # BinOM Command Line ToolKit
 toolkit: objects_tk
-	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -g
-        make clean_o
+	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -w
+	make clean_o
 
 all: libs toolkit
 

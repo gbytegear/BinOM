@@ -26,7 +26,7 @@ UnionNodeVisitor inputPath(UnionNodeVisitor& root_node) {
   while (true) {
     std::string str;
     std::cout << root_node.getVariable() << "\n\n"
-    "Enter path: ";
+    "Enter path (Type '.' - for select root node): ";
     std::cin >> str;
     try {
       return root_node[Path::fromString(str)];
@@ -62,6 +62,15 @@ bool isUnsignedInt(const std::string& str) {
   return true;
 }
 
+ui64 inputInt() {
+  while (true) {
+    std::string str;
+    std::cin >> str;
+    if(isSignedInt(str)) return std::stoull(str);
+    std::cerr << "Isn't integer!\nTry again: ";
+  }
+}
+
 
 
 Variable inputVariable(VarType type) {
@@ -79,7 +88,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
 
@@ -116,7 +125,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
 
@@ -153,7 +162,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
 
@@ -190,7 +199,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
 
@@ -228,7 +237,7 @@ Variable inputVariable(VarType type) {
                  "| 2 - signed\n"
                  "| 3 - string\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as >= 1 && as <= 3) break;
     }
 
@@ -304,7 +313,8 @@ Variable inputVariable(VarType type) {
 
     case 3:
       std::clog << "Enter string: ";
-      std::cin >> input;
+      std::cin.ignore();
+      std::getline(std::cin, input);
     return input;
     }
 
@@ -314,7 +324,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
     ui64 count = 0;
@@ -380,7 +390,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
     ui64 count = 0;
@@ -446,7 +456,7 @@ Variable inputVariable(VarType type) {
                  "| 1 - unsigned\n"
                  "| 2 - signed\n"
                  ": ";
-      std::cin >> as;
+      as = inputInt();
       if(as == 1 || as == 2) break;
     }
     ui64 count = 0;
@@ -609,7 +619,7 @@ void editValue(UnionNodeVisitor root_node) {
 
     case Command::add: {
       clearConsole();
-      UnionNodeVisitor node = inputPath(root_node);
+      UnionNodeVisitor node = root_node.isEmpty()? root_node : inputPath(root_node);
       clearConsole();
 
       std::clog << "Selected: " << node.getVariable() << "\n\n";
@@ -627,7 +637,7 @@ void editValue(UnionNodeVisitor root_node) {
                        "| 1 - primitive\n"
                        "| 2 - buffer array\n"
                        ": ";
-          std::cin >> as;
+          as = inputInt();
           if(as == 1 || as == 2) break;
         }
 
@@ -636,19 +646,21 @@ void editValue(UnionNodeVisitor root_node) {
                   << "Enter add value type: ";
         std::cin >> type;
 
-        while (true) {
-          std::clog << "Input to:\n"
-                       "| 1 - front\n"
-                       "| 2 - by index\n"
-                       "| 3 - back\n"
-                       ": ";
-          std::cin >> to;
-          if(to >= 1 && to <= 3) break;
-        }
-        if(to == 2) {
-          std::clog << "Enter index: ";
-          std::cin >> index;
-        }
+        if(!node.isEmpty()) {
+          while (true) {
+            std::clog << "Input to:\n"
+                         "| 1 - front\n"
+                         "| 2 - by index\n"
+                         "| 3 - back\n"
+                         ": ";
+            to = inputInt();
+            if(to >= 1 && to <= 3) break;
+          }
+          if(to == 2) {
+            std::clog << "Enter index: ";
+            std::cin >> index;
+          }
+        } else to = 3;
 
         if(as == 1) {
           switch (to) {
@@ -676,15 +688,17 @@ void editValue(UnionNodeVisitor root_node) {
                   << "Enter add type: ";
         std::cin >> type;
 
-        while (true) {
-          std::clog << "Input to:\n"
-                       "| 1 - front\n"
-                       "| 2 - by index\n"
-                       "| 3 - back\n"
-                       ": ";
-          std::cin >> to;
-          if(to >= 1 && to <= 3) break;
-        }
+        if(!node.isEmpty()) {
+          while (true) {
+            std::clog << "Input to:\n"
+                         "| 1 - front\n"
+                         "| 2 - by index\n"
+                         "| 3 - back\n"
+                         ": ";
+            to = inputInt();
+            if(to >= 1 && to <= 3) break;
+          }
+        } else to = 3;
 
         switch (to) {
         case 1: node.pushFront(inputVariable(type)); clearConsole(); continue;
@@ -726,7 +740,7 @@ void editValue(UnionNodeVisitor root_node) {
 
     case Command::change: {
       clearConsole();
-      UnionNodeVisitor node = inputPath(root_node);
+      UnionNodeVisitor node = root_node.isEmpty()? root_node : inputPath(root_node);
       clearConsole();
       VarType type;
       std::clog << "Variable types:\n" << VAR_TYPES
@@ -737,6 +751,10 @@ void editValue(UnionNodeVisitor root_node) {
     } continue;
 
     case Command::remove:
+      if(root_node.isEmpty()) {
+        std::clog << "Root is empty!";
+        continue;
+      }
       while (true) {
         std::string str;
         std::cout << root_node.getVariable() << "\n\n"

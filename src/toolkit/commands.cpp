@@ -117,7 +117,7 @@ const std::map<BufferArray, command_t> CLI::commands = {
 {"mk", [](){
    requredArg("file", VarType::invalid_type,
               "File isn't entered! Example: \n"
-              "$ binomtk pnode <file> <path_to_node_#1> <path_to_node_#2> ... <path_to_node_#N>\n");
+              "$ binomtk mk <file>\n");
    clearConsole();
 
    FileType file_type;
@@ -164,7 +164,7 @@ const std::map<BufferArray, command_t> CLI::commands = {
 {"edit", [](){
    requredArg("file", VarType::invalid_type,
               "File isn't entered! Example: \n"
-              "$ binomtk pnode <file> <path_to_node_#1> <path_to_node_#2> ... <path_to_node_#N>\n");
+              "$ binomtk edit <file>\n");
    clearConsole();
 
    if(std::string file_name =  getArgs()["file"].toBufferArray();

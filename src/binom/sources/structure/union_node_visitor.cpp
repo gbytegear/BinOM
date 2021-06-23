@@ -106,6 +106,8 @@ VarTypeClass UnionNodeVisitor::getTypeClass() const {
   }
 }
 
+bool UnionNodeVisitor::isEmpty() const {return getElementCount() == 0;}
+
 bool UnionNodeVisitor::isNull() const {
   switch (type) {
     case binom::VisitorType::undefied: return true;

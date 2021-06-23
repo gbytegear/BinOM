@@ -350,6 +350,7 @@ ui64 DBNodeVisitor::getElementCount() const {
     case binom::VarTypeClass::array:
     return node_descriptor.size / sizeof(f_virtual_index);
     case binom::VarTypeClass::object:
+    if(node_descriptor.size == 0) return 0;
     return fvmc
         .loadHeapDataPartByIndex(node_descriptor.index, 0, sizeof (ObjectDescriptor))
         .get<ObjectDescriptor>(0,0)

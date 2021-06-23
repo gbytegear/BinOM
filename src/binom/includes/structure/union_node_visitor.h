@@ -53,6 +53,7 @@ public:
   VarType getType() const;
   VarTypeClass getTypeClass() const;
 
+  bool isEmpty() const;
   bool isNull() const;
   bool isInvalid() const;
   bool isPrimitive() const;
