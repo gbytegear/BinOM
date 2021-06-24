@@ -485,7 +485,7 @@ bool Variable::operator==(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray() == other.toBufferArray();
     case binom::VarTypeClass::array: return toArray() == other.toArray();
     case binom::VarTypeClass::object: return toObject() == other.toObject();
-    case binom::VarTypeClass::invalid_type: return true;
+    default: return true;
   }
 }
 
@@ -496,7 +496,7 @@ bool Variable::operator!=(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray() != other.toBufferArray();
     case binom::VarTypeClass::array: return toArray() != other.toArray();
     case binom::VarTypeClass::object: return toObject() != other.toObject();
-    case binom::VarTypeClass::invalid_type: return false;
+    default: return false;
   }
 }
 
@@ -508,7 +508,7 @@ bool Variable::operator<(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray() < other.toBufferArray();
     case binom::VarTypeClass::array: return toArray() < other.toArray();
     case binom::VarTypeClass::object: return toObject() < other.toObject();
-    case binom::VarTypeClass::invalid_type: return false;
+    default: return false;
   }
 }
 
@@ -520,7 +520,7 @@ bool Variable::operator<=(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray() <= other.toBufferArray();
     case binom::VarTypeClass::array: return toArray() <= other.toArray();
     case binom::VarTypeClass::object: return toObject() <= other.toObject();
-    case binom::VarTypeClass::invalid_type: return false;
+    default: return false;
   }
 }
 
@@ -532,7 +532,7 @@ bool Variable::operator>(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray() > other.toBufferArray();
     case binom::VarTypeClass::array: return toArray() > other.toArray();
     case binom::VarTypeClass::object: return toObject() > other.toObject();
-    case binom::VarTypeClass::invalid_type: return false;
+    default: return false;
   }
 }
 
@@ -544,7 +544,7 @@ bool Variable::operator>=(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray() >= other.toBufferArray();
     case binom::VarTypeClass::array: return toArray() >= other.toArray();
     case binom::VarTypeClass::object: return toObject() >= other.toObject();
-    case binom::VarTypeClass::invalid_type: return false;
+    default: return false;
   }
 }
 
@@ -556,7 +556,7 @@ i8 Variable::getCompare(Variable other) const {
     case binom::VarTypeClass::buffer_array: return toBufferArray().getCompare(std::move(other.toBufferArray()));
     case binom::VarTypeClass::array: return toArray().getCompare(std::move(other.toArray()));
     case binom::VarTypeClass::object: return toObject().getCompare(std::move(other.toObject()));
-    case binom::VarTypeClass::invalid_type: return false;
+    default: return false;
   }
 }
 
@@ -649,6 +649,7 @@ std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
               << std::resetiosflags(std::ios_base::basefield);
     case OutputManip::SIGNED:
       switch (val.getType()) {
+        default: return os << "Invalid type";
         case binom::ValType::byte: return os << static_cast<i16>(val.asI8());
         case binom::ValType::word: return os << val.asI16();
         case binom::ValType::dword: return os << val.asI32();
@@ -656,6 +657,7 @@ std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
       }
     case OutputManip::UNSIGNED:
       switch (val.getType()) {
+        default: return os << "Invalid type";
         case binom::ValType::byte: return os << static_cast<ui16>(val.asUi8());
         case binom::ValType::word: return os << val.asUi16();
         case binom::ValType::dword: return os << val.asUi32();

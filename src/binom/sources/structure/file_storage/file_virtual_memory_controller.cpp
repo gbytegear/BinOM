@@ -1,5 +1,14 @@
 #include "binom/includes/structure/file_storage/file_virtual_memory_controller.h"
 
+// Disclamer:
+// If you opened this file with the intention of changing it, I must tell you ...
+// "Prepare to feel much pain"
+// Thats f@ckin shit control memory of file when DBNodeVisitor create/delete/change
+// BinOM node
+
+// Good luck and don't break anything here
+
+
 using namespace binom;
 
 
@@ -95,7 +104,8 @@ MemoryBlockList::MemoryBlock MemoryBlockList::findBlock(f_virtual_index index) {
 
 void MemoryBlockList::freeBlock(f_virtual_index index) {
   for(MemoryBlock& block : *this)
-    if(block.index == index) free(block);
+    if(block.index == index) { free(block); return; }
+    elif(block.index > index) return;
 }
 
 MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, f_size size) {
@@ -123,11 +133,15 @@ MemoryBlockList::MemoryBlock MemoryBlockList::allocBlock(f_virtual_index index, 
 
 
 void FileVirtualMemoryController::init() {
+  // If file is empty
+  // -> create database header
+  // -!-> read database header & parse pages & heap blocks
   if(file.isEmpty()) {
     file.write(0, header);
   } else {
     file.read(0, header);
 
+    // Parse node pages
     if(header.first_node_page_index) {
       f_real_index next_node_page_index = header.first_node_page_index;
       NodePageDescriptor page_descriptor;
@@ -138,6 +152,7 @@ void FileVirtualMemoryController::init() {
       }
     }
 
+    // Parse heap pages
     if(header.first_heap_page_index) {
       f_real_index next_heap_page_index = header.first_heap_page_index;
       HeapPageDescriptor page_descriptor;
@@ -149,6 +164,7 @@ void FileVirtualMemoryController::init() {
       }
     }
 
+    // Parse byte pages
     if(header.first_byte_page_index) {
       f_real_index next_byte_page_index = header.first_byte_page_index;
       BytePageDescriptor page_descriptor;
@@ -160,7 +176,8 @@ void FileVirtualMemoryController::init() {
     }
 
 
-
+    // If root type is complex(buffer_array/array/object)
+    // -> alloc in heap list block with index and size from root node descriptor
     switch (toTypeClass(header.root_node.type)) {
       case VarTypeClass::buffer_array:
       case VarTypeClass::array:
@@ -169,7 +186,8 @@ void FileVirtualMemoryController::init() {
       default:;
     }
 
-    for(NodePageList::PageNode& page : node_page_list)
+    // Parse heap blocks
+    for(NodePageVector::PageNode& page : node_page_list)
       for(BitIterator it : page.descriptor.node_map)
         if(it.get()) {
           NodeDescriptor descriptor;
@@ -180,6 +198,7 @@ void FileVirtualMemoryController::init() {
             case VarTypeClass::object:
               if(descriptor.size == 0) continue; // For empty containers
               heap_block_list.allocBlock(descriptor.index, descriptor.size);
+            continue;
             default:continue;
           }
         }
@@ -187,49 +206,69 @@ void FileVirtualMemoryController::init() {
   }
 }
 
+
+// Memory page create methods
+
 void FileVirtualMemoryController::createNodePage() {
-  f_real_index node_page_index = file.addSize(node_page_size);
+  f_real_index node_page_index = file.addSize(node_page_size); // Alloc memory
   NodePageDescriptor page_descriptor;
-  file.write(node_page_index, page_descriptor);
+  file.write(node_page_index, page_descriptor); // Write node page header in start of node page
+
+  // If node page list is empty
+  // -> Write real index of created page in database header
+  // -!-> Write real index of created page in last node page header
   if(node_page_list.isEmpty()) {
     header.first_node_page_index = node_page_index;
     file.write(offsetof(DBHeader, first_node_page_index), node_page_index);
   } else {
     file.write(node_page_list.last().index + offsetof(NodePageDescriptor, next_node_page), node_page_index);
   }
-  node_page_list.insertPage(node_page_index, page_descriptor);
+  node_page_list.insertPage(node_page_index, page_descriptor); // Add to list
 }
 
 void FileVirtualMemoryController::createHeapPage() {
-  f_real_index heap_page_index = file.addSize(heap_page_size);
+  f_real_index heap_page_index = file.addSize(heap_page_size); // Alloc memory
   HeapPageDescriptor page_descriptor;
-  file.write(heap_page_index, page_descriptor);
+  file.write(heap_page_index, page_descriptor); // Write heap page header in start of heap page
+
+  // If heap page list is empty
+  // -> Write real index of created page in database header
+  // -!-> Write real index of created page in last heap page header
   if(heap_page_list.isEmpty()) {
     header.first_heap_page_index = heap_page_index;
     file.write(offsetof(DBHeader, first_heap_page_index), heap_page_index);
   } else {
     file.write(heap_page_list.last().index + offsetof(HeapPageDescriptor, next_heap_page), heap_page_index);
   }
-  heap_page_list.insertPage(heap_page_index, page_descriptor);
+  heap_page_list.insertPage(heap_page_index, page_descriptor); // Add to list
+
+  // Add memory size to last heap block
+  // or create new free heap block in the list end, if last heap block is busy
   heap_block_list.addMemory(heap_page_size - sizeof(HeapPageDescriptor));
-  // Add size to memory_map
 }
 
 void FileVirtualMemoryController::createBytePage() {
-  f_real_index byte_page_index = file.addSize(byte_page_size);
+  f_real_index byte_page_index = file.addSize(byte_page_size); // Alloc memory
   BytePageDescriptor page_descriptor;
-  file.write(byte_page_index, page_descriptor);
+  file.write(byte_page_index, page_descriptor); // Write byte page header in start of byte page
+
+  // If byte page list is empty
+  // -> Write real index of created page in database header
+  // -!-> Write real index of created page in last byte page header
   if(byte_page_list.isEmpty()) {
     header.first_byte_page_index = byte_page_index;
     file.write(offsetof(DBHeader, first_byte_page_index), byte_page_index);
   } else {
     file.write(byte_page_list.last().index + offsetof(BytePageDescriptor, next_byte_page), byte_page_index);
   }
-  byte_page_list.insertPage(byte_page_index, page_descriptor);
+  byte_page_list.insertPage(byte_page_index, page_descriptor); // Add to list
 }
 
+
+// Virtual index translation methods
+
 f_real_index FileVirtualMemoryController::getRealNodePos(f_virtual_index v_index) {
-  if(v_index == 0) return offsetof(DBHeader, root_node);
+  if(v_index == 0) return offsetof(DBHeader, root_node); // Return root node
   return node_page_list[(v_index - 1) / 64].index + sizeof (NodePageDescriptor) + // Get index of page
       ((v_index - 1)%64)*sizeof(NodeDescriptor); // Get offset from start of page
 }
@@ -245,6 +284,8 @@ f_real_index FileVirtualMemoryController::getRealBytePos(f_virtual_index v_index
       v_index%64;                             // Get offset from start of page
 }
 
+
+
 f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor) {
   // The root node is not involved in finding free nodes
   //  if(header.root_node.type == VarType::end) {
@@ -256,29 +297,34 @@ f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor
   if(!header.first_node_page_index)
     createNodePage();
 
-  f_virtual_index node_virtual_index = 1;
-  for(NodePageList::PageNode& page : node_page_list) {
+  f_virtual_index node_virtual_index = 1; // Calculated virtual index
 
-    ui8 index_in_page = 0;
+  for(NodePageVector::PageIterator it = node_page_list.begin(),
+                                   end = node_page_list.end();
+      it != end;
+      ++it
+      ) { // Loop through node pages
+    NodePageVector::PageNode& page = *it;
+    ui8 index_in_page = 0; // Shift from start of node page
+
+    // Try to find free node by header bitmap
     for(BitIterator& bit : page.descriptor.node_map) {
-      if(!bit.get()) {
-        // Write node
-        file.write(page.index + sizeof(NodePageDescriptor) + index_in_page * sizeof(NodeDescriptor), descriptor);
-        // Update node bit map
+      if(!bit.get()) { // Finded free position
+        // Mark node position as busy
         bit.set(true);
         file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
-
-
+        // Write node descriptor to finded
+        file.write(page.index + sizeof(NodePageDescriptor) + index_in_page * sizeof(NodeDescriptor), descriptor);
         return node_virtual_index;
       }
-
       ++index_in_page;
       ++node_virtual_index;
     }
 
     // If all pages are busy, create a new page
-    if(!page.next) createNodePage();
+    if(it.isLast()) createNodePage();
   } // NOTE: Infinity loop
+  return -1; // For remove f@ckin warning!
 }
 
 void FileVirtualMemoryController::setNode(f_virtual_index v_index, NodeDescriptor descriptor) {
@@ -304,14 +350,14 @@ void FileVirtualMemoryController::freeNode(f_virtual_index v_index) {
     file.write(offsetof(DBHeader, root_node), header.root_node);
     return;
   }
-  NodePageList::PageNode& page = node_page_list[(v_index - 1)/64];
+  NodePageVector::PageNode& page = node_page_list[(v_index - 1)/64];
   page.descriptor.node_map.set((v_index - 1)%64, false);
   file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
 }
 
 ByteArray FileVirtualMemoryController::getRealHeapBlocks(f_virtual_index index, f_size size) {
   ByteArray result;
-  HeapPageList::PageIterator it = heap_page_list.begin();
+  HeapPageVector::PageIterator it = heap_page_list.begin();
   it += index/heap_data_page_size;
   {
     ui64 index_in_page = index%heap_data_page_size;
@@ -387,11 +433,16 @@ f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
   if(byte_page_list.isEmpty()) createBytePage();
 
   f_virtual_index index = 0;
-  for(BytePageList::PageNode& page : byte_page_list)
-    if(page.descriptor.byte_map.value() == UINT64_MAX) {
-      // if all page is busy
+  for(BytePageVector::PageIterator it = byte_page_list.begin(),
+                                   end = byte_page_list.end();
+      it != end;
+      ++it
+      ) {
+    BytePageVector::PageNode& page = *it;
+    if(page.descriptor.byte_map.value() == 0xFFFFFFFFFFFFFFFFull) {
       index += 64;
-      if(!page.next) createBytePage(); // add new page if this page last
+      // if all page is busy
+      if(it.isLast()) createBytePage(); // add new page if this page last
       continue;
     } else {
       for(BitIterator bit : page.descriptor.byte_map)
@@ -413,9 +464,11 @@ f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
         }
       index += byte_count;
       byte_count = 0;
-      if(!page.next) createBytePage(); // add new page if this page last
+      if(it.isLast()) createBytePage(); // add new page if this page last
       continue;
-    } // NOTE: Infinity loop
+    }
+  } // NOTE: Infinity loop
+  return -1;
 }
 
 void FileVirtualMemoryController::setByteData(f_virtual_index index, ValType type, ByteArray data) {
@@ -429,7 +482,7 @@ ByteArray FileVirtualMemoryController::loadByteData(f_virtual_index index, ValTy
 }
 
 void FileVirtualMemoryController::freeByteData(f_virtual_index index, ValType type) {
-  BytePageList::PageNode& page = byte_page_list[index / 64];
+  BytePageVector::PageNode& page = byte_page_list[index / 64];
   BitIterator bit = page.descriptor.byte_map.begin() + index%64;
   const ui8 size = toSize(type);
   for(ui8 i = 0;i < size;(++bit,++i))
@@ -558,7 +611,7 @@ void FileVirtualMemoryController::free(f_virtual_index node_index) {
 
 void FileVirtualMemoryController::markNodeAsBusy(f_virtual_index node_index) {
   if(node_index == 0) return;
-  NodePageList::PageNode& page = node_page_list[(node_index - 1)/64];
+  NodePageVector::PageNode& page = node_page_list[(node_index - 1)/64];
   page.descriptor.node_map.set((node_index - 1)%64, true);
   file.write(page.index + offsetof(NodePageDescriptor, node_map), page.descriptor.node_map);
 }
@@ -568,4 +621,21 @@ bool FileVirtualMemoryController::isBusyNode(f_virtual_index node_index) {
     return header.root_node.type != VarType::end;
   }
   return node_page_list[(node_index - 1)/64].descriptor.node_map.get((node_index - 1)%64);
+}
+
+void FileVirtualMemoryController::setHeapDataPartByNode(f_virtual_index node_index, f_real_index shift, ByteArray data) {
+  // Validations:
+  if(!data.length()) return;
+  NodeDescriptor descriptor = loadNodeDescriptor(node_index);
+  switch (toTypeClass(descriptor.type)) {
+  case binom::VarTypeClass::invalid_type:
+  case binom::VarTypeClass::primitive: throw Exception(ErrCode::binom_invalid_type);
+  case binom::VarTypeClass::buffer_array:
+  case binom::VarTypeClass::array:
+  case binom::VarTypeClass::object: break;
+  }
+  if(shift + data.length() >= descriptor.size)
+    throw Exception(ErrCode::binomdb_memory_management_error, "Out of memory block range");
+  f_real_index index = getRealHeapPos(descriptor.index);
+  file.write(index + shift, data);
 }

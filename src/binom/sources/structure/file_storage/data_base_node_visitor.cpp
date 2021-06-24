@@ -528,8 +528,16 @@ Variable DBNodeVisitor::getVariable(Path path) const {
 void DBNodeVisitor::setVariable(Variable var) {
   if(!node_index) fvmc.clear();
   elif(is_value_ptr) {
-    if(var.type() != getType()) throw Exception(ErrCode::binom_invalid_type);
-    // TODO
+    if(toValueType(var.type()) != toValueType(getType())) throw Exception(ErrCode::binom_invalid_type);
+    if(var.isPrimitive())
+      fvmc.setHeapDataPartByNode(node_index,
+                                 value_index*toSize(toValueType(getType())),
+                                 var.toPrimitive().toBufferArray().toByteArray());
+    else
+      fvmc.setHeapDataPartByNode(node_index,
+                                 value_index*toSize(toValueType(getType())),
+                                 var.toBufferArray().toByteArray());
+    return;
   } else fvmc.markNodeAsBusy(node_index);
 
   switch (var.typeClass()) {

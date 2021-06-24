@@ -149,6 +149,8 @@ const std::map<BufferArray, command_t> CLI::commands = {
        BinOMFile(CLI::getArgs()["file"].toBufferArray()).write(var);
      } break;
      case FileType::data_base:{
+       if(FileIO::isExist(CLI::getArgs()["file"].toBufferArray()))
+         FileIO(CLI::getArgs()["file"].toBufferArray()).resize(0);
        BinOMDataBase db(CLI::getArgs()["file"].toBufferArray(), type);
        editValue(db.getRoot());
      } break;

@@ -199,6 +199,7 @@ bool DBNodeVisitor::test(Query &query, ui64 index, BufferArray name) {
 
     bool getRelationResult(bool last, QRel rel, bool current) {
       switch (rel) {
+        default:
         case binom::QRel::AND:  return last && current;
         case binom::QRel::OR:   return last || current;
         case binom::QRel::XOR:  return last != current;

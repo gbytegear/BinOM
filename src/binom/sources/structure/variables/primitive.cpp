@@ -83,6 +83,7 @@ binom::Primitive::Primitive(const binom::Primitive& other) : data(other.clone())
 binom::Primitive::Primitive(binom::ValueRef value) : data(tryMalloc(1 + value.getSize())) {
   data.type[0] = toVarType(value.getType());
   switch (value.getType()) {
+    default: throw Exception(ErrCode::binom_invalid_type);
     case ValType::byte: data.bytes[1] = value.asUnsigned();return;
     case ValType::word: reinterpret_cast<ui16*>(data.bytes+1)[0] = value.asUnsigned();return;
     case ValType::dword:reinterpret_cast<ui32*>(data.bytes+1)[0] = value.asUnsigned();return;

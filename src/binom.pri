@@ -21,6 +21,7 @@ SOURCES += \
 #  binom/sources/structure/variables/node_visitor_query.h
 
 HEADERS += \
+  $$PWD/binom/includes/structure/file_storage/fvmc_utils.h \
   $$PWD/binom/includes/structure/union_node_visitor.h \
   binom/includes/structure/file_storage/data_base.h \
   binom/includes/structure/file_storage/data_base_node_visitor.h \

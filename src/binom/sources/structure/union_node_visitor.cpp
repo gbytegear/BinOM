@@ -98,7 +98,7 @@ VarType UnionNodeVisitor::getType() const {
 
 VarTypeClass UnionNodeVisitor::getTypeClass() const {
   switch (type) {
-    case binom::VisitorType::undefied: return VarTypeClass::invalid_type;
+    default: return VarTypeClass::invalid_type;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->getTypeClass();
     case binom::VisitorType::DB:
@@ -110,7 +110,7 @@ bool UnionNodeVisitor::isEmpty() const {return getElementCount() == 0;}
 
 bool UnionNodeVisitor::isNull() const {
   switch (type) {
-    case binom::VisitorType::undefied: return true;
+    default: return true;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isNull();
     case binom::VisitorType::DB:
@@ -120,7 +120,7 @@ bool UnionNodeVisitor::isNull() const {
 
 bool UnionNodeVisitor::isInvalid() const {
   switch (type) {
-    case binom::VisitorType::undefied: return true;
+    default: return true;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isInvalid();
     case binom::VisitorType::DB:
@@ -130,7 +130,7 @@ bool UnionNodeVisitor::isInvalid() const {
 
 bool UnionNodeVisitor::isPrimitive() const {
   switch (type) {
-    case binom::VisitorType::undefied: return false;
+    default: return false;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isPrimitive();
     case binom::VisitorType::DB:
@@ -140,7 +140,7 @@ bool UnionNodeVisitor::isPrimitive() const {
 
 bool UnionNodeVisitor::isBufferArray() const {
   switch (type) {
-    case binom::VisitorType::undefied: return false;
+    default: return false;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isBufferArray();
     case binom::VisitorType::DB:
@@ -150,7 +150,7 @@ bool UnionNodeVisitor::isBufferArray() const {
 
 bool UnionNodeVisitor::isArray() const {
   switch (type) {
-    case binom::VisitorType::undefied: return false;
+    default: return false;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isArray();
     case binom::VisitorType::DB:
@@ -160,7 +160,7 @@ bool UnionNodeVisitor::isArray() const {
 
 bool UnionNodeVisitor::isObject() const {
   switch (type) {
-    case binom::VisitorType::undefied: return false;
+    default: return false;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isObject();
     case binom::VisitorType::DB:
@@ -170,7 +170,7 @@ bool UnionNodeVisitor::isObject() const {
 
 bool UnionNodeVisitor::isIterable() const {
   switch (type) {
-    case binom::VisitorType::undefied: return false;
+    default: return false;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->isIterable();
     case binom::VisitorType::DB:
@@ -180,7 +180,7 @@ bool UnionNodeVisitor::isIterable() const {
 
 ui64 UnionNodeVisitor::getElementCount() const {
   switch (type) {
-    case binom::VisitorType::undefied: return 0;
+    default: return 0;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->getElementCount();
     case binom::VisitorType::DB:
@@ -190,7 +190,7 @@ ui64 UnionNodeVisitor::getElementCount() const {
 
 UnionNodeVisitor& UnionNodeVisitor::stepInside(ui64 index) {
   switch (type) {
-    case binom::VisitorType::undefied: break;
+    default: break;
     case binom::VisitorType::RAM:
       visitor.ram_visitor->stepInside(index);
     break;
@@ -203,7 +203,7 @@ UnionNodeVisitor& UnionNodeVisitor::stepInside(ui64 index) {
 
 UnionNodeVisitor& UnionNodeVisitor::stepInside(BufferArray name) {
   switch (type) {
-    case binom::VisitorType::undefied: break;
+    default: break;
     case binom::VisitorType::RAM:
       visitor.ram_visitor->stepInside(std::move(name));
     break;
@@ -216,7 +216,7 @@ UnionNodeVisitor& UnionNodeVisitor::stepInside(BufferArray name) {
 
 UnionNodeVisitor& UnionNodeVisitor::stepInside(Path path) {
   switch (type) {
-    case binom::VisitorType::undefied: break;
+    default: break;
     case binom::VisitorType::RAM:
       visitor.ram_visitor->stepInside(std::move(path));
     break;
@@ -229,7 +229,7 @@ UnionNodeVisitor& UnionNodeVisitor::stepInside(Path path) {
 
 Variable UnionNodeVisitor::getVariable() const {
   switch (type) {
-    case binom::VisitorType::undefied: return nullptr;
+    default: return nullptr;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->getVariable();
     case binom::VisitorType::DB:
@@ -239,7 +239,7 @@ Variable UnionNodeVisitor::getVariable() const {
 
 Variable UnionNodeVisitor::getVariable(ui64 index) const {
   switch (type) {
-    case binom::VisitorType::undefied: return nullptr;
+    default: return nullptr;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->getVariable(index);
     case binom::VisitorType::DB:
@@ -249,7 +249,7 @@ Variable UnionNodeVisitor::getVariable(ui64 index) const {
 
 Variable UnionNodeVisitor::getVariable(BufferArray name) const {
   switch (type) {
-    case binom::VisitorType::undefied: return nullptr;
+    default: return nullptr;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->getVariable(std::move(name));
     case binom::VisitorType::DB:
@@ -259,7 +259,7 @@ Variable UnionNodeVisitor::getVariable(BufferArray name) const {
 
 Variable UnionNodeVisitor::getVariable(Path path) const {
   switch (type) {
-    case binom::VisitorType::undefied: return nullptr;
+    default: return nullptr;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->getVariable(std::move(path));
     case binom::VisitorType::DB:
@@ -269,7 +269,7 @@ Variable UnionNodeVisitor::getVariable(Path path) const {
 
 void UnionNodeVisitor::setVariable(Variable var) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->setVariable(std::move(var));
     case binom::VisitorType::DB:
@@ -279,7 +279,7 @@ void UnionNodeVisitor::setVariable(Variable var) {
 
 void UnionNodeVisitor::pushBack(Variable var) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->pushBack(std::move(var));
     case binom::VisitorType::DB:
@@ -289,7 +289,7 @@ void UnionNodeVisitor::pushBack(Variable var) {
 
 void UnionNodeVisitor::pushFront(Variable var) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->pushFront(std::move(var));
     case binom::VisitorType::DB:
@@ -299,7 +299,7 @@ void UnionNodeVisitor::pushFront(Variable var) {
 
 void UnionNodeVisitor::insert(ui64 index, Variable var) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->insert(index, std::move(var));
     case binom::VisitorType::DB:
@@ -309,7 +309,7 @@ void UnionNodeVisitor::insert(ui64 index, Variable var) {
 
 void UnionNodeVisitor::insert(BufferArray name, Variable var) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->insert(std::move(name), std::move(var));
     case binom::VisitorType::DB:
@@ -319,7 +319,7 @@ void UnionNodeVisitor::insert(BufferArray name, Variable var) {
 
 void UnionNodeVisitor::remove(ui64 index, ui64 count) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->remove(index, count);
     case binom::VisitorType::DB:
@@ -329,7 +329,7 @@ void UnionNodeVisitor::remove(ui64 index, ui64 count) {
 
 void UnionNodeVisitor::remove(BufferArray name) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->remove(std::move(name));
     case binom::VisitorType::DB:
@@ -339,7 +339,7 @@ void UnionNodeVisitor::remove(BufferArray name) {
 
 void UnionNodeVisitor::remove(Path path) {
   switch (type) {
-    case binom::VisitorType::undefied: return;
+    default: return;
     case binom::VisitorType::RAM:
     return visitor.ram_visitor->remove(std::move(path));
     case binom::VisitorType::DB:
@@ -375,8 +375,10 @@ void UnionNodeVisitor::foreach(std::function<void (UnionNodeVisitor)> callback) 
     case binom::VisitorType::undefied: return;
     case binom::VisitorType::RAM:
       for(NodeVisitor node : *visitor.ram_visitor) callback(node);
+  return;
     case binom::VisitorType::DB:
       for(DBNodeVisitor node : *visitor.db_visitor) callback(node);
+  return;
   }
 }
 
