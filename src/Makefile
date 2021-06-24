@@ -22,10 +22,6 @@ objects_tk: objects
 objects_tk_dbg: objects_dbg
 	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC -g
 
-# Remove all objects
-clean_o:
-	rm -rf *.o
-
 # Compile static library
 libbinom.a: objects
 	ar cr libbinom.a *.o
@@ -41,23 +37,28 @@ test: objects_dbg objects_tcp_dbg
 
 # Compile libraries and move to folder "lbinom" with C++ headers
 libs: libbinom.a libbinom.so
-	mkdir lbinom -p
-	mv libbinom.a lbinom
-	mv libbinom.so lbinom
-	cp binom/includes lbinom -r
-	make clean_o
+	mkdir ../build -p
+	mv libbinom.a ../build
+	mv libbinom.so ../build
+	cp binom/includes ../build -r
 
 # BinOM Command Line ToolKit (with debug symbols)
 toolkit_dbg: objects_tk_dbg
 	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -w
-	make clean_o
 
 # BinOM Command Line ToolKit
 toolkit: objects_tk
 	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -w
-	make clean_o
+	mkdir ../build -p
+	mv binomtk ../build
 
 all: libs toolkit
+	make clean
 
 clean:
 	rm -rf ./*.o ./*.a test ./*.binom ./*.binomdb ./lbinom/ *.pro.user
+
+
+# Remove all object files
+clean_o:
+	rm -rf *.o
