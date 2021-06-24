@@ -43,6 +43,6 @@ Then you need to go to the directory with source files `./src/` and compile libr
 $ cd BinOM/src
 $ make all
 ```
-The compiled library and BinOM ToolKit will be in `BinOM/bin/`
+The compiled library and BinOM ToolKit will be in `BinOM/build/`
 
 
