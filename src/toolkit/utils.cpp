@@ -266,7 +266,7 @@ Variable inputVariable(VarType type) {
           if(isUnsignedInt(input)) {
             value = std::stoll(input);
             if(value >= 0 && value <= 255) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -300,7 +300,7 @@ Variable inputVariable(VarType type) {
           if(isSignedInt(input)) {
             value = std::stoll(input);
             if(value >= -128 && value <= 127) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -352,7 +352,7 @@ Variable inputVariable(VarType type) {
           if(isUnsignedInt(input)) {
             value = std::stoll(input);
             if(value >= 0 && value <= 65535) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -372,7 +372,7 @@ Variable inputVariable(VarType type) {
           if(isSignedInt(input)) {
             value = std::stoll(input);
             if(value >= -32768 && value <= 32767) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -418,7 +418,7 @@ Variable inputVariable(VarType type) {
           if(isUnsignedInt(input)) {
             value = std::stoll(input);
             if(value >= 0 && value <= 4294967295) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -438,7 +438,7 @@ Variable inputVariable(VarType type) {
           if(isSignedInt(input)) {
             value = std::stoll(input);
             if(value >= -2147483648 && value <= 2147483647) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -486,7 +486,7 @@ Variable inputVariable(VarType type) {
           if(isUnsignedInt(input)) {
             ui64 value = std::stoull(input);
             if(value >= 0 && value <= 18446744073709551615_ui64) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -507,7 +507,7 @@ Variable inputVariable(VarType type) {
           if(isSignedInt(input)) {
             value = std::stoll(input);
             if(value >= -9223372036854775808_i64 && value <= 9223372036854775807_i64) {
-              buffer.popBack(value);
+              buffer.pushBack(value);
               break;
             }
           }
@@ -641,10 +641,6 @@ void editValue(UnionNodeVisitor root_node) {
           if(as == 1 || as == 2) break;
         }
 
-        ValType type;
-        std::clog << "Value types:\n" << VAL_TYPES
-                  << "Enter add value type: ";
-        std::cin >> type;
 
         if(!node.isEmpty()) {
           while (true) {
@@ -664,15 +660,15 @@ void editValue(UnionNodeVisitor root_node) {
 
         if(as == 1) {
           switch (to) {
-          case 1: node.pushFront(inputVariable(toVarType(type))); clearConsole(); continue;
-          case 2: node.insert(index, inputVariable(toVarType(type))); clearConsole(); continue;
-          case 3: node.pushBack(inputVariable(toVarType(type))); clearConsole(); continue;
+          case 1: node.pushFront(inputVariable(toVarType(toValueType(node.getType())))); clearConsole(); continue;
+          case 2: node.insert(index, inputVariable(toVarType(toValueType(node.getType())))); clearConsole(); continue;
+          case 3: node.pushBack(inputVariable(toVarType(toValueType(node.getType())))); clearConsole(); continue;
           }
         } elif(as == 2) {
           switch (to) {
-          case 1: node.pushFront(inputVariable(toVarBufferType(type))); clearConsole(); continue;
-          case 2: node.insert(index, inputVariable(toVarBufferType(type))); clearConsole(); continue;
-          case 3: node.pushBack(inputVariable(toVarBufferType(type))); clearConsole(); continue;
+          case 1: node.pushFront(inputVariable(node.getType())); clearConsole(); continue;
+          case 2: node.insert(index, inputVariable(node.getType())); clearConsole(); continue;
+          case 3: node.pushBack(inputVariable(node.getType())); clearConsole(); continue;
           }
         }
 
@@ -746,6 +742,9 @@ void editValue(UnionNodeVisitor root_node) {
       std::clog << "Variable types:\n" << VAR_TYPES
                 << "Enter variable type: ";
       std::cin >> type;
+
+
+
       node.setVariable(inputVariable(type));
       clearConsole();
     } continue;

@@ -527,7 +527,10 @@ Variable DBNodeVisitor::getVariable(Path path) const {
 
 void DBNodeVisitor::setVariable(Variable var) {
   if(!node_index) fvmc.clear();
-  else fvmc.markNodeAsBusy(node_index);
+  elif(is_value_ptr) {
+    if(var.type() != getType()) throw Exception(ErrCode::binom_invalid_type);
+    // TODO
+  } else fvmc.markNodeAsBusy(node_index);
 
   switch (var.typeClass()) {
     case VarTypeClass::primitive:

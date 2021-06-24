@@ -173,7 +173,6 @@ BufferArray NodeVisitor::getName() const {
 }
 
 void NodeVisitor::setVariable(Variable var) {
-  if(ref_type == RefType::value)
   switch (ref_type) {
     case binom::NodeVisitor::RefType::variable:
       ref.variable->destroy();
