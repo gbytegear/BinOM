@@ -35,4 +35,5 @@
 *.pro.*
 
 # Builded library
-lbinom/*
+build/*
+build-*
