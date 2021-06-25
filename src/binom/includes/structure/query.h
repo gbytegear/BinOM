@@ -118,6 +118,7 @@ public:
 
   ByteArray toByteArray() const;
   static Query fromByteArray(ByteArray data);
+  static Query fromString(std::string str);
 
 };
 

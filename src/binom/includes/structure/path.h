@@ -104,6 +104,8 @@ public:
   bool operator<=(iterator other);
 };
 
+Path operator""_pth(const char* str, unsigned long long);
+
 }
 
 #endif // PATH_H

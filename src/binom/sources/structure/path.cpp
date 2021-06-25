@@ -226,3 +226,5 @@ bool Path::iterator::operator>=(Path::iterator other) {return ptr >= other.ptr;}
 bool Path::iterator::operator<(Path::iterator other) {return ptr < other.ptr;}
 
 bool Path::iterator::operator<=(Path::iterator other) {return ptr <= other.ptr;}
+
+Path binom::operator""_pth(const char* str, unsigned long long) {return Path::fromString(str);}
