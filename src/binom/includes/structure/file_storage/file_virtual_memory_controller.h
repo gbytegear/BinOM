@@ -5,6 +5,8 @@
 
 namespace binom {
 
+typedef RWSyncMap::RWGuard RWGuard;
+
 class FileVirtualMemoryController {
   FileIO file;
   NodePageVector node_page_list;
@@ -84,9 +86,7 @@ public:
   NodeDescriptor  loadNodeDescriptor(f_virtual_index v_index);
 
   // Synchroniztion
-  inline RWSyncMap& getRWSyncMap() {return rw_sync_map;}
-  inline RWGuard* getRWGuard(f_virtual_index node_index) {return rw_sync_map.get(node_index);}
-  inline void tryRemoveRWGuard(f_virtual_index node_index) {return rw_sync_map.tryRemove(node_index);}
+  inline RWGuard getRWGuard(f_virtual_index node_index) {return rw_sync_map.get(node_index);}
 
   void clear();
 

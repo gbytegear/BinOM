@@ -7,6 +7,7 @@
 
 namespace binom {
 
+
 typedef uint8_t ui8;
 typedef int8_t i8;
 typedef uint16_t ui16;

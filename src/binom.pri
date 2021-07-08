@@ -1,7 +1,6 @@
 SOURCES += \
   $$PWD/binom/sources/structure/file_storage/fvmc_utils.cpp \
   $$PWD/binom/sources/structure/union_node_visitor.cpp \
-  binom/sources/structure/rwguard.cpp \
   binom/sources/binom.cpp \
   binom/sources/byte_array.cpp \
   binom/sources/structure/file_storage/data_base_node_visitor.cpp \
