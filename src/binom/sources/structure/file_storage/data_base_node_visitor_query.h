@@ -318,6 +318,7 @@ bool DBNodeVisitor::test(Query &query, ui64 index, BufferArray name) {
 
   } testExpr;
 
+  RWSyncMap::ScopedRWGuard lock(current_rwg, RWSyncMap::LockType::shared_lock);
   for(Query::QueryEpression& expr : query) testExpr(expr, *this, index, name);
   return testExpr.getValue();
 }

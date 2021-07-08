@@ -2,6 +2,9 @@
 
 using namespace binom;
 
+typedef RWSyncMap::LockType LockType;
+typedef RWSyncMap::RWGuard RWGuard;
+typedef RWSyncMap::ScopedRWGuard SRWG;
 
 NodeDescriptor DBNodeVisitor::loadNode(f_virtual_index node_index) const {return fvmc.loadNodeDescriptor(node_index);}
 void DBNodeVisitor::updateNode() const {node_descriptor = loadNode(node_index);}
@@ -312,27 +315,46 @@ DBNodeVisitor::DBNodeVisitor(FileVirtualMemoryController& fvmc, f_virtual_index 
   : fvmc(fvmc),
     node_index(node_index),
     is_value_ptr(is_value_ptr),
-    value_index(value_index) {updateNode();}
+    value_index(value_index),
+    current_rwg(fvmc.getRWGuard(node_index))  {
+  current_rwg.lockShared();
+  updateNode();
+  current_rwg.unlock();
+}
 
 DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor& other)
   : fvmc(other.fvmc),
     node_descriptor(other.node_descriptor),
     node_index(other.node_index),
     is_value_ptr(other.is_value_ptr),
-    value_index(other.value_index) {}
+    value_index(other.value_index),
+    current_rwg(fvmc.getRWGuard(node_index)) {}
 
 DBNodeVisitor::DBNodeVisitor(const DBNodeVisitor&& other)
   : fvmc(other.fvmc),
     node_descriptor(other.node_descriptor),
     node_index(other.node_index),
     is_value_ptr(other.is_value_ptr),
-    value_index(other.value_index) {}
+    value_index(other.value_index),
+    current_rwg(fvmc.getRWGuard(node_index)) {}
 
-DBNodeVisitor& DBNodeVisitor::operator=(DBNodeVisitor other) {return *(new(this) DBNodeVisitor(other));}
-DBNodeVisitor& DBNodeVisitor::operator=(f_virtual_index _node_index) {node_index = _node_index; updateNode(); return *this;}
+DBNodeVisitor& DBNodeVisitor::operator=(DBNodeVisitor other) {
+  this->~DBNodeVisitor();
+  return *(new(this) DBNodeVisitor(other));
+}
+
+DBNodeVisitor& DBNodeVisitor::operator=(f_virtual_index _node_index) {
+  node_index = _node_index;
+  current_rwg.lockShared();
+  updateNode();
+  current_rwg.unlock();
+  return *this;
+}
 
 VarType DBNodeVisitor::getType() const {
+  current_rwg.lockShared();
   updateNode();
+  current_rwg.unlock();
   return (is_value_ptr)
       ?toVarType(toValueType(node_descriptor.type))
       :node_descriptor.type;
@@ -342,7 +364,6 @@ VarTypeClass DBNodeVisitor::getTypeClass() const {return toTypeClass(getType());
 f_virtual_index DBNodeVisitor::getNodeIndex() const {return node_index;}
 
 ui64 DBNodeVisitor::getElementCount() const {
-  updateNode();
   switch (getTypeClass()) {
     case binom::VarTypeClass::primitive: return 1;
     case binom::VarTypeClass::buffer_array:
@@ -351,10 +372,15 @@ ui64 DBNodeVisitor::getElementCount() const {
     return node_descriptor.size / sizeof(f_virtual_index);
     case binom::VarTypeClass::object:
     if(node_descriptor.size == 0) return 0;
-    return fvmc
-        .loadHeapDataPartByIndex(node_descriptor.index, 0, sizeof (ObjectDescriptor))
-        .get<ObjectDescriptor>(0,0)
-        .index_count;
+    {
+      current_rwg.lockShared();
+      ui64 index = fvmc
+                   .loadHeapDataPartByIndex(node_descriptor.index, 0, sizeof (ObjectDescriptor))
+                   .get<ObjectDescriptor>(0,0)
+                   .index_count;
+      current_rwg.unlock();
+      return index;
+    }
     default:
     case binom::VarTypeClass::invalid_type:
     return 0;
@@ -389,29 +415,51 @@ bool DBNodeVisitor::isArray() const {return getTypeClass() == VarTypeClass::arra
 bool DBNodeVisitor::isObject() const {return getTypeClass() == VarTypeClass::object;}
 bool DBNodeVisitor::isValueRef() const {return is_value_ptr;}
 
-DBNodeVisitor& DBNodeVisitor::snapTo(f_virtual_index node_index) {this->node_index = node_index; updateNode(); return *this;}
+DBNodeVisitor& DBNodeVisitor::snapTo(f_virtual_index node_index) {
+  this->node_index = node_index;
+  current_rwg.lockShared();
+  updateNode();
+  current_rwg.unlock();
+  return *this;
+}
 
 DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
+  SRWG lock(current_rwg, LockType::shared_lock);
   updateNode();
-  if(isPrimitive() || isObject() || is_value_ptr) throw Exception(ErrCode::binom_invalid_type);
-  if(isArray()) {
+  VarTypeClass type_class = toTypeClass(node_descriptor.type);
+
+  if(type_class == VarTypeClass::primitive ||
+     type_class == VarTypeClass::object ||
+     is_value_ptr)
+    throw Exception(ErrCode::binom_invalid_type);
+
+  if(type_class == VarTypeClass::array) {
     if(node_descriptor.size / sizeof (f_virtual_index) <= index) throw Exception(ErrCode::binom_out_of_range);
     node_index = fvmc.loadHeapDataPartByIndex(node_descriptor.index,
                                               index*sizeof(f_virtual_index),
                                               sizeof (f_virtual_index))
                  .get<f_virtual_index>(0);
+    current_rwg = fvmc.getRWGuard(node_index);
+    current_rwg.lockShared();
     updateNode();
-  } else if(isBufferArray()) {
+  } else if(type_class == VarTypeClass::buffer_array) {
     if(node_descriptor.size / toSize(toValueType(getType())) <= index) throw Exception(ErrCode::binom_out_of_range);
     value_index = index;
     is_value_ptr = true;
   }
+
   return *this;
 }
 
 DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
+  SRWG lock(current_rwg, LockType::shared_lock);
   updateNode();
-  if(!isObject() || is_value_ptr) throw Exception(ErrCode::binom_invalid_type);
+  VarTypeClass type_class = toTypeClass(node_descriptor.type);
+
+  if(type_class == VarTypeClass::object ||
+     is_value_ptr)
+    throw Exception(ErrCode::binom_invalid_type);
+
   ByteArray data(loadData());
   ObjectDescriptor descriptor = data.get<ObjectDescriptor>(0);
 
@@ -440,7 +488,8 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
                             descriptor.length_element_count*sizeof(ObjectNameLength);
     ui64 name_count = 0;
 
-    if(middle == -1) throw Exception(ErrCode::binom_out_of_range);
+    if(middle == -1)
+      throw Exception(ErrCode::binom_out_of_range);
 
     for(ui64 i = 0; i < middle; ++i) {
       index += length_it[i].name_count;
@@ -467,7 +516,8 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
       else break;
     }
 
-    if(middle == -1) throw Exception(ErrCode::binom_out_of_range);
+    if(middle == -1)
+      throw Exception(ErrCode::binom_out_of_range);
 
     index += middle;
   }
@@ -476,6 +526,8 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
                               sizeof(ObjectDescriptor) +
                               descriptor.length_element_count*sizeof(ObjectNameLength) +
                               descriptor.name_block_size);
+  current_rwg = fvmc.getRWGuard(node_index);
+  current_rwg.lockShared();
   updateNode();
   return *this;
 }
@@ -491,6 +543,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(Path path) {
 }
 
 Variable DBNodeVisitor::getVariable() const {
+  SRWG lock(current_rwg, LockType::shared_lock);
   updateNode();
   if(is_value_ptr) {
     ByteArray data = fvmc.loadHeapDataPartByIndex(node_descriptor.index,
@@ -504,21 +557,11 @@ Variable DBNodeVisitor::getVariable() const {
 }
 
 Variable DBNodeVisitor::getVariable(ui64 index) const {
-  updateNode();
-  if(getTypeClass() == VarTypeClass::buffer_array) {
-    DBNodeVisitor node = getChild(index);
-    ByteArray data = fvmc.loadHeapDataPartByIndex(node.node_descriptor.index,
-                                                  node.value_index*toSize(toValueType(node.getType())),
-                                                  toSize(toValueType(node.getType())));
-    data.pushFront(toVarType(toValueType(node.getType())));
-    void* ptr = data.unfree();
-    return *reinterpret_cast<Variable*>(&ptr);
-  }
-  return buildVariable(getChild(index).node_index);
+  return getChild(index).getVariable();
 }
 
 Variable DBNodeVisitor::getVariable(BufferArray name) const {
-  return buildVariable(getChild(name).node_index);
+  return getChild(name).getVariable();
 }
 
 Variable DBNodeVisitor::getVariable(Path path) const {
@@ -526,6 +569,7 @@ Variable DBNodeVisitor::getVariable(Path path) const {
 }
 
 void DBNodeVisitor::setVariable(Variable var) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   if(!node_index) fvmc.clear();
   elif(is_value_ptr) {
     if(toValueType(var.type()) != toValueType(getType())) throw Exception(ErrCode::binom_invalid_type);
@@ -560,6 +604,7 @@ void DBNodeVisitor::setVariable(Variable var) {
 }
 
 void DBNodeVisitor::pushBack(Variable var) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   updateNode();
   switch (getTypeClass()) {
     default:
@@ -590,6 +635,7 @@ void DBNodeVisitor::pushBack(Variable var) {
 }
 
 void DBNodeVisitor::pushFront(Variable var) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   updateNode();
   switch (getTypeClass()) {
     default:
@@ -620,6 +666,7 @@ void DBNodeVisitor::pushFront(Variable var) {
 }
 
 void DBNodeVisitor::insert(ui64 index, Variable var) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   updateNode();
   switch (getTypeClass()) {
     default:
@@ -650,6 +697,7 @@ void DBNodeVisitor::insert(ui64 index, Variable var) {
 }
 
 void DBNodeVisitor::insert(BufferArray name, Variable var) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   updateNode();
   if(getTypeClass() != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
@@ -767,6 +815,7 @@ void DBNodeVisitor::insert(BufferArray name, Variable var) {
 
 
 void DBNodeVisitor::remove(ui64 index, ui64 count) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   updateNode();
   switch (getTypeClass()) {
     default:
@@ -793,6 +842,7 @@ void DBNodeVisitor::remove(ui64 index, ui64 count) {
 }
 
 void DBNodeVisitor::remove(BufferArray name) {
+  SRWG lock(current_rwg, LockType::unique_lock);
   updateNode();
   if(getTypeClass() != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
@@ -884,7 +934,11 @@ void DBNodeVisitor::remove(Path path) {
   }
 }
 
-void DBNodeVisitor::remove() { deleteNode(node_index); snapTo(0); }
+void DBNodeVisitor::remove() {
+  SRWG lock(current_rwg, LockType::unique_lock);
+  deleteNode(node_index);
+  toNull();
+}
 
 DBNodeVisitor DBNodeVisitor::getChild(ui64 index) const {return DBNodeVisitor(*this).stepInside(index);}
 DBNodeVisitor DBNodeVisitor::getChild(BufferArray name) const {return DBNodeVisitor(*this).stepInside(std::move(name));}
@@ -901,6 +955,7 @@ DBNodeVisitor& DBNodeVisitor::operator()(Path path) {return stepInside(std::move
 #include "data_base_node_visitor_query.h"
 
 DBNodeVector DBNodeVisitor::findAll(Query query, DBNodeVector vector) {
+  SRWG lock(current_rwg, LockType::shared_lock);
   if(!isIterable()) return vector;
   ui64 index = 0;
   for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
@@ -913,6 +968,7 @@ DBNodeVector DBNodeVisitor::findAll(Query query, DBNodeVector vector) {
 }
 
 DBNodeVisitor DBNodeVisitor::find(Query query) {
+  SRWG lock(current_rwg, LockType::shared_lock);
   if(!isIterable()) return DBNodeVisitor(fvmc, nullptr);
   ui64 index = 0;
   for(DBNodeIterator iterator = begin(); !iterator.isEnd() ; ++iterator) {
@@ -937,6 +993,7 @@ DBNodeVisitor& DBNodeVisitor::ifNull(std::function<void ()> callback) {
 }
 
 void DBNodeVisitor::foreach(std::function<void (DBNodeVisitor&)> callback) {
+  SRWG lock(current_rwg, LockType::shared_lock);
   if(isIterable()) for(DBNodeVisitor node : *this) callback(node);
 }
 

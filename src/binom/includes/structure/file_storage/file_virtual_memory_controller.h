@@ -5,8 +5,6 @@
 
 namespace binom {
 
-typedef RWSyncMap::RWGuard RWGuard;
-
 class FileVirtualMemoryController {
   FileIO file;
   NodePageVector node_page_list;

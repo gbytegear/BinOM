@@ -42,9 +42,9 @@ class DBNodeVisitor {
   FileVirtualMemoryController& fvmc;
   mutable NodeDescriptor node_descriptor;
   f_virtual_index node_index = 0;
-
   bool is_value_ptr = false;
   ui64 value_index = 0;
+  mutable RWSyncMap::RWGuard current_rwg;
 
   NodeDescriptor loadNode(f_virtual_index node_index) const;
   void updateNode() const;
@@ -72,7 +72,15 @@ class DBNodeVisitor {
 
   bool test(Query& query, ui64 index, BufferArray name);
 
+  // Null
   DBNodeVisitor(FileVirtualMemoryController& fvmc, decltype(nullptr));
+  void toNull() {
+    node_descriptor = {VarType::invalid_type, ui64(-1), ui64(-1)};
+    node_index = ui64(-1);
+    is_value_ptr = true;
+    value_index = ui64(-1);
+    current_rwg.clear();
+  }
 
 public:
 

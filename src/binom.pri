@@ -16,7 +16,7 @@ SOURCES += \
   binom/sources/structure/variables/array.cpp \
   binom/sources/structure/variables/object.cpp \
   binom/sources/structure/variables/node_visitor.cpp
-# Included to source:
+# Included to other source:
 #  binom/sources/structure/file_storage/data_base_node_visitor_query.h
 #  binom/sources/structure/variables/node_visitor_query.h
 

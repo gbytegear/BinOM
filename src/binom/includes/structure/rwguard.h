@@ -20,7 +20,6 @@ private:
 
   class RWGuardAutoDelete {
     RWSyncMap* map;
-    std::weak_ptr<RWGuardAutoDelete> weak_ptr;
     std::shared_mutex mtx;
     std::map<f_virtual_index, std::weak_ptr<RWGuardAutoDelete>>::iterator it;
 
@@ -39,12 +38,18 @@ private:
   };
 
 public:
+  enum class LockType {
+    shared_lock,
+    unique_lock,
+    unlocked
+  };
 
   class RWGuard {
     std::shared_ptr<RWGuardAutoDelete> shr_ptr;
+    LockType lock_type = LockType::unlocked;
+    ui64 lock_count = 0;
 
     RWGuard(f_virtual_index v_index, RWSyncMap* map) : shr_ptr(std::make_shared<RWGuardAutoDelete>(map)) {
-      shr_ptr->weak_ptr = shr_ptr;
       map->mtx_map.emplace(v_index, shr_ptr);
       shr_ptr->it = map->mtx_map.find(v_index);
     }
@@ -56,17 +61,117 @@ public:
       }
     }
 
+    void forceUnlock() {
+      if(!shr_ptr) return;
+      lock_count = 0;
+      switch (lock_type) {
+        case LockType::shared_lock:
+          shr_ptr->mtx.unlock_shared();
+          lock_type = LockType::unlocked;
+        return;
+        case LockType::unique_lock:
+          shr_ptr->mtx.unlock();
+          lock_type = LockType::unlocked;
+        return;
+        case LockType::unlocked: return;
+      }
+    }
+
     friend struct RWSyncMap;
   public:
+    RWGuard() = default;
     RWGuard(RWGuard&& other) : shr_ptr(std::move(other.shr_ptr)) {}
     RWGuard(RWGuard&) = delete;
+    ~RWGuard() {forceUnlock();}
 
-    void lock() {shr_ptr->mtx.lock();}
-    bool tryLock() {return shr_ptr->mtx.try_lock();}
-    void unlock() {shr_ptr->mtx.unlock();}
-    void lockShared() {shr_ptr->mtx.lock_shared();}
-    bool tryLockShared() {return shr_ptr->mtx.try_lock_shared();}
-    void unlockShared() {shr_ptr->mtx.unlock_shared();}
+    void clear() {
+      forceUnlock();
+      shr_ptr.reset();
+    }
+
+    void operator=(RWGuard&& other) {
+      this->~RWGuard();
+      new(this) RWGuard(std::move(other));
+    }
+
+    LockType getLockType() {return lock_type;}
+
+    void lock() {
+      if(!shr_ptr) return;
+      if(lock_type == LockType::unique_lock) {
+        ++lock_count;
+        return;
+      }
+      forceUnlock();
+      shr_ptr->mtx.lock();
+      lock_type = LockType::unique_lock;
+    }
+
+
+    void lockShared() {
+      if(!shr_ptr) return;
+      if(lock_type != LockType::unlocked) {
+        ++lock_count;
+        return;
+      }
+      shr_ptr->mtx.lock_shared();
+      lock_type = LockType::shared_lock;
+    }
+
+    void unlock() {
+      if(!shr_ptr) return;
+      if(lock_count) {
+        --lock_count;
+        return;
+      }
+      forceUnlock();
+    }
+
+//    bool tryLock() {
+//      if(!shr_ptr) return;
+//      unlock();
+//      if(shr_ptr->mtx.try_lock()) {
+//        lock_type = LockType::unique_lock;
+//        return true;
+//      }
+//      return false;
+//    }
+
+//    bool tryLockShared() {
+//      if(!shr_ptr) return;
+//      unlock();
+//      if(shr_ptr->mtx.try_lock_shared()) {
+//        lock_type = LockType::shared_lock;
+//        return true;
+//      }
+//      return false;
+//    }
+  };
+
+  class ScopedRWGuard {
+    RWSyncMap::RWGuard& rwg;
+  public:
+    ScopedRWGuard(RWGuard& rwg,
+                  LockType lock_type = LockType::unlocked)
+      : rwg(rwg) {
+      switch (lock_type) {
+        case binom::RWSyncMap::LockType::shared_lock:
+          rwg.lockShared();
+        return;
+        case binom::RWSyncMap::LockType::unique_lock:
+          rwg.lock();
+        return;
+        case binom::RWSyncMap::LockType::unlocked:return;
+      }
+    }
+
+    ~ScopedRWGuard() {rwg.unlock();}
+
+    inline void lock() {rwg.lock();}
+    inline void lockShared() {rwg.lockShared();}
+    inline void unlock() {rwg.unlock();}
+//    inline bool tryLock() {return rwg.tryLock();}
+//    inline bool tryLockShared() {return rwg.tryLockShared();}
   };
 
   RWSyncMap() = default;
