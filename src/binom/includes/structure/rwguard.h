@@ -24,11 +24,12 @@ private:
     std::shared_mutex mtx;
     std::map<f_virtual_index, std::weak_ptr<RWGuardAutoDelete>>::iterator it;
 
-    RWGuardAutoDelete(RWSyncMap* map)
-      : map(map) {}
 
     friend class RWGuard;
   public:
+    RWGuardAutoDelete(RWSyncMap* map)
+      : map(map), mtx() {}
+    RWGuardAutoDelete(const RWGuardAutoDelete&) = delete;
     ~RWGuardAutoDelete() {
       map->general_mtx.lock();
       if(auto shr_ptr = it->second.lock(); !shr_ptr)
@@ -42,7 +43,7 @@ public:
   class RWGuard {
     std::shared_ptr<RWGuardAutoDelete> shr_ptr;
 
-    RWGuard(f_virtual_index v_index, RWSyncMap* map) : shr_ptr(std::make_shared<RWGuardAutoDelete>(RWGuardAutoDelete(map))) {
+    RWGuard(f_virtual_index v_index, RWSyncMap* map) : shr_ptr(std::make_shared<RWGuardAutoDelete>(map)) {
       shr_ptr->weak_ptr = shr_ptr;
       map->mtx_map.emplace(v_index, shr_ptr);
       shr_ptr->it = map->mtx_map.find(v_index);
@@ -72,7 +73,7 @@ public:
 
   RWGuard get(f_virtual_index node_index) {
     general_mtx.lock();
-    if(auto it = mtx_map.find(node_index); it == mtx_map.cend()) {
+    if(auto it = mtx_map.find(node_index); it != mtx_map.cend()) {
       RWGuard guard(it->second, node_index, this);
       general_mtx.unlock();
       return guard;
