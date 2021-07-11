@@ -10,135 +10,76 @@ using namespace binom;
 
 //// Tcp IO-streams
 
-//TcpClient& operator<<(TcpClient& client, ByteArray data) {
-//  client.sendData(reinterpret_cast<char*>(data.begin()), data.length());
-//  return client;
-//}
+DataBuffer& operator >> (DataBuffer& data, ByteArray& array) {
+  array.pushBack(data.data_ptr, data.size);
+  return data;
+}
 
-//TcpClient& operator>>(TcpClient& client, ByteArray& data) {
-//  DataDescriptor descriptor = client.waitData();
-//  data = ByteArray(descriptor.data_ptr, descriptor.size);
-//  return client;
-//}
+TcpServer::Client& operator << (TcpServer::Client& client, Variable& var) {
+  ByteArray data = var.serialize();
+  client.sendData((char*)data.begin(), data.length());
+  return client;
+}
 
-//TcpServer::Client& operator<<(TcpServer::Client& client, ByteArray data) {
-//  client.sendData(reinterpret_cast<char*>(data.begin()), data.length());
-//  return client;
-//}
+BinOMDataBase data_base("db.binomdb", vobj{
+                          {"users", varr{
+                             vobj{
+                               {"login", "admin"},
+                               {"password", "admin"}
+                             }
+                           }}
+});
 
-//TcpServer::Client& operator>>(TcpServer::Client& client, ByteArray& data) {
-//  DataDescriptor descriptor = client.waitData();
-//  data = ByteArray(descriptor.data_ptr, descriptor.size);
-//  return client;
-//}
+DBNodeVisitor root = data_base.getRoot();
 
+TcpServer server(8080,
+[](DataBuffer data, TcpServer::Client& client)->void{
+  try {
+    ByteArray array;
+    data >> array;
 
-//std::string getHostStr(const TcpServer::Client& client) {
-//  uint32_t ip = client.getHost ();
-//  return std::string() + std::to_string(int(reinterpret_cast<char*>(&ip)[0])) + '.' +
-//     std::to_string(int(reinterpret_cast<char*>(&ip)[1])) + '.' +
-//     std::to_string(int(reinterpret_cast<char*>(&ip)[2])) + '.' +
-//     std::to_string(int(reinterpret_cast<char*>(&ip)[3])) + ':' +
-//     std::to_string( client.getPort ());
-//}
+    Path path = Path::fromByteArray(array);
+    Variable var = root[path].getVariable();
+    client << var;
 
+  }  catch (Exception& except) {
 
-//// Example of database
-//BinOMDataBase db("db.binom", vobj{
-//                   {"some_messages", varr{
-//                      "first_message",
-//                      "second_message",
-//                      "third_message"
-//                    }}
-//                 });
+    Variable err_var = vobj{
+      {"err_code", ui8(except.code())},
+      {"err_string", except.full()}
+    };
+    client << err_var;
 
-//TcpServer server(8080, [](TcpServer::Client client) {
-//  std::string client_addr_str = getHostStr(client);
-//  std::clog << "Server:\n|Client " << client_addr_str << " connected\n|Waiting data...\n";
-//  while (server.getStatus() == TcpServer::status::up && client.getStatus() == TcpSocketStatus::connected)
-//    try {
+  }
+}, {120,3,5});
 
-//      ByteArray client_data;
-//      client >> client_data;
-
-//      if(client.getStatus() != TcpSocketStatus::connected) {
-//        std::clog << "Client is disconnected!";
-//        return;
-//      }
-
-//      std::clog << "Server:\n|Recived data from: " << client_addr_str << '\n'
-//                << "|Size: " << client_data.length() << " bytes\n";
-
-//      client << db.getRoot()(Path::fromByteArray(client_data)).getVariable().serialize();
-
-//    } catch (Exception& except) {
-//      std::string err_msg = except.full();
-//      std::clog << "Server:\n|Client " << client_addr_str << " error:\n" << '|' << err_msg << '\n';
-//      ByteArray result_data = Variable(vobj{
-//                                         {"err", err_msg}
-//                                       }).serialize();
-//      client.sendData(reinterpret_cast<char*>(result_data.begin()), result_data.length());
-//    }
-//});
-
-//void testServer() {
-//  //Start server
-//  if(server.start() == TcpServer::status::up) {
-//    std::clog<<"Server:\n|Server is up!"<<std::endl;
-////    server.joinLoop(); //Joing to the client handling loop
-//    return;
-//  } else {
-//    std::clog<<"Server:\n|Server start error! Error code:"<< int(server.getStatus()) <<std::endl;
-//    std::exit(-1);
-//  }
-//}
+bool testTcpServer() {
+  if(server.start() == TcpServer::status::up) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 
-//void testClient() {
-//  TcpClient client;
-//  if(client.connectTo(LOCALHOST_IP, 8080) == TcpClient::status::connected) {
+void testTcpClient() {
+  TcpClient client;
+  client.connectTo(LOCALHOST_IP, 8080);
+  ByteArray pth_data = Path{"users, 0"}.toByteArray();
+  client.sendData(pth_data.begin(), pth_data.length());
+  DataBuffer var_data = client.loadData();
+  ByteArray var_arr;
+  var_arr.pushBack(var_data.data_ptr, var_data.size);
+  Variable var = Variable::deserialize(var_arr);
+  std::cout << var;
+}
 
-//    std::thread distant_msg([&client](){ // Server data reciver
-//      while (server.getStatus() == TcpServer::status::up) {
-//        ByteArray server_data;
-//        client >> server_data;
+void test() {
+  if(testTcpServer()) {
+    testTcpClient();
+    server.stop();
+  } else std::exit(-1);
+}
 
-//        if(client.getStatus() != TcpSocketStatus::connected) {
-//          std::clog << "Client is disconnected!";
-//          return;
-//        }
-
-//        Variable data = Variable::deserialize(server_data);
-//        if(data.contains("err")) { // Error handling
-//          std::clog << "Client:\n|" << data.getVariable("err").toBufferArray().toString() << std::endl;
-//        } else std::clog << "Client:\n|Recived data from server: " << data << '\n';
-//      }
-//    });
-
-//    while(1) try {
-//      std::string path;
-//      std::clog << "Enter path (exit - for exit from programm): ";
-//      std::cin >> path;
-//      if(path == "exit") break;
-//      client << Path::fromString(path).toByteArray();
-//    } catch(const Exception& except) {
-//      std::cerr << except.full() << '\n';
-//    }
-
-//    server.stop();
-//    distant_msg.join();
-
-//  } else {
-//    std::clog<<"Client:\n|Error! Client isn't connected! Error code: " << int(client.getStatus ()) << std::endl;
-//    server.stop();
-//    std::exit(-1);
-//  }
-//}
-
-
-//void test() {
-//  testServer();
-//  testClient();
-//}
 
 #endif // BINOM_TCP_IO_H

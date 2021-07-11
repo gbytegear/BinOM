@@ -84,7 +84,7 @@ public:
   NodeDescriptor  loadNodeDescriptor(f_virtual_index v_index);
 
   // Synchroniztion
-  inline RWGuard getRWGuard(f_virtual_index node_index) {return rw_sync_map.get(node_index);}
+  inline RWSyncMap::RWGuard getRWGuard(f_virtual_index node_index) {return rw_sync_map.get(node_index);}
 
   void clear();
 
