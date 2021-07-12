@@ -169,6 +169,10 @@ void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
 }
 
 Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) const {
+  RWGuard rwg = fvmc.getRWGuard(node_index);
+  if(current_rwg.getLockedIndex() == rwg.getLockedIndex())
+    SRWG lock(current_rwg, LockType::shared_lock);
+  else SRWG lock(rwg, LockType::shared_lock);
   NodeDescriptor node_des(loadNode(node_index));
   switch (toTypeClass(node_des.type)) {
     case VarTypeClass::primitive: return std::move(buildPrimitive(node_des).asVar());

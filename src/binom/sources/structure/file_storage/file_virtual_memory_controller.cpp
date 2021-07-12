@@ -8,6 +8,7 @@
 
 // Good luck and don't break anything here
 
+// TODO: All infinity loops ends on return -1 (REWRITE VECTOR ITERATORS)
 
 using namespace binom;
 
@@ -220,9 +221,18 @@ NodeDescriptor FileVirtualMemoryController::loadNodeDescriptor(f_virtual_index v
 
 void FileVirtualMemoryController::clear() { // Reconstruct
   file.resize(0);
-  std::string filename(file.path().string());
-  this->~FileVirtualMemoryController();
-  new(this) FileVirtualMemoryController(filename);
+//  std::string filename(file.path().string());
+
+  node_page_list.~NodePageVector();
+  new(&node_page_list) NodePageVector();
+  byte_page_list.~BytePageVector();
+  new(&byte_page_list) BytePageVector();
+  heap_page_list.~HeapPageVector();
+  new(&heap_page_list) HeapPageVector();
+  heap_block_list.~MemoryBlockList();
+  new(&heap_block_list) MemoryBlockList();
+
+  init();
 }
 
 void FileVirtualMemoryController::freeNode(f_virtual_index v_index) {
@@ -302,7 +312,7 @@ ByteArray FileVirtualMemoryController::loadHeapData(f_virtual_index data_index) 
 }
 
 f_virtual_index FileVirtualMemoryController::allocByteData(ValType type, ByteArray data) {
-  f_virtual_index block_index = allocByteBlock(type);
+  f_virtual_index block_index = allocByteBlock(type); // TODO: Error (return 0xffffffffffffffff)
   setByteData(block_index, type, data);
   return block_index;
 }
@@ -349,7 +359,7 @@ f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
       continue;
     }
   } // NOTE: Infinity loop
-  return -1;
+  return -1; // TODO: WTF
 }
 
 void FileVirtualMemoryController::setByteData(f_virtual_index index, ValType type, ByteArray data) {

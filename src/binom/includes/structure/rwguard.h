@@ -84,6 +84,8 @@ public:
     RWGuard(RWGuard&) = delete;
     ~RWGuard() {forceUnlock();}
 
+    f_virtual_index getLockedIndex() {return shr_ptr->it->first;}
+
     void clear() {
       forceUnlock();
       shr_ptr.reset();
@@ -170,11 +172,10 @@ public:
     inline void lock() {rwg.lock();}
     inline void lockShared() {rwg.lockShared();}
     inline void unlock() {rwg.unlock();}
-//    inline bool tryLock() {return rwg.tryLock();}
-//    inline bool tryLockShared() {return rwg.tryLockShared();}
   };
 
   RWSyncMap() = default;
+  ~RWSyncMap() {}
 
   RWGuard get(f_virtual_index node_index) {
     general_mtx.lock();
