@@ -8,8 +8,6 @@
 
 // Good luck and don't break anything here
 
-// TODO: All infinity loops ends on return -1 (REWRITE VECTOR ITERATORS)
-
 using namespace binom;
 
 
@@ -181,9 +179,8 @@ f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor
 
   f_virtual_index node_virtual_index = 1; // Calculated virtual index
 
-  for(NodePageVector::PageIterator it = node_page_list.begin(),
-                                   end = node_page_list.end();
-      it != end;
+  for(NodePageVector::PageIterator it = node_page_list.begin();
+      it != node_page_list.end();
       ++it
       ) { // Loop through node pages
     NodePageVector::PageNode& page = *it;
@@ -206,7 +203,7 @@ f_virtual_index FileVirtualMemoryController::allocNode(NodeDescriptor descriptor
     // If all pages are busy, create a new page
     if(it.isLast()) createNodePage();
   } // NOTE: Infinity loop
-  return -1; // For remove f@ckin warning!
+  throw Exception(ErrCode::binomdb_memory_management_error, "Out of memory allocation loop!");
 }
 
 void FileVirtualMemoryController::setNode(f_virtual_index v_index, NodeDescriptor descriptor) {
@@ -324,9 +321,8 @@ f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
   if(byte_page_list.isEmpty()) createBytePage();
 
   f_virtual_index index = 0;
-  for(BytePageVector::PageIterator it = byte_page_list.begin(),
-                                   end = byte_page_list.end();
-      it != end;
+  for(BytePageVector::PageIterator it = byte_page_list.begin();
+      it != byte_page_list.end();
       ++it
       ) {
     BytePageVector::PageNode& page = *it;
@@ -355,11 +351,12 @@ f_virtual_index FileVirtualMemoryController::allocByteBlock(ValType type) {
         }
       index += byte_count;
       byte_count = 0;
-      if(it.isLast()) createBytePage(); // add new page if this page last
+      if(it.isLast())
+        createBytePage(); // add new page if this page last
       continue;
     }
   } // NOTE: Infinity loop
-  return -1; // TODO: WTF
+  throw Exception(ErrCode::binomdb_memory_management_error, "Out of memory allocation loop!");
 }
 
 void FileVirtualMemoryController::setByteData(f_virtual_index index, ValType type, ByteArray data) {

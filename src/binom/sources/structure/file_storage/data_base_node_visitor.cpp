@@ -170,9 +170,8 @@ void DBNodeVisitor::setObject(f_virtual_index node_index, Object object) {
 
 Variable DBNodeVisitor::buildVariable(f_virtual_index node_index) const {
   RWGuard rwg = fvmc.getRWGuard(node_index);
-  if(current_rwg.getLockedIndex() == rwg.getLockedIndex())
-    SRWG lock(current_rwg, LockType::shared_lock);
-  else SRWG lock(rwg, LockType::shared_lock);
+  SRWG lock((current_rwg.getLockedIndex() == node_index)?current_rwg :rwg,
+            LockType::shared_lock);
   NodeDescriptor node_des(loadNode(node_index));
   switch (toTypeClass(node_des.type)) {
     case VarTypeClass::primitive: return std::move(buildPrimitive(node_des).asVar());
@@ -195,7 +194,7 @@ BufferArray DBNodeVisitor::buildBufferArray(NodeDescriptor node_des) const {
   if(node_des.size == 0) return BufferArray(node_des.type);
   ByteArray data(9 + node_des.size);
   data.set(0,0, node_des.type);
-  data.set(0,1, node_des.size/toSize(toValueType(node_des.type)));
+  data.set(0,1, node_des.size / toSize(toValueType(node_des.type)));
   data.set(9, fvmc.loadHeapDataByIndex(node_des.index));
   void* ptr = data.unfree();
   return *reinterpret_cast<BufferArray*>(&ptr);

@@ -2,6 +2,7 @@
 #define RWGUARD_H
 
 #include <shared_mutex>
+#include <mutex>
 #include <map>
 #include <condition_variable>
 #include "types.h"
@@ -21,19 +22,21 @@ private:
   class RWGuardAutoDelete {
     RWSyncMap* map;
     std::shared_mutex mtx;
-    std::map<f_virtual_index, std::weak_ptr<RWGuardAutoDelete>>::iterator it;
+    f_virtual_index v_index;
+//    std::map<f_virtual_index, std::weak_ptr<RWGuardAutoDelete>>::iterator it;
 
 
     friend class RWGuard;
   public:
-    RWGuardAutoDelete(RWSyncMap* map)
-      : map(map), mtx() {}
+    RWGuardAutoDelete(RWSyncMap* map, f_virtual_index v_index)
+      : map(map), mtx(), v_index(v_index) {}
     RWGuardAutoDelete(const RWGuardAutoDelete&) = delete;
     ~RWGuardAutoDelete() {
-      map->general_mtx.lock();
-      if(auto shr_ptr = it->second.lock(); !shr_ptr)
-        map->mtx_map.erase(it);
-      map->general_mtx.unlock();
+      std::scoped_lock lock(map->general_mtx);
+      auto it = map->mtx_map.find(v_index);
+      if(it != map->mtx_map.cend())
+        if(auto shr_ptr = it->second.lock(); !shr_ptr)
+          map->mtx_map.erase(it);
     }
   };
 
@@ -49,9 +52,8 @@ public:
     LockType lock_type = LockType::unlocked;
     ui64 lock_count = 0;
 
-    RWGuard(f_virtual_index v_index, RWSyncMap* map) : shr_ptr(std::make_shared<RWGuardAutoDelete>(map)) {
+    RWGuard(f_virtual_index v_index, RWSyncMap* map) : shr_ptr(std::make_shared<RWGuardAutoDelete>(map, v_index)) {
       map->mtx_map.emplace(v_index, shr_ptr);
-      shr_ptr->it = map->mtx_map.find(v_index);
     }
 
     RWGuard(std::weak_ptr<RWGuardAutoDelete>& weak, f_virtual_index v_index, RWSyncMap* map) : shr_ptr(weak.lock()) {
@@ -80,11 +82,15 @@ public:
     friend struct RWSyncMap;
   public:
     RWGuard() = default;
-    RWGuard(RWGuard&& other) : shr_ptr(std::move(other.shr_ptr)) {}
+    RWGuard(RWGuard&& other)
+      : shr_ptr(std::move(other.shr_ptr)), lock_type(other.lock_type), lock_count(other.lock_count) {
+      other.shr_ptr.reset();
+    }
     RWGuard(RWGuard&) = delete;
     ~RWGuard() {forceUnlock();}
 
-    f_virtual_index getLockedIndex() {return shr_ptr->it->first;}
+//    f_virtual_index getLockedIndex() {return shr_ptr->it->first;}
+    f_virtual_index getLockedIndex() {return shr_ptr->v_index;}
 
     void clear() {
       forceUnlock();
@@ -178,14 +184,12 @@ public:
   ~RWSyncMap() {}
 
   RWGuard get(f_virtual_index node_index) {
-    general_mtx.lock();
+    std::scoped_lock lock(general_mtx);
     if(auto it = mtx_map.find(node_index); it != mtx_map.cend()) {
       RWGuard guard(it->second, node_index, this);
-      general_mtx.unlock();
       return guard;
     } else {
       RWGuard guard(node_index, this);
-      general_mtx.unlock();
       return guard;
     }
   }

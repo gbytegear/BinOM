@@ -6,20 +6,18 @@
 #include <string>
 #include <mutex>
 
-#ifdef __linux__
+#if __has_include(<filesystem>)
+  #include <filesystem>
+  namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+#else
+  #error "Unsupported filesystem"
+#endif
 
-#include <filesystem>
-
-namespace fs = std::filesystem;
-
-#elif _WIN32
-
-#include <experimental/filesystem>
-
-namespace fs = std::experimental::filesystem;
-
-#define fseeko64(stream, offset, origin) _fseeki64(stream, offset, origin);
-
+#ifdef _WIN32
+  #define fseeko64(stream, offset, origin) _fseeki64(stream, offset, origin);
 #endif
 
 namespace binom {

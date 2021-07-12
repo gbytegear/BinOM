@@ -130,7 +130,7 @@ ByteArray Query::toByteArray() const {return data;}
 Query Query::fromByteArray(ByteArray data) {return data;}
 
 Query Query::fromString(std::string str) {
-
+  // TODO: Write this
 }
 
 

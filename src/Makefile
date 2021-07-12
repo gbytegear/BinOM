@@ -30,10 +30,13 @@ libbinom.a: objects
 libbinom.so: objects
 	g++ -fPIC -shared -o libbinom.so *.o
 
-# Compile & run test programm
-test: objects_dbg objects_tcp_dbg
-	g++ test.cpp *.o -lstdc++fs -o test -std=c++17 -O3 -g
-	./test
+# Compile test programm with debug symbols
+test_dbg: objects_dbg objects_tcp_dbg
+	g++ -I. test.cpp *.o -lstdc++fs -lpthread -o test -std=c++17 -O3 -g
+
+# Compile test programm
+test: objects objects_tcp
+	g++ -I. test.cpp *.o -lstdc++fs -lpthread -o test -std=c++17 -O3
 
 # Compile libraries and move to folder "lbinom" with C++ headers
 libs: libbinom.a libbinom.so

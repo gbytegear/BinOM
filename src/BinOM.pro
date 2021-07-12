@@ -3,7 +3,7 @@ CONFIG -= qt
 include("binom.pri")
 
 linux-g++ | linux-g++-64 | linux-g++-32 {
-CONFIG += c++17
+CONFIG += c++17 console
 LIBS += -lstdc++fs -lpthread;
 }
 

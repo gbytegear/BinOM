@@ -11,7 +11,7 @@ public:
   BinOMDataBase(std::string file_name, Variable init_struct = nullptr)
     : fvmc(std::move(file_name)) {
     if(isUninitializedRoot() && !init_struct.isNull())
-      getRoot().setVariable(init_struct);
+      getRoot().setVariable(std::move(init_struct));
   }
   BinOMDataBase(const BinOMDataBase& other) = delete;
   BinOMDataBase(BinOMDataBase&& other) : fvmc(std::move(other.fvmc)) {}
