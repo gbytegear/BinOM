@@ -4,6 +4,7 @@
 #include "../types.h"
 #include <cstdio>
 #include <string>
+#include <mutex>
 
 #ifdef __linux__
 
@@ -26,6 +27,7 @@ namespace binom {
 class FileIO {
   fs::path file_path;
   std::FILE* file = nullptr;
+  std::mutex mtx;
 
   ui64 pos();
   bool seek(ui64 pos);

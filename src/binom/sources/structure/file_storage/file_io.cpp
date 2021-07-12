@@ -58,8 +58,12 @@ ui64 FileIO::subSize(ui64 sub) {return resize(size() - sub);}
 bool FileIO::isEmpty() {return isOpen()? size() == 0 : true;}
 
 bool FileIO::write(ui64 index, const void* buffer, ui64 size) {
+  bool answ;
+  mtx.lock();
   seek(index);
-  return fwrite(buffer, size, 1, file) == size;
+  answ = fwrite(buffer, size, 1, file) == size;
+  mtx.unlock();
+  return answ;
 }
 
 bool FileIO::write(ui64 index, ByteArray& byte_array) {return write(index, byte_array.begin(), byte_array.length());}
@@ -75,8 +79,10 @@ ByteArray::iterator FileIO::write(ui64 index, ByteArray::iterator it, ui64 size)
 }
 
 bool FileIO::read(ui64 index, void* buffer, ui64 size) {
+  mtx.lock();
   seek(index);
   size_t r_size = fread (buffer, 1, size, file);
+  mtx.unlock();
   return r_size == size;
 }
 

@@ -443,7 +443,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(ui64 index) {
     current_rwg.lockShared();
     updateNode();
   } else if(type_class == VarTypeClass::buffer_array) {
-    if(node_descriptor.size / toSize(toValueType(getType())) <= index) throw Exception(ErrCode::binom_out_of_range);
+    if(node_descriptor.size / toSize(toValueType(node_descriptor.type)) <= index) throw Exception(ErrCode::binom_out_of_range);
     value_index = index;
     is_value_ptr = true;
   }
@@ -456,7 +456,7 @@ DBNodeVisitor& DBNodeVisitor::stepInside(BufferArray name) {
   updateNode();
   VarTypeClass type_class = toTypeClass(node_descriptor.type);
 
-  if(type_class == VarTypeClass::object ||
+  if(type_class != VarTypeClass::object ||
      is_value_ptr)
     throw Exception(ErrCode::binom_invalid_type);
 

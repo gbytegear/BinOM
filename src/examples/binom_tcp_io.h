@@ -65,7 +65,7 @@ bool testTcpServer() {
 void testTcpClient() {
   TcpClient client;
   client.connectTo(LOCALHOST_IP, 8080);
-  ByteArray pth_data = Path{"users, 0"}.toByteArray();
+  ByteArray pth_data = Path{"users", 0}.toByteArray();
   client.sendData(pth_data.begin(), pth_data.length());
   DataBuffer var_data = client.loadData();
   ByteArray var_arr;
@@ -76,7 +76,13 @@ void testTcpClient() {
 
 void test() {
   if(testTcpServer()) {
-    testTcpClient();
+    using namespace std::chrono_literals;
+    for(int i = 0; i < 1000; ++i) {
+      std::thread thr1(testTcpClient);
+      thr1.detach();
+    }
+//    printf("Awaiting...");
+    std::this_thread::sleep_for(10s);
     server.stop();
   } else std::exit(-1);
 }
