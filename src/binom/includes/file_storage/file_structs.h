@@ -8,16 +8,18 @@ namespace binom {
 class BitIterator;
 
 //! Real index in file
-typedef ui64 f_real_index;
+typedef ui64 real_index;
 //! Virtual index for translation to real index
-typedef ui64 f_virtual_index;
+typedef ui64 virtual_index;
 //! Size of data block in file
-typedef ui64 f_size;
+typedef ui64 block_size;
+//! Element count in the file
+typedef ui64 element_cnt;
 
 #pragma pack(push, 1)
 
 
-struct BitMap {
+class BitMap {
 
   union {
     ui64 number = 0;
@@ -88,6 +90,8 @@ struct BitMap {
       bool _63:1;
     } bits;
   } data;
+
+public:
 
   bool get(ui8 index) {
     switch (index) {
@@ -238,55 +242,59 @@ struct BitMap {
 
 //! Version of data base
 struct DBVersion {
-  const char name[6] = "BinOM";
+  const char file_type[9] = "BinOM.DB";
   const ui16 major = 0;
   const ui16 minor = 0;
 };
 
 //! Current version of data base
-constexpr DBVersion current{"BinOM", 0, 1};
+constexpr DBVersion current{"BinOM.DB", 0, 1};
 
 //! Descriptor of node page
 struct NodePageDescriptor {
-  f_real_index next_node_page = 0;
+  real_index next_node_page = 0;
   BitMap node_map;
 };
 
 //! Descriptor of heap page
 struct HeapPageDescriptor {
-  f_real_index next_heap_page = 0;
+  real_index next_heap_page = 0;
 };
 
 //! Descriptor of byte page
 struct BytePageDescriptor {
-  f_real_index next_byte_page = 0;
+  real_index next_byte_page = 0;
   BitMap byte_map;
 };
 
 //! Descriptor of BinOM node
 struct NodeDescriptor {
   VarType type = VarType::end;
-  f_virtual_index index = 0;
-  f_size size = 0;
-};
-
-struct ObjectDescriptor {
-  f_size length_element_count = 0;
-  f_size name_block_size = 0;
-  f_size index_count = 0;
+  virtual_index index = 0;
+  block_size size = 0;
 };
 
 struct ObjectNameLength {
-  f_size name_length = 0;
-  f_size name_count = 0;
+  ValType char_type = ValType::byte;
+  block_size name_length = 0;
+  element_cnt name_count = 0;
 };
+
+struct ObjectDescriptor {
+  static constexpr block_size length_element_size = sizeof (ObjectNameLength);
+  element_cnt length_element_count = 0;
+  block_size name_block_size = 0;
+  static constexpr block_size index_size = sizeof (virtual_index);
+  element_cnt index_count = 0;
+};
+
 
 //! Data Base descriptor
 struct DBHeader {
   DBVersion version = current;
-  f_real_index first_node_page_index = 0;
-  f_real_index first_heap_page_index = 0;
-  f_real_index first_byte_page_index = 0;
+  real_index first_node_page_index = 0;
+  real_index first_heap_page_index = 0;
+  real_index first_byte_page_index = 0;
   NodeDescriptor root_node;
 };
 
@@ -295,10 +303,11 @@ struct DBHeader {
 
 
 class BitIterator {
+  friend class BitMap;
   BitMap* map;
   ui8 bit_index;
-public:
   BitIterator(BitMap* map, ui8 bit_index = 0) : map(map), bit_index(bit_index) {}
+public:
   BitIterator(BitIterator& other) : map(other.map), bit_index(other.bit_index) {}
   BitIterator(BitIterator&& other) : map(other.map), bit_index(other.bit_index) {}
 
@@ -330,16 +339,16 @@ public:
   bool operator>=(BitIterator other) {return bit_index >= other.bit_index;}
 
   bool isBegin() const {return bit_index == 0;}
-  bool isEnd() const {return bit_index == 64;}
+  bool isEnd() const {return bit_index >= 64;}
 };
 
 inline BitIterator BitMap::begin() {return BitIterator(this);}
 inline BitIterator BitMap::end() {return BitIterator(this, 64);}
 
-constexpr f_size node_page_size = sizeof(NodePageDescriptor) + sizeof(NodeDescriptor)*64;
-constexpr f_size heap_data_page_size = 4096;
-constexpr f_size heap_page_size = sizeof(HeapPageDescriptor) + heap_data_page_size;
-constexpr f_size byte_page_size = sizeof(BytePageDescriptor) + 64;
+constexpr block_size node_page_size = sizeof(NodePageDescriptor) + sizeof(NodeDescriptor)*64;
+constexpr block_size heap_page_data_size = 4096;
+constexpr block_size heap_page_size = sizeof(HeapPageDescriptor) + heap_page_data_size;
+constexpr block_size byte_page_size = sizeof(BytePageDescriptor) + 64;
 
 }
 

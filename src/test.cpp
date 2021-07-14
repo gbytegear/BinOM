@@ -5,8 +5,8 @@ using namespace binom;
 int main() {
   try {
 
-    output_manip.buffer_array = OutputManip::PRIMITIVE;
-    output_manip.primitive = OutputManip::UNSIGNED;
+    OutputManip::buffer_array = OutputManip::BufferArray::PRIMITIVE;
+    OutputManip::primitive = OutputManip::Primitive::UNSIGNED;
 
     Variable var = vobj{
         {"a", 1_ui8},

@@ -1,4 +1,6 @@
 HEADERS += \
+    $$PWD/binom/includes/file_storage/file_memory_manager.h \
+    $$PWD/binom/includes/file_storage/fmm_containers.h \
     $$PWD/binom/includes/utils/file.h \
     binom/includes/utils/var_mem_mngr.h \
     binom/includes/binom.h \

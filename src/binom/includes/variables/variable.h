@@ -209,22 +209,23 @@ struct NamedVariable {
 
 struct OutputManip {
 
-  bool print_type = false;
+  static inline bool print_type = false;
 
-  enum Primitive : ui8 {
+  static inline enum class Primitive : ui8 {
     HEX,
     SIGNED,
     UNSIGNED
-  } primitive = HEX;
+  } primitive = Primitive::HEX;
 
-  enum BufferArray : ui8 {
+  static inline enum class BufferArray : ui8 {
     PRIMITIVE,
     STRING
-  } buffer_array = STRING;
+  } buffer_array = BufferArray::STRING;
 
+  OutputManip() = delete;
+  OutputManip(const OutputManip&) = delete;
+  OutputManip(OutputManip&&) = delete;
 };
-
-extern OutputManip output_manip;
 
 }
 

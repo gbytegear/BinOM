@@ -5,8 +5,6 @@
 
 using namespace binom;
 
-OutputManip binom::output_manip;
-
 void* Variable::clone() const {
   switch (toTypeClass(*data.type)) {
     case VarTypeClass::primitive: return toPrimitive().clone();
@@ -593,7 +591,7 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
 
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::BufferArray& buffer) {
   printIndent(os, ind, msg);
-  if(buffer.getType() == VarType::byte_array && output_manip.buffer_array == OutputManip::BufferArray::STRING)
+  if(buffer.getType() == VarType::byte_array && OutputManip::buffer_array == OutputManip::BufferArray::STRING)
     return os << buffer.toString();
   for(const binom::ValueRef &val : buffer)
     os << val << ' ';
@@ -643,11 +641,11 @@ std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
                  :(val.getType() == ValType::dword) ? 8
                  : 16;
 
-  switch (output_manip.primitive) {
-    case OutputManip::HEX:
+  switch (OutputManip::primitive) {
+    case OutputManip::Primitive::HEX:
     return os << std::right << std::setw(sym_count) << std::setfill('0') << std::hex << std::uppercase << val.asUnsigned()
               << std::resetiosflags(std::ios_base::basefield);
-    case OutputManip::SIGNED:
+    case OutputManip::Primitive::SIGNED:
       switch (val.getType()) {
         default: return os << "Invalid type";
         case binom::ValType::byte: return os << static_cast<i16>(val.asI8());
@@ -655,7 +653,7 @@ std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
         case binom::ValType::dword: return os << val.asI32();
         case binom::ValType::qword: return os << val.asI64();
       }
-    case OutputManip::UNSIGNED:
+    case OutputManip::Primitive::UNSIGNED:
       switch (val.getType()) {
         default: return os << "Invalid type";
         case binom::ValType::byte: return os << static_cast<ui16>(val.asUi8());
