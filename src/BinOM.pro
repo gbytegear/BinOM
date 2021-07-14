@@ -21,7 +21,3 @@ SOURCES += \
 
 SUBDIRS += \
     BinOM_tools.pro
-
-HEADERS += \
-    examples/binom_tcp_io.h \
-    examples/multithread.h
