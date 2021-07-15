@@ -18,8 +18,8 @@ namespace binom {
 
 class FileIO {
 public:
-  typedef std::basic_ifstream<ui8> Reader;
-  typedef std::basic_ofstream<ui8> Writer;
+  typedef std::basic_ifstream<char> Reader;
+  typedef std::basic_ofstream<char> Writer;
 private:
   fs::path file_path;
   std::shared_mutex mtx;
@@ -35,7 +35,7 @@ public:
     if(!reader.is_open()) return false;
     mtx.lock_shared();
     reader.seekg(pos, std::ios::beg);
-    reader.read(static_cast<ui8*>(buffer), size);
+    reader.read(static_cast<char*>(buffer), size);
     mtx.unlock_shared();
     return true;
   }
@@ -56,7 +56,8 @@ public:
     if(!writer.is_open()) return false;
     mtx.lock();
     writer.seekp(pos, std::ios::beg);
-    writer.write(static_cast<ui8*>(buffer), size);
+    writer.write(static_cast<char*>(buffer), size);
+    writer.flush();
     mtx.unlock();
   }
 

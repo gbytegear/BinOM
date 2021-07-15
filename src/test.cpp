@@ -32,9 +32,10 @@ int main() {
       };
 
     ByteArray ser = var.serialize();
+    FileIO file("test.binom");
+    file.write(ser, 0);
 
     Variable var_deser = Variable::deserialize(ser);
-
 
     std::clog << "Constructed:\n" << var << "\n\n"
                  "Serialized: " << BufferArray(ser) << "\n\n"
