@@ -4,6 +4,7 @@
 #include "file_structs.h"
 #include <vector>
 #include <map>
+#include <mutex>
 
 namespace binom {
 
@@ -26,7 +27,7 @@ struct RMemoryBlock {
   block_size size;
 };
 
-class HeapMap {
+class HeapMap { // TODO: test it
 
   struct HeapBlock {
     bool is_busy = false;
@@ -40,6 +41,7 @@ class HeapMap {
 
   BlockMap block_map;
   FreeBlockMap free_block_map;
+  std::mutex mtx;
 
   free_block_iterator findFree(block_iterator block_it) {
     auto range = free_block_map.equal_range(block_it->second.size);
@@ -50,121 +52,117 @@ class HeapMap {
 
   inline free_block_iterator findFree(block_size size) {return free_block_map.lower_bound(size);}
 
-  void changeBlockSize(block_iterator block_it, block_size size) {
-    if(block_it->second.is_busy) { block_it->second.size = size; return; }
-    free_block_iterator free_block_it = findFree(block_it);
-    block_it->second.size = size;
-    auto node = free_block_map.extract(free_block_it);
-    node.key() = block_it->second.size;
-    free_block_map.insert(std::move(node));
-    return;
+  void updateSizeOfFreeBlock(block_iterator block_it, block_size old_size) {
+    auto range = free_block_map.equal_range(old_size);
+    for(auto it = range.first; it != range.second; ++it)
+      if(it->second == block_it) {
+        auto node = free_block_map.extract(it);
+        node.key() = block_it->second.size;
+        free_block_map.insert(std::move(node));
+        return;
+      }
   }
 
-  void changeBlockSize(free_block_iterator free_block_it, block_size size) {
-    free_block_it->second->second.size = size;
-    auto node = free_block_map.extract(free_block_it);
-    node.key() = size;
-    free_block_map.insert(std::move(node));
-    return;
+  void splitBlock(block_iterator it, block_size size) {
+    if(it->second.size >= size) return;
+    block_size old_size = it->second.size;
+    block_iterator new_it = block_map.emplace(
+                              block_size(it->first + it->second.size),
+                              HeapBlock{it->second.is_busy, old_size - size}
+                              ).first;
+    if(it->second.is_busy) {
+      updateSizeOfFreeBlock(it, old_size);
+      free_block_map.emplace(new_it->second.size, new_it);
+    }
   }
 
-//  void deleteFromFree(block_iterator block_it) {
-//    auto range = free_block_map.equal_range(block_it->second.size);
-//    for(auto it = range.first; it != range.second; ++it)
-//      if(it->second == block_it) {
-//        free_block_map.erase(it);
-//        return;
-//      }
-//  }
+  void deleteFromFree(block_iterator block_it) {
+    auto range = free_block_map.equal_range(block_it->second.size);
+    for(auto it = range.first; it != range.second; ++it)
+      if(it->second == block_it) {
+        free_block_map.erase(it);
+        return;
+      }
+  }
 
-//  void deleteBlock(block_iterator block_it) {
-//    if(!block_it->second.is_busy) deleteFromFree(block_it);
-//    block_map.erase(block_it);
-//  }
+  void addToFree(block_iterator block_it) {
+    free_block_map.emplace(block_it->second.size, block_it);
+  }
 
-//  void makeNonFree(block_iterator block_it) {
-//    if(!block_it->second.is_busy) {
-//      block_it->second.is_busy = true;
-//      deleteFromFree(block_it);
-//    }
-//  }
+  void mergeFreeBlocks(block_iterator first_it, block_iterator second_it) {
+    if(first_it == second_it) return;
+    elif(first_it->first > second_it->first) std::swap(first_it, second_it);
+    block_size old_size = first_it->second.size;
+    block_iterator it = first_it;
+    do{
+      ++it;
+      first_it->second.size += it->second.size;
+      deleteBlock(it);
+    } while(it != second_it);
+    updateSizeOfFreeBlock(first_it, old_size);
+  }
 
-//  void updateSizeOfFreeBlock(block_iterator block_it, block_size old_size) {
-//    auto range = free_block_map.equal_range(old_size);
-//    for(auto it = range.first; it != range.second; ++it)
-//      if(it->second == block_it) {
-//        auto node = free_block_map.extract(it);
-//        node.key() = block_it->second.size;
-//        free_block_map.insert(std::move(node));
-//        return;
-//      }
-//  }
+  void deleteBlock(block_iterator block_it) {
+    if(!block_it->second.is_busy) deleteFromFree(block_it);
+    block_map.erase(block_it);
+  }
 
-//  void mergeFreeBlocks(block_iterator first_it, block_iterator second_it) {
-//    if(first_it == second_it) return;
-//    elif(first_it->first > second_it->first) std::swap(first_it, second_it);
-//    block_size old_size = first_it->second.size;
-//    block_iterator it = first_it;
-//    do{
-//      ++it;
-//      first_it->second.size += it->second.size;
-//      deleteBlock(it);
-//    } while(it != second_it);
-//    updateSizeOfFreeBlock(first_it, old_size);
-//  }
+  void freeBlock(block_iterator it) {
+    it->second.is_busy = false;
+    addToFree(it);
 
-//  void freeBlock(block_iterator it) {
-//    it->second.is_busy = false;
+    // Find free range
+    block_iterator first_it = it;
+    block_iterator second_it = it;
+    for(block_iterator end = block_map.begin();
+        first_it != end && !first_it->second.is_busy;
+        --first_it);
+    if(first_it->second.is_busy) ++first_it;
 
-//    auto first_it = it,
-//         second_it = it;
-//    for(auto end = block_map.begin();
-//        first_it != end && !first_it->second.is_busy;
-//        --first_it);
-//    if(first_it->second.is_busy) ++first_it;
+    for(block_iterator end = --block_map.end();
+        second_it != end && !second_it->second.is_busy;
+        ++second_it);
+    if(second_it->second.is_busy) --second_it;
 
-//    for(auto end = --block_map.end();
-//        second_it != end && !second_it->second.is_busy;
-//        ++second_it);
-//    if(second_it->second.is_busy) --second_it;
+    mergeFreeBlocks(first_it, second_it);
+  }
 
-//    mergeFreeBlocks(first_it, second_it);
-//  }
-
-//  void expandBlock(block_iterator it, block_size add) {
-//    block_size old_size = it->second.size;
-//    it->second.size += add;
-//    if(it->second.is_busy) updateSizeOfFreeBlock(it, old_size);
-//  }
-
-//  void splitBlock(block_iterator it, block_size size) {
-//    if(it->second.size >= size) return;
-//    block_size old_size = it->second.size;
-//    block_iterator new_it = block_map.emplace(block_size(it->first + it->second.size), HeapBlock{it->second.is_busy, old_size - size}).first;
-//    if(it->second.is_busy) {
-//      updateSizeOfFreeBlock(it, old_size);
-//      free_block_map.emplace(new_it->second.size, new_it);
-//    }
-//  }
-
-//  VMemoryBlock allocBlock(block_size size) {
-//    if(FreeBlockMap::iterator fb_it = free_block_map.lower_bound(size);
-//       fb_it == free_block_map.cend()) {
-//      return VMemoryBlock{0,0};
-//    } else {
-//      splitBlock(fb_it->second, size);
-
-//    }
-//  }
-
-  // TODO here...
-  /* findFreeBlock(block_size size) {return free_block_map.lower_bound(size)}
-  */
+  void expandBlock(block_iterator it, block_size add) {
+    block_size old_size = it->second.size;
+    it->second.size += add;
+    if(!it->second.is_busy) updateSizeOfFreeBlock(it, old_size);
+  }
 
 public:
 
+  VMemoryBlock allocBlock(block_size size) {
+    std::scoped_lock s_lock(mtx);
+    free_block_iterator free_block_it = findFree(size);
+    if(free_block_it == free_block_map.cend()) return VMemoryBlock{0,0};
+    splitBlock(free_block_it->second, size);
+    block_iterator block_it = free_block_it->second;
+    free_block_map.erase(free_block_it);
+    return VMemoryBlock{block_it->first, block_it->second.size};
+  }
 
+  void freeBlock(virtual_index v_index) {
+    std::scoped_lock s_lock(mtx);
+    if(block_iterator it = block_map.find(v_index); it != block_map.cend())
+      freeBlock(it);
+  }
 
+  void expandMemory(block_size add) {
+    std::scoped_lock s_lock(mtx);
+    if(block_map.empty()) {
+      block_iterator block_it = block_map.emplace(0, HeapBlock{false, add}).first;
+      addToFree(block_it);
+      return;
+    }
+    block_iterator it = --block_map.end();
+    if(it->second.is_busy) {
+      block_map.emplace(it->first + it->second.size, HeapBlock{false, add});
+    } else expandBlock(it, add);
+  }
 
 };
 
