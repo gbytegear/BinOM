@@ -270,7 +270,7 @@ struct BytePageDescriptor {
 //! Descriptor of BinOM node
 struct NodeDescriptor {
   VarType type = VarType::end;
-  virtual_index index = 0;
+  virtual_index index = 0; ///< Value for primitive types
   block_size size = 0;
 };
 

@@ -1,6 +1,15 @@
 #ifndef FMM_CONTAINERS_H
 #define FMM_CONTAINERS_H
 
+#define DEBUG
+
+#ifdef DEBUG
+#define IF_DEBUG(expr) expr
+#include <iostream>
+#else
+#define IF_DEBUG(expr)
+#endif
+
 #include "file_structs.h"
 #include <vector>
 #include <map>
@@ -27,7 +36,7 @@ struct RMemoryBlock {
   block_size size;
 };
 
-class HeapMap { // TODO: test it
+class HeapMap { // TODO: test it (Doesn't work!)
 
   struct HeapBlock {
     bool is_busy = false;
@@ -139,8 +148,8 @@ public:
     std::scoped_lock s_lock(mtx);
     free_block_iterator free_block_it = findFree(size);
     if(free_block_it == free_block_map.cend()) return VMemoryBlock{0,0};
-    splitBlock(free_block_it->second, size);
     block_iterator block_it = free_block_it->second;
+    splitBlock(free_block_it->second, size);
     free_block_map.erase(free_block_it);
     return VMemoryBlock{block_it->first, block_it->second.size};
   }
@@ -163,6 +172,14 @@ public:
       block_map.emplace(it->first + it->second.size, HeapBlock{false, add});
     } else expandBlock(it, add);
   }
+
+  IF_DEBUG(
+    void check() {
+      for(auto block : block_map) {
+        std::clog << "[ index: " << block.first << ", size: " << block.second.size << ", is busy: " << block.second.is_busy << " ]\n";
+      }
+    }
+  )
 
 };
 
