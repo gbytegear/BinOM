@@ -16,6 +16,7 @@ win32 {
 }
 
 SOURCES += \
+    binom/sources/file_storage/file_memory_manager.cpp \
     test.cpp
 #    toolkit.cpp
 

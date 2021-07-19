@@ -261,11 +261,11 @@ struct HeapPageDescriptor {
   real_index next_heap_page = 0;
 };
 
-//! Descriptor of byte page
-struct BytePageDescriptor {
-  real_index next_byte_page = 0;
-  BitMap byte_map;
-};
+////! Descriptor of byte page
+//struct BytePageDescriptor {
+//  real_index next_byte_page = 0;
+//  BitMap byte_map;
+//};
 
 //! Descriptor of BinOM node
 struct NodeDescriptor {
@@ -291,11 +291,28 @@ struct ObjectDescriptor {
 
 //! Data Base descriptor
 struct DBHeader {
+  enum class VersionDifference {
+    identical = 0,
+    file_type = 1,
+    major = 2,
+    minor = 3,
+  };
+
   DBVersion version = current;
   real_index first_node_page_index = 0;
   real_index first_heap_page_index = 0;
-  real_index first_byte_page_index = 0;
+//  real_index first_byte_page_index = 0;
   NodeDescriptor root_node;
+
+  VersionDifference checkFileVersion() {
+    if(memcmp(version.file_type, current.file_type, sizeof (current.file_type)))
+      return VersionDifference::file_type;
+    if(version.major != current.major)
+      return VersionDifference::major;
+    if(version.minor != current.minor)
+      return VersionDifference::minor;
+    return VersionDifference::identical;
+  }
 };
 
 

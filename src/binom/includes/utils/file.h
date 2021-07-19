@@ -28,7 +28,17 @@ private:
 public:
   static inline bool isExist(std::string_view file_path) {return fs::exists(file_path);}
   static inline bool isRegularFile(std::string_view file_path) {return fs::is_regular_file(file_path);}
-  FileIO(std::string_view str) : file_path(str) {}
+  FileIO(std::string_view str) : file_path(str) {if(!isExist())getWriter();}
+  FileIO(const FileIO& other) : file_path(other.file_path) {}
+  FileIO(FileIO&& other) : file_path(std::move(other.file_path)) {}
+
+  inline bool isExist() {return fs::exists(file_path);}
+  inline bool isEmpty() {return fs::is_empty(file_path);}
+  inline ui64 getSize() {return fs::file_size(file_path);}
+
+  inline void resize(ui64 new_size) {fs::resize_file(file_path, new_size);}
+  inline ui64 addSize(ui64 add_size) {ui64 pos = getSize(); resize(pos + add_size); return pos; }
+  inline void subSize(ui64 sub_size) {return resize(getSize() - sub_size);}
 
   bool readBuffer(void* buffer, ui64 pos, ui64 size) {
     Reader reader = getReader();
