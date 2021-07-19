@@ -54,7 +54,7 @@ typedef std::vector<HeapPageInfo> HeapPageVector;
 typedef std::vector<RMemoryBlock> RMemoryBlockVector;
 
 
-class HeapMap { // TODO: test it (Doesn't work!)
+class HeapMap {
 
   struct HeapBlock {
     bool is_busy = false;
@@ -92,10 +92,40 @@ class HeapMap { // TODO: test it (Doesn't work!)
     return false;
   }
 
+  IF_DEBUG(friend void test();)
 
 public:
 
   inline std::recursive_mutex& getHeapControlMutex() {return mtx;}
+
+  void occupyBlock(virtual_index v_index, block_size size) {
+    block_iterator block_it = --block_map.upper_bound(v_index);
+    if(block_it->second.is_busy)
+      throw Exception(ErrCode::binomdb_memory_management_error, "Tryimg occupy busy block");
+
+    // Split block tail
+    if(block_it->first < v_index) {
+      block_size old_size = block_it->second.size;
+      block_it->second.size = v_index - block_it->first;
+      updateFreeBlockSize(block_it, old_size);
+      block_iterator new_block_it = block_map.emplace(v_index, HeapBlock{false, old_size - block_it->second.size}).first;
+      free_block_map.emplace(new_block_it->second.size, new_block_it);
+      block_it = new_block_it;
+    }
+
+    // Mark as busy
+    block_it->second.is_busy = true;
+    if(free_block_iterator free_block_it = findFree(block_it); free_block_it != free_block_map.cend())
+      free_block_map.erase(free_block_it);
+
+    if(block_it->second.size == size) return;
+
+    // Block split
+    block_iterator new_block_it = block_map.emplace(block_it->first + size, HeapBlock{false, block_it->second.size - size}).first;
+    free_block_map.emplace(new_block_it->second.size, new_block_it);
+    block_it->second.size = size;
+
+  }
 
   inline VMemoryBlock find(virtual_index v_index) {
     block_iterator block_it = block_map.find(v_index);
@@ -136,7 +166,7 @@ public:
     block_iterator new_block_it = block_map.emplace(block_it->first + size, HeapBlock{false, block_it->second.size - size}).first;
     free_block_map.emplace(new_block_it->second.size, new_block_it);
     block_it->second.size = size;
-    return VMemoryBlock{block_it->first, block_it->second.size};;
+    return VMemoryBlock{block_it->first, block_it->second.size};
   }
 
   void freeBlock(virtual_index v_index) {
@@ -185,6 +215,7 @@ public:
         ui64 free_blocks = 0;
         ui64 busy_memory = 0;
         ui64 busy_blocks = 0;
+        std::clog << "Block map:\n";
         for(auto block : block_map) {
           allocated += block.second.size;
           if(block.second.is_busy) {
@@ -196,7 +227,13 @@ public:
           }
           std::clog << "[ index: " << block.first << ", size: " << block.second.size << ", is busy: " << block.second.is_busy << " ]\n";
         }
-        std::clog << "Free blocks: " << free_blocks << '\n';
+
+        std::clog << "\n\nFree map:\n";
+        for(auto block : free_block_map) {
+          std::clog << "[ size: " << block.first << " index: " << block.second->first << " ]\n";
+        }
+
+        std::clog << "\n\nFree blocks: " << free_blocks << '\n';
         std::clog << "Busy blocks: " << busy_blocks << '\n';
         std::clog << "Free memory: "<< free_memory << '\n';
         std::clog << "Busy memory: "<< busy_memory << '\n';
@@ -205,6 +242,7 @@ public:
   )
 
 };
+
 
 }
 

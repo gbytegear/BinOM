@@ -69,12 +69,13 @@ public:
     writer.write(static_cast<char*>(buffer), size);
     writer.flush();
     mtx.unlock();
+    return true;
   }
 
   template<typename T>
-  bool write(T& from, ui64 to) { return writeBuffer(&from, to, sizeof(from)); }
+  bool write(ui64 to, T& from) { return writeBuffer(&from, to, sizeof(from)); }
 
-  bool write(const ByteArray from, ui64 to) { return writeBuffer(from.begin(), to, from.length()); }
+  bool write(ui64 to, const ByteArray from) { return writeBuffer(from.begin(), to, from.length()); }
 
 };
 
