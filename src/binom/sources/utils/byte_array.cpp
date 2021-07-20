@@ -135,6 +135,21 @@ void ByteArray::reset(ui64 new_length) {
   memset(array, 0, _length);
 }
 
+void ByteArray::resize(ui64 new_length) {
+  _length = new_length;
+  array = tryRealloc<byte>(array, _length);
+}
+
+ByteArray::iterator ByteArray::addSize(ui64 add) {
+  ui64 old_length = _length;
+  array = tryRealloc<byte>(array, _length += add);
+  return array + old_length;
+}
+
+void ByteArray::subSize(ui64 sub) {
+  array = tryRealloc<byte>(array, _length -= sub);
+}
+
 ByteArray ByteArray::takeFront(ui64 size) {
   if(size > _length) throw Exception(ErrCode::any);
   ByteArray _new(size);

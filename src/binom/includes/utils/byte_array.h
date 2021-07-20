@@ -35,6 +35,9 @@ public:
   ui64 length() const;
 
   void reset(ui64 new_length);
+  void resize(ui64 new_length);
+  iterator addSize(ui64 add);
+  void subSize(ui64 sub);
 
   template<typename Type>
   ByteArray& pushBack(const Type& value) {return pushBack(&value, sizeof (Type));}
@@ -116,8 +119,6 @@ public:
   }
 
   ui64 pointerToIndex(void* pos);
-
-
 
   template<typename Type>
   Type* begin(ui64 shift = 0) const {return reinterpret_cast<Type*>(array + shift);}

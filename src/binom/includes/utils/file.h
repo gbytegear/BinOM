@@ -51,6 +51,13 @@ public:
   }
 
   template<typename T>
+  T read(ui64 from) {
+    T to;
+    readBuffer(&to, from, sizeof(to));
+    return to;
+  }
+
+  template<typename T>
   bool read(T& to, ui64 from) { return readBuffer(&to, from, sizeof(to)); }
 
   bool read(ByteArray& to, ui64 from) { return readBuffer(to.begin(), from, to.length()); }

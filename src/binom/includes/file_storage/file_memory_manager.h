@@ -14,7 +14,10 @@ class FMemoryManager {
   HeapPageVector heap_page_vector;
   HeapMap heap_map;
   DBHeader db_header;
-  std::mutex mtx;
+  std::shared_mutex node_page_mtx;
+  std::shared_mutex heap_page_mtx;
+
+  void init();
 
   void allocNodePage();
   void allocHeapPage();
@@ -25,8 +28,6 @@ class FMemoryManager {
   real_index translateVHeapIndex(virtual_index v_index);
   RMemoryBlockVector translateVMemoryBlock(VMemoryBlock v_mem_block);
 
-  void init();
-
 public:
   FMemoryManager(std::string_view file_path);
 
@@ -35,8 +36,8 @@ public:
   ByteArray getNodeDataPart(virtual_index node_index, real_index shift, block_size size);
 
   virtual_index create(VarType type, ByteArray data);
-  void rewrite(virtual_index node_index, VarType type, ByteArray data);
-  void rewrite(virtual_index node_index, ByteArray data);
+  void update(virtual_index node_index, VarType type, ByteArray data);
+  void update(virtual_index node_index, ByteArray data);
   void remove(virtual_index node_index);
 
 };
