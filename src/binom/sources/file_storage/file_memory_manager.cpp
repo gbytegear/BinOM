@@ -226,9 +226,21 @@ ByteArray FMemoryManager::getNodeDataPart(virtual_index node_index, real_index s
       } else {
         block.r_index += shift;
         block.size -= shift;
+        shift = 0;
       }
+    }
+
+    if(size >= block.size) {
+      ByteArray::iterator it = data.addSize(block.size);
+      file.readBuffer(it, block.r_index, block.size);
+      size -= block.size;
+    } else {
+      ByteArray::iterator it = data.addSize(block.size);
+      file.readBuffer(it, block.r_index, size);
+      return data;
     }
   }
 
+  return data;
 }
 
