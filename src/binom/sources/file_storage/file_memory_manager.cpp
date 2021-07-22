@@ -1,10 +1,8 @@
-#include "binom/includes/file_storage/file_memory_manager.h"
+﻿#include "binom/includes/file_storage/file_memory_manager.h"
 
 using namespace binom;
 
-FMemoryManager::FMemoryManager(std::string_view file_path) : file(file_path) {
-  init();
-}
+FMemoryManager::FMemoryManager(std::string_view file_path) : file(file_path) {init();}
 
 void FMemoryManager::init() {
   if(file.isEmpty()) {
@@ -143,7 +141,7 @@ RMemoryBlockVector FMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_bloc
   {
     real_index in_page_index = v_mem_block.v_index % heap_page_data_size;
     RMemoryBlock r_block{
-      it->page_position + sizeof (HeapPageDescriptor) + in_page_index,
+      it->page_position + sizeof(HeapPageDescriptor) + in_page_index,
       heap_page_data_size - in_page_index
     };
 
@@ -175,6 +173,16 @@ RMemoryBlockVector FMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_bloc
     blocks.push_back(r_block);
   }
   return blocks;
+}
+
+void FMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
+  RMemoryBlockVector r_blocks = translateVMemoryBlock(block);
+
+  ByteArray::iterator it = data.begin();
+  for(auto r_block : r_blocks) {
+    file.writeBuffer(it, r_block.r_index, r_block.size);
+    it += r_block.size;
+  }
 }
 
 NodeDescriptor FMemoryManager::getNodeDescriptor(virtual_index node_index) {
@@ -275,12 +283,28 @@ ByteArray FMemoryManager::getNodeDataPart(virtual_index node_index, real_index s
   return data;
 }
 
-virtual_index FMemoryManager::create(VarType type, ByteArray data) {
+virtual_index FMemoryManager::createNode(VarType type, ByteArray data) {
 
   switch (toTypeClass(type)) {
     case binom::VarTypeClass::primitive: {
       virtual_index node_index = allocNode();
-      NodeDescriptor descriptor{type, data.get<ui64>(0)};
+      NodeDescriptor descriptor;
+      switch (toValueType(type)) {
+        case binom::ValType::byte:
+          descriptor = {type, data.get<ui8>(0)};
+        break;
+        case binom::ValType::word:
+          descriptor = {type, data.get<ui16>(0)};
+        break;
+        case binom::ValType::dword:
+          descriptor = {type, data.get<ui32>(0)};
+        break;
+        case binom::ValType::qword:
+          descriptor = {type, data.get<ui64>(0)};
+        break;
+        case binom::ValType::invalid_type:
+          throw Exception(ErrCode::binom_invalid_type);
+      }
       file.write(translateVNodeIndex(node_index), descriptor);
       return node_index;
     }break;
@@ -296,17 +320,98 @@ virtual_index FMemoryManager::create(VarType type, ByteArray data) {
 
   VMemoryBlock v_block = allocHeapBlock(data.length());
   NodeDescriptor descriptor{type, v_block.v_index, v_block.size};
-  RMemoryBlockVector r_blocks = translateVMemoryBlock(v_block);
-
-  ByteArray::iterator it = data.begin();
-  for(auto r_block : r_blocks) {
-    file.writeBuffer(it, r_block.r_index, r_block.size);
-    it += r_block.size;
-  }
+  writeToVBlock(v_block, std::move(data));
 
   virtual_index node_index = allocNode();
   file.write(translateVNodeIndex(node_index), descriptor);
   return node_index;
+
+}
+
+void FMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArray data) {
+  NodeDescriptor descriptor = getNodeDescriptor(node_index);
+  if(type == VarType::end) type = descriptor.type;
+  virtual_index rm_index = virtual_index(-1);
+  if(toTypeClass(descriptor.type) != VarTypeClass::primitive)
+    rm_index = descriptor.index;
+
+  switch (toTypeClass(type)) {
+    case binom::VarTypeClass::primitive:
+      descriptor.type = type;
+      switch (toValueType(type)) {
+        case binom::ValType::byte:
+          descriptor = {type, data.get<ui8>(0)};
+        break;
+        case binom::ValType::word:
+          descriptor = {type, data.get<ui16>(0)};
+        break;
+        case binom::ValType::dword:
+          descriptor = {type, data.get<ui32>(0)};
+        break;
+        case binom::ValType::qword:
+          descriptor = {type, data.get<ui64>(0)};
+        break;
+        case binom::ValType::invalid_type:
+          throw Exception(ErrCode::binom_invalid_type);
+      }
+      file.write(translateVNodeIndex(node_index), descriptor);
+      if(rm_index != virtual_index(-1))
+        heap_map.freeBlock(rm_index);
+    return;
+
+    case binom::VarTypeClass::buffer_array:
+    case binom::VarTypeClass::array:
+    case binom::VarTypeClass::object: {
+      if(rm_index != virtual_index(-1)) {
+        if(data.length() == descriptor.size) {
+          writeToVBlock(VMemoryBlock{descriptor.index, descriptor.size}, std::move(data));
+          if(descriptor.type != type) {
+            descriptor.type = type;
+            file.write(translateVNodeIndex(node_index), descriptor);
+          }
+          return;
+        }
+        VMemoryBlock block = heap_map.allocBlock(data.length());
+        writeToVBlock(block, std::move(data));
+        descriptor = NodeDescriptor{type, block.v_index, block.size};
+        file.write(translateVNodeIndex(node_index), descriptor);
+        heap_map.freeBlock(rm_index);
+        return;
+      } else {
+        VMemoryBlock block = heap_map.allocBlock(data.length());
+        writeToVBlock(block, std::move(data));
+        descriptor = NodeDescriptor{type, block.v_index, block.size};
+        file.write(translateVNodeIndex(node_index), descriptor);
+        return;
+      }
+    }
+
+    case binom::VarTypeClass::invalid_type:
+      throw Exception(ErrCode::binom_invalid_type);
+
+  }
+}
+
+
+
+void FMemoryManager::removeNode(virtual_index node_index) {
+
+  if(node_index == 0) {
+    node_page_vector.clear();
+    heap_page_vector.clear();
+    heap_map.clear();
+    file.resize(0);
+    return init();
+  }
+
+  NodeDescriptor descriptor = getNodeDescriptor(node_index);
+
+  if(toTypeClass(descriptor.type) != VarTypeClass::primitive)
+    heap_map.freeBlock(descriptor.index);
+
+  NodePageInfo& page_info = node_page_vector[node_index / 64];
+  page_info.descriptor.node_map.set(node_index%64, false);
+  file.write(page_info.page_position, page_info.descriptor);
 
 }
 

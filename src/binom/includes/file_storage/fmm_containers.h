@@ -208,6 +208,8 @@ public:
       free_block_map.emplace(free_it->second.size, free_it);
   }
 
+  void clear() {block_map.clear();free_block_map.clear();}
+
   IF_DEBUG(
       void check() {
         ui64 allocated = 0;

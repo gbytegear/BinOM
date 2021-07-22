@@ -29,6 +29,8 @@ class FMemoryManager {
   real_index translateVHeapIndex(virtual_index v_index);
   RMemoryBlockVector translateVMemoryBlock(VMemoryBlock v_mem_block);
 
+  void writeToVBlock(VMemoryBlock block, ByteArray data);
+
 public:
   FMemoryManager(std::string_view file_path);
 
@@ -36,10 +38,10 @@ public:
   ByteArray getNodeData(virtual_index node_index);
   ByteArray getNodeDataPart(virtual_index node_index, real_index shift, block_size size);
 
-  virtual_index create(VarType type, ByteArray data);
-  void update(virtual_index node_index, VarType type, ByteArray data);
-  void update(virtual_index node_index, ByteArray data);
-  void remove(virtual_index node_index);
+  virtual_index createNode(VarType type, ByteArray data);
+  void updateNode(virtual_index node_index, VarType type, ByteArray data);
+  inline void updateNode(virtual_index node_index, ByteArray data) {return updateNode(node_index, VarType::end, std::move(data));}
+  void removeNode(virtual_index node_index);
 
 };
 
