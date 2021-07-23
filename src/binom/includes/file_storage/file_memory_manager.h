@@ -21,7 +21,10 @@ class FMemoryManager {
 
   void allocNodePage();
   void allocHeapPage();
-  inline VMemoryBlock allocHeapBlock(block_size size) {return heap_map.allocBlock(size);}
+
+  VMemoryBlock allocHeapBlock(block_size size);
+
+
   virtual_index allocNode();
   inline void freeHeapBlock(virtual_index v_index) {return heap_map.freeBlock(v_index);}
 

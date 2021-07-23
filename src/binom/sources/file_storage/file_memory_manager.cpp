@@ -18,10 +18,10 @@ void FMemoryManager::init() {
     case binom::DBHeader::VersionDifference::file_type:
       throw Exception(ErrCode::binomdb_invalid_file, "Invalid file type");
     case binom::DBHeader::VersionDifference::major:
-      std::cerr << "Warning: major version difference!\n";
+      IF_DEBUG(std::cerr << "Warning: major version difference!\n");
     break;
     case binom::DBHeader::VersionDifference::minor:
-      std::cerr << "Warning: minor version difference!\n";
+      IF_DEBUG(std::cerr << "Warning: minor version difference!\n");
     break;
   }
 
@@ -77,8 +77,15 @@ void FMemoryManager::init() {
 }
 
 void FMemoryManager::allocNodePage() {
-  NodePageInfo& last = node_page_vector.back();
+  std::scoped_lock lk(node_page_mtx);
   NodePageDescriptor descriptor;
+  if(node_page_vector.empty()) {
+    db_header.first_node_page_index = file.addSize(node_page_size);
+    file.write(offsetof(DBHeader, first_node_page_index), db_header.first_node_page_index);
+    node_page_vector.push_back(NodePageInfo{descriptor, db_header.first_node_page_index});
+    return;
+  }
+  NodePageInfo& last = node_page_vector.back();
   last.descriptor.next_node_page = file.addSize(node_page_size);
   file.write(last.descriptor.next_node_page, descriptor);
   node_page_vector.push_back(NodePageInfo{descriptor, last.descriptor.next_node_page});
@@ -87,6 +94,13 @@ void FMemoryManager::allocNodePage() {
 void FMemoryManager::allocHeapPage() {
   std::scoped_lock lk(heap_page_mtx);
   HeapPageDescriptor descriptor;
+  if(heap_page_vector.empty()) {
+    db_header.first_heap_page_index = file.addSize(heap_page_size);
+    file.write(offsetof(DBHeader, first_heap_page_index), db_header.first_heap_page_index);
+    heap_page_vector.push_back(HeapPageInfo{descriptor, db_header.first_heap_page_index});
+    heap_map.expandMemory(heap_page_data_size);
+    return;
+  }
   HeapPageInfo& last = heap_page_vector.back();
   last.descriptor.next_heap_page = file.addSize(heap_page_size);
   file.write(last.descriptor.next_heap_page, descriptor);
@@ -94,8 +108,21 @@ void FMemoryManager::allocHeapPage() {
   heap_map.expandMemory(heap_page_data_size);
 }
 
+VMemoryBlock FMemoryManager::allocHeapBlock(block_size size) {
+  VMemoryBlock v_block = heap_map.allocBlock(size);
+  while (v_block.isEmpty()) {
+    allocHeapPage();
+    v_block = heap_map.allocBlock(size);
+  }
+  return v_block;
+}
+
 virtual_index FMemoryManager::allocNode() {
+  if(db_header.root_node.isFree())
+    return 0;
+
   virtual_index v_index = 1;
+  if(node_page_vector.empty()) allocNodePage();
   for(auto it = node_page_vector.begin(), last = --node_page_vector.end(); true; ++it) {
     // If page is busy
     if(it->descriptor.node_map.value() == 0xFFFFFFFF) {

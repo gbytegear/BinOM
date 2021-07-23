@@ -34,5 +34,6 @@ SOURCES += \
     binom/sources/utils/mem.cpp \
     binom/sources/utils/path.cpp \
     binom/sources/utils/query.cpp \
+    binom/sources/file_storage/file_memory_manager.cpp
 
 #include("tcp.pri")

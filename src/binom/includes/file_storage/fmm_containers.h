@@ -1,8 +1,6 @@
 #ifndef FMM_CONTAINERS_H
 #define FMM_CONTAINERS_H
 
-#define DEBUG
-
 #ifdef DEBUG
 #define IF_DEBUG(expr) expr
 #include <iostream>

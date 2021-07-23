@@ -16,9 +16,12 @@ win32 {
 }
 
 SOURCES += \
-    binom/sources/file_storage/file_memory_manager.cpp \
     test.cpp
-#    toolkit.cpp
+
+HEADERS += \
+    tests/heap_blocks_test.h \
+    tests/memory_manager_test.h \
+    tests/var_test.h
 
 SUBDIRS += \
     BinOM_tools.pro

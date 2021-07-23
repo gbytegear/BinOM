@@ -272,6 +272,7 @@ struct NodeDescriptor {
   VarType type = VarType::end;
   virtual_index index = 0; ///< Value for primitive types
   block_size size = 0;
+  bool isFree() {return type == VarType::end && !index && !size;}
 };
 
 struct ObjectNameLength {

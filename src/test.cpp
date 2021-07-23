@@ -1,26 +1,12 @@
 #include "tests/var_test.h"
 #include "tests/heap_blocks_test.h"
-
-namespace binom {
-void test() {
-  HeapMap hmap;
-
-  hmap.expandMemory(4096);
-//  hmap.allocBlock(255);
-//  hmap.allocBlock(1024);
-  hmap.occupyBlock(5, 10);
-  hmap.occupyBlock(35, 40);
-  hmap.occupyBlock(15, 20);
-
-  hmap.check();
-}
-}
+#include "tests/memory_manager_test.h"
 
 int main() {
   try {
-
-    test();
-//    test_heap_blocks();
+    var_test();
+    test_heap_blocks();
+    memory_manager_test();
 
 
 
