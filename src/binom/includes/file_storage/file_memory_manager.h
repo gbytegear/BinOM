@@ -1,6 +1,8 @@
 #ifndef FILE_MEMORY_MANAGER_H
 #define FILE_MEMORY_MANAGER_H
 
+#define DEBUG
+
 #include "binom/includes/utils/file.h"
 #include "fmm_containers.h"
 
@@ -45,6 +47,10 @@ public:
   void updateNode(virtual_index node_index, VarType type, ByteArray data);
   inline void updateNode(virtual_index node_index, ByteArray data) {return updateNode(node_index, VarType::end, std::move(data));}
   void removeNode(virtual_index node_index);
+
+IF_DEBUG(
+  void check();
+)
 
 };
 

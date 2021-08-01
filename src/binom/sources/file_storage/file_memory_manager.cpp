@@ -32,6 +32,7 @@ void FMemoryManager::init() {
       page_info.page_position = next_page_index;
       file.read(page_info.descriptor, next_page_index);
       node_page_vector.push_back(page_info);
+      next_page_index = page_info.descriptor.next_node_page;
     }
   }
 
@@ -43,6 +44,7 @@ void FMemoryManager::init() {
       file.read(page_info.descriptor, next_page_index);
       heap_page_vector.push_back(page_info);
       heap_map.expandMemory(heap_page_data_size);
+      next_page_index = page_info.descriptor.next_heap_page;
     }
   }
 
@@ -142,7 +144,7 @@ virtual_index FMemoryManager::allocNode() {
       if(bit.get()) {++v_index; continue;}
       else {
         bit.set(true);
-        file.write(it->page_position + offsetof(NodePageDescriptor, node_map), it->descriptor);
+        file.write(it->page_position + offsetof(NodePageDescriptor, node_map), it->descriptor.node_map);
         return v_index;
       }
   }
@@ -436,9 +438,37 @@ void FMemoryManager::removeNode(virtual_index node_index) {
   if(toTypeClass(descriptor.type) != VarTypeClass::primitive)
     heap_map.freeBlock(descriptor.index);
 
+  --node_index; // Without root node
   NodePageInfo& page_info = node_page_vector[node_index / 64];
   page_info.descriptor.node_map.set(node_index%64, false);
   file.write(page_info.page_position, page_info.descriptor);
 
 }
+
+IF_DEBUG(
+void binom::FMemoryManager::check() {
+  std::clog << "Check nodes:\n";
+  if(!db_header.root_node.isFree()) {
+    NodeDescriptor descriptor = file.read<NodeDescriptor>(offsetof(DBHeader, root_node));
+    if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
+         std::clog << "[ <root> type: " << toTypeString(descriptor.type) << "; value: " << descriptor.index << "; ]\n";
+    else std::clog << "[ <root> type: " << toTypeString(descriptor.type) << "; index: " << descriptor.index << "; size: " << descriptor.size << "; ]\n";
+  }
+  for(auto node_page : node_page_vector) {
+    std::clog << "Page position: " << node_page.page_position
+              << "\nPage nodes:\n";
+    for(auto bit : node_page.descriptor.node_map) {
+      if(bit.get()) {
+        NodeDescriptor descriptor = file.read<NodeDescriptor>(node_page.page_position + sizeof (NodePageDescriptor) + bit.getBitIndex()*sizeof(NodeDescriptor));
+        if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
+             std::clog << "[ type: " << toTypeString(descriptor.type) << "; value: " << descriptor.index << "; ]\n";
+        else std::clog << "[ type: " << toTypeString(descriptor.type) << "; index: " << descriptor.index << "; size: " << descriptor.size << "; ]\n";
+      } else std::clog << "[ <Free node> ]\n";
+    }
+    std::clog << "\n\n";
+  }
+  std::clog << "Check heap blocks:\n";
+  heap_map.check();
+}
+)
 

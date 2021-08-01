@@ -11,8 +11,13 @@ void memory_manager_test() {
 
   FMemoryManager fmm("memtest.fmm");
 
-  ByteArray data("Hello, World", sizeof ("Hello, World"));
-  fmm.createNode(VarType::byte_array, data);
+//  ByteArray data;
+//  data.pushBack<ui16>(65535);
+//  fmm.createNode(VarType::word, data);
+//  fmm.removeNode(1);
+//  ByteArray data("Hello, World", sizeof ("Hello, World"));
+//  fmm.createNode(VarType::byte_array, data);
+  fmm.check();
 
 }
 
