@@ -34,17 +34,6 @@ struct NodeInfo {
   virtual_index v_index;
 };
 
-struct VMemoryBlock {
-  virtual_index v_index = 0;
-  block_size size = 0;
-  inline bool isEmpty() const {return !v_index && !size;}
-};
-
-struct RMemoryBlock {
-  real_index r_index;
-  block_size size;
-};
-
 
 typedef std::vector<NodePageInfo> NodePageVector;
 typedef std::vector<HeapPageInfo> HeapPageVector;

@@ -3,6 +3,7 @@
 
 #define DEBUG
 #include "binom/includes/file_storage/file_memory_manager.h"
+#include "binom/includes/binom.h"
 
 using namespace binom;
 
@@ -16,7 +17,11 @@ void memory_manager_test() {
 //  fmm.createNode(VarType::word, data);
 //  fmm.removeNode(1);
 //  ByteArray data("Hello, World", sizeof ("Hello, World"));
+//  fmm.updateNode(1, data);
 //  fmm.createNode(VarType::byte_array, data);
+  binom::BufferArray data(VarType::word_array);
+//  binom::BufferArray data(ui16arr{1,2,3,4,5});
+  fmm.updateNode(1, data.getType(), data.toByteArray());
   fmm.check();
 
 }

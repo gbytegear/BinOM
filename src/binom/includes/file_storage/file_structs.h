@@ -16,6 +16,17 @@ typedef ui64 block_size;
 //! Element count in the file
 typedef ui64 element_cnt;
 
+struct VMemoryBlock {
+  virtual_index v_index = 0;
+  block_size size = 0;
+  inline bool isEmpty() const {return !v_index && !size;}
+};
+
+struct RMemoryBlock {
+  real_index r_index;
+  block_size size;
+};
+
 #pragma pack(push, 1)
 
 
@@ -273,6 +284,7 @@ struct NodeDescriptor {
   virtual_index index = 0; ///< Value for primitive types
   block_size size = 0;
   bool isFree() {return type == VarType::end && !index && !size;}
+  VMemoryBlock toVMemoryBlock() {return {index, size};}
 };
 
 struct ObjectNameLength {

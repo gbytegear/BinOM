@@ -111,6 +111,7 @@ void FMemoryManager::allocHeapPage() {
 }
 
 VMemoryBlock FMemoryManager::allocHeapBlock(block_size size) {
+  if(!size) return VMemoryBlock{0,0};
   VMemoryBlock v_block = heap_map.allocBlock(size);
   while (v_block.isEmpty()) {
     allocHeapPage();
@@ -205,6 +206,7 @@ RMemoryBlockVector FMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_bloc
 }
 
 void FMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
+  if(block.isEmpty()) return;
   RMemoryBlockVector r_blocks = translateVMemoryBlock(block);
 
   ByteArray::iterator it = data.begin();
@@ -400,14 +402,14 @@ void FMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArra
           }
           return;
         }
-        VMemoryBlock block = heap_map.allocBlock(data.length());
+        VMemoryBlock block = allocHeapBlock(data.length());
         writeToVBlock(block, std::move(data));
         descriptor = NodeDescriptor{type, block.v_index, block.size};
         file.write(translateVNodeIndex(node_index), descriptor);
         heap_map.freeBlock(rm_index);
         return;
       } else {
-        VMemoryBlock block = heap_map.allocBlock(data.length());
+        VMemoryBlock block = allocHeapBlock(data.length());
         writeToVBlock(block, std::move(data));
         descriptor = NodeDescriptor{type, block.v_index, block.size};
         file.write(translateVNodeIndex(node_index), descriptor);
