@@ -1,9 +1,7 @@
 #ifndef NODE_VISITOR_H
 #define NODE_VISITOR_H
 
-#include "../variables/variable.h"
-#include "../utils/path.h"
-#include "../utils/query.h"
+#include "node_visitor_base.h"
 
 #include <vector>
 #include <functional>
@@ -31,7 +29,7 @@ public:
   Array toArray();
 };
 
-class NodeVisitor {
+class NodeVisitor : public NodeVisitorBase {
   enum class RefType : ui8 {
     variable,
     named_variable,
@@ -79,24 +77,18 @@ public:
   NodeVisitor& operator=(ValueRef val);
   NodeVisitor& operator=(const NodeVisitor& other);
 
-  VarType getType() const;
-  VarTypeClass getTypeClass() const {return toTypeClass(getType());}
+  VisitorType getVisitorType() const override {return VisitorType::ram_storage_visitor;}
+  VarType getType() const override;
 
-  bool isNull() const;
-  bool isInvalid() const {return getTypeClass() == VarTypeClass::invalid_type;}
-  bool isPrimitive() const {return getTypeClass() == VarTypeClass::primitive;}
-  bool isBufferArray() const {return getTypeClass() == VarTypeClass::buffer_array;}
-  bool isArray() const {return getTypeClass() == VarTypeClass::array;}
-  bool isObject() const {return getTypeClass() == VarTypeClass::object;}
-  bool isIterable() const  {return !isPrimitive();}
+  bool isNull() const override;
   bool isNamed() const {return ref_type == RefType::named_variable;}
-  bool isValueRef() const {return ref_type == RefType::value;}
+  bool isValueRef() const override {return ref_type == RefType::value;}
 
-  ui64 getElementCount() const;
+  ui64 getElementCount() const override;
 
-  NodeVisitor& stepInside(ui64 index);
-  NodeVisitor& stepInside(BufferArray name);
-  NodeVisitor& stepInside(Path path);
+  NodeVisitor& stepInside(ui64 index) override;
+  NodeVisitor& stepInside(BufferArray name) override;
+  NodeVisitor& stepInside(Path path) override;
 
   BufferArray& rename(BufferArray old_name, BufferArray new_name);
 
@@ -108,14 +100,14 @@ public:
   Variable& getVariable(Path path) const;
   BufferArray getName() const;
 
-  void setVariable(Variable var);
-  void pushBack(Variable var);
-  void pushFront(Variable var);
-  void insert(ui64 index, Variable var);
-  void insert(BufferArray name, Variable var);
-  void remove(ui64 index, ui64 count = 1);
-  void remove(BufferArray name);
-  void remove(Path path);
+  void setVariable(Variable var) override;
+  void pushBack(Variable var) override;
+  void pushFront(Variable var) override;
+  void insert(ui64 index, Variable var) override;
+  void insert(BufferArray name, Variable var) override;
+  void remove(ui64 index, ui64 count = 1) override;
+  void remove(BufferArray name) override;
+  void remove(Path path) override;
 
   NodeVisitor getChild(ui64 index) {return NodeVisitor(*this).stepInside(index);}
   NodeVisitor getChild(BufferArray name) {return NodeVisitor(*this).stepInside(std::move(name));}
@@ -125,9 +117,9 @@ public:
   NodeVisitor operator[](BufferArray name) const {return NodeVisitor(*this).stepInside(std::move(name));}
   NodeVisitor operator[](Path path) const {return NodeVisitor(*this).stepInside(std::move(path));}
 
-  NodeVisitor& operator()(ui64 index) {return stepInside(index);}
-  NodeVisitor& operator()(BufferArray name) {return stepInside(std::move(name));}
-  NodeVisitor& operator()(Path path) {return stepInside(std::move(path));}
+  NodeVisitor& operator()(ui64 index) override {return stepInside(index);}
+  NodeVisitor& operator()(BufferArray name) override {return stepInside(std::move(name));}
+  NodeVisitor& operator()(Path path) override {return stepInside(std::move(path));}
 
   NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
   NodeVisitor find(Query query);
@@ -141,6 +133,9 @@ public:
   NodeVisitor& ifNotNull(std::function<void(NodeVisitor&)> callback);
   NodeVisitor& ifNull(std::function<void()> callback);
   void foreach(std::function<void(NodeVisitor&)> callback);
+
+  NodeVisitor& toRAMVisitor() = delete;
+  FileNodeVisitor& toFileVisitor() = delete;
 
 };
 

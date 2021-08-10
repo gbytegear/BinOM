@@ -2,9 +2,9 @@
 
 using namespace binom;
 
-FMemoryManager::FMemoryManager(std::string_view file_path) : file(file_path) {init();}
+FileMemoryManager::FileMemoryManager(std::string_view file_path) : file(file_path) {init();}
 
-void FMemoryManager::init() {
+void FileMemoryManager::init() {
   if(file.isEmpty()) {
     file.resize(sizeof(db_header));
     file.write(0, db_header);
@@ -78,7 +78,7 @@ void FMemoryManager::init() {
 
 }
 
-void FMemoryManager::allocNodePage() {
+void FileMemoryManager::allocNodePage() {
   std::scoped_lock lk(node_page_mtx);
   NodePageDescriptor descriptor;
   if(node_page_vector.empty()) {
@@ -93,7 +93,7 @@ void FMemoryManager::allocNodePage() {
   node_page_vector.push_back(NodePageInfo{descriptor, last.descriptor.next_node_page});
 }
 
-void FMemoryManager::allocHeapPage() {
+void FileMemoryManager::allocHeapPage() {
   std::scoped_lock lk(heap_page_mtx);
   HeapPageDescriptor descriptor;
   if(heap_page_vector.empty()) {
@@ -110,7 +110,7 @@ void FMemoryManager::allocHeapPage() {
   heap_map.expandMemory(heap_page_data_size);
 }
 
-VMemoryBlock FMemoryManager::allocHeapBlock(block_size size) {
+VMemoryBlock FileMemoryManager::allocHeapBlock(block_size size) {
   if(!size) return VMemoryBlock{0,0};
   VMemoryBlock v_block = heap_map.allocBlock(size);
   while (v_block.isEmpty()) {
@@ -120,7 +120,7 @@ VMemoryBlock FMemoryManager::allocHeapBlock(block_size size) {
   return v_block;
 }
 
-virtual_index FMemoryManager::allocNode() {
+virtual_index FileMemoryManager::allocNode() {
   if(db_header.root_node.isFree())
     return 0;
 
@@ -151,7 +151,7 @@ virtual_index FMemoryManager::allocNode() {
   }
 }
 
-real_index FMemoryManager::translateVNodeIndex(virtual_index v_index) {
+real_index FileMemoryManager::translateVNodeIndex(virtual_index v_index) {
   if(v_index == 0) return offsetof(DBHeader, root_node);
   else --v_index;
   return node_page_vector[v_index / 64].page_position +
@@ -159,13 +159,13 @@ real_index FMemoryManager::translateVNodeIndex(virtual_index v_index) {
       (v_index%64)*sizeof(NodeDescriptor);
 }
 
-real_index FMemoryManager::translateVHeapIndex(virtual_index v_index) {
+real_index FileMemoryManager::translateVHeapIndex(virtual_index v_index) {
   return heap_page_vector[v_index / heap_page_data_size].page_position +
          sizeof (HeapPageDescriptor) +
       v_index%heap_page_data_size;
 }
 
-RMemoryBlockVector FMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_block) {
+RMemoryBlockVector FileMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_block) {
   RMemoryBlockVector blocks;
   HeapPageVector::iterator it = heap_page_vector.begin() + v_mem_block.v_index / heap_page_data_size;
   {
@@ -205,7 +205,7 @@ RMemoryBlockVector FMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_bloc
   return blocks;
 }
 
-void FMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
+void FileMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
   if(block.isEmpty()) return;
   RMemoryBlockVector r_blocks = translateVMemoryBlock(block);
 
@@ -216,11 +216,11 @@ void FMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
   }
 }
 
-NodeDescriptor FMemoryManager::getNodeDescriptor(virtual_index node_index) {
+NodeDescriptor FileMemoryManager::getNodeDescriptor(virtual_index node_index) {
   return file.read<NodeDescriptor>(translateVNodeIndex(node_index));
 }
 
-ByteArray FMemoryManager::getNodeData(virtual_index node_index) {
+ByteArray FileMemoryManager::getNodeData(virtual_index node_index) {
   ByteArray data;
   NodeDescriptor descriptor = getNodeDescriptor(node_index);
   switch (toTypeClass(descriptor.type)) {
@@ -267,7 +267,7 @@ ByteArray FMemoryManager::getNodeData(virtual_index node_index) {
   return data;
 }
 
-ByteArray FMemoryManager::getNodeDataPart(virtual_index node_index, real_index shift, block_size size) {
+ByteArray FileMemoryManager::getNodeDataPart(virtual_index node_index, real_index shift, block_size size) {
   ByteArray data;
   NodeDescriptor descriptor = getNodeDescriptor(node_index);
   switch (toTypeClass(descriptor.type)) {
@@ -314,7 +314,7 @@ ByteArray FMemoryManager::getNodeDataPart(virtual_index node_index, real_index s
   return data;
 }
 
-virtual_index FMemoryManager::createNode(VarType type, ByteArray data) {
+virtual_index FileMemoryManager::createNode(VarType type, ByteArray data) {
 
   switch (toTypeClass(type)) {
     case binom::VarTypeClass::primitive: {
@@ -361,7 +361,7 @@ virtual_index FMemoryManager::createNode(VarType type, ByteArray data) {
 
 }
 
-void FMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArray data) {
+void FileMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArray data) {
   NodeDescriptor descriptor = getNodeDescriptor(node_index);
   if(type == VarType::end) type = descriptor.type;
   virtual_index rm_index = virtual_index(-1);
@@ -427,7 +427,7 @@ void FMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArra
 
 
 
-void FMemoryManager::removeNode(virtual_index node_index) {
+void FileMemoryManager::removeNode(virtual_index node_index) {
 
   if(node_index == 0) {
     node_page_vector.clear();
@@ -450,7 +450,7 @@ void FMemoryManager::removeNode(virtual_index node_index) {
 }
 
 IF_DEBUG(
-void binom::FMemoryManager::check() {
+void binom::FileMemoryManager::check() {
   std::clog << "Check nodes:\n";
   if(!db_header.root_node.isFree()) {
     NodeDescriptor descriptor = file.read<NodeDescriptor>(offsetof(DBHeader, root_node));

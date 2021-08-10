@@ -38,7 +38,11 @@ void var_test() {
 
   Variable var_deser = Variable::deserialize(ser);
 
+
   std::clog << "Constructed:\n" << var << "\n\n"
                  "Serialized: " << BufferArray(ser) << "\n\n"
                  "Deserialized:\n" << var_deser << "\n\n";
+
+  NodeVisitor visitor = &var_deser;
+  visitor["h"](1).getValue().asUi64();
 }

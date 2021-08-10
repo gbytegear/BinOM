@@ -1,7 +1,10 @@
 HEADERS += \
     $$PWD/binom/includes/file_storage/file_memory_manager.h \
+    $$PWD/binom/includes/file_storage/file_node_visitor.h \
+    $$PWD/binom/includes/file_storage/file_storage.h \
     $$PWD/binom/includes/file_storage/fmm_containers.h \
     $$PWD/binom/includes/utils/file.h \
+    $$PWD/binom/includes/utils/node_visitor_base.h \
     binom/includes/utils/var_mem_mngr.h \
     binom/includes/binom.h \
     binom/includes/variables/variable.h \
@@ -22,6 +25,7 @@ HEADERS += \
     binom/includes/file_storage/file_structs.h \
 
 SOURCES += \
+    $$PWD/binom/sources/file_storage/file_node_visitor.cpp \
     binom/sources/binom.cpp \
     binom/sources/variables/variable.cpp \
     binom/sources/variables/primitive.cpp \

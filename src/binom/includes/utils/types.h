@@ -159,6 +159,7 @@ namespace binom {
   class Primitive;
   class BufferArray;
   class Array;
+  class Object;
 
   // Helpers
   class ValueRef;
@@ -171,7 +172,7 @@ namespace binom {
 
   // Node Visitors
   class NodeVisitor;
-  class DBNodeVisitor;
+  class FileNodeVisitor;
 
   // Initilizers
   typedef std::initializer_list<const ui8> ui8arr;

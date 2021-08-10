@@ -5,12 +5,13 @@
 
 #include "binom/includes/utils/file.h"
 #include "fmm_containers.h"
+#include "../utils/rwguard.h"
 
 namespace binom {
 
 // NOTE: Use the virtual index of the node descriptor as a store for primitive values
 
-class FMemoryManager {
+class FileMemoryManager {
   FileIO file;
   NodePageVector node_page_vector;
   HeapPageVector heap_page_vector;
@@ -18,6 +19,7 @@ class FMemoryManager {
   DBHeader db_header;
   std::shared_mutex node_page_mtx;
   std::shared_mutex heap_page_mtx;
+  RWSyncMap sync_map;
 
   void init();
 
@@ -37,7 +39,7 @@ class FMemoryManager {
   void writeToVBlock(VMemoryBlock block, ByteArray data);
 
 public:
-  FMemoryManager(std::string_view file_path);
+  FileMemoryManager(std::string_view file_path);
 
   NodeDescriptor getNodeDescriptor(virtual_index node_index);
   ByteArray getNodeData(virtual_index node_index);

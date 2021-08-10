@@ -10,7 +10,7 @@ using namespace binom;
 void memory_manager_test() {
   std::clog << "\n\nmemory_manager_test()\n\n\n";
 
-  FMemoryManager fmm("memtest.fmm");
+  FileMemoryManager fmm("memtest.fmm");
 
 //  ByteArray data;
 //  data.pushBack<ui16>(65535);
