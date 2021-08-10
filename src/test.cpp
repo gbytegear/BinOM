@@ -4,8 +4,8 @@
 
 int main() {
   try {
-    var_test();
-    test_heap_blocks();
+//    var_test();
+//    test_heap_blocks();
     memory_manager_test();
 
 

@@ -337,6 +337,7 @@ virtual_index FMemoryManager::createNode(VarType type, ByteArray data) {
           throw Exception(ErrCode::binom_invalid_type);
       }
       file.write(translateVNodeIndex(node_index), descriptor);
+      if(!node_index) db_header.root_node = descriptor;
       return node_index;
     }break;
 
@@ -355,6 +356,7 @@ virtual_index FMemoryManager::createNode(VarType type, ByteArray data) {
 
   virtual_index node_index = allocNode();
   file.write(translateVNodeIndex(node_index), descriptor);
+  if(!node_index) db_header.root_node = descriptor;
   return node_index;
 
 }

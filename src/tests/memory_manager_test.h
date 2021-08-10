@@ -19,9 +19,9 @@ void memory_manager_test() {
 //  ByteArray data("Hello, World", sizeof ("Hello, World"));
 //  fmm.updateNode(1, data);
 //  fmm.createNode(VarType::byte_array, data);
-  binom::BufferArray data(VarType::word_array);
-//  binom::BufferArray data(ui16arr{1,2,3,4,5});
-  fmm.updateNode(1, data.getType(), data.toByteArray());
+//  binom::BufferArray data(VarType::word_array);
+  binom::BufferArray data(ui16arr{1,2,3,4,5});
+  fmm.updateNode(0, data.getType(), data.toByteArray());
   fmm.check();
 
 }
