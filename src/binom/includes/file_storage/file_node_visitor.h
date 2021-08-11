@@ -11,8 +11,7 @@ class FileNodeVisitor : public NodeVisitorBase {
   virtual_index node_index = 0;
   real_index index = 0;
   bool is_element_ref = false;
-
-public:
+  mutable RWSyncMap::RWGuard current_rwg;
 
   FileNodeVisitor(FileMemoryManager& fmm,
            virtual_index node_index = 0,
@@ -20,18 +19,24 @@ public:
     : fmm(fmm),
       node_index(node_index),
       index(index),
-      is_element_ref(index != 0xFFFFFFFFFFFFFFFF)
+      is_element_ref(index != 0xFFFFFFFFFFFFFFFF),
+      current_rwg(fmm.getRWGuard(node_index))
   {}
 
-  FileNodeVisitor(FileNodeVisitor& other)
+  friend class FileStorage;
+
+public:
+
+  FileNodeVisitor(const FileNodeVisitor& other)
     : fmm(other.fmm),
       node_index(other.node_index),
       index(other.index),
-      is_element_ref(other.is_element_ref)
+      is_element_ref(other.is_element_ref),
+      current_rwg(fmm.getRWGuard(node_index))
   {}
 
-  FileNodeVisitor& operator=(FileNodeVisitor& other);
-  FileNodeVisitor& operator=(virtual_index node_index);
+  FileNodeVisitor& operator=(FileNodeVisitor& other) {return *new(this) FileNodeVisitor(other);}
+  FileNodeVisitor& operator=(virtual_index node_index) {return *new(this) FileNodeVisitor(fmm, node_index);}
 
   VarType getType() const override;
   VisitorType getVisitorType() const override;
@@ -59,13 +64,20 @@ public:
   void remove(BufferArray name) override;
   void remove(Path path) override;
 
-  FileNodeVisitor& operator()(ui64 index) override;
-  FileNodeVisitor& operator()(BufferArray name) override;
-  FileNodeVisitor& operator()(Path path) override;
+  inline FileNodeVisitor getChild(ui64 index) const {return FileNodeVisitor(*this)(index);}
+  inline FileNodeVisitor getChild(BufferArray name) const {return FileNodeVisitor(*this)(name);}
+  inline FileNodeVisitor getChild(Path path) const {return FileNodeVisitor(*this)(path);}
 
-  inline FileNodeVisitor operator[](ui64 index) {return FileNodeVisitor(*this)(index);}
-  inline FileNodeVisitor operator[](BufferArray name) {return FileNodeVisitor(*this)(name);}
-  inline FileNodeVisitor operator[](Path path) {return FileNodeVisitor(*this)(path);}
+  NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
+  FileNodeVisitor find(Query query);
+
+  FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
+  FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}
+  FileNodeVisitor& operator()(Path path) override {return stepInside(path);}
+
+  inline FileNodeVisitor operator[](ui64 index) const {return getChild(index);}
+  inline FileNodeVisitor operator[](BufferArray name) const {return getChild(name);}
+  inline FileNodeVisitor operator[](Path path) const {return getChild(path);}
 
   NodeVisitor& toRAMVisitor() = delete;
   FileNodeVisitor& toFileVisitor() = delete;

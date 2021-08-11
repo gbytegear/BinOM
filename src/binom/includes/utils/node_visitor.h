@@ -10,25 +10,6 @@ namespace binom {
 
 class NodeVisitor;
 
-class NodeVector {
-  ByteArray data;
-public:
-  typedef NodeVisitor* iterator;
-  NodeVector() = default;
-  NodeVector(NodeVector&& other);
-  NodeVector(const NodeVector& other);
-  void pushBack(NodeVisitor node);
-  NodeVisitor& get(ui64 index);
-  NodeVisitor& operator[](ui64 index);
-  ui64 length();
-  iterator begin();
-  iterator end();
-  NodeVector& foreach(std::function<void(NodeVisitor&)> callback);
-  NodeVector& ifEmpty(std::function<void()> callback);
-
-  Array toArray();
-};
-
 class NodeVisitor : public NodeVisitorBase {
   enum class RefType : ui8 {
     variable,
@@ -126,7 +107,6 @@ public:
 
   NodeIterator begin();
   NodeIterator end();
-
 
   // Functional
 

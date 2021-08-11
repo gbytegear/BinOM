@@ -5,6 +5,7 @@
 #include "../utils/path.h"
 #include "../utils/query.h"
 #include <memory>
+#include <vector>
 
 namespace binom {
 
@@ -59,7 +60,11 @@ public:
       throw Exception(ErrCode::binom_invalid_visitor);
     return *reinterpret_cast<FileNodeVisitor*>(this);
   }
+
+  NodeVisitorBase& upCast() {return *reinterpret_cast<NodeVisitorBase*>(this);}
 };
+
+typedef std::vector<std::unique_ptr<NodeVisitorBase>> NodeVector;
 
 }
 

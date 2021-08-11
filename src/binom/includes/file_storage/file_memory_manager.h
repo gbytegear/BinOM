@@ -50,6 +50,8 @@ public:
   inline void updateNode(virtual_index node_index, ByteArray data) {return updateNode(node_index, VarType::end, std::move(data));}
   void removeNode(virtual_index node_index);
 
+  inline RWSyncMap::RWGuard getRWGuard(f_virtual_index node_index) {return sync_map.get(node_index);}
+
 IF_DEBUG(
   void check();
 )
