@@ -41,9 +41,10 @@ class FileMemoryManager {
 public:
   FileMemoryManager(std::string_view file_path);
 
-  NodeDescriptor getNodeDescriptor(virtual_index node_index);
-  ByteArray getNodeData(virtual_index node_index);
+  inline NodeDescriptor getNodeDescriptor(virtual_index node_index) {return file.read<NodeDescriptor>(translateVNodeIndex(node_index));}
+  inline ByteArray getNodeData(virtual_index node_index) {return getFullNodeInfo(node_index).data;}
   ByteArray getNodeDataPart(virtual_index node_index, real_index shift, block_size size);
+  NodeFullInfo getFullNodeInfo(virtual_index node_index);
 
   virtual_index createNode(VarType type, ByteArray data);
   void updateNode(virtual_index node_index, VarType type, ByteArray data);

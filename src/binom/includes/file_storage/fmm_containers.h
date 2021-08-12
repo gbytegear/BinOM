@@ -34,6 +34,12 @@ struct NodeInfo {
   virtual_index v_index;
 };
 
+struct NodeFullInfo {
+  virtual_index v_index;
+  NodeDescriptor descriptor;
+  ByteArray data;
+};
+
 
 typedef std::vector<NodePageInfo> NodePageVector;
 typedef std::vector<HeapPageInfo> HeapPageVector;

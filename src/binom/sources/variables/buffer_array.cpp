@@ -140,38 +140,38 @@ BufferArray::BufferArray(size_t size, i64 value) : data(tryMalloc(9 + size*8)) {
 
 
 
-BufferArray::BufferArray(ui8* values, size_t size) : data(tryMalloc(9 + size)) {
+BufferArray::BufferArray(ui8* values, size_t count) : data(tryMalloc(9 + count)) {
     data.type[0] = VarType::byte_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-    memcpy(data.bytes + 9, values, size);
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
+    memcpy(data.bytes + 9, values, count);
 }
 
-BufferArray::BufferArray(ui16* values, size_t size) : data(tryMalloc(9 + size*2)) {
+BufferArray::BufferArray(ui16* values, size_t count) : data(tryMalloc(9 + count*2)) {
     data.type[0] = VarType::word_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
 
     ui16* v_it = values;
-    for(ui64* it = reinterpret_cast<ui64*>(data.bytes + 9); ui64(v_it - values) < size; (++it, ++v_it) )
+    for(ui64* it = reinterpret_cast<ui64*>(data.bytes + 9); ui64(v_it - values) < count; (++it, ++v_it) )
         *it = *v_it;
 
 }
 
-BufferArray::BufferArray(ui32* values, size_t size) : data(tryMalloc(9 + size*4)) {
+BufferArray::BufferArray(ui32* values, size_t count) : data(tryMalloc(9 + count*4)) {
     data.type[0] = VarType::dword_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
 
     ui32* v_it = values;
-    for(ui32* it = reinterpret_cast<ui32*>(data.bytes + 9); ui64(v_it - values) < size; (++it, ++v_it) )
+    for(ui32* it = reinterpret_cast<ui32*>(data.bytes + 9); ui64(v_it - values) < count; (++it, ++v_it) )
         *it = *v_it;
 
 }
 
-BufferArray::BufferArray(ui64* values, size_t size) : data(tryMalloc(9 + size*8)) {
+BufferArray::BufferArray(ui64* values, size_t count) : data(tryMalloc(9 + count*8)) {
     data.type[0] = VarType::qword_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
 
     ui64* v_it = values;
-    for(ui64* it = reinterpret_cast<ui64*>(data.bytes + 9); ui64(v_it - values) < size; (++it, ++v_it) )
+    for(ui64* it = reinterpret_cast<ui64*>(data.bytes + 9); ui64(v_it - values) < count; (++it, ++v_it) )
         *it = *v_it;
 
 }
@@ -179,40 +179,35 @@ BufferArray::BufferArray(ui64* values, size_t size) : data(tryMalloc(9 + size*8)
 
 
 
-BufferArray::BufferArray(i8* values, size_t size) : data(tryMalloc(9 + size)) {
+BufferArray::BufferArray(i8* values, size_t count) : data(tryMalloc(9 + count)) {
     data.type[0] = VarType::byte_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-    memcpy(data.bytes + 9, values, size);
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
+    memcpy(data.bytes + 9, values, count);
 }
 
-BufferArray::BufferArray(i16* values, size_t size) : data(tryMalloc(9 + size*2)) {
+BufferArray::BufferArray(i16* values, size_t count) : data(tryMalloc(9 + count*2)) {
     data.type[0] = VarType::word_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-
-    i16* v_it = values;
-    for(i64* it = reinterpret_cast<i64*>(data.bytes + 9); ui64(v_it - values) < size; (++it, ++v_it) )
-        *it = *v_it;
-
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
+    memcpy(data.bytes + 9, values, count*2);
 }
 
-BufferArray::BufferArray(i32* values, size_t size) : data(tryMalloc(9 + size*4)) {
+BufferArray::BufferArray(i32* values, size_t count) : data(tryMalloc(9 + count*4)) {
     data.type[0] = VarType::dword_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-
-    i32* v_it = values;
-    for(i32* it = reinterpret_cast<i32*>(data.bytes + 9); ui64(v_it - values) < size; (++it, ++v_it) )
-        *it = *v_it;
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
+    memcpy(data.bytes + 9, values, count*4);
 
 }
 
-BufferArray::BufferArray(i64* values, size_t size) : data(tryMalloc(9 + size*8)) {
+BufferArray::BufferArray(i64* values, size_t count) : data(tryMalloc(9 + count*8)) {
     data.type[0] = VarType::qword_array;
-    *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+    *reinterpret_cast<ui64*>(data.bytes + 1) = count;
+    memcpy(data.bytes + 9, values, count*2);
+}
 
-    i64* v_it = values;
-    for(i64* it = reinterpret_cast<i64*>(data.bytes + 9); ui64(v_it - values) < size; (++it, ++v_it) )
-        *it = *v_it;
-
+BufferArray::BufferArray(binom::ValType type, void* ptr, size_t count) : data(tryMalloc(9 + toSize(type)*count)) {
+  data.type[0] = toVarBufferType(type);
+  *reinterpret_cast<ui64*>(data.bytes + 1) = count;
+  memcpy(data.bytes + 9, ptr, count*toSize(type));
 }
 
 

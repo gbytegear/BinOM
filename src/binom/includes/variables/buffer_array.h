@@ -55,14 +55,15 @@ public:
   BufferArray(size_t size, i32 value);
   BufferArray(size_t size, i64 value);
 
-  BufferArray(ui8* values, size_t size);
-  BufferArray(ui16* values, size_t size);
-  BufferArray(ui32* values, size_t size);
-  BufferArray(ui64* values, size_t size);
-  BufferArray(i8* values, size_t size);
-  BufferArray(i16* values, size_t size);
-  BufferArray(i32* values, size_t size);
-  BufferArray(i64* values, size_t size);
+  BufferArray(ui8* values, size_t count);
+  BufferArray(ui16* values, size_t count);
+  BufferArray(ui32* values, size_t count);
+  BufferArray(ui64* values, size_t count);
+  BufferArray(i8* values, size_t count);
+  BufferArray(i16* values, size_t count);
+  BufferArray(i32* values, size_t count);
+  BufferArray(i64* values, size_t count);
+  BufferArray(ValType type, void* ptr, size_t count);
 
   BufferArray(ui8arr array);
   BufferArray(ui16arr array);

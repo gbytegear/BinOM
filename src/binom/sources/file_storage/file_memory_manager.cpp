@@ -216,57 +216,6 @@ void FileMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
   }
 }
 
-NodeDescriptor FileMemoryManager::getNodeDescriptor(virtual_index node_index) {
-  return file.read<NodeDescriptor>(translateVNodeIndex(node_index));
-}
-
-ByteArray FileMemoryManager::getNodeData(virtual_index node_index) {
-  ByteArray data;
-  NodeDescriptor descriptor = getNodeDescriptor(node_index);
-  switch (toTypeClass(descriptor.type)) {
-    case binom::VarTypeClass::primitive:
-      switch (toValueType(descriptor.type)) {
-        case binom::ValType::byte:
-          data.pushBack(&descriptor.index, 1);
-        break;
-        case binom::ValType::word:
-          data.pushBack(&descriptor.index, 2);
-        break;
-        case binom::ValType::dword:
-          data.pushBack(&descriptor.index, 4);
-        break;
-        case binom::ValType::qword:
-          data.pushBack(&descriptor.index, 8);
-        break;
-
-        default:
-        case binom::ValType::invalid_type:
-          throw Exception(ErrCode::binom_invalid_type);
-      }
-    return data;
-
-    case binom::VarTypeClass::buffer_array:
-    case binom::VarTypeClass::array:
-    case binom::VarTypeClass::object: break;
-
-    default:
-    case binom::VarTypeClass::invalid_type:
-      throw Exception(ErrCode::binom_invalid_type);
-  }
-
-  RMemoryBlockVector blocks;
-  if(VMemoryBlock block = heap_map.find(descriptor.index); block.isEmpty())
-    throw Exception(ErrCode::binomdb_memory_management_error, "Virtual heap memory block doesn't finded");
-  else blocks = translateVMemoryBlock(block);
-
-  for(auto block : blocks) {
-    ByteArray::iterator it = data.addSize(block.size);
-    file.readBuffer(it, block.r_index, block.size);
-  }
-
-  return data;
-}
-
 ByteArray FileMemoryManager::getNodeDataPart(virtual_index node_index, real_index shift, block_size size) {
   ByteArray data;
   NodeDescriptor descriptor = getNodeDescriptor(node_index);
@@ -312,6 +261,53 @@ ByteArray FileMemoryManager::getNodeDataPart(virtual_index node_index, real_inde
   }
 
   return data;
+}
+
+NodeFullInfo FileMemoryManager::getFullNodeInfo(virtual_index node_index) {
+  ByteArray data;
+  NodeDescriptor descriptor = getNodeDescriptor(node_index);
+  switch (toTypeClass(descriptor.type)) {
+    case binom::VarTypeClass::primitive:
+      switch (toValueType(descriptor.type)) {
+        case binom::ValType::byte:
+          data.pushBack(&descriptor.index, 1);
+        break;
+        case binom::ValType::word:
+          data.pushBack(&descriptor.index, 2);
+        break;
+        case binom::ValType::dword:
+          data.pushBack(&descriptor.index, 4);
+        break;
+        case binom::ValType::qword:
+          data.pushBack(&descriptor.index, 8);
+        break;
+
+        default:
+        case binom::ValType::invalid_type:
+          throw Exception(ErrCode::binom_invalid_type);
+      }
+    return {node_index, descriptor, data};
+
+    case binom::VarTypeClass::buffer_array:
+    case binom::VarTypeClass::array:
+    case binom::VarTypeClass::object: break;
+
+    default:
+    case binom::VarTypeClass::invalid_type:
+      throw Exception(ErrCode::binom_invalid_type);
+  }
+
+  RMemoryBlockVector blocks;
+  if(VMemoryBlock block = heap_map.find(descriptor.index); block.isEmpty())
+    throw Exception(ErrCode::binomdb_memory_management_error, "Virtual heap memory block doesn't finded");
+  else blocks = translateVMemoryBlock(block);
+
+  for(auto block : blocks) {
+    ByteArray::iterator it = data.addSize(block.size);
+    file.readBuffer(it, block.r_index, block.size);
+  }
+
+  return {node_index, descriptor, data};
 }
 
 virtual_index FileMemoryManager::createNode(VarType type, ByteArray data) {

@@ -132,6 +132,8 @@ public:
 
   void* unfree();
 
+  void split(ui64 second_start, ByteArray& first, ByteArray& second);
+
   ByteArray& operator=(ByteArray other);
 
   byte& operator[](ui64 index);                             // byte& get(ui64) alias operator

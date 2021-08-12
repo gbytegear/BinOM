@@ -157,11 +157,11 @@ public:
   };
 
   class ScopedRWGuard {
-    RWSyncMap::RWGuard& rwg;
+    RWSyncMap::RWGuard* rwg = nullptr;
   public:
     ScopedRWGuard(RWGuard& rwg,
                   LockType lock_type = LockType::unlocked)
-      : rwg(rwg) {
+      : rwg(&rwg) {
       switch (lock_type) {
         case binom::RWSyncMap::LockType::shared_lock:
           rwg.lockShared();
@@ -173,11 +173,45 @@ public:
       }
     }
 
-    ~ScopedRWGuard() {rwg.unlock();}
+    ScopedRWGuard(ScopedRWGuard& other,
+                  LockType lock_type = LockType::unlocked)
+        : rwg(other.rwg) {
+        if(rwg)
+            switch (lock_type) {
+                case binom::RWSyncMap::LockType::shared_lock:
+                    rwg->lockShared();
+                return;
+                case binom::RWSyncMap::LockType::unique_lock:
+                    rwg->lock();
+                return;
+                case binom::RWSyncMap::LockType::unlocked:return;
+            }
+    }
 
-    inline void lock() {rwg.lock();}
-    inline void lockShared() {rwg.lockShared();}
-    inline void unlock() {rwg.unlock();}
+    ScopedRWGuard(ScopedRWGuard&& other,
+                  LockType lock_type = LockType::unlocked)
+        : rwg(other.rwg) {
+        if(rwg)
+            switch (lock_type) {
+                case binom::RWSyncMap::LockType::shared_lock:
+                    rwg->lockShared();
+                return;
+                case binom::RWSyncMap::LockType::unique_lock:
+                    rwg->lock();
+                return;
+                case binom::RWSyncMap::LockType::unlocked:return;
+            }
+        other.rwg = nullptr;
+    }
+
+    ~ScopedRWGuard() {if(rwg)rwg->unlock();}
+
+    inline void lock() {if(rwg)rwg->lock();}
+    inline void lockShared() {if(rwg)rwg->lockShared();}
+    inline void unlock() {if(rwg)rwg->unlock();}
+
+    inline LockType getLockType() {if(rwg)return rwg->getLockType(); return LockType::unlocked;}
+    inline f_virtual_index getLockIndex() {if(rwg)return rwg->getLockedIndex(); return 0xFFFFFFFFFFFFFFFF_ui64;}
   };
 
   RWSyncMap() = default;

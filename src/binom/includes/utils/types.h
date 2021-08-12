@@ -23,6 +23,8 @@
 
 
 namespace binom {
+
+  //! Variable type
   enum class VarType : byte {
     end                 = 0x00,
     byte                = 0x01,
@@ -39,6 +41,7 @@ namespace binom {
     invalid_type         = 0xFF
   };
 
+  //! Primitive value type
   enum class ValType : byte {
       byte                = 0x00,
       word                = 0x01,
@@ -48,6 +51,7 @@ namespace binom {
       invalid_type         = 0xFF
   };
 
+  //! Variable type class
   enum class VarTypeClass : byte {
     primitive           = 0x01,
     buffer_array        = 0x02,
@@ -57,6 +61,7 @@ namespace binom {
     invalid_type        = 0xFF
   };
 
+  //! Cast VarType => VarTypeClass
   inline VarTypeClass toTypeClass(VarType type) {
     switch(type) {
       case VarType::byte: case VarType::word: case VarType::dword: case VarType::qword:
@@ -72,6 +77,7 @@ namespace binom {
     }
   }
 
+  //! Cast VarType => ValType
   inline ValType toValueType(VarType type) {
       switch (type) {
           case VarType::byte: return ValType::byte;
@@ -86,6 +92,7 @@ namespace binom {
       }
   }
 
+  //! Cast ValType => VarType
   inline VarType toVarType(ValType type) {
     switch (type) {
       case ValType::byte: return VarType::byte;
@@ -96,6 +103,7 @@ namespace binom {
     }
   }
 
+  //! Cast ValType => VarType
   inline VarType toVarBufferType(ValType type) {
     switch (type) {
       case ValType::byte: return VarType::byte_array;
@@ -106,6 +114,7 @@ namespace binom {
     }
   }
 
+  //! Cast ValType => Size of element
   constexpr ui8 toSize(ValType type) {
     switch (type) {
       case ValType::byte: return 1;
@@ -116,6 +125,7 @@ namespace binom {
     }
   }
 
+  //! Cast VarType => Name of type
   inline const char* toTypeString(VarType type) {
     switch (type) {
     case binom::VarType::end: return "end";
@@ -133,6 +143,7 @@ namespace binom {
     }
   }
 
+  //! Cast VarTypeClass => Name of type class
   inline const char* toTypeString(VarTypeClass type_class) {
     switch (type_class) {
     case binom::VarTypeClass::primitive: return "primitive";
@@ -144,6 +155,7 @@ namespace binom {
     }
   }
 
+  //! Cast VarTypeClass => Name of value type
   inline const char* toTypeString(ValType val_type) {
     switch (val_type) {
     case binom::ValType::byte: return "byte";
@@ -154,24 +166,40 @@ namespace binom {
     }
   }
 
-  // Basic
+  //! Type class generic (may have any BinOM type)
   class Variable;
+
+  // Basic type class
+  //! BinOM primitive data type class (may have type: byte/word/dword/qword)
   class Primitive;
+  //! BinOM buffer array data type class (may have type: byte_array/word_array/dword_array/qword_array)
   class BufferArray;
+  //! BinOM array data type
   class Array;
+  //! BinOM object data type
   class Object;
 
   // Helpers
+  //! Reference to generic value in primitver or buffer array (may have value type: byte/word/dword/qword)
   class ValueRef;
+  //! Pair of name(BufferArray) and Variable stored in Object
   struct NamedVariable;
 
   // Iterators
+  //! BufferArray iterator
   class ValueIterator;
+  //! Array iterator
   typedef Variable* ArrayIterator;
+  //! Object iterator
   typedef NamedVariable* ObjectIterator;
 
+  //! Node Visitor Base
+  class NodeVisitorBase;
+
   // Node Visitors
+  //! RAM Node Visitor
   class NodeVisitor;
+  //! File Node Visitor
   class FileNodeVisitor;
 
   // Initilizers

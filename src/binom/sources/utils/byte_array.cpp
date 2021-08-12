@@ -208,6 +208,13 @@ void* ByteArray::unfree() {
   return ptr;
 }
 
+void ByteArray::split(ui64 second_start, ByteArray& first, ByteArray& second) {
+  first.reset(second_start);
+  memcpy(first.array, array, second_start);
+  second.reset(_length - second_start);
+  memcpy(second.array, array + second_start, second._length);
+}
+
 ByteArray& ByteArray::operator=(ByteArray other) {
   if(array) free(array);
   _length = other._length;

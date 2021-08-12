@@ -6,24 +6,46 @@
 
 namespace binom {
 
+
 class FileNodeVisitor : public NodeVisitorBase {
+  typedef RWSyncMap::ScopedRWGuard ScopedRWGuard;
+  typedef RWSyncMap::RWGuard RWGuard;
+  typedef RWSyncMap::LockType LockType;
+
+  static constexpr virtual_index null_index = 0xFFFFFFFFFFFFFFFF;
+
   FileMemoryManager& fmm;
   virtual_index node_index = 0;
-  real_index index = 0;
-  bool is_element_ref = false;
-  mutable RWSyncMap::RWGuard current_rwg;
+  real_index index = null_index;
+  mutable RWGuard current_rwg;
 
   FileNodeVisitor(FileMemoryManager& fmm,
            virtual_index node_index = 0,
-           real_index index = 0xFFFFFFFFFFFFFFFF)
+           real_index index = null_index)
     : fmm(fmm),
       node_index(node_index),
       index(index),
-      is_element_ref(index != 0xFFFFFFFFFFFFFFFF),
       current_rwg(fmm.getRWGuard(node_index))
   {}
 
   friend class FileStorage;
+
+  NodeDescriptor getDescriptor() const {
+    if(node_index == null_index) return NodeDescriptor::null();
+    auto lk = getScopedRWGuard(LockType::shared_lock);
+    return fmm.getNodeDescriptor(node_index);
+  }
+
+  NodeFullInfo getFullNodeInfo() {
+    if(node_index == null_index) return {null_index, NodeDescriptor::null(), ByteArray()};
+    auto lk = getScopedRWGuard(LockType::shared_lock);
+    return fmm.getFullNodeInfo(node_index);
+  }
+
+  void setNull() {
+    node_index = null_index;
+    index = null_index;
+  }
 
 public:
 
@@ -31,19 +53,20 @@ public:
     : fmm(other.fmm),
       node_index(other.node_index),
       index(other.index),
-      is_element_ref(other.is_element_ref),
       current_rwg(fmm.getRWGuard(node_index))
   {}
 
-  FileNodeVisitor& operator=(FileNodeVisitor& other) {return *new(this) FileNodeVisitor(other);}
-  FileNodeVisitor& operator=(virtual_index node_index) {return *new(this) FileNodeVisitor(fmm, node_index);}
+  ScopedRWGuard getScopedRWGuard(LockType lock_type = LockType::unlocked) const {return ScopedRWGuard(current_rwg, lock_type);}
 
-  VarType getType() const override;
-  VisitorType getVisitorType() const override;
+  inline FileNodeVisitor& operator=(FileNodeVisitor& other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(other);}
+  inline FileNodeVisitor& operator=(virtual_index node_index) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(fmm, node_index);}
+
+  VarType getType() const override {auto lk = getScopedRWGuard(LockType::shared_lock); return getDescriptor().type;}
+  VisitorType getVisitorType() const override {return VisitorType::file_storage_visitor;}
   inline virtual_index getNodeIndex() const {return node_index;}
 
-  bool isNull() const override;
-  bool isValueRef() const override;
+  inline bool isNull() const override {return node_index == null_index;}
+  inline bool isValueRef() const override {return index != null_index;}
   ui64 getElementCount() const override;
 
   FileNodeVisitor& stepInside(ui64 index) override;
