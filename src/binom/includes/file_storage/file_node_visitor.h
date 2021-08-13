@@ -67,32 +67,32 @@ public:
 
   inline bool isNull() const override {return node_index == null_index;}
   inline bool isValueRef() const override {return index != null_index;}
-  ui64 getElementCount() const override;
+  ui64 getElementCount() const override; /* Not implemented */
 
   FileNodeVisitor& stepInside(ui64 index) override;
   FileNodeVisitor& stepInside(BufferArray name) override;
   FileNodeVisitor& stepInside(Path path) override;
 
-  Variable getVariable() const;
-  Variable getVariable(ui64 index) const;
-  Variable getVariable(BufferArray name) const;
-  Variable getVariable(Path path) const;
+  Variable getVariable() const; /* Not implemented */
+  inline Variable getVariable(ui64 index) const {return getChild(index).getVariable();}
+  inline Variable getVariable(BufferArray name) const {return getChild(name).getVariable();}
+  inline Variable getVariable(Path path) const {return getChild(path).getVariable();}
 
-  void setVariable(Variable var) override;
-  void pushBack(Variable var) override;
-  void pushFront(Variable var) override;
-  void insert(ui64 index, Variable var) override;
-  void insert(BufferArray name, Variable var) override;
-  void remove(ui64 index, ui64 count) override;
-  void remove(BufferArray name) override;
-  void remove(Path path) override;
+  void setVariable(Variable var) override; /* Not implemented */
+  void pushBack(Variable var) override; /* Not implemented */
+  void pushFront(Variable var) override; /* Not implemented */
+  void insert(ui64 index, Variable var) override; /* Not implemented */
+  void insert(BufferArray name, Variable var) override; /* Not implemented */
+  void remove(ui64 index, ui64 count) override; /* Not implemented */
+  void remove(BufferArray name) override; /* Not implemented */
+  void remove(Path path) override; /* Not implemented */
 
   inline FileNodeVisitor getChild(ui64 index) const {return FileNodeVisitor(*this)(index);}
   inline FileNodeVisitor getChild(BufferArray name) const {return FileNodeVisitor(*this)(name);}
   inline FileNodeVisitor getChild(Path path) const {return FileNodeVisitor(*this)(path);}
 
-  NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
-  FileNodeVisitor find(Query query);
+  NodeVector findAll(Query query, NodeVector node_vector = NodeVector()); /* Not implemented */
+  FileNodeVisitor find(Query query); /* Not implemented */
 
   FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}
