@@ -52,6 +52,8 @@ public:
   Primitive(f32 value);
   Primitive(f64 value);
 
+  Primitive(ValType type, void* value_ptr);
+
   Primitive(const Primitive& other);
   Primitive(Primitive&& other);
   Primitive(ValueRef value);

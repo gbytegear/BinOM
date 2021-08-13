@@ -89,7 +89,6 @@ public:
     RWGuard(RWGuard&) = delete;
     ~RWGuard() {forceUnlock();}
 
-//    f_virtual_index getLockedIndex() {return shr_ptr->it->first;}
     f_virtual_index getLockedIndex() {return shr_ptr->v_index;}
 
     void clear() {
@@ -156,7 +155,7 @@ public:
 //    }
   };
 
-  class ScopedRWGuard {
+  class ScopedRWGuard { // BUG: This fucking BULLSHIT (What if RWGuard has been destroyed?)
     RWSyncMap::RWGuard* rwg = nullptr;
   public:
     ScopedRWGuard(RWGuard& rwg,

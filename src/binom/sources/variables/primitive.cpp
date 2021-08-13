@@ -77,6 +77,17 @@ binom::Primitive::Primitive(binom::f64 value) : data(tryMalloc(9)) {
   *reinterpret_cast<f64*>(data.bytes + 1) = value;
 }
 
+binom::Primitive::Primitive(binom::ValType type, void* value_ptr) : data(tryMalloc(1 + toSize(type))) {
+  data.type[0] = toVarType(type);
+  switch (type) {
+    case binom::ValType::byte: *reinterpret_cast<ui8*>(data.bytes + 1) = *reinterpret_cast<ui8*>(value_ptr); return;
+    case binom::ValType::word: *reinterpret_cast<ui16*>(data.bytes + 1) = *reinterpret_cast<ui16*>(value_ptr); return;
+    case binom::ValType::dword: *reinterpret_cast<ui32*>(data.bytes + 1) = *reinterpret_cast<ui32*>(value_ptr); return;
+    case binom::ValType::qword: *reinterpret_cast<ui64*>(data.bytes + 1) = *reinterpret_cast<ui64*>(value_ptr); return;
+    case binom::ValType::invalid_type: return;
+  }
+}
+
 binom::Primitive::Primitive(binom::Primitive&& other) : data(other.data.ptr) {other.data.ptr = nullptr;}
 binom::Primitive::Primitive(const binom::Primitive& other) : data(other.clone()) {}
 
