@@ -204,7 +204,7 @@ BufferArray::BufferArray(i64* values, size_t count) : data(tryMalloc(9 + count*8
     memcpy(data.bytes + 9, values, count*2);
 }
 
-BufferArray::BufferArray(binom::ValType type, void* ptr, size_t count) : data(tryMalloc(9 + toSize(type)*count)) {
+BufferArray::BufferArray(binom::ValType type, const void* ptr, size_t count) : data(tryMalloc(9 + toSize(type)*count)) {
   data.type[0] = toVarBufferType(type);
   *reinterpret_cast<ui64*>(data.bytes + 1) = count;
   memcpy(data.bytes + 9, ptr, count*toSize(type));

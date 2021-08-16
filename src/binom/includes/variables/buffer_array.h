@@ -63,7 +63,7 @@ public:
   BufferArray(i16* values, size_t count);
   BufferArray(i32* values, size_t count);
   BufferArray(i64* values, size_t count);
-  BufferArray(ValType type, void* ptr, size_t count);
+  BufferArray(ValType type, const void* ptr, size_t count);
 
   BufferArray(ui8arr array);
   BufferArray(ui16arr array);
