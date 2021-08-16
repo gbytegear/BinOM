@@ -1,5 +1,7 @@
 #include "binom/includes/file_storage/file_node_visitor.h"
 
+#include <functional>
+
 using namespace binom;
 
 class ObjectElementFinder {
@@ -13,6 +15,14 @@ class ObjectElementFinder {
   byte* const name_end;
   virtual_index* index_it;
 public:
+
+  struct ObjectElement{
+    ValType type;
+    ui64 name_size;
+    const void* name;
+    virtual_index index;
+  };
+
   ObjectElementFinder(ByteArray data)
     : indexes(data),
       descriptor(indexes.takeFront<ObjectDescriptor>()),
@@ -85,15 +95,22 @@ public:
 
   BufferArray getName() const {return BufferArray(name_length_it->char_type, name_it, name_length_it->name_length);}
   virtual_index getNodeIndex() const {return *index_it;}
-  Object buildObject() {
 
+  ui64 getElementCount() const {return descriptor.index_count;}
+
+  void foreach(std::function<void(ObjectElement)> handler) {
+    byte* name_it = names.begin();
+    virtual_index* index_it = indexes.begin<virtual_index>();
     for(ObjectNameLength* it = name_lengths.begin<ObjectNameLength>(),
         * end = name_lengths.end<ObjectNameLength>();
         it != end; ++it) {
       ui64 name_count = it->name_count;
-      const ui64 name_size = it->name_length;
-      const ValType char_type = it->char_type;
-      // TODO
+      while (name_count) {
+        handler({it->char_type, it->name_length, name_it, *index_it});
+        --name_count;
+        name_it += it->name_length;
+        ++index_it;
+      }
     }
   }
 
@@ -157,7 +174,25 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
   NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
+
   ObjectElementFinder finder(fmm.getNodeData(descriptor));
+  ByteArray data(9 + finder.getElementCount()*sizeof(void*)*2);
+  data.get<VarType>(0) = VarType::object; // Set type
+  data.get<ui64>(0, 1) = finder.getElementCount(); // Set length
+  {
+    NamedVariable* object_element_iterator = data.begin<NamedVariable>(9);
+    finder.foreach([this, &object_element_iterator](ObjectElementFinder::ObjectElement element) {
+      new(&object_element_iterator->name) BufferArray(element.type, element.name, element.name_size);
+      new(&object_element_iterator->variable) Variable(buildVariable(element.index));
+      ++object_element_iterator;
+    });
+  }
+  void* variable = data.unfree();
+  return *reinterpret_cast<Object*>(&variable);
+}
+
+ui64 FileNodeVisitor::getElementCount() const {
+  // TODO
 }
 
 FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
