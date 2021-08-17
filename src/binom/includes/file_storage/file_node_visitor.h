@@ -36,6 +36,12 @@ class FileNodeVisitor : public NodeVisitorBase {
   Array buildArray(virtual_index node_index, const NodeDescriptor* descriptor = nullptr, ScopedRWGuard* lk = nullptr) const;
   Object buildObject(virtual_index node_index, const NodeDescriptor* descriptor = nullptr, ScopedRWGuard* lk = nullptr) const;
 
+  virtual_index createVariable(Variable variable);
+  virtual_index createPrimitive(Primitive primitive);
+  virtual_index createBufferArray(BufferArray buffer_array);
+  virtual_index createArray(Array array);
+  virtual_index createObject(Object object);
+
   NodeDescriptor getDescriptor() const {
     if(node_index == null_index) return NodeDescriptor::null();
     auto lk = getScopedRWGuard(LockType::shared_lock);
@@ -79,7 +85,7 @@ public:
   FileNodeVisitor& stepInside(BufferArray name) override;
   FileNodeVisitor& stepInside(Path path) override;
 
-  inline Variable getVariable() const {return buildVariable(node_index);}
+  Variable getVariable() const;
   inline Variable getVariable(ui64 index) const {return getChild(index).getVariable();}
   inline Variable getVariable(BufferArray name) const {return getChild(name).getVariable();}
   inline Variable getVariable(Path path) const {return getChild(path).getVariable();}

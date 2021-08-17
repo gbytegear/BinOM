@@ -19,12 +19,11 @@ private:
   std::map<f_virtual_index, std::weak_ptr<RWGuardAutoDelete>> mtx_map;
   std::mutex general_mtx;
 
+  //! RWGuard autodestroyer (Removes RWGuard-element from RWSyncMap)
   class RWGuardAutoDelete {
     RWSyncMap* map;
     std::shared_mutex mtx;
     f_virtual_index v_index;
-//    std::map<f_virtual_index, std::weak_ptr<RWGuardAutoDelete>>::iterator it;
-
 
     friend class RWGuard;
   public:
@@ -41,12 +40,13 @@ private:
   };
 
 public:
-  enum class LockType {
+  enum class LockType : ui8 {
     shared_lock,
     unique_lock,
     unlocked
   };
 
+  //! Read/Write guard (shared mutex for BinOM nodes)
   class RWGuard {
     std::shared_ptr<RWGuardAutoDelete> shr_ptr;
     LockType lock_type = LockType::unlocked;
@@ -155,12 +155,14 @@ public:
 //    }
   };
 
-  class ScopedRWGuard { // BUG: This fucking BULLSHIT (What if RWGuard has been destroyed?)
+  //! RAII RWGuard locker
+  class ScopedRWGuard {
     RWSyncMap::RWGuard* rwg = nullptr;
+    LockType lock_type = LockType::unlocked;
   public:
     ScopedRWGuard(RWGuard& rwg,
                   LockType lock_type = LockType::unlocked)
-      : rwg(&rwg) {
+      : rwg(&rwg), lock_type(lock_type) {
       switch (lock_type) {
         case binom::RWSyncMap::LockType::shared_lock:
           rwg.lockShared();
@@ -174,7 +176,7 @@ public:
 
     ScopedRWGuard(ScopedRWGuard& other,
                   LockType lock_type = LockType::unlocked)
-        : rwg(other.rwg) {
+        : rwg(other.rwg), lock_type(lock_type) {
         if(rwg)
             switch (lock_type) {
                 case binom::RWSyncMap::LockType::shared_lock:
@@ -189,8 +191,9 @@ public:
 
     ScopedRWGuard(ScopedRWGuard&& other,
                   LockType lock_type = LockType::unlocked)
-        : rwg(other.rwg) {
-        if(rwg)
+        : rwg(other.rwg), lock_type(lock_type) {
+        if(rwg && lock_type != other.lock_type) {
+            rwg->unlock();
             switch (lock_type) {
                 case binom::RWSyncMap::LockType::shared_lock:
                     rwg->lockShared();
@@ -200,16 +203,17 @@ public:
                 return;
                 case binom::RWSyncMap::LockType::unlocked:return;
             }
+        }
         other.rwg = nullptr;
     }
 
-    ~ScopedRWGuard() {if(rwg)rwg->unlock();}
+    ~ScopedRWGuard() {
+        if(rwg && lock_type != LockType::unlocked)
+            rwg->unlock();
+    }
 
-    inline void lock() {if(rwg)rwg->lock();}
-    inline void lockShared() {if(rwg)rwg->lockShared();}
-    inline void unlock() {if(rwg)rwg->unlock();}
-
-    inline LockType getLockType() {if(rwg)return rwg->getLockType(); return LockType::unlocked;}
+    inline LockType getScopeLockType() {return lock_type;}
+    inline LockType getGuardLockType() {if(rwg)return rwg->getLockType(); return LockType::unlocked;}
     inline f_virtual_index getLockIndex() {if(rwg)return rwg->getLockedIndex(); return 0xFFFFFFFFFFFFFFFF_ui64;}
   };
 

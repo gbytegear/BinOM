@@ -191,6 +191,69 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
   return *reinterpret_cast<Object*>(&variable);
 }
 
+virtual_index FileNodeVisitor::createVariable(Variable variable) {
+  switch (variable.typeClass()) {
+    case binom::VarTypeClass::primitive: return createPrimitive(std::move(variable.toPrimitive()));
+    case binom::VarTypeClass::buffer_array: return createBufferArray(std::move(variable.toBufferArray()));
+    case binom::VarTypeClass::array: return createArray(std::move(variable.toArray()));
+    case binom::VarTypeClass::object: return createObject(std::move(variable.toObject()));
+    case binom::VarTypeClass::invalid_type: throw Exception(ErrCode::binom_invalid_type);
+  }
+}
+
+virtual_index FileNodeVisitor::createPrimitive(Primitive primitive) {
+  return fmm.createNode(primitive.getType(), ByteArray(primitive.getDataPtr(), toSize(primitive.getValType())));
+}
+
+virtual_index FileNodeVisitor::createBufferArray(BufferArray buffer_array) {
+  return fmm.createNode(buffer_array.getType(), buffer_array.toByteArray());
+}
+
+virtual_index FileNodeVisitor::createArray(Array array) {
+  if(array.isEmpty()) return fmm.createNode(VarType::array, ByteArray());
+  ByteArray data(array.getMemberCount()*sizeof(virtual_index));
+  virtual_index* it = data.begin<virtual_index>();
+  for(Variable& variable : array) {
+    *it = createVariable(std::move(variable));
+    ++it;
+  }
+  return fmm.createNode(VarType::array, std::move(data));
+}
+
+virtual_index FileNodeVisitor::createObject(Object object) {
+  if(object.isEmpty()) return fmm.createNode(VarType::object, ByteArray());
+  ByteArray
+      name_length_block,
+      name_block,
+      index_block(object.getMemberCount()*sizeof(virtual_index));
+  virtual_index* index_it = index_block.begin<virtual_index>();
+  ObjectNameLength length;
+  for(NamedVariable& named_variable : object) {
+    if(length.char_type != named_variable.name.getValType() ||
+       length.name_length != named_variable.name.getMemberCount()) {
+      if(length.char_type != ValType::invalid_type)
+        name_length_block += length;
+      new(&length) ObjectNameLength{named_variable.name.getValType(), named_variable.name.getMemberCount()};
+    }
+    name_block += named_variable.name.toByteArray();
+    *index_it = createVariable(std::move(named_variable.variable));
+    ++index_it;
+    ++length.name_count;
+  }
+  ObjectDescriptor descriptor{
+    name_length_block.length<ObjectNameLength>(),
+    name_block.length(),
+    index_block.length<virtual_index>()
+  };
+  return fmm.createNode(VarType::object,
+                        ByteArray{
+                          ByteArray(&descriptor, sizeof (ObjectDescriptor)),
+                          std::move(name_length_block),
+                          std::move(name_block),
+                          std::move(index_block)
+                        });
+}
+
 ui64 FileNodeVisitor::getElementCount() const {
   auto lk = getScopedRWGuard(LockType::shared_lock);
 
@@ -259,4 +322,21 @@ FileNodeVisitor& FileNodeVisitor::stepInside(Path path) {
       case binom::PathNodeType::name: stepInside(path_node.name()); continue;
     }
   return *this;
+}
+
+Variable FileNodeVisitor::getVariable() const {
+  if(isValueRef()) {
+    ScopedRWGuard lk(current_rwg, LockType::shared_lock);
+    NodeDescriptor descriptor = fmm.getNodeDescriptor(node_index);
+    ByteArray data = fmm.getNodeDataPart(descriptor,
+                                         index*toSize(toValueType(descriptor.type)),
+                                         toSize(toValueType(descriptor.type)));
+    data.pushFront(descriptor.type);
+    void* variable = data.unfree();
+    return *reinterpret_cast<Variable*>(&variable);
+  } else return buildVariable(node_index);
+}
+
+void FileNodeVisitor::setVariable(Variable var) {
+  // TODO
 }
