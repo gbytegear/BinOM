@@ -73,7 +73,7 @@ public:
 
   inline bool isNull() const override {return node_index == null_index;}
   inline bool isValueRef() const override {return index != null_index;}
-  ui64 getElementCount() const override; /* Not implemented */
+  ui64 getElementCount() const override;
 
   FileNodeVisitor& stepInside(ui64 index) override;
   FileNodeVisitor& stepInside(BufferArray name) override;

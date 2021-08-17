@@ -192,7 +192,20 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
 }
 
 ui64 FileNodeVisitor::getElementCount() const {
-  // TODO
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+
+  NodeDescriptor descriptor = getDescriptor();
+  switch (toTypeClass(descriptor.type)) {
+    default:
+    case binom::VarTypeClass::invalid_type: return 0;
+    case binom::VarTypeClass::primitive: return 1;
+    case binom::VarTypeClass::buffer_array: return descriptor.size / toSize(toValueType(descriptor.type));
+    case binom::VarTypeClass::array: return descriptor.size / sizeof (virtual_index);
+    case binom::VarTypeClass::object: {
+      ObjectDescriptor obj_desriptor = fmm.getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
+      return obj_desriptor.index_count;
+    }
+  }
 }
 
 FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
