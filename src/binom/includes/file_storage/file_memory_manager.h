@@ -9,8 +9,6 @@
 
 namespace binom {
 
-// NOTE: Use the virtual index of the node descriptor as a store for primitive values
-
 class FileMemoryManager {
   FileIO file;
   NodePageVector node_page_vector;

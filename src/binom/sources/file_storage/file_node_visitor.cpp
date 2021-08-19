@@ -47,10 +47,14 @@ public:
       dropPosition();
 
     for(;name_length_it != name_length_end; ++name_length_it) {
-      if(name_length_it->char_type != type || name_length_it->name_length != name_length) {
+      if(name_length_it->char_type < type || name_length_it->name_length < name_length) {
         index_it += name_length_it->name_count;
         name_it += toSize(name_length_it->char_type) * name_length_it->name_length * name_length_it->name_count;
-      } else break;
+      } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
+      else {
+        name_length_it = name_length_end;
+        break;
+      }
     }
     return *this;
   }
@@ -127,16 +131,23 @@ public:
       } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
       else { // Insertion between name blocks
         name_lengths.insert<ObjectNameLength>(name_length_it - name_lengths.begin<ObjectNameLength>(), 0, {type, name_length, 0});
+        ++descriptor.length_element_count;
         names.insert(name_it - names.begin(), name.toByteArray());
+        descriptor.name_block_size += name.getDataSize();
         indexes.insert<virtual_index>(index_it - indexes.begin<virtual_index>(), 0, node_index);
+        ++descriptor.index_count;
+
         return;
       }
     }
 
     if (name_length_it == name_length_end) { // Insertion at the end of Object
       name_lengths.pushBack<ObjectNameLength>({type, name_length, 0});
+      ++descriptor.length_element_count;
       names.pushBack(name.toByteArray());
+      descriptor.name_block_size += name.getDataSize();
       indexes.pushBack<virtual_index>(node_index);
+      ++descriptor.index_count;
       return;
     }
 
@@ -168,9 +179,68 @@ public:
 
     name_it += middle*name_byte_length;
     names.insert(name_it - names.begin(), name.toByteArray());
+    descriptor.name_block_size += name.getDataSize();
     index_it += middle;
     indexes.insert<virtual_index>(index_it - indexes.begin<virtual_index>(), 0, node_index);
+    ++descriptor.index_count;
     ++name_length_it->name_count;
+  }
+
+  bool remove(BufferArray name) {
+    if(name_length_it != name_lengths.begin<ObjectNameLength>())
+      dropPosition();
+
+    const ValType type = name.getValType();
+    const ui64 name_length = name.getMemberCount();
+    for(;name_length_it != name_length_end; ++name_length_it) {
+      if(name_length_it->char_type < type || name_length_it->name_length < name_length) {
+        index_it += name_length_it->name_count;
+        name_it += toSize(name_length_it->char_type) * name_length_it->name_length * name_length_it->name_count;
+      } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
+      else return false;
+    }
+
+    const ui8 char_size = toSize(name_length_it->char_type);
+    const i64 name_count = name_length_it->name_count;
+    const ui64 name_byte_length = name_length_it->name_length*char_size;
+
+    i64 middle = 0;
+    i64 left = 0;
+    i64 right = name_length_it->name_count;
+
+    while(true) {
+      middle = (left + right) / 2;
+
+      if(left > right || middle > name_count) {
+        middle = -1;
+        break;
+      }
+
+      int cmp = memcmp(name_it + middle*name_byte_length, name.getDataPointer(), name_byte_length);
+
+      if(cmp > 0) right = middle - 1;
+      elif(cmp < 0) left = middle + 1;
+      else break;
+    }
+
+    if(middle == -1) {
+      name_it = name_end;
+      return false;
+    } else {
+      name_it += middle*name_byte_length;
+      index_it += middle;
+    }
+
+    names.remove(name_it - names.begin(), name_byte_length);
+    descriptor.name_block_size += name.getDataSize();
+    indexes.remove<virtual_index>(index_it - indexes.begin<virtual_index>(), 0);
+    --descriptor.index_count;
+    if(!--name_length_it->name_count) {
+      name_lengths.remove<ObjectNameLength>(name_length_it - name_lengths.begin<ObjectNameLength>(), 0);
+      --descriptor.length_element_count;
+    }
+
+    return true;
   }
 
   ByteArray getNodeData() {
@@ -215,7 +285,7 @@ BufferArray FileNodeVisitor::buildBufferArray(virtual_index node_index, const No
   if(toTypeClass(descriptor.type) != VarTypeClass::buffer_array)
     throw Exception(ErrCode::binom_invalid_type);
   ByteArray data = fmm.getNodeData(descriptor);
-  data.pushFront<ui64>(data.length());
+  data.pushFront<ui64>(data.length() / toSize(toValueType(descriptor.type)));
   data.pushFront(descriptor.type);
   void* variable = data.unfree();
   return *reinterpret_cast<BufferArray*>(&variable);
@@ -230,7 +300,7 @@ Array FileNodeVisitor::buildArray(virtual_index node_index, const NodeDescriptor
   ByteArray data = fmm.getNodeData(descriptor);
   for(auto it = data.begin<virtual_index>(), end = data.end<virtual_index>(); it != end; ++it)
     new(it) Variable(buildVariable(*it));
-  data.pushFront<ui64>(data.length());
+  data.pushFront<ui64>(data.length() / sizeof (void*));
   data.pushFront(descriptor.type);
   void* variable = data.unfree();
   return *reinterpret_cast<Array*>(&variable);
@@ -308,6 +378,7 @@ virtual_index FileNodeVisitor::createObject(Object object) {
     ++index_it;
     ++length.name_count;
   }
+  name_length_block += length;
   ObjectDescriptor descriptor{
     name_length_block.length<ObjectNameLength>(),
     name_block.length(),
@@ -482,6 +553,7 @@ void FileNodeVisitor::setVariable(Variable var) {
         ++index_it;
         ++length.name_count;
       }
+      name_length_block += length;
       ObjectDescriptor descriptor{
         name_length_block.length<ObjectNameLength>(),
         name_block.length(),
@@ -713,7 +785,15 @@ void FileNodeVisitor::remove(ui64 index, ui64 count) {
 }
 
 void FileNodeVisitor::remove(BufferArray name) {
-  // Not_Impl
+  ScopedRWGuard lk(current_rwg, LockType::unique_lock);
+  NodeDescriptor descriptor = getDescriptor();
+  if(descriptor.type != VarType::object)
+    throw Exception(ErrCode::binom_invalid_type);
+  if(descriptor.size == 0)
+    throw Exception(ErrCode::binom_out_of_range);
+  ObjectElementFinder finder(fmm.getNodeData(descriptor));
+  if(!finder.remove(std::move(name)))
+    throw Exception(ErrCode::binom_out_of_range);
 }
 
 void FileNodeVisitor::remove(Path path) {

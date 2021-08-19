@@ -15,9 +15,8 @@ enum class VisitorType : ui8 {
 };
 
 class NodeVisitorBase {
-protected:
-  virtual ~NodeVisitorBase() = default;
 public:
+  virtual ~NodeVisitorBase() = default;
 
   virtual VarType getType() const = 0;
   virtual VisitorType getVisitorType() const = 0;

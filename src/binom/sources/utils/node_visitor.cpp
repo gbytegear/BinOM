@@ -17,6 +17,8 @@ NodeVisitor::NodeVisitor(ValueRef val) : ref_type(RefType::value), ref(val) {}
 
 NodeVisitor::NodeVisitor(const NodeVisitor& other) : ref_type(other.ref_type), ref(other.ref) {}
 
+NodeVisitor::NodeVisitor(NodeVisitor&& other) : ref_type(other.ref_type), ref(other.ref) {}
+
 NodeVisitor& NodeVisitor::operator=(Variable* var) {
   ref_type = RefType::variable;
   ref.variable = var;
@@ -306,8 +308,8 @@ NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
   if(!isIterable()) return node_vector;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
-    if(node.test(query, index))
-      node_vector.emplace_back(node);
+//    if(node.test(query, index))
+//      node_vector.emplace_back(std::make_unique(node));
     ++index;
   }
   return node_vector;
@@ -341,24 +343,24 @@ void NodeVisitor::foreach(std::function<void (NodeVisitor&)> callback) {
   for(NodeVisitor node : *this) callback(node);
 }
 
-NodeVector::NodeVector(NodeVector&& other) : data(std::move(other.data)) {}
-NodeVector::NodeVector(const NodeVector& other) : data(other.data) {}
-void NodeVector::pushBack(NodeVisitor node) {data.pushBack(node);}
-NodeVisitor& NodeVector::get(ui64 index) {return data.get<NodeVisitor>(index);}
-NodeVisitor& NodeVector::operator[](ui64 index) {return get(index);}
-ui64 NodeVector::length() {return data.length<NodeVisitor>();}
-NodeVector::iterator NodeVector::begin() {return data.begin<NodeVisitor>();}
-NodeVector::iterator NodeVector::end() {return reinterpret_cast<iterator>(data.end());}
-NodeVector& NodeVector::foreach(std::function<void (NodeVisitor&)> callback) {for(NodeVisitor& node : *this)callback(node);return *this;}
-NodeVector& NodeVector::ifEmpty(std::function<void ()> callback) {if(length() == 0) callback(); return *this;}
+//NodeVector::NodeVector(NodeVector&& other) : data(std::move(other.data)) {}
+//NodeVector::NodeVector(const NodeVector& other) : data(other.data) {}
+//void NodeVector::pushBack(NodeVisitor node) {data.pushBack(node);}
+//NodeVisitor& NodeVector::get(ui64 index) {return data.get<NodeVisitor>(index);}
+//NodeVisitor& NodeVector::operator[](ui64 index) {return get(index);}
+//ui64 NodeVector::length() {return data.length<NodeVisitor>();}
+//NodeVector::iterator NodeVector::begin() {return data.begin<NodeVisitor>();}
+//NodeVector::iterator NodeVector::end() {return reinterpret_cast<iterator>(data.end());}
+//NodeVector& NodeVector::foreach(std::function<void (NodeVisitor&)> callback) {for(NodeVisitor& node : *this)callback(node);return *this;}
+//NodeVector& NodeVector::ifEmpty(std::function<void ()> callback) {if(length() == 0) callback(); return *this;}
 
-Array NodeVector::toArray() {
-  ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
-  array_data.get<VarType>(0) = VarType::array;
-  array_data.get<ui64>(0, 1) = length();
-  iterator it = begin();
-  for(Variable& var : array_data.get<Array>(0))
-    new(&var) Variable(it->getVariable());
-  void* ptr = array_data.unfree();
-  return *reinterpret_cast<Array*>(&ptr);
-}
+//Array NodeVector::toArray() {
+//  ByteArray array_data(1 + sizeof(ui64) + length() * PTR_SZ);
+//  array_data.get<VarType>(0) = VarType::array;
+//  array_data.get<ui64>(0, 1) = length();
+//  iterator it = begin();
+//  for(Variable& var : array_data.get<Array>(0))
+//    new(&var) Variable(it->getVariable());
+//  void* ptr = array_data.unfree();
+//  return *reinterpret_cast<Array*>(&ptr);
+//}

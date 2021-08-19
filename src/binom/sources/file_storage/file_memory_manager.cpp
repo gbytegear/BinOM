@@ -121,8 +121,8 @@ VMemoryBlock FileMemoryManager::allocHeapBlock(block_size size) {
 }
 
 virtual_index FileMemoryManager::allocNode() {
-  if(db_header.root_node.isFree())
-    return 0;
+//  if(db_header.root_node.isFree())
+//    return 0;
 
   virtual_index v_index = 1;
   if(node_page_vector.empty()) allocNodePage();
@@ -404,11 +404,11 @@ virtual_index FileMemoryManager::createNode(VarType type, ByteArray data) {
 
 void FileMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArray data, NodeDescriptor* descriptor_ptr) {
 
-  if(node_index == 0) {
-    removeNode(0);
-    createNode(type, std::move(data));
-    return;
-  }
+//  if(node_index == 0) {
+//    removeNode(0);
+//    createNode(type, std::move(data));
+//    return;
+//  }
 
   NodeDescriptor descriptor = descriptor_ptr? *descriptor_ptr : getNodeDescriptor(node_index);
   if(type == VarType::end) type = descriptor.type;

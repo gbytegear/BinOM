@@ -98,7 +98,7 @@ public:
   void insert(ui64 index, Variable var) override;
   void insert(BufferArray name, Variable var) override;
   void remove(ui64 index, ui64 count = 0) override;
-  void remove(BufferArray name) override; /* Not_Impl */
+  void remove(BufferArray name) override;
   void remove(Path path) override;
 
   inline FileNodeVisitor getChild(ui64 index) const {return FileNodeVisitor(*this)(index);}
