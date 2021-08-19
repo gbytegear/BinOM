@@ -37,6 +37,8 @@ public:
   void reset(ui64 new_length);
   void resize(ui64 new_length);
   iterator addSize(ui64 add);
+  iterator addSizeFront(ui64 add);
+  iterator addSizeTo(ui64 to, ui64 add);
   void subSize(ui64 sub);
 
   template<typename Type>
@@ -96,6 +98,9 @@ public:
 
   ByteArray takeBack(ui64 size);
   ByteArray takeFront(ui64 size);
+
+  template<typename Type>
+  ByteArray takeFrom(ui64 index, ui64 count) {return takeFrom(index * sizeof (Type), count * sizeof (Type));}
   ByteArray takeFrom(ui64 index, ui64 size);
 
   template<typename Type>

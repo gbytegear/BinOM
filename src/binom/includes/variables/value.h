@@ -58,6 +58,22 @@ public:
   inline i32 asI32() const {return asSigned();}
   inline i64 asI64() const {return asSigned();}
 
+  inline f32 asF32() const {return asFloat();}
+  inline f64 asF64() const {return asFloat();}
+
+  inline operator ui8 () {return asUi8();}
+  inline operator ui16 () {return asUi16();}
+  inline operator ui32 () {return asUi32();}
+  inline operator ui64 () {return asUi64();}
+
+  inline operator i8 () {return asI8();}
+  inline operator i16 () {return asI16();}
+  inline operator i32 () {return asI32();}
+  inline operator i64 () {return asI64();}
+
+  inline operator f32 () {return asF32();}
+  inline operator f64 () {return asF64();}
+
   inline ValueIterator& toIterator();
 
   inline bool operator=(const bool value) {return setBool(value);}

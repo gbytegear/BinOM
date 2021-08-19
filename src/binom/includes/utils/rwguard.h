@@ -96,9 +96,9 @@ public:
       shr_ptr.reset();
     }
 
-    void operator=(RWGuard&& other) {
+    RWGuard& operator=(RWGuard&& other) {
       this->~RWGuard();
-      new(this) RWGuard(std::move(other));
+      return *new(this) RWGuard(std::move(other));
     }
 
     LockType getLockType() {return lock_type;}

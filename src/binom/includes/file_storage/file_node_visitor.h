@@ -42,6 +42,8 @@ class FileNodeVisitor : public NodeVisitorBase {
   virtual_index createArray(Array array);
   virtual_index createObject(Object object);
 
+  ByteArray getContainedNodeIndexes(virtual_index node_index);
+
   NodeDescriptor getDescriptor() const {
     if(node_index == null_index) return NodeDescriptor::null();
     auto lk = getScopedRWGuard(LockType::shared_lock);
@@ -90,21 +92,21 @@ public:
   inline Variable getVariable(BufferArray name) const {return getChild(name).getVariable();}
   inline Variable getVariable(Path path) const {return getChild(path).getVariable();}
 
-  void setVariable(Variable var) override; /* Not implemented */
-  void pushBack(Variable var) override; /* Not implemented */
-  void pushFront(Variable var) override; /* Not implemented */
-  void insert(ui64 index, Variable var) override; /* Not implemented */
-  void insert(BufferArray name, Variable var) override; /* Not implemented */
-  void remove(ui64 index, ui64 count) override; /* Not implemented */
-  void remove(BufferArray name) override; /* Not implemented */
-  void remove(Path path) override; /* Not implemented */
+  void setVariable(Variable var) override;
+  void pushBack(Variable var) override;
+  void pushFront(Variable var) override;
+  void insert(ui64 index, Variable var) override;
+  void insert(BufferArray name, Variable var) override;
+  void remove(ui64 index, ui64 count = 0) override;
+  void remove(BufferArray name) override; /* Not_Impl */
+  void remove(Path path) override;
 
   inline FileNodeVisitor getChild(ui64 index) const {return FileNodeVisitor(*this)(index);}
   inline FileNodeVisitor getChild(BufferArray name) const {return FileNodeVisitor(*this)(name);}
   inline FileNodeVisitor getChild(Path path) const {return FileNodeVisitor(*this)(path);}
 
-  NodeVector findAll(Query query, NodeVector node_vector = NodeVector()); /* Not implemented */
-  FileNodeVisitor find(Query query); /* Not implemented */
+  NodeVector findAll(Query query, NodeVector node_vector = NodeVector()); /* Not_Impl */
+  FileNodeVisitor find(Query query); /* Not_Impl */
 
   FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}

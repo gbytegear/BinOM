@@ -143,7 +143,26 @@ void ByteArray::resize(ui64 new_length) {
 ByteArray::iterator ByteArray::addSize(ui64 add) {
   ui64 old_length = _length;
   array = tryRealloc<byte>(array, _length += add);
-  return array + old_length;
+  iterator it = array + old_length;
+  memset(it, 0, add);
+  return it;
+}
+
+ByteArray::iterator ByteArray::addSizeFront(ui64 add) {
+  ui64 old_length = _length;
+  addSize(add);
+  memmove(array + add, array, old_length);
+  memset(array, 0, add);
+  return array;
+}
+
+ByteArray::iterator ByteArray::addSizeTo(ui64 to, ui64 add) {
+  ui64 old_length = _length;
+  array = tryRealloc<byte>(array, _length += add);
+  iterator it = array + to;
+  memmove(it + add, it, old_length - add);
+  memset(it, 0, add);
+  return it;
 }
 
 void ByteArray::subSize(ui64 sub) {
@@ -156,6 +175,16 @@ ByteArray ByteArray::takeFront(ui64 size) {
   memcpy(_new.begin(), begin(), size);
   _length -= size;
   memmove(begin(), begin() + size, _length);
+  array = tryRealloc<byte>(array, _length);
+  return _new;
+}
+
+ByteArray ByteArray::takeFrom(ui64 index, ui64 size) {
+  if(index + size > _length) throw Exception(ErrCode::any);
+  ByteArray _new(size);
+  memcpy(_new.begin(), begin() + index, size);
+  _length -= size;
+  memmove(begin() + index, begin() + index + size, _length - index);
   array = tryRealloc<byte>(array, _length);
   return _new;
 }

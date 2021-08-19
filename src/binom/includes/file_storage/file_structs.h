@@ -315,7 +315,7 @@ struct DBHeader {
   NodeDescriptor root_node;
 
   VersionDifference checkFileVersion() {
-    if(memcmp(version.file_type, current.file_type, sizeof (current.file_type)))
+    if(memcmp(version.file_type, current.file_type, sizeof(current.file_type)))
       return VersionDifference::file_type;
     if(version.major != current.major)
       return VersionDifference::major;
