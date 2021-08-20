@@ -403,18 +403,12 @@ virtual_index FileMemoryManager::createNode(VarType type, ByteArray data) {
 }
 
 void FileMemoryManager::updateNode(virtual_index node_index, VarType type, ByteArray data, NodeDescriptor* descriptor_ptr) {
-
-//  if(node_index == 0) {
-//    removeNode(0);
-//    createNode(type, std::move(data));
-//    return;
-//  }
-
   NodeDescriptor descriptor = descriptor_ptr? *descriptor_ptr : getNodeDescriptor(node_index);
   if(type == VarType::end) type = descriptor.type;
   virtual_index rm_index = virtual_index(-1);
   if(toTypeClass(descriptor.type) != VarTypeClass::primitive)
-    rm_index = descriptor.index;
+    if(node_index || !descriptor.isFree())
+      rm_index = descriptor.index;
 
   switch (toTypeClass(type)) {
     case binom::VarTypeClass::primitive:
@@ -497,7 +491,16 @@ void FileMemoryManager::removeNode(virtual_index node_index) {
 
 }
 
-IF_DEBUG(
+
+
+
+
+
+#ifdef DEBUG
+#include <iomanip>
+#include "binom/includes/variables/buffer_array.h"
+#include "binom/includes/variables/variable.h"
+
 void binom::FileMemoryManager::check() {
   std::clog << "Check nodes:\n";
   if(!db_header.root_node.isFree()) {
@@ -506,21 +509,84 @@ void binom::FileMemoryManager::check() {
          std::clog << "[ <root> type: " << toTypeString(descriptor.type) << "; value: " << descriptor.index << "; ]\n";
     else std::clog << "[ <root> type: " << toTypeString(descriptor.type) << "; index: " << descriptor.index << "; size: " << descriptor.size << "; ]\n";
   }
+  virtual_index index = 0;
   for(auto node_page : node_page_vector) {
-    std::clog << "Page position: " << node_page.page_position
+    std::clog << "Page position: 0x" << std::hex << node_page.page_position << std::dec
               << "\nPage nodes:\n";
     for(auto bit : node_page.descriptor.node_map) {
-      if(bit.get()) {
-        NodeDescriptor descriptor = file.read<NodeDescriptor>(node_page.page_position + sizeof (NodePageDescriptor) + bit.getBitIndex()*sizeof(NodeDescriptor));
-        if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
-             std::clog << "[ type: " << toTypeString(descriptor.type) << "; value: " << descriptor.index << "; ]\n";
-        else std::clog << "[ type: " << toTypeString(descriptor.type) << "; index: " << descriptor.index << "; size: " << descriptor.size << "; ]\n";
-      } else std::clog << "[ <Free node> ]\n";
-    }
-    std::clog << "\n\n";
-  }
-  std::clog << "Check heap blocks:\n";
-  heap_map.check();
-}
-)
+          ++index;
+          if(bit.get()) {
+            NodeDescriptor descriptor = file.read<NodeDescriptor>(node_page.page_position + sizeof (NodePageDescriptor) + bit.getBitIndex()*sizeof(NodeDescriptor));
+            if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
+              std::clog << "index: " << index << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec << ":[ type: " << toTypeString(descriptor.type) << "; value: " << descriptor.index << "; ]\n";
+            else {
+              std::clog << "index: " << index << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec << ":[ type: " << toTypeString(descriptor.type) << "; index: " << descriptor.index << "; size: " << descriptor.size << "; ]\n";
 
+              ByteArray data = getNodeData(descriptor);
+              std::clog << "| at: 0x" << std::hex << translateVHeapIndex(descriptor.index) << std::dec << "; data: ";
+              switch (toTypeClass(descriptor.type)) {
+                case binom::VarTypeClass::object:{
+                  if(!descriptor.size) break;
+                  ByteArray indexes(getNodeData(descriptor));
+                  ObjectDescriptor descriptor(indexes.takeFront<ObjectDescriptor>());
+                  ByteArray name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength)));
+                  ByteArray names(indexes.takeFront(descriptor.name_block_size));
+                  byte* name_it(names.begin());
+                  virtual_index* index_it(indexes.begin<virtual_index>());
+
+                  for(ObjectNameLength* it = name_lengths.begin<ObjectNameLength>(),
+                      * end = name_lengths.end<ObjectNameLength>();
+                      it != end; ++it) {
+                    ui64 name_count = it->name_count;
+                    while (name_count) {
+                      NodeDescriptor des = getNodeDescriptor(*index_it);
+                      std::clog << "\n|| name: " << BufferArray(it->char_type, name_it, it->name_length)
+                                << "; index: " << *index_it << "; node: ";
+                      if(toTypeClass(des.type) == VarTypeClass::primitive) {
+                        std::clog << "[ type: " << toTypeString(des.type) << "; value: " << des.index << "; ]";
+                      } else {
+                        std::clog << "[ type: " << toTypeString(des.type) << "; index: " << des.index << "; size: " << des.size << "; ]";
+                      }
+                      --name_count;
+                      name_it += it->name_length;
+                      ++index_it;
+                    }
+                  }
+
+                }break;
+
+                case binom::VarTypeClass::buffer_array:
+                for(auto byte : data)
+                std::clog << std::right << std::setw(2) << std::setfill('0') << std::hex << int(byte) << ' ';
+                std::clog << std::dec;
+                break;
+
+                case binom::VarTypeClass::array:
+                for(virtual_index* index_it = data.begin<virtual_index>(),
+                * index_end = data.end<virtual_index>();
+                index_it != index_end; ++index_it) {
+                  NodeDescriptor des = getNodeDescriptor(*index_it);
+                  std::clog << "\n|| index: " << *index_it << "; node: ";
+                  if(toTypeClass(des.type) == VarTypeClass::primitive) {
+                    std::clog << "[ type: " << toTypeString(des.type) << "; value: " << des.index << "; ]";
+                  } else {
+                    std::clog << "[ type: " << toTypeString(des.type) << "; index: " << des.index << "; size: " << des.size << "; ]";
+                  }
+                }
+                break;
+
+                default: break;
+
+              }
+              std::clog << "\n+---------\n\n";
+
+            }
+          } else std::clog << "index: " << index << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec << ":[ <Free node> ]\n";
+    }
+    std::clog << "\n";
+  }
+//  std::clog << "Check heap blocks:\n";
+//  heap_map.check();
+}
+
+#endif

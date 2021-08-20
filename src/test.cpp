@@ -15,12 +15,18 @@ int main() {
     std::clog << "=========================================================================\n"
                  "|                    Test completed successfully                        |\n"
                  "=========================================================================\n";
+    return 0;
 
   } catch(Exception& except) {
     std::cerr << except.full() << std::endl;
   } catch(std::exception& except) {
     std::cerr << except.what() << std::endl;
+  } catch(...) {
+    std::cerr << "Unknown exception!\n";
   }
 
-  return 0;
+  std::cerr << "=========================================================================\n"
+               "|                   !!! Test ended abnormally !!!                       |\n"
+               "=========================================================================\n";
+
 }

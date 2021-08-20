@@ -92,6 +92,7 @@ public:
   inline std::recursive_mutex& getHeapControlMutex() {return mtx;}
 
   void occupyBlock(virtual_index v_index, block_size size) {
+    if(!size) return;
     block_iterator block_it = --block_map.upper_bound(v_index);
     if(block_it->second.is_busy)
       throw Exception(ErrCode::binomdb_memory_management_error, "Tryimg occupy busy block");
@@ -127,6 +128,7 @@ public:
   }
 
   void expandMemory(block_size add) {
+    if(!add) return;
     std::scoped_lock s_lock(mtx);
     if(block_map.empty()) {
       block_iterator it = block_map.emplace<virtual_index, HeapBlock>(0, HeapBlock{false, add}).first;
@@ -146,6 +148,7 @@ public:
   }
 
   VMemoryBlock allocBlock(block_size size) {
+    if(!size) return VMemoryBlock{0, 0};
     std::scoped_lock s_lock(mtx);
     free_block_iterator free_block_it = findFree(size);
     if(free_block_it == free_block_map.cend()) return VMemoryBlock{0, 0};

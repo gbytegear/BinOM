@@ -16,6 +16,9 @@ public:
     return FileNodeVisitor(fmm, index, element_index);
   }
 
+#ifdef DEBUG
+  void check() {fmm.check();}
+#endif
 };
 
 }
