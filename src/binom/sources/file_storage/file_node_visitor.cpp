@@ -130,7 +130,7 @@ public:
         name_it += toSize(name_length_it->char_type) * name_length_it->name_length * name_length_it->name_count;
       } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
       else { // Insertion between name blocks
-        name_lengths.insert<ObjectNameLength>(name_length_it - name_lengths.begin<ObjectNameLength>(), 0, {type, name_length, 0});
+        name_lengths.insert<ObjectNameLength>(name_length_it - name_lengths.begin<ObjectNameLength>(), 0, {type, name_length, 1});
         ++descriptor.length_element_count;
         names.insert(name_it - names.begin(), name.toByteArray());
         descriptor.name_block_size += name.getDataSize();
@@ -142,10 +142,10 @@ public:
     }
 
     if (name_length_it == name_length_end) { // Insertion at the end of Object
-      name_lengths.pushBack<ObjectNameLength>({type, name_length, 0});
+      name_lengths.pushBack<ObjectNameLength>({type, name_length, 1});
       ++descriptor.length_element_count;
       names.pushBack(name.toByteArray());
-      descriptor.name_block_size += name.getDataSize();
+      descriptor.name_block_size = names.length();
       indexes.pushBack<virtual_index>(node_index);
       ++descriptor.index_count;
       return;

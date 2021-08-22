@@ -74,7 +74,8 @@ void file_node_visitor_test() {
 //        }
 //  );
 
-//  root_node.insert("Hello", "World"); // Oh shit, here we go again...
+  root_node.insert("Hello", "World");
+  root_node.insert("Hel","lo");
 
 //  root_node.setVariable(vobj{
 //                          {"usr", varr{

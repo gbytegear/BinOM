@@ -309,8 +309,8 @@ NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
   ui64 index = 0;
   for(NodeVisitor node : *this) {
 //    if(node.test(query, index))
-//      node_vector.emplace_back(std::make_unique(node));
-    ++index;
+//      node_vector.emplace_back(node);
+//    ++index;
   }
   return node_vector;
 }
