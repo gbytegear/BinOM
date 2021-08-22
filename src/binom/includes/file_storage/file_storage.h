@@ -12,6 +12,7 @@ public:
     : fmm(file_name) {}
 
   FileNodeVisitor getRoot() {return fmm;}
+  inline operator FileNodeVisitor () {return fmm;}
   FileNodeVisitor getNode(virtual_index index, real_index element_index = 0xFFFFFFFFFFFFFFFF) {
     return FileNodeVisitor(fmm, index, element_index);
   }

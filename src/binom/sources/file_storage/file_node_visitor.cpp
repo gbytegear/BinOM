@@ -572,7 +572,6 @@ void FileNodeVisitor::setVariable(Variable var) {
       throw Exception(ErrCode::binom_invalid_type);
   }
 
-
   // Delete member nodes of current node
   ByteArray indexes = getContainedNodeIndexes(node_index);
   for(virtual_index* index_it = indexes.begin<virtual_index>(),
