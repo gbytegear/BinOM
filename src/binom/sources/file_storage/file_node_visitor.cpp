@@ -521,6 +521,8 @@ void FileNodeVisitor::setVariable(Variable var) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   ByteArray data;
 
+//  if()
+
   // Create member nodes & construct data of current node
   switch (var.typeClass()) {
     case binom::VarTypeClass::primitive:
@@ -580,7 +582,7 @@ void FileNodeVisitor::setVariable(Variable var) {
     fmm.removeNode(*index_it);
 
   // Update node
-  fmm.updateNode(node_index, var.type(), data);
+  fmm.updateNode(node_index, var.type(), std::move(data));
 }
 
 void FileNodeVisitor::pushBack(Variable var) {
@@ -674,7 +676,7 @@ void FileNodeVisitor::pushFront(Variable var) {
     } break;
   }
 
-  fmm.updateNode(node_index, descriptor.type, data, &descriptor);
+  fmm.updateNode(node_index, descriptor.type, std::move(data), &descriptor);
 }
 
 void FileNodeVisitor::insert(ui64 index, Variable var) {
@@ -722,7 +724,7 @@ void FileNodeVisitor::insert(ui64 index, Variable var) {
     } break;
   }
 
-  fmm.updateNode(node_index, data, &descriptor);
+  fmm.updateNode(node_index, std::move(data), &descriptor);
 }
 
 void FileNodeVisitor::insert(BufferArray name, Variable var) {

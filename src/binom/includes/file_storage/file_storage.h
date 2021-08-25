@@ -8,8 +8,16 @@ namespace binom {
 class FileStorage {
   FileMemoryManager fmm;
 public:
+
   FileStorage(std::string_view file_name)
     : fmm(file_name) {}
+
+  FileStorage(std::string_view file_name, Variable init_var, bool force_init = false)
+    : fmm(file_name) {
+    if(force_init || fmm.isEmpty())
+      getRoot().setVariable(init_var);
+  }
+
 
   FileNodeVisitor getRoot() {return fmm;}
   inline operator FileNodeVisitor () {return fmm;}

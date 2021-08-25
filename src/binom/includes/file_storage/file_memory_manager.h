@@ -51,6 +51,8 @@ public:
   inline void updateNode(virtual_index node_index, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr) {return updateNode(node_index, VarType::end, std::move(data), descriptor_ptr);}
   void removeNode(virtual_index node_index);
 
+  inline bool isEmpty() {return db_header.root_node.isFree();}
+
   inline RWSyncMap::RWGuard getRWGuard(f_virtual_index node_index) {return sync_map.get(node_index);}
 
 IF_DEBUG(
