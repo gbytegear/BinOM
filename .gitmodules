@@ -1,6 +1,3 @@
-[submodule "TcpServer"]
-	path = src/TcpServer
-	url = https://github.com/gbytegear/TcpServer
 [submodule "src/TcpServer"]
 	path = src/TcpServer
 	url = https://github.com/gbytegear/TcpServer

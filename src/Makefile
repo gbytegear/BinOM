@@ -1,26 +1,32 @@
+CXX_CMP = clang++
+CXX_FLAGS = -std=c++17 -O3 -fPIC -w
+CXX_FLAGS_DBG = -std=c++17 -Wall -g
+CXX_SRC = binom/sources/*.cpp binom/sources/variables/*.cpp binom/sources/file_storage/*.cpp binom/sources/utils/*.cpp
+LD_SHARED_FLAGS = -fPIC -shared
+LD_FLAGS =
+
+ifeq ($(CXX_CMP), g++)
+LIBS = -lpthread -lstdc++fs
+endif
+ifeq ($(CXX_CMP), clang++)
+LIBS = -lpthread -lstdc++fs
+endif
+
 # Compile objects for libraries
 objects:
-	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -std=c++17 -O3 -fPIC -w
+	$(CXX_CMP) -c -I. $(CXX_SRC) $(CXX_FLAGS)
 
 # Compile objects for Tcp
 objects_tcp:
-	g++ -c -I./TcpServer ./TcpServer/tcp/src/*.cpp -std=c++17 -O3 -fPIC -w
+	$(CXX_CMP) -c -I./TcpServer ./TcpServer/tcp/src/*.cpp $(CXX_FLAGS)
 
 # Compile objects for test (with debug symbols)
 objects_dbg:
-	g++ -c -I. binom/sources/*.cpp binom/sources/structure/*.cpp binom/sources/structure/variables/*.cpp binom/sources/structure/file_storage/*.cpp -lstdc++fs -std=c++17 -O3 -g
+	$(CXX_CMP) -c -I. $(CXX_SRC) $(CXX_FLAGS_DBG)
 
 # Compile objects for Tcp (with debug symbols)
 objects_tcp_dbg:
-	g++ -c -I./TcpServer ./TcpServer/tcp/src/*.cpp -std=c++17 -O3 -g -fPIC
-
-# Compile objects for ToolKit
-objects_tk: objects
-	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC -w
-
-# Compile objects for ToolKit (with debug symbols)
-objects_tk_dbg: objects_dbg
-	g++ -c -I. toolkit/*cpp -std=c++17 -O3 -fPIC -g
+	$(CXX_CMP) -c -I./TcpServer ./TcpServer/tcp/src/*.cpp $(CXX_FLAGS_DBG)
 
 # Compile static library
 libbinom.a: objects
@@ -28,15 +34,15 @@ libbinom.a: objects
 
 # Compile shared object
 libbinom.so: objects
-	g++ -fPIC -shared -o libbinom.so *.o
+	$(CXX_CMP) $(LD_SHARED_FLAGS) -o libbinom.so *.o
 
 # Compile test programm with debug symbols
-test_dbg: objects_dbg objects_tcp_dbg
-	g++ -I. test.cpp *.o -lstdc++fs -lpthread -o test -std=c++17 -O3 -g
+test_dbg: objects_dbg
+	$(CXX_CMP) -I. test.cpp *.o -o test $(LIBS) $(CXX_FLAGS_DBG)
 
 # Compile test programm
-test: objects objects_tcp
-	g++ -I. test.cpp *.o -lstdc++fs -lpthread -o test -std=c++17 -O3
+test: objects
+	$(CXX_CMP) -I. test.cpp *.o -o test $(LIBS) $(CXX_FLAGS)
 
 # Compile libraries and move to folder "lbinom" with C++ headers
 libs: libbinom.a libbinom.so
@@ -45,22 +51,11 @@ libs: libbinom.a libbinom.so
 	mv libbinom.so ../build
 	cp binom/includes ../build -r
 
-# BinOM Command Line ToolKit (with debug symbols)
-toolkit_dbg: objects_tk_dbg
-	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -w
-
-# BinOM Command Line ToolKit
-toolkit: objects_tk
-	g++ toolkit.cpp *.o -lstdc++fs -o binomtk -std=c++17 -O3 -w
-	mkdir ../build -p
-	mv binomtk ../build
-
-all: libs toolkit
+all: libs
 	make clean
 
 clean:
 	rm -rf ./*.o ./*.a test ./*.binom ./*.binomdb ./lbinom/ *.pro.user
-
 
 # Remove all object files
 clean_o:

@@ -17,11 +17,13 @@ win32 {
 
 SOURCES += \
     test.cpp
-#    toolkit.cpp
+
+HEADERS += \
+    tests/file_node_visitor_test.h \
+    tests/heap_blocks_test.h \
+    tests/memory_manager_test.h \
+    tests/multithreading_test.h \
+    tests/var_test.h
 
 SUBDIRS += \
     BinOM_tools.pro
-
-HEADERS += \
-    examples/binom_tcp_io.h \
-    examples/multithread.h
