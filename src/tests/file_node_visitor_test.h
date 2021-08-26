@@ -9,28 +9,47 @@ void setTest() {
   std::clog << " * File storage has been inited\n";
   FileNodeVisitor root_node = storage;
   std::clog << " * Root node has been getted\n";
-  root_node.setVariable(vobj{
-                          {"a", 1_ui8},
-                          {"b", 2_ui16},
-                          {"c", 4_ui32},
-                          {"d", 8_ui64},
-                          {"e", ui8arr{1,2,3}},
-                          {"f", ui16arr{4,5,6}},
-                          {"g", ui32arr{7,8,9}},
-                          {"h", ui64arr{10,11,12}},
-                          {"j", varr{1,2,3}},
-                          {"k", vobj{
-                            {"a", 1_ui8},
-                            {"b", 2_ui16},
-                            {"c", 4_ui32},
-                            {"d", 8_ui64},
-                            {"e", ui8arr{1,2,3}},
-                            {"f", ui16arr{4,5,6}},
-                            {"g", ui32arr{7,8,9}},
-                            {"h", ui64arr{10,11,12}},
-                            {"j", varr{1,2,3}}
-                          }}
-                        });
+  Variable var = vobj{
+    {ui64arr{1,2,3,255}, ui64arr{4,5,6}},
+    {ui32arr{1,2,3,255}, ui32arr{4,5,6}},
+    {ui16arr{1,2,3,255}, ui16arr{4,5,6}},
+    {ui8arr{1,2,3,255}, ui8arr{4,5,6}},
+    {"a", 1_ui8},
+    {"b", 2_ui16},
+    {"c", 4_ui32},
+    {"d", 8_ui64},
+    {"e", ui8arr{1,2,3}},
+    {"f", ui16arr{4,5,6}},
+    {"g", ui32arr{7,8,9}},
+    {"h", ui64arr{10,11,12}},
+    {"j", varr{1,2,3}},
+    {"k", vobj{
+      {"a", 1_ui8},
+      {"b", 2_ui16},
+      {"c", 4_ui32},
+      {"d", 8_ui64},
+      {"e", ui8arr{1,2,3}},
+      {"f", ui16arr{4,5,6}},
+      {"g", ui32arr{7,8,9}},
+      {"h", ui64arr{10,11,12}},
+      {"j", varr{1,2,3}}
+    }}
+  };
+
+  root_node.setVariable(var);
+
+  std::clog << "=========================================================================\n"
+                 "|                  Check Data of changed Storage BEGIN                  |\n"
+                 "=========================================================================\n";
+
+  storage.check();
+
+  std::clog << "=========================================================================\n"
+                 "|                  Check Data of changed Storage END                    |\n"
+                 "=========================================================================\n";
+
+  std::clog << root_node.getVariable() << '\n';
+  std::clog << "Variable:\n" << var;
 
 }
 
@@ -113,6 +132,7 @@ void bufferArrayInsertTest() {
 
 void file_node_visitor_test() {
   using namespace binom;
+  setTest();
 
 }
 

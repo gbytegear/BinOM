@@ -22,6 +22,7 @@ HEADERS += \
     tests/file_node_visitor_test.h \
     tests/heap_blocks_test.h \
     tests/memory_manager_test.h \
+    tests/multithreading_test.h \
     tests/var_test.h
 
 SUBDIRS += \

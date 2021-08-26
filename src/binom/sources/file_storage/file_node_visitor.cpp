@@ -112,7 +112,7 @@ public:
       while (name_count) {
         handler({it->char_type, it->name_length, name_it, *index_it});
         --name_count;
-        name_it += it->name_length;
+        name_it += it->name_length * toSize(it->char_type);
         ++index_it;
       }
     }
@@ -520,8 +520,6 @@ Variable FileNodeVisitor::getVariable() const {
 void FileNodeVisitor::setVariable(Variable var) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   ByteArray data;
-
-//  if()
 
   // Create member nodes & construct data of current node
   switch (var.typeClass()) {
