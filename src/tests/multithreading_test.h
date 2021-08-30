@@ -102,7 +102,7 @@ void file_storage_multithreading_test() {
   std::clog << "Start multithreading test\n";
   srand(time(nullptr));
   std::list<std::thread> threads;
-  for(int i = 0; i < 20; ++i) {
+  for(int i = 0; i < 1000; ++i) {
     threads.emplace_back(reader);
     threads.emplace_back(writer);
   }

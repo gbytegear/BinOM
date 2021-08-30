@@ -816,3 +816,11 @@ void FileNodeVisitor::remove(Path path) {
       case binom::PathNodeType::name: visitor.remove(last_node.name()); break;
     }
 }
+
+NodeVector FileNodeVisitor::findAll(Query query, NodeVector node_vector) {
+
+}
+
+FileNodeVisitor FileNodeVisitor::find(Query query) {
+
+}

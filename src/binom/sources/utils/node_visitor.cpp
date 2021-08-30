@@ -308,9 +308,9 @@ NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
   if(!isIterable()) return node_vector;
   ui64 index = 0;
   for(NodeVisitor node : *this) {
-//    if(node.test(query, index))
-//      node_vector.emplace_back(node);
-//    ++index;
+    if(node.test(query, index))
+      node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new NodeVisitor(node)));
+    ++index;
   }
   return node_vector;
 }

@@ -63,6 +63,8 @@ class FileNodeVisitor : public NodeVisitorBase {
 
 public:
 
+  class NodeIterator;
+
   FileNodeVisitor(const FileNodeVisitor& other)
     : fmm(other.fmm),
       node_index(other.node_index),
@@ -119,6 +121,16 @@ public:
   NodeVisitor& toRAMVisitor() = delete;
   FileNodeVisitor& toFileVisitor() = delete;
 };
+
+
+class FileNodeVisitor::NodeIterator {
+  ByteArray indexes;
+  ByteArray names;
+  ui64 shift = 0;
+public:
+
+};
+
 
 }
 

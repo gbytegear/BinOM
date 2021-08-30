@@ -9,27 +9,7 @@
 namespace binom {
 
 class NodeVisitor;
-/*
-/usr/include/c++/9/ext/new_allocator.h:145: ошибка: no matching function for call to ‘std::unique_ptr<binom::NodeVisitorBase>::unique_ptr(binom::NodeVisitor&)’
-In file included from /usr/include/x86_64-linux-gnu/c++/9/bits/c++allocator.h:33,
-                 from /usr/include/c++/9/bits/allocator.h:46,
-                 from /usr/include/c++/9/string:41,
-                 from ../src/binom/includes/utils/../variables/../utils/types.h:7,
-                 from ../src/binom/includes/utils/../variables/variable.h:4,
-                 from ../src/binom/includes/utils/node_visitor_base.h:4,
-                 from ../src/binom/includes/utils/node_visitor.h:4,
-                 from ../src/binom/sources/utils/node_visitor.cpp:1:
-/usr/include/c++/9/ext/new_allocator.h: In instantiation of ‘void __gnu_cxx::new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = std::unique_ptr<binom::NodeVisitorBase>; _Args = {binom::NodeVisitor&}; _Tp = std::unique_ptr<binom::NodeVisitorBase>]’:
-/usr/include/c++/9/bits/alloc_traits.h:482:2:   required from ‘static void std::allocator_traits<std::allocator<_CharT> >::construct(std::allocator_traits<std::allocator<_CharT> >::allocator_type&, _Up*, _Args&& ...) [with _Up = std::unique_ptr<binom::NodeVisitorBase>; _Args = {binom::NodeVisitor&}; _Tp = std::unique_ptr<binom::NodeVisitorBase>; std::allocator_traits<std::allocator<_CharT> >::allocator_type = std::allocator<std::unique_ptr<binom::NodeVisitorBase> >]’
-/usr/include/c++/9/bits/vector.tcc:115:30:   required from ‘std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {binom::NodeVisitor&}; _Tp = std::unique_ptr<binom::NodeVisitorBase>; _Alloc = std::allocator<std::unique_ptr<binom::NodeVisitorBase> >; std::vector<_Tp, _Alloc>::reference = std::unique_ptr<binom::NodeVisitorBase>&]’
-../src/binom/sources/utils/node_visitor.cpp:310:36:   required from here
-/usr/include/c++/9/ext/new_allocator.h:145:20: error: no matching function for call to ‘std::unique_ptr<binom::NodeVisitorBase>::unique_ptr(binom::NodeVisitor&)’
-  145 |  noexcept(noexcept(::new((void *)__p)
-      |                    ^~~~~~~~~~~~~~~~~~
-  146 |        _Up(std::forward<_Args>(__args)...)))
-      |        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*/
 class NodeVisitor : public NodeVisitorBase {
   enum class RefType : ui8 {
     variable,
