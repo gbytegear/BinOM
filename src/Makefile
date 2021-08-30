@@ -1,4 +1,4 @@
-CXX_CMP = clang++
+CXX_CMP = g++
 CXX_FLAGS = -std=c++17 -O3 -fPIC -w
 CXX_FLAGS_DBG = -std=c++17 -Wall -g
 CXX_SRC = binom/sources/*.cpp binom/sources/variables/*.cpp binom/sources/file_storage/*.cpp binom/sources/utils/*.cpp

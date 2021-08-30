@@ -106,6 +106,7 @@ void FileMemoryManager::allocHeapPage() {
   }
   HeapPageInfo& last = heap_page_vector.back();
   last.descriptor.next_heap_page = file.addSize(heap_page_size);
+  file.write(last.page_position, last.descriptor);
   file.write(last.descriptor.next_heap_page, descriptor);
   heap_page_vector.push_back(HeapPageInfo{descriptor, last.descriptor.next_heap_page});
   heap_map.expandMemory(heap_page_data_size);
@@ -514,13 +515,70 @@ void FileMemoryManager::removeNode(virtual_index node_index) {
 #include "binom/includes/variables/buffer_array.h"
 #include "binom/includes/variables/variable.h"
 
+void FileMemoryManager::checkHeap() {
+
+  std::clog << "--------------- Heap map check ------------------\n";
+  heap_map.check();
+
+  std::clog << "--------------- Node heap compare ------------------\n";
+  virtual_index index = 0;
+  NodeDescriptor descriptor;
+  VMemoryBlock memory_block;
+  if(!db_header.root_node.isFree()) {
+
+    descriptor = getNodeDescriptor(index);
+    if(toTypeClass(descriptor.type) != VarTypeClass::primitive) {
+      memory_block = heap_map.find(descriptor.index);
+      if(memory_block.isEmpty())
+        std::clog << "index: 0; Invalid virtual index!\n";
+      elif(memory_block.size != descriptor.size)
+        std::clog << "index: 0; Invalid block size in node descriptor!\n";
+      else
+        std::clog << "index: 0; Heap memory block ok\n";
+    } else
+      std::clog << "index: 0; Is primitive\n";
+
+    for(auto node_page : node_page_vector) {
+      for(auto bit : node_page.descriptor.node_map) {
+        ++index;
+
+        if(!bit.get()) {
+          std::clog << "index: " << index << "; Is empty\n";
+          continue;
+        }
+
+        descriptor = getNodeDescriptor(index);
+        if(toTypeClass(descriptor.type) != VarTypeClass::primitive) {
+          memory_block = heap_map.find(descriptor.index);
+          if(memory_block.isEmpty())
+            std::clog << "index: " << index << "; Invalid virtual index!\n";
+          elif(memory_block.size != descriptor.size)
+              std::clog << "index: " << index << "; Invalid block size in node descriptor!\n";
+          else
+          std::clog << "index: " << index << "; Heap memory block ok\n";
+        }else
+          std::clog << "index: " << index << "; Is primitive\n";
+
+      }
+    }
+  } else
+    std::clog << "Root is empty\n";
+}
+
 void binom::FileMemoryManager::check() {
 
   auto printNode = [this](virtual_index index,NodeDescriptor descriptor) {
     if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
-      std::clog << "index: " << index << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec << ":[ type: " << toTypeString(descriptor.type) << "; value: " << descriptor.index << "; ]\n";
+      std::clog << "index: " << index
+                << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec
+                << ":[ type: " << toTypeString(descriptor.type)
+                << "; value: " << descriptor.index << "; ]\n";
     else {
-      std::clog << "index: " << index << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec << ":[ type: " << toTypeString(descriptor.type) << "; index: " << descriptor.index << "; size: " << descriptor.size << "; ]\n";
+      std::clog << "index: " << index
+                << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec
+                << ":[ type: " << toTypeString(descriptor.type)
+                << "; index: " << descriptor.index
+                << "; size: " << descriptor.size << "; ]\n";
 
       ByteArray data = getNodeData(descriptor);
       std::clog << "| at: 0x" << std::hex << translateVHeapIndex(descriptor.index) << std::dec << "; data: ";
@@ -541,12 +599,17 @@ void binom::FileMemoryManager::check() {
             while (name_count) {
               NodeDescriptor des = getNodeDescriptor(*index_it);
               std::clog << "\n|| name: " << BufferArray(it->char_type, name_it, it->name_length)
-                        << "; index: " << *index_it << "; node: ";
-              if(toTypeClass(des.type) == VarTypeClass::primitive) {
-                std::clog << "[ type: " << toTypeString(des.type) << "; value: " << des.index << "; ]";
-              } else {
-                std::clog << "[ type: " << toTypeString(des.type) << "; index: " << des.index << "; size: " << des.size << "; ]";
-              }
+                        << "; index: " << *index_it
+                        << "; node: ";
+
+              if(toTypeClass(des.type) == VarTypeClass::primitive)
+                std::clog << "[ type: " << toTypeString(des.type)
+                          << "; value: " << des.index << "; ]";
+              else
+                std::clog << "[ type: " << toTypeString(des.type)
+                          << "; index: " << des.index
+                          << "; size: " << des.size << "; ]";
+
               --name_count;
               name_it += it->name_length;
               ++index_it;
@@ -557,8 +620,7 @@ void binom::FileMemoryManager::check() {
 
         case binom::VarTypeClass::buffer_array:
         for(auto byte : data)
-        std::clog << std::right << std::setw(2) << std::setfill('0') << std::hex << int(byte) << ' ';
-        std::clog << std::dec;
+        std::clog << std::right << std::setw(2) << std::setfill('0') << std::hex << int(byte) << ' ' << std::dec;
         break;
 
         case binom::VarTypeClass::array:
@@ -566,11 +628,15 @@ void binom::FileMemoryManager::check() {
         * index_end = data.end<virtual_index>();
         index_it != index_end; ++index_it) {
           NodeDescriptor des = getNodeDescriptor(*index_it);
-          std::clog << "\n|| index: " << *index_it << "; node: ";
+          std::clog << "\n|| index: " << *index_it
+                    << "; node: ";
           if(toTypeClass(des.type) == VarTypeClass::primitive) {
-            std::clog << "[ type: " << toTypeString(des.type) << "; value: " << des.index << "; ]";
+            std::clog << "[ type: " << toTypeString(des.type)
+                      << "; value: " << des.index << "; ]";
           } else {
-            std::clog << "[ type: " << toTypeString(des.type) << "; index: " << des.index << "; size: " << des.size << "; ]";
+            std::clog << "[ type: " << toTypeString(des.type)
+                      << "; index: " << des.index
+                      << "; size: " << des.size << "; ]";
           }
         }
         break;

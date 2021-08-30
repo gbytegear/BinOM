@@ -98,7 +98,7 @@ void reader() {
 #include <list>
 
 void file_storage_multithreading_test() {
-  storage.check();
+  storage.checkHeap();
   std::clog << "Start multithreading test\n";
   srand(time(nullptr));
   std::list<std::thread> threads;

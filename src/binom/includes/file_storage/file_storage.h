@@ -26,6 +26,7 @@ public:
   }
 
 #ifdef DEBUG
+  void checkHeap() {fmm.checkHeap();}
   void check() {fmm.check();}
 #endif
 };

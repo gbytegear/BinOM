@@ -56,6 +56,7 @@ public:
   inline RWSyncMap::RWGuard getRWGuard(f_virtual_index node_index) {return sync_map.get(node_index);}
 
 IF_DEBUG(
+  void checkHeap();
   void check();
 )
 

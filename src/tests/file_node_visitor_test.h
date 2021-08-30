@@ -132,7 +132,58 @@ void bufferArrayInsertTest() {
 
 void file_node_visitor_test() {
   using namespace binom;
-  setTest();
+//  setTest();
+
+  binom::FileStorage storage("mthr_test.db",
+                             varr{
+                               vobj{
+                                 {"a", 1_ui8},
+                                 {"b", 2_ui16},
+                                 {"c", 4_ui32},
+                                 {"d", 8_ui64},
+                                 {"e", ui8arr{1,2,3}},
+                                 {"f", ui16arr{4,5,6}},
+                                 {"g", ui32arr{7,8,9}},
+                                 {"h", ui64arr{10,11,12}},
+                                 {"j", varr{1,2,3}}
+                               }
+                             }, false);
+
+
+
+  for(ui64 i = 0; i < 90000; ++i) {
+    FileNodeVisitor node = storage;
+    Variable var = vobj{
+      {"a", 1_ui8},
+      {"b", 2_ui16},
+      {"c", 4_ui32},
+      {"d", 8_ui64},
+      {"e", ui8arr{1,2,3}},
+      {"f", ui16arr{4,5,6}},
+      {"g", ui32arr{7,8,9}},
+      {"h", ui64arr{10,11,12}},
+      {"j", varr{1,2,3}}
+    };
+
+    switch (rand()%3) {
+      case 0:
+        node.pushBack(var);
+        std::clog << "\n\nPush back\n\n";
+      continue;
+
+      case 1:
+        node.pushFront(var);
+        std::clog << "\n\nPush front\n\n";
+      continue;
+
+      case 2:
+        node.insert(node.getElementCount()/2, var);
+        std::clog << "\n\nInsert to middle\n\n";
+      continue;
+    }
+  }
+
+  std::clog << "Content:\n" << storage.getRoot().getVariable() << '\n';
 
 }
 
