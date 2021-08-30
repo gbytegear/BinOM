@@ -169,9 +169,9 @@ Variable& NodeVisitor::getVariable(Path path) const {
   return NodeVisitor(*this).stepInside(std::move(path)).getVariable();
 }
 
-BufferArray NodeVisitor::getName() const {
+std::optional<BufferArray> NodeVisitor::getName() const {
   if(ref_type == RefType::named_variable) return ref.named_variable->name;
-  throw Exception(ErrCode::binom_invalid_type);
+  return std::optional<BufferArray>();
 }
 
 void NodeVisitor::setVariable(Variable var) {

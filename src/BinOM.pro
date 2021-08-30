@@ -23,6 +23,7 @@ HEADERS += \
     tests/heap_blocks_test.h \
     tests/memory_manager_test.h \
     tests/multithreading_test.h \
+    tests/query_test.h \
     tests/var_test.h
 
 SUBDIRS += \

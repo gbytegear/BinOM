@@ -121,10 +121,28 @@ Path Path::fromByteArray(ByteArray path) {return path;}
 Path Path::fromString(std::string str) {
   ByteArray data;
   size_t start = 0;
+  bool shielding = false;
   for(size_t i = 0; i < str.length(); ++i) {
     switch (str[i]) {
       default: continue;
+      case '"':
+        if(shielding) {
+          shielding = false;
+          data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ui64>(i - start);
+          data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
+          start = i + 1;
+          continue;
+        }
+        if(start < i) { // name"shielded.name[5]"
+          data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ui64>(i - start);
+          data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
+        }
+        start = i + 1;
+        shielding = true;
       case '.': // name.
+        if(shielding) continue;
         if(start == i) continue; // name_1...name_2 (many dots)
         data.pushBack<PathNodeType>(PathNodeType::name);
         data.pushBack<ui64>(i - start);
@@ -132,6 +150,7 @@ Path Path::fromString(std::string str) {
         start = i + 1;
       continue;
       case '[': // [5]
+        if(shielding) continue;
         if(start < i) { // name[5]
           data.pushBack<PathNodeType>(PathNodeType::name);
           data.pushBack<ui64>(i - start);

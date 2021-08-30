@@ -80,7 +80,7 @@ public:
   Variable& getVariable(ui64 index) const;
   Variable& getVariable(BufferArray name) const;
   Variable& getVariable(Path path) const;
-  BufferArray getName() const;
+  std::optional<BufferArray> getName() const;
 
   void setVariable(Variable var) override;
   void pushBack(Variable var) override;

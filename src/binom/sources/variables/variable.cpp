@@ -559,6 +559,7 @@ i8 Variable::getCompare(Variable other) const {
 }
 
 NodeVisitor Variable::getNode() {return NodeVisitor(this);}
+binom::Variable::operator NodeVisitor() {return NodeVisitor(this);}
 
 void printIndent(std::ostream& os, ui64 ind, std::string msg = "") {
   if(!ind)return;

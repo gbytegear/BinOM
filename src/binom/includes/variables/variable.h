@@ -184,6 +184,7 @@ public:
   }
 
   NodeVisitor getNode();
+  operator NodeVisitor();
 
 };
 
