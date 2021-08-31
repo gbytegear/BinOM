@@ -24,7 +24,7 @@ public:
   };
 
   ObjectElementFinder(ByteArray data)
-    : indexes(data),
+    : indexes(std::move(data)),
       descriptor(indexes.takeFront<ObjectDescriptor>()),
       name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength))),
       names(indexes.takeFront(descriptor.name_block_size)),

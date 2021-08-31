@@ -118,16 +118,83 @@ public:
   inline FileNodeVisitor operator[](BufferArray name) const {return getChild(name);}
   inline FileNodeVisitor operator[](Path path) const {return getChild(path);}
 
+  NodeIterator begin();
+  static inline decltype(nullptr) end() {return nullptr;}
+
   NodeVisitor& toRAMVisitor() = delete;
   FileNodeVisitor& toFileVisitor() = delete;
 };
 
 
 class FileNodeVisitor::NodeIterator {
-  ByteArray indexes;
-  ByteArray names;
-  ui64 shift = 0;
+  FileMemoryManager& fmm;
+  VarType container_type;
+
+  union Data {
+    struct ObjectData {
+      ByteArray indexes;
+      ObjectDescriptor descriptor;
+      ByteArray name_lengths;
+      ByteArray names;
+      ObjectNameLength* name_length_it;
+      ObjectNameLength* const name_length_end;
+      byte* name_it;
+      byte* const name_end;
+      virtual_index* index_it;
+
+      ObjectData(ByteArray data)
+        : indexes(std::move(data)),
+          descriptor(indexes.takeFront<ObjectDescriptor>()),
+          name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength))),
+          names(indexes.takeFront(descriptor.name_block_size)),
+          name_length_it(name_lengths.begin<ObjectNameLength>()),
+          name_length_end(name_lengths.end<ObjectNameLength>()),
+          name_it(names.begin()),
+          name_end(names.end()),
+          index_it(indexes.begin<virtual_index>()) {}
+
+    } object_data;
+
+    struct ArrayData {
+      ByteArray indexes;
+      virtual_index* index_it;
+      ArrayData(ByteArray indexes)
+        : indexes(std::move(indexes)), index_it(indexes.begin<virtual_index>()) {}
+    } array_data;
+
+    struct BufferArrayData {
+      const virtual_index node_index = 0;
+      const size_t size = 0;
+      real_index index = 0;
+    } buffer_array_data;
+
+    Data(VarTypeClass type_class, ByteArray data) {
+      switch (type_class) {
+        default: throw Exception(ErrCode::binom_invalid_type);
+        case binom::VarTypeClass::array:
+          new(&array_data) ArrayData(std::move(data));
+        return;
+        case binom::VarTypeClass::object:
+          new(&object_data) ObjectData(std::move(object_data));
+        return;
+      }
+    }
+
+    Data(virtual_index node_index, size_t count, real_index index = 0)
+      : buffer_array_data({node_index, count, index}) {}
+    Data(Data&& other) {
+      std::memcpy(this, &other, sizeof (Data));
+      std::memset(&other, 0, sizeof (Data));
+    }
+  };
+
 public:
+  // TODO
+
+  NodeIterator& operator++();
+  NodeIterator& operator++(int);
+
+//  FileNodeVisitor operator*() {return FileNodeVisitor(fmm, *index_it);}
 
 };
 
