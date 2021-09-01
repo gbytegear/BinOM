@@ -137,11 +137,12 @@ class FileNodeVisitor::NodeIterator {
       ByteArray name_lengths;
       ByteArray names;
       ObjectNameLength* name_length_it;
-      ObjectNameLength* const name_length_end;
+      ObjectNameLength* name_length_end;
       byte* name_it;
-      byte* const name_end;
+      byte* name_end;
       virtual_index* index_it;
 
+      ObjectData() = default;
       ObjectData(ByteArray data)
         : indexes(std::move(data)),
           descriptor(indexes.takeFront<ObjectDescriptor>()),
@@ -186,13 +187,55 @@ class FileNodeVisitor::NodeIterator {
       std::memcpy(this, &other, sizeof (Data));
       std::memset(&other, 0, sizeof (Data));
     }
-  };
+    Data(const Data&) = delete;
+    ~Data(){}
+  } data;
+
+  friend class FileNodeVisitor;
+
+  NodeIterator(FileMemoryManager& fmm, VarType type, ByteArray data)
+    : fmm(fmm), container_type(type), data(toTypeClass(type), std::move(data)) {}
+  NodeIterator(FileMemoryManager& fmm, VarType type, virtual_index node_index, size_t count, real_index index = 0)
+    : fmm(fmm), container_type(type), data(node_index, count, index) {}
 
 public:
-  // TODO
+  NodeIterator(NodeIterator&& other)
+    : fmm(other.fmm), container_type(other.container_type), data(std::move(other.data)) {}
 
-  NodeIterator& operator++();
+  NodeIterator& operator++() {
+    switch (toTypeClass(container_type)) {
+      default: throw Exception(ErrCode::binom_invalid_type);
+      case binom::VarTypeClass::buffer_array:
+        ++data.buffer_array_data.index;
+      break;
+      case binom::VarTypeClass::array:
+        ++data.array_data.index_it;
+      break;
+      case binom::VarTypeClass::object:
+        /*
+    byte* name_it = names.begin();
+    virtual_index* index_it = indexes.begin<virtual_index>();
+    for(ObjectNameLength* it = name_lengths.begin<ObjectNameLength>(),
+        * end = name_lengths.end<ObjectNameLength>();
+        it != end; ++it) {
+      ui64 name_count = it->name_count;
+      while (name_count) {
+        handler({it->char_type, it->name_length, name_it, *index_it});
+        --name_count;
+        name_it += it->name_length * toSize(it->char_type);
+        ++index_it;
+      }
+    }
+*/
+// TODO
+      break;
+    }
+    return *this;
+  }
   NodeIterator& operator++(int);
+
+  bool isEnd();
+  inline bool operator==(decltype (nullptr)) {return isEnd();}
 
 //  FileNodeVisitor operator*() {return FileNodeVisitor(fmm, *index_it);}
 
