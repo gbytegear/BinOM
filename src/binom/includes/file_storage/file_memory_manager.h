@@ -34,7 +34,7 @@ class FileMemoryManager {
   real_index translateVHeapIndex(virtual_index v_index);
   RMemoryBlockVector translateVMemoryBlock(VMemoryBlock v_mem_block);
 
-  void writeToVBlock(VMemoryBlock block, ByteArray data);
+  void writeToVBlock(VMemoryBlock block, ByteArray data, real_index shift = 0);
 
 public:
   FileMemoryManager(std::string_view file_path);
@@ -49,6 +49,7 @@ public:
   virtual_index createNode(VarType type, ByteArray data);
   void updateNode(virtual_index node_index, VarType type, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr);
   inline void updateNode(virtual_index node_index, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr) {return updateNode(node_index, VarType::end, std::move(data), descriptor_ptr);}
+  void updateNodeDataPart(virtual_index node_index, real_index shift, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr);
   void removeNode(virtual_index node_index);
 
   inline bool isEmpty() {return db_header.root_node.isFree();}

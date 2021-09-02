@@ -205,14 +205,35 @@ RMemoryBlockVector FileMemoryManager::translateVMemoryBlock(VMemoryBlock v_mem_b
   return blocks;
 }
 
-void FileMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data) {
+void FileMemoryManager::writeToVBlock(VMemoryBlock block, ByteArray data, real_index shift) {
   if(block.isEmpty()) return;
+  if(shift + data.length() > block.size)
+    throw Exception(ErrCode::binomdb_memory_management_error, "Out of memory block");
   RMemoryBlockVector r_blocks = translateVMemoryBlock(block);
 
   ByteArray::iterator it = data.begin();
+  const ByteArray::iterator end = data.end();
   for(auto r_block : r_blocks) {
-    file.writeBuffer(it, r_block.r_index, r_block.size);
-    it += r_block.size;
+
+    if(shift) {
+      if(shift >= r_block.size) {
+        shift -= r_block.size;
+        continue;
+      } else {
+        r_block.r_index += shift;
+        r_block.size -= shift;
+        shift = 0;
+      }
+    }
+
+    if(r_block.size < ui64(end - it)) {
+      file.writeBuffer(it, r_block.r_index, r_block.size);
+      it += r_block.size;
+    } else {
+      file.writeBuffer(it, r_block.r_index, end - it);
+      return;
+    }
+
   }
 }
 
@@ -479,6 +500,13 @@ void FileMemoryManager::updateNode(virtual_index node_index, VarType type, ByteA
       throw Exception(ErrCode::binom_invalid_type);
 
   }
+}
+
+void FileMemoryManager::updateNodeDataPart(virtual_index node_index, real_index shift, ByteArray data, NodeDescriptor* descriptor_ptr) {
+  NodeDescriptor descriptor = descriptor_ptr? *descriptor_ptr : getNodeDescriptor(node_index);
+  if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
+    throw Exception(ErrCode::binomdb_memory_management_error, "Set part of data of primitive data types is unsupported operation");
+  writeToVBlock({descriptor.index, descriptor.size}, std::move(data), shift);
 }
 
 

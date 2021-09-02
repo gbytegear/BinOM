@@ -77,7 +77,7 @@ public:
   inline FileNodeVisitor& operator=(FileNodeVisitor& other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(other);}
   inline FileNodeVisitor& operator=(virtual_index node_index) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(fmm, node_index);}
 
-  VarType getType() const override {auto lk = getScopedRWGuard(LockType::shared_lock); return getDescriptor().type;}
+  VarType getType() const override;
   VisitorType getVisitorType() const override {return VisitorType::file_storage_visitor;}
   inline virtual_index getNodeIndex() const {return node_index;}
 
@@ -141,6 +141,7 @@ class FileNodeVisitor::NodeIterator {
       byte* name_it;
       byte* name_end;
       virtual_index* index_it;
+      ui64 name_count;
 
       ObjectData() = default;
       ObjectData(ByteArray data)
@@ -152,7 +153,8 @@ class FileNodeVisitor::NodeIterator {
           name_length_end(name_lengths.end<ObjectNameLength>()),
           name_it(names.begin()),
           name_end(names.end()),
-          index_it(indexes.begin<virtual_index>()) {}
+          index_it(indexes.begin<virtual_index>()),
+          name_count(name_length_it->name_count) {}
 
     } object_data;
 

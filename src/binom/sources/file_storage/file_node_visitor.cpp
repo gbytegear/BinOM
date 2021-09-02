@@ -431,6 +431,14 @@ ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
   }
 }
 
+VarType FileNodeVisitor::getType() const {
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  NodeDescriptor descriptor = getDescriptor();
+  if(toTypeClass(descriptor.type) == VarTypeClass::buffer_array && isValueRef())
+    return toVarType(toValueType(descriptor.type));
+  else return getDescriptor().type;
+}
+
 ui64 FileNodeVisitor::getElementCount() const {
   auto lk = getScopedRWGuard(LockType::shared_lock);
 
@@ -439,7 +447,9 @@ ui64 FileNodeVisitor::getElementCount() const {
     default:
     case binom::VarTypeClass::invalid_type: return 0;
     case binom::VarTypeClass::primitive: return 1;
-    case binom::VarTypeClass::buffer_array: return descriptor.size / toSize(toValueType(descriptor.type));
+    case binom::VarTypeClass::buffer_array:
+      if(isValueRef()) return 1;
+      return descriptor.size / toSize(toValueType(descriptor.type));
     case binom::VarTypeClass::array: return descriptor.size / sizeof (virtual_index);
     case binom::VarTypeClass::object: {
       ObjectDescriptor obj_desriptor = fmm.getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
@@ -459,6 +469,8 @@ FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
       throw Exception(ErrCode::binom_invalid_type);
 
     case binom::VarTypeClass::buffer_array:
+      if(isValueRef())
+        throw Exception(ErrCode::binom_invalid_type);
       if(descriptor.size / toSize(toValueType(descriptor.type)) < index)
         throw Exception(ErrCode::binom_out_of_range);
       this->index = index;
@@ -520,6 +532,32 @@ Variable FileNodeVisitor::getVariable() const {
 void FileNodeVisitor::setVariable(Variable var) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   ByteArray data;
+
+  if(isValueRef()) {
+    if(var.typeClass() != VarTypeClass::primitive)
+      throw Exception(ErrCode::binom_invalid_type);
+    NodeDescriptor descriptor = getDescriptor();
+    if(toTypeClass(descriptor.type) != VarTypeClass::buffer_array)
+      throw Exception(ErrCode::binom_invalid_type);
+    ByteArray data;
+    switch (toValueType(descriptor.type)) {
+      case binom::ValType::byte:
+        data.pushBack<ui8>(var.getValue().asUi8());
+      break;
+      case binom::ValType::word:
+        data.pushBack<ui16>(var.getValue().asUi16());
+      break;
+      case binom::ValType::dword:
+        data.pushBack<ui32>(var.getValue().asUi32());
+      break;
+      case binom::ValType::qword:
+        data.pushBack<ui64>(var.getValue().asUi64());
+      break;
+      default: throw Exception(ErrCode::binom_invalid_type);
+    }
+    fmm.updateNodeDataPart(node_index, index * toSize(toValueType(descriptor.type)), std::move(data), &descriptor);
+    return;
+  }
 
   // Create member nodes & construct data of current node
   switch (var.typeClass()) {
