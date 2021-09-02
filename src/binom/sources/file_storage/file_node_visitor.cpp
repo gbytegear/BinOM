@@ -4,7 +4,7 @@
 
 using namespace binom;
 
-class ObjectElementFinder {
+class FileNodeVisitor::ObjectElementFinder {
   ByteArray indexes;
   ObjectDescriptor descriptor;
   ByteArray name_lengths;
@@ -97,6 +97,13 @@ public:
 
   bool isNameFinded() {return name_it != name_end;}
 
+  FileNodeVisitor::NamePosition getNamePosition() {
+    return NamePosition{
+      name_length_it->char_type,
+      name_length_it->name_length,
+      sizeof (ObjectDescriptor) + name_lengths.length() + (name_it - names.begin())
+    };
+  }
   BufferArray getName() const {return BufferArray(name_length_it->char_type, name_it, name_length_it->name_length);}
   virtual_index getNodeIndex() const {return *index_it;}
 
@@ -458,9 +465,18 @@ ui64 FileNodeVisitor::getElementCount() const {
   }
 }
 
+std::optional<BufferArray> FileNodeVisitor::getName() {
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  if(name_pos.isNull())
+    return std::optional<BufferArray>();
+  ByteArray data = fmm.getNodeDataPart(node_index, name_pos.name_pos, name_pos.length * toSize(name_pos.char_type));
+  return BufferArray(name_pos.char_type, data.begin(), name_pos.length);
+}
+
 FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
   auto lk = getScopedRWGuard(LockType::shared_lock);
 
+  name_pos.setNull();
   NodeDescriptor descriptor = getDescriptor();
   switch (toTypeClass(descriptor.type)) {
     case binom::VarTypeClass::primitive:
@@ -503,6 +519,7 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
     throw Exception(ErrCode::binom_out_of_range);
 
   node_index = finder.getNodeIndex();
+  name_pos = finder.getNamePosition();
   current_rwg = fmm.getRWGuard(node_index);
   return *this;
 }
@@ -856,9 +873,23 @@ void FileNodeVisitor::remove(Path path) {
 }
 
 NodeVector FileNodeVisitor::findAll(Query query, NodeVector node_vector) {
-
+  if(!isIterable()) return node_vector;
+  ui64 index = 0;
+  for(FileNodeVisitor node : *this) {
+    if(node.test(query, index))
+      node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(node)));
+    ++index;
+  }
+  return node_vector;
 }
 
 FileNodeVisitor FileNodeVisitor::find(Query query) {
-
+  if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
+  ui64 index = 0;
+  for(FileNodeVisitor node : *this ){
+    if(node.test(query, index))
+      return node;
+    ++index;
+  }
+  return FileNodeVisitor(fmm, nullptr);
 }

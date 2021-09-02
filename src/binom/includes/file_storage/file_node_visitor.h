@@ -11,12 +11,22 @@ class FileNodeVisitor : public NodeVisitorBase {
   typedef RWSyncMap::ScopedRWGuard ScopedRWGuard;
   typedef RWSyncMap::RWGuard RWGuard;
   typedef RWSyncMap::LockType LockType;
+  class ObjectElementFinder;
+
+  struct NamePosition {
+    ValType char_type = ValType::invalid_type;
+    element_cnt length = 0;
+    real_index name_pos = 0;
+    void setNull() {char_type = ValType::invalid_type;}
+    bool isNull() {return char_type == ValType::invalid_type;}
+  };
 
   static constexpr virtual_index null_index = 0xFFFFFFFFFFFFFFFF;
 
   FileMemoryManager& fmm;
   virtual_index node_index = 0;
   real_index index = null_index;
+  NamePosition name_pos;
   mutable RWGuard current_rwg;
 
   FileNodeVisitor(FileMemoryManager& fmm,
@@ -28,6 +38,7 @@ class FileNodeVisitor : public NodeVisitorBase {
       current_rwg(fmm.getRWGuard(node_index))
   {}
 
+  friend class FileNodeVisitor::ObjectElementFinder;
   friend class FileStorage;
 
   Variable buildVariable(virtual_index node_index) const;
@@ -56,10 +67,16 @@ class FileNodeVisitor : public NodeVisitorBase {
     return fmm.getFullNodeInfo(node_index);
   }
 
-  void setNull() {
+  FileNodeVisitor& setNull() {
     node_index = null_index;
     index = null_index;
+    return *this;
   }
+
+  bool test(Query query, ui64 index) noexcept;
+
+  FileNodeVisitor(FileMemoryManager& fmm, decltype (nullptr))
+    : fmm(fmm), node_index(null_index), index(null_index) {}
 
 public:
 
@@ -69,6 +86,7 @@ public:
     : fmm(other.fmm),
       node_index(other.node_index),
       index(other.index),
+      name_pos(other.name_pos),
       current_rwg(fmm.getRWGuard(node_index))
   {}
 
@@ -84,6 +102,7 @@ public:
   inline bool isNull() const override {return node_index == null_index;}
   inline bool isValueRef() const override {return index != null_index;}
   ui64 getElementCount() const override;
+  std::optional<BufferArray> getName();
 
   FileNodeVisitor& stepInside(ui64 index) override;
   FileNodeVisitor& stepInside(BufferArray name) override;
@@ -137,9 +156,7 @@ class FileNodeVisitor::NodeIterator {
       ByteArray name_lengths;
       ByteArray names;
       ObjectNameLength* name_length_it;
-      ObjectNameLength* name_length_end;
       byte* name_it;
-      byte* name_end;
       virtual_index* index_it;
       ui64 name_count;
 
@@ -150,9 +167,7 @@ class FileNodeVisitor::NodeIterator {
           name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength))),
           names(indexes.takeFront(descriptor.name_block_size)),
           name_length_it(name_lengths.begin<ObjectNameLength>()),
-          name_length_end(name_lengths.end<ObjectNameLength>()),
           name_it(names.begin()),
-          name_end(names.end()),
           index_it(indexes.begin<virtual_index>()),
           name_count(name_length_it->name_count) {}
 
@@ -197,12 +212,32 @@ class FileNodeVisitor::NodeIterator {
 
   NodeIterator(FileMemoryManager& fmm, VarType type, ByteArray data)
     : fmm(fmm), container_type(type), data(toTypeClass(type), std::move(data)) {}
-  NodeIterator(FileMemoryManager& fmm, VarType type, virtual_index node_index, size_t count, real_index index = 0)
+  NodeIterator(FileMemoryManager& fmm,
+               VarType type,
+               virtual_index node_index,
+               size_t count,
+               real_index index = 0)
     : fmm(fmm), container_type(type), data(node_index, count, index) {}
 
 public:
+  NodeIterator(const NodeIterator& other) = delete;
   NodeIterator(NodeIterator&& other)
     : fmm(other.fmm), container_type(other.container_type), data(std::move(other.data)) {}
+
+  ~NodeIterator() {
+    switch (toTypeClass(container_type)) {
+      case binom::VarTypeClass::buffer_array:
+        data.buffer_array_data.~BufferArrayData();
+      return;
+      case binom::VarTypeClass::array:
+        data.array_data.~ArrayData();
+      return;
+      case binom::VarTypeClass::object:
+        data.object_data.~ObjectData();
+      return;
+      default: return;
+    }
+  }
 
   NodeIterator& operator++() {
     switch (toTypeClass(container_type)) {
@@ -214,32 +249,58 @@ public:
         ++data.array_data.index_it;
       break;
       case binom::VarTypeClass::object:
-        /*
-    byte* name_it = names.begin();
-    virtual_index* index_it = indexes.begin<virtual_index>();
-    for(ObjectNameLength* it = name_lengths.begin<ObjectNameLength>(),
-        * end = name_lengths.end<ObjectNameLength>();
-        it != end; ++it) {
-      ui64 name_count = it->name_count;
-      while (name_count) {
-        handler({it->char_type, it->name_length, name_it, *index_it});
-        --name_count;
-        name_it += it->name_length * toSize(it->char_type);
-        ++index_it;
-      }
-    }
-*/
-// TODO
+        if(data.object_data.name_count) {
+          --data.object_data.name_count;
+          data.object_data.name_it += data.object_data.name_length_it->name_length *
+                                      toSize(data.object_data.name_length_it->char_type);
+          ++data.object_data.index_it;
+        } else {
+          data.object_data.name_it += data.object_data.name_length_it->name_length *
+                                      toSize(data.object_data.name_length_it->char_type);
+          ++data.object_data.index_it;
+          ++data.object_data.name_length_it;
+          data.object_data.name_count = data.object_data.name_length_it->name_count;
+        }
       break;
     }
     return *this;
   }
-  NodeIterator& operator++(int);
+  NodeIterator& operator++(int) {return operator++();}
 
-  bool isEnd();
-  inline bool operator==(decltype (nullptr)) {return isEnd();}
+  std::optional<BufferArray> getName() {
+    if(container_type != VarType::object)
+      return std::optional<BufferArray>();
+    return BufferArray(data.object_data.name_length_it->char_type,
+                       data.object_data.name_it,
+                       data.object_data.name_length_it->name_length);
+  }
 
-//  FileNodeVisitor operator*() {return FileNodeVisitor(fmm, *index_it);}
+  bool isEnd() {
+    switch (toTypeClass(container_type)) {
+      case binom::VarTypeClass::buffer_array:
+      return data.buffer_array_data.index == data.buffer_array_data.size;
+      case binom::VarTypeClass::array:
+      return data.array_data.index_it == data.array_data.indexes.end<virtual_index>();
+      case binom::VarTypeClass::object:
+      return data.object_data.index_it == data.object_data.indexes.end<virtual_index>();
+      default: return true;
+    }
+  }
+
+  inline bool operator==(decltype (nullptr)) {return !isEnd();}
+  inline bool operator!=(decltype (nullptr)) {return isEnd();}
+
+  FileNodeVisitor operator*() {
+    switch (toTypeClass(container_type)) {
+      case binom::VarTypeClass::buffer_array:
+      return FileNodeVisitor(fmm, data.buffer_array_data.node_index, data.buffer_array_data.index);
+      case binom::VarTypeClass::array:
+      return FileNodeVisitor(fmm, *data.array_data.index_it);
+      case binom::VarTypeClass::object:
+      return FileNodeVisitor(fmm, *data.object_data.index_it);
+      default: return FileNodeVisitor(fmm, nullptr);
+    }
+  }
 
 };
 
