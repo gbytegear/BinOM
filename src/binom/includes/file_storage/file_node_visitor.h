@@ -193,7 +193,7 @@ class FileNodeVisitor::NodeIterator {
           new(&array_data) ArrayData(std::move(data));
         return;
         case binom::VarTypeClass::object:
-          new(&object_data) ObjectData(std::move(object_data));
+          new(&object_data) ObjectData(std::move(data));
         return;
       }
     }
@@ -222,7 +222,7 @@ class FileNodeVisitor::NodeIterator {
 public:
   NodeIterator(const NodeIterator& other) = delete;
   NodeIterator(NodeIterator&& other)
-    : fmm(other.fmm), container_type(other.container_type), data(std::move(other.data)) {}
+    : fmm(other.fmm), container_type(other.container_type), data(std::move(other.data)) {other.container_type = VarType::invalid_type;}
 
   ~NodeIterator() {
     switch (toTypeClass(container_type)) {
@@ -287,8 +287,8 @@ public:
     }
   }
 
-  inline bool operator==(decltype (nullptr)) {return !isEnd();}
-  inline bool operator!=(decltype (nullptr)) {return isEnd();}
+  inline bool operator==(decltype (nullptr)) {return isEnd();}
+  inline bool operator!=(decltype (nullptr)) {return !isEnd();}
 
   FileNodeVisitor operator*() {
     switch (toTypeClass(container_type)) {

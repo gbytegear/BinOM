@@ -911,6 +911,6 @@ FileNodeVisitor::NodeIterator FileNodeVisitor::begin() {
     return NodeIterator(fmm, descriptor.type, node_index, descriptor.size / toSize(toValueType(descriptor.type)));
     case binom::VarTypeClass::array:
     case binom::VarTypeClass::object:
-    return NodeIterator(fmm, descriptor.type, fmm.getNodeData(node_index));
+    return NodeIterator(fmm, descriptor.type, fmm.getNodeData(descriptor));
   }
 }

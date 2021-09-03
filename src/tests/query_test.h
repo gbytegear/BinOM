@@ -93,7 +93,6 @@ void query_test() {
     std::clog << node->toRAMVisitor().getVariable() << "\n\n";
   }
 
-
   std::clog << "\nFinded in file container:\n";
   for(std::unique_ptr<NodeVisitorBase>& node : froot["usr"].findAll(query)) {
     std::clog << node->toFileVisitor().getVariable() << "\n\n";
