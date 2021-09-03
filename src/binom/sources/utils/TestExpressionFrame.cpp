@@ -1,30 +1,10 @@
-#pragma once
-
+#include "binom/includes/utils/node_visitor_base.h"
 #include "binom/includes/utils/node_visitor.h"
+#include "binom/includes/file_storage/file_node_visitor.h"
+
+#include <optional>
 
 using namespace binom;
-
-class TestExpressionFrame {
-  QRel last_rel = QRel::AND;
-  bool last_value = true;
-
-  void invalidTest();
-  void testUNumber(ui64 node_number, Query::QueryEpression& field);
-  void testNumber(i64 node_number, Query::QueryEpression& field);;
-  void testString(BufferArray node_string, Query::QueryEpression& field);;
-  bool getRelationResult(bool last, QRel rel, bool current);
-
-public:
-  void operator()(Query::QueryEpression expr, NodeVisitor node, const ui64 index);
-  bool getValue() const {return last_value;}
-};
-
-
-bool NodeVisitor::test(Query query, ui64 index) noexcept {
-    TestExpressionFrame testExpr;
-    for(Query::QueryEpression& expr : query) testExpr(expr, *this, index);
-    return testExpr.getValue();
-}
 
 inline void TestExpressionFrame::invalidTest() {last_value = getRelationResult(last_value, last_rel, false);}
 
@@ -56,7 +36,7 @@ inline void TestExpressionFrame::testUNumber(ui64 node_number, Query::QueryEpres
                         node_number > field.getUNumber()
                         );
         return;
-        case QOper::highte_equal:
+        case QOper::highter_equal:
             last_value = getRelationResult(
                         last_value,
                         last_rel,
@@ -123,7 +103,7 @@ inline void TestExpressionFrame::testNumber(i64 node_number, Query::QueryEpressi
                         node_number > field.getNumber()
                         );
         return;
-        case QOper::highte_equal:
+        case QOper::highter_equal:
             last_value = getRelationResult(
                         last_value,
                         last_rel,
@@ -189,7 +169,7 @@ inline void TestExpressionFrame::testString(BufferArray node_string, Query::Quer
                         node_string > field.getString()
                         );
         return;
-        case QOper::highte_equal:
+        case QOper::highter_equal:
             last_value = getRelationResult(
                         last_value,
                         last_rel,
@@ -223,7 +203,7 @@ inline bool TestExpressionFrame::getRelationResult(bool last, QRel rel, bool cur
     }
 }
 
-inline void TestExpressionFrame::operator()(Query::QueryEpression expr, NodeVisitor node, const ui64 index) {
+void TestExpressionFrame::operator()(Query::QueryEpression expr, NodeVisitor node, const ui64 index) {
     if(expr.hasPath())
         node(expr.getPath());
     if(node.isNull()) {
@@ -311,10 +291,8 @@ inline void TestExpressionFrame::operator()(Query::QueryEpression expr, NodeVisi
         case binom::QProp::name:
             if(std::optional<BufferArray> name = node.getName(); name)
                 testString(std::move(*name), expr);
-            else {
+            else
                 invalidTest();
-                break;
-            }
         break;
 
 
@@ -350,5 +328,128 @@ inline void TestExpressionFrame::operator()(Query::QueryEpression expr, NodeVisi
 
 
     }
+    last_rel = expr.getNextRel();
+}
+
+
+
+
+void TestExpressionFrame::operator()(Query::QueryEpression expr, FileNodeVisitor node, const ui64 index) {
+    if(expr.hasPath())
+        node(expr.getPath());
+    if(node.isNull()) {
+        invalidTest();
+        last_rel = expr.getNextRel();
+        return;
+    }
+
+    switch (expr.getProp()) {
+
+
+        case QProp::type:
+            switch (expr.getOper()) {
+                case QOper::equal:
+                    last_value = getRelationResult(
+                                     last_value,
+                                     last_rel,
+                                     node.getType() == expr.getVarType()
+                                     );
+                break;
+                case QOper::not_equal:
+                    last_value = getRelationResult(
+                                     last_value,
+                                     last_rel,
+                                     node.getType() != expr.getVarType()
+                                     );
+                break;
+                default: invalidTest(); break;
+            }
+        break;
+
+
+        case QProp::type_class:
+            switch (expr.getOper()) {
+                case QOper::equal:
+                    last_value = getRelationResult(
+                                     last_value,
+                                     last_rel,
+                                     node.getTypeClass() == expr.getVarTypeClass()
+                                     );
+                break;
+                case QOper::not_equal:
+                    last_value = getRelationResult(
+                                     last_value,
+                                     last_rel,
+                                     node.getTypeClass() != expr.getVarTypeClass()
+                                     );
+                break;
+                default: invalidTest(); break;
+            }
+        break;
+
+
+        case QProp::value_type:
+            switch (expr.getOper()) {
+                case QOper::equal:
+                    last_value = getRelationResult(
+                                     last_value,
+                                     last_rel,
+                                     toValueType(node.getType()) == expr.getValType()
+                                     );
+                break;
+                case QOper::not_equal:
+                    last_value = getRelationResult(
+                                     last_value,
+                                     last_rel,
+                                     toValueType(node.getType()) != expr.getValType()
+                                                                    );
+                break;
+                default: invalidTest(); break;
+            }
+        break;
+
+
+        case QProp::element_count: testUNumber(node.getElementCount(), expr); break;
+
+        case QProp::index: testNumber(index, expr); break;
+
+
+        case QProp::name:
+            if(std::optional<BufferArray> name = node.getName(); name)
+                testString(std::move(*name), expr);
+            else
+                invalidTest();
+        break;
+
+
+        case QProp::value:
+            switch (node.getTypeClass()) {
+
+                case VarTypeClass::primitive:
+                    testNumber(node
+                               .getVariable()
+                               .toPrimitive()
+                               .getValue()
+                               .asSigned(), expr);
+                break;
+
+                case VarTypeClass::buffer_array:
+                    if(toValueType(node.getType()) != ValType::byte)
+                        invalidTest();
+                    else
+                        testString(node.getVariable().toBufferArray(), expr);
+                break;
+
+                default: invalidTest(); break;
+            }
+        break;
+
+        case QProp::sub_exp:
+            TestExpressionFrame test_expr;
+            for(Query::QueryEpression& sub_expr : expr) test_expr(sub_expr, node, index);
+            last_value = getRelationResult(last_value, last_rel, test_expr.last_value);
+        break;
+    }
+
     last_rel = expr.getNextRel();
 }

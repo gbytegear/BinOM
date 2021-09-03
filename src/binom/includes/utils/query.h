@@ -20,7 +20,7 @@ enum class QOper : ui8 {
   equal,
   not_equal,
   highter,
-  highte_equal,
+  highter_equal,
   lower,
   lower_equal,
   in_range,

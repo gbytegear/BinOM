@@ -301,8 +301,11 @@ void NodeVisitor::remove(Path path) {
   }
 }
 
-// Query test function
-#include "node_visitor_query.h"
+bool NodeVisitor::test(Query query, ui64 index) noexcept {
+    TestExpressionFrame test_expr;
+    for(Query::QueryEpression& expr : query) test_expr(expr, *this, index);
+    return test_expr.getValue();
+}
 
 NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
   if(!isIterable()) return node_vector;

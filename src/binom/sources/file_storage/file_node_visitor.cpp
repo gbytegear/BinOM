@@ -319,6 +319,8 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
   NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
+  if(descriptor.index == 0 && descriptor.size == 0)
+    return Object();
 
   ObjectElementFinder finder(fmm.getNodeData(descriptor));
   ByteArray data(9 + finder.getElementCount()*sizeof(void*)*2);
@@ -872,6 +874,12 @@ void FileNodeVisitor::remove(Path path) {
     }
 }
 
+bool FileNodeVisitor::test(Query query, ui64 index) noexcept {
+    TestExpressionFrame test_expr;
+    for(Query::QueryEpression& expr : query) test_expr(expr, *this, index);
+    return test_expr.getValue();
+}
+
 NodeVector FileNodeVisitor::findAll(Query query, NodeVector node_vector) {
   if(!isIterable()) return node_vector;
   ui64 index = 0;
@@ -892,4 +900,17 @@ FileNodeVisitor FileNodeVisitor::find(Query query) {
     ++index;
   }
   return FileNodeVisitor(fmm, nullptr);
+}
+
+FileNodeVisitor::NodeIterator FileNodeVisitor::begin() {
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  NodeDescriptor descriptor = getDescriptor();
+  switch (toTypeClass(descriptor.type)) {
+    default: throw Exception(ErrCode::binom_invalid_type);
+    case binom::VarTypeClass::buffer_array:
+    return NodeIterator(fmm, descriptor.type, node_index, descriptor.size / toSize(toValueType(descriptor.type)));
+    case binom::VarTypeClass::array:
+    case binom::VarTypeClass::object:
+    return NodeIterator(fmm, descriptor.type, fmm.getNodeData(node_index));
+  }
 }

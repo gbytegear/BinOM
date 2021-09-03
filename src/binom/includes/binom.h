@@ -2,6 +2,7 @@
 #define BINOM_H
 
 #include "utils/node_visitor.h"
+#include "file_storage/file_storage.h"
 #include "utils/file.h"
 
 namespace binom {

@@ -177,7 +177,7 @@ class FileNodeVisitor::NodeIterator {
       ByteArray indexes;
       virtual_index* index_it;
       ArrayData(ByteArray indexes)
-        : indexes(std::move(indexes)), index_it(indexes.begin<virtual_index>()) {}
+        : indexes(std::move(indexes)), index_it(this->indexes.begin<virtual_index>()) {}
     } array_data;
 
     struct BufferArrayData {
