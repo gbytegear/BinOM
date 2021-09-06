@@ -16,7 +16,7 @@ SerializedStorage& SerializedStorage::write(Variable var) {
   return *this;
 }
 
-FileType checkFileType(std::string_view file_name) {
+FileType binom::checkFileType(std::string_view file_name) {
   FileIO file(file_name);
   DBVersion version;
   if(file.getSize() < sizeof (version))
