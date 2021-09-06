@@ -34,7 +34,7 @@ libbinom.a: objects
 
 # Compile shared object
 libbinom.so: objects
-	$(CXX_CMP) $(LD_SHARED_FLAGS) -o libbinom.so *.o
+	$(CXX_CMP) $(LD_SHARED_FLAGS) $(LIBS) -o libbinom.so *.o
 
 # Compile test programm with debug symbols
 test_dbg: objects_dbg

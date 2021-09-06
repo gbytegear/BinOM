@@ -13,7 +13,12 @@ int main() {
 //    memory_manager_test();
 //    file_node_visitor_test();
 //    file_storage_multithreading_test();
-    query_test();
+//    query_test();
+
+    Path path{1, "test", 2, "test_2", "test_3"};
+    std::clog << path.toString() << '\n';
+    Path path_2 = Path::fromString(path.toString());
+    std::clog << path_2.toString() << '\n';
 
 
     std::clog << "=========================================================================\n"

@@ -115,6 +115,24 @@ Path::iterator Path::end() const {return reinterpret_cast<void*>(data.end());}
 
 ByteArray Path::toByteArray() const {return data;}
 
+std::string Path::toString() const {
+  std::string str;
+  bool last_is_name = false;
+  for(PathNode node : *this) {
+    switch (node.type()) {
+      case binom::PathNodeType::index:
+        str += "[" + std::to_string(node.index()) + "]";
+        last_is_name = false;
+      break;
+      case binom::PathNodeType::name:
+        str += (last_is_name? "." + node.name().toString() : node.name());
+        last_is_name = true;
+      break;
+    }
+  }
+  return str;
+}
+
 Path Path::fromByteArray(ByteArray path) {return path;}
 
 // name_1.name_2[10].name_3

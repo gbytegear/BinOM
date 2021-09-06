@@ -45,6 +45,7 @@ public:
   iterator end() const;
 
   ByteArray toByteArray() const;
+  std::string toString() const;
   static Path fromByteArray(ByteArray path);
   static Path fromString(std::string str);
 
