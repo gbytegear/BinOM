@@ -253,13 +253,13 @@ public:
 
 //! Version of data base
 struct DBVersion {
-  const char file_type[9] = "BinOM.DB";
+  const char file_type[9] = "BinOM.FS"; // File_Storage
   const ui16 major = 0;
   const ui16 minor = 0;
 };
 
 //! Current version of data base
-constexpr DBVersion current{"BinOM.DB", 0, 1};
+constexpr DBVersion current{"BinOM.FS", 0, 1};
 
 //! Descriptor of node page
 struct NodePageDescriptor {

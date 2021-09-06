@@ -32,9 +32,10 @@ public:
   FileIO(const FileIO& other) : file_path(other.file_path) {}
   FileIO(FileIO&& other) : file_path(std::move(other.file_path)) {}
 
-  inline bool isExist() {return fs::exists(file_path);}
-  inline bool isEmpty() {return fs::is_empty(file_path);}
-  inline ui64 getSize() {return fs::file_size(file_path);}
+  inline bool isExist() const {return fs::exists(file_path);}
+  inline bool isEmpty() const {return fs::is_empty(file_path);}
+  inline ui64 getSize() const {return fs::file_size(file_path);}
+  inline fs::path getPath() const {return file_path;}
 
   inline void resize(ui64 new_size) {fs::resize_file(file_path, new_size);}
   inline ui64 addSize(ui64 add_size) {
