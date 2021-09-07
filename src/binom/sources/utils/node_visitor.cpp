@@ -7,7 +7,7 @@ void NodeVisitor::setNull() {
   ref.ptr = nullptr;
 }
 
-NodeVisitor::NodeVisitor(decltype(nullptr) null) : ref_type(RefType::variable), ref(*reinterpret_cast<Variable**>(&null)) {}
+NodeVisitor::NodeVisitor(decltype(nullptr) null) : ref_type(RefType(-1)), ref(*reinterpret_cast<Variable**>(&null)) {}
 
 NodeVisitor::NodeVisitor(Variable* var) : ref_type(RefType::variable), ref(var) {}
 
