@@ -194,11 +194,11 @@ void CLI::requredArg(BufferArray name,
 void CLI::formatOutput(BufferArray format) {
   for(ValueRef value : format)
     switch (value.asI8()) {
-    case 'h': output_manip.primitive = OutputManip::HEX; continue;
-    case 'u': output_manip.primitive = OutputManip::UNSIGNED; continue;
-    case 's': output_manip.primitive = OutputManip::SIGNED; continue;
-    case 'p': output_manip.buffer_array = OutputManip::PRIMITIVE; continue;
-    case 't': output_manip.buffer_array = OutputManip::STRING; continue;
+    case 'h': OutputManip::primitive = OutputManip::Primitive::HEX; continue;
+    case 'u': OutputManip::primitive = OutputManip::Primitive::UNSIGNED; continue;
+    case 's': OutputManip::primitive = OutputManip::Primitive::SIGNED; continue;
+    case 'p': OutputManip::buffer_array = OutputManip::BufferArray::PRIMITIVE; continue;
+    case 't': OutputManip::buffer_array = OutputManip::BufferArray::STRING; continue;
     default: std::cerr << "Invalid output flag '" << value.asI8() << "'\n";
     }
 }
