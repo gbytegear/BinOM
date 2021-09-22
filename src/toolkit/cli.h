@@ -38,7 +38,6 @@ public:
 };
 
 // Type input operators
-
 std::istream& operator>>(std::istream& is, VarType& type);
 std::istream& operator>>(std::istream& is, VarTypeClass& type_class);
 std::istream& operator>>(std::istream& is, ValType& val_type);

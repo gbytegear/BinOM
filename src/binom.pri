@@ -25,6 +25,7 @@ HEADERS += \
     binom/includes/file_storage/file_structs.h \
 
 SOURCES += \
+    $$PWD/binom/sources/utils/node_visitor_base.cpp \
     binom/sources/utils/TestExpressionFrame.cpp \
     binom/sources/file_storage/file_node_visitor.cpp \
     binom/sources/binom.cpp \

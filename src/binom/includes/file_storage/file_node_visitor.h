@@ -142,6 +142,7 @@ public:
 
   NodeVisitor& toRAMVisitor() = delete;
   FileNodeVisitor& toFileVisitor() = delete;
+  Variable getVariableClone() = delete;
 };
 
 

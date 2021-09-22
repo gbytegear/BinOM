@@ -19,11 +19,12 @@ SerializedStorage& SerializedStorage::write(Variable var) {
 FileType binom::checkFileType(std::string_view file_name) {
   FileIO file(file_name);
   DBVersion version;
+  file.read(version, 0);
   if(file.getSize() < sizeof (version))
     return FileType::undefined_file;
-  elif(memcmp(version.file_type, "BinOM.FS", sizeof(current.file_type)))
+  elif(!memcmp(version.file_type, "BinOM.FS", sizeof(current.file_type)))
       return FileType::file_storage;
-  elif(memcmp(version.file_type, "BinOM.SS", sizeof(current.file_type)))
+  elif(!memcmp(version.file_type, "BinOM.SS", sizeof(current.file_type)))
       return FileType::serialized_file_storage;
   else return FileType::undefined_file;
 }

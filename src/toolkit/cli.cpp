@@ -242,62 +242,99 @@ CLI::CLI(int argc, char* argv[]) : args(paresArgs(--argc, ++argv)) {
 
 std::istream& binom::operator>>(std::istream& is, VarType& type) {
   static const char values[] =
-"| 1 - byte\n"
-"| 2 - word\n"
-"| 3 - dword\n"
-"| 4 - qword\n"
-"| 5 - byte array\n"
-"| 6 - word array\n"
-"| 7 - dword array\n"
-"| 8 - qword array\n"
-"| 9 - array\n"
-"| 10 - object\n";
+  "| 1 - byte\n"
+  "| 2 - word\n"
+  "| 3 - dword\n"
+  "| 4 - qword\n"
+  "| 5 - byte array\n"
+  "| 6 - word array\n"
+  "| 7 - dword array\n"
+  "| 8 - qword array\n"
+  "| 9 - array\n"
+  "| 10 - object\n";
 
-  ui16 number;
   while(true) {
-    is >> number;
-    if(VarType(number) < VarType::byte || VarType(number) > VarType::object)
+    ui16 number;
+    std::string input;
+
+    is >> input;
+
+    if(!isNumber(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";
-    else break;
+      continue;
+    }
+
+    number = std::stoi(input);
+
+    if(VarType(number) < VarType::byte || VarType(number) > VarType::object) {
+      std::cerr << "Invalid type\n"<< values <<"Try again: ";
+      continue;
+    }
+
+    type = static_cast<VarType>(number);
+
+    return is;
   }
-  type = static_cast<VarType>(number);
-  return is;
 }
 
 std::istream& binom::operator>>(std::istream& is, VarTypeClass& type_class) {
   static const char values[] =
-"| 1 - primitive\n"
-"| 2 - buffer array\n"
-"| 3 - array\n"
-"| 4 - object\n";
+  "| 1 - primitive\n"
+  "| 2 - buffer array\n"
+  "| 3 - array\n"
+  "| 4 - object\n";
 
-  ui16 number;
   while(true) {
-    is >> number;
+    ui16 number;
+    std::string input;
+
+    is >> input;
+
+    if(!isNumber(input)) {
+      std::cerr << "Invalid type\n"<< values <<"Try again: ";
+      continue;
+    }
+
+    number = std::stoi(input);
+
     if(VarTypeClass(number) < VarTypeClass::primitive ||
-       VarTypeClass(number) > VarTypeClass::object)
+       VarTypeClass(number) > VarTypeClass::object) {
       std::cerr << "Invalid type class\n"<< values <<"Try again: ";
-    else break;
+      continue;
+    }
+
+    type_class = static_cast<VarTypeClass>(number);
+    return is;
   }
-  type_class = static_cast<VarTypeClass>(number);
-  return is;
 }
 
 std::istream& binom::operator>>(std::istream& is, ValType& val_type) {
   static const char values[] =
-"| 1 - byte\n"
-"| 2 - word\n"
-"| 3 - dword\n"
-"| 4 - qword\n";
+  "| 1 - byte\n"
+  "| 2 - word\n"
+  "| 3 - dword\n"
+  "| 4 - qword\n";
 
-  ui16 number;
   while(true)  {
-    is >> number;
-    if(ValType(number - 1) > ValType::qword)
+    ui16 number;
+    std::string input;
+
+    is >> input;
+
+    if(!isNumber(input)) {
+      std::cerr << "Invalid type\n"<< values <<"Try again: ";
+      continue;
+    }
+
+    number = std::stoi(input);
+
+    if(ValType(number - 1) > ValType::qword) {
       std::cerr << "Invalid value type\n"<< values <<"Try again: ";
-    else break;
+      continue;
+    }
+
+    val_type = static_cast<ValType>(number - 1);
+    return is;
   }
 
-  val_type = static_cast<ValType>(number - 1);
-  return is;
 }

@@ -22,6 +22,7 @@ static const char VAL_TYPES[] =
     "| 4 - qword\n";;
 
 void clearConsole();
-void editValue(binom::UnionNodeVisitor root_node);
+
+bool isNumber(std::string str);
 
 #endif // UTILS_H

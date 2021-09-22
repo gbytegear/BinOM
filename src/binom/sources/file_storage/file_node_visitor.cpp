@@ -592,6 +592,7 @@ void FileNodeVisitor::setVariable(Variable var) {
       }
     break;
     case binom::VarTypeClass::object: {
+      if(var.toObject().isEmpty()) break;
       ByteArray
           name_length_block,
           name_block,

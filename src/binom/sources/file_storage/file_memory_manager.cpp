@@ -2,10 +2,10 @@
 
 using namespace binom;
 
-FileMemoryManager::FileMemoryManager(std::string_view file_path) : file(file_path) {init();}
+FileMemoryManager::FileMemoryManager(std::string_view file_path, bool force_init) : file(file_path) {init(force_init);}
 
-void FileMemoryManager::init() {
-  if(file.isEmpty()) {
+void FileMemoryManager::init(bool force_init) {
+  if(file.isEmpty() || force_init) {
     file.resize(sizeof(db_header));
     file.write(0, db_header);
     return;
@@ -517,8 +517,7 @@ void FileMemoryManager::removeNode(virtual_index node_index) {
     node_page_vector.clear();
     heap_page_vector.clear();
     heap_map.clear();
-    file.resize(0);
-    return init();
+    return init(true);
   }
 
   NodeDescriptor descriptor = getNodeDescriptor(node_index);
