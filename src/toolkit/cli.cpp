@@ -259,7 +259,7 @@ std::istream& binom::operator>>(std::istream& is, VarType& type) {
 
     is >> input;
 
-    if(!isNumber(input)) {
+    if(!isUnsigned(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";
       continue;
     }
@@ -290,7 +290,7 @@ std::istream& binom::operator>>(std::istream& is, VarTypeClass& type_class) {
 
     is >> input;
 
-    if(!isNumber(input)) {
+    if(!isUnsigned(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";
       continue;
     }
@@ -321,7 +321,7 @@ std::istream& binom::operator>>(std::istream& is, ValType& val_type) {
 
     is >> input;
 
-    if(!isNumber(input)) {
+    if(!isUnsigned(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";
       continue;
     }

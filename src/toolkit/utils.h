@@ -23,6 +23,11 @@ static const char VAL_TYPES[] =
 
 void clearConsole();
 
-bool isNumber(std::string str);
+bool isSigned(std::string str);
+bool isUnsigned(std::string str);
+
+binom::i64 inputSigned(const char* msg, std::function<bool(binom::i64)> check_callbak = [](binom::i64)->bool{return true;});
+binom::ui64 inputUnsigned(const char* msg, std::function<bool(binom::ui64)> check_callbak = [](binom::ui64)->bool{return true;});
+bool inputBool(const char* msg);
 
 #endif // UTILS_H

@@ -2,12 +2,7 @@
 
 using namespace binom;
 
-void edit(std::unique_ptr<NodeVisitorBase> root, bool edit_root = false) {
-  std::clog << "File content:\n"
-  << root->getVariableClone();
-}
-
-
+void editor(std::unique_ptr<binom::NodeVisitorBase> root, bool edit_root = false);
 
 const std::map<BufferArray, command_t> CLI::commands = {
 
@@ -135,7 +130,7 @@ const std::map<BufferArray, command_t> CLI::commands = {
        ":";
        std::cin >> input;
 
-       if(!isNumber(input)) {
+       if(!isUnsigned(input)) {
          std::cerr << "Invalid input\n";
          continue;
        }
@@ -174,13 +169,13 @@ const std::map<BufferArray, command_t> CLI::commands = {
          Variable data(type);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new NodeVisitor(data));
          SerializedStorage storage(file_name);
-         edit(std::move(node), true);
+         editor(std::move(node), true);
          storage = data;
        }return;
        case FileType::file_storage: {
          FileStorage storage(file_name, type, true);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(storage));
-         edit(std::move(node), true);
+         editor(std::move(node), true);
        }return;
 
      }

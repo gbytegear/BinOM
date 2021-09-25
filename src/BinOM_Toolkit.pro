@@ -1,4 +1,5 @@
 CONFIG -= qt
+TARGET = binomtk
 
 include("binom.pri")
 
@@ -6,7 +7,6 @@ linux-g++ | linux-g++-64 | linux-g++-32 {
 CONFIG += c++17 console
 LIBS += -lstdc++fs -lpthread;
 }
-
 
 win32 {
     CONFIG += c++17 console
@@ -19,6 +19,7 @@ SOURCES += \
     toolkit.cpp \
     toolkit/cli.cpp \
     toolkit/commands.cpp \
+    toolkit/editor.cpp \
     toolkit/utils.cpp
 
 HEADERS += \

@@ -50,6 +50,18 @@ BufferArray::BufferArray(VarType type) : data(nullptr){
   length() = 0;
 }
 
+BufferArray::BufferArray(VarType type, size_t count) : data(nullptr){
+  if(type < VarType::byte_array || type > VarType::qword_array) throw Exception(ErrCode::binom_invalid_type);
+  size_t size = toSize(toValueType(type)) * count;
+  data.ptr = tryMalloc(9 + size);
+  *data.type = type;
+  length() = count;
+  memset(data.bytes + 9, 0, size);
+}
+
+BufferArray::BufferArray(ValType type) : BufferArray(toVarBufferType(type)) {}
+BufferArray::BufferArray(ValType type, size_t count) : BufferArray(toVarBufferType(type), count) {}
+
 BufferArray::BufferArray(const std::string_view str) : data(tryMalloc(9 + str.length())) {
   data.type[0] = VarType::byte_array;
   ui64 size = str.length();
