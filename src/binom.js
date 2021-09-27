@@ -23,6 +23,15 @@ class BinOM {
                 data: {
                     get: () => data[0],
                     set: value => data[0] = value
+                },
+
+                serialized: {
+                    get: () => {
+                        let buffer = new DataView(new ArrayBuffer(2));
+                        buffer.setUint8(0, this.constructor.type_number);
+                        buffer.setUint8(1, this.data);
+                        return buffer.buffer;
+                    }
                 }
             });
         }
@@ -40,6 +49,15 @@ class BinOM {
                 data: {
                     get: () => data[0],
                     set: value => data[0] = value
+                },
+
+                serialized: {
+                    get: () => {
+                        let buffer = new DataView(new ArrayBuffer(3));
+                        buffer.setUint8(0, this.constructor.type_number);
+                        buffer.setUint16(1, this.data);
+                        return buffer.buffer;
+                    }
                 }
             });
         }
@@ -57,6 +75,15 @@ class BinOM {
                 data: {
                     get: () => data[0],
                     set: value => data[0] = value
+                },
+
+                serialized: {
+                    get: () => {
+                        let buffer = new DataView(new ArrayBuffer(5));
+                        buffer.setUint8(0, this.constructor.type_number);
+                        buffer.setUint32(1, this.data);
+                        return buffer.buffer;
+                    }
                 }
             });
         }
@@ -76,6 +103,15 @@ class BinOM {
                 data: {
                     get: () => data[0],
                     set: value => data[0] = BigInt(value)
+                },
+
+                serialized: {
+                    get: () => {
+                        let buffer = new DataView(new ArrayBuffer(9));
+                        buffer.setUint8(0, this.constructor.type_number);
+                        buffer.setBigUint64(1, this.data);
+                        return buffer.buffer;
+                    }
                 }
             });
         }
