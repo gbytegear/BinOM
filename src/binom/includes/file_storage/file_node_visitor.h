@@ -17,6 +17,7 @@ private:
   class ObjectElementFinder;
 
   struct NamePosition {
+    virtual_index parent_node_index = 0;
     ValType char_type = ValType::invalid_type;
     element_cnt length = 0;
     real_index name_pos = 0;
@@ -160,6 +161,7 @@ public:
 
 class FileNodeVisitor::NodeIterator {
   FileMemoryManager& fmm;
+  virtual_index parent_node_index;
   VarType container_type;
 
   union Data {
@@ -223,19 +225,20 @@ class FileNodeVisitor::NodeIterator {
 
   friend class FileNodeVisitor;
 
-  NodeIterator(FileMemoryManager& fmm, VarType type, ByteArray data)
-    : fmm(fmm), container_type(type), data(toTypeClass(type), std::move(data)) {}
+  NodeIterator(FileMemoryManager& fmm, virtual_index parent_node_index, VarType type, ByteArray data)
+    : fmm(fmm), parent_node_index(parent_node_index), container_type(type), data(toTypeClass(type), std::move(data)) {}
   NodeIterator(FileMemoryManager& fmm,
+               virtual_index parent_node_index,
                VarType type,
                virtual_index node_index,
                size_t count,
                real_index index = 0)
-    : fmm(fmm), container_type(type), data(node_index, count, index) {}
+    : fmm(fmm), parent_node_index(parent_node_index), container_type(type), data(node_index, count, index) {}
 
 public:
   NodeIterator(const NodeIterator& other) = delete;
   NodeIterator(NodeIterator&& other)
-    : fmm(other.fmm), container_type(other.container_type), data(std::move(other.data)) {other.container_type = VarType::invalid_type;}
+    : fmm(other.fmm), parent_node_index(other.parent_node_index), container_type(other.container_type), data(std::move(other.data)) {other.container_type = VarType::invalid_type;}
 
   ~NodeIterator() {
     switch (toTypeClass(container_type)) {
@@ -262,8 +265,7 @@ public:
         ++data.array_data.index_it;
       break;
       case binom::VarTypeClass::object:
-        if(data.object_data.name_count) {
-          --data.object_data.name_count;
+        if(--data.object_data.name_count) {
           data.object_data.name_it += data.object_data.name_length_it->name_length *
                                       toSize(data.object_data.name_length_it->char_type);
           ++data.object_data.index_it;
@@ -303,6 +305,8 @@ public:
   inline bool operator==(decltype (nullptr)) {return isEnd();}
   inline bool operator!=(decltype (nullptr)) {return !isEnd();}
 
+  FileNodeVisitor getParent() {return FileNodeVisitor(fmm, parent_node_index);}
+
   FileNodeVisitor operator*() {
     switch (toTypeClass(container_type)) {
       case binom::VarTypeClass::buffer_array:
@@ -312,9 +316,10 @@ public:
       case binom::VarTypeClass::object:
       return FileNodeVisitor(fmm, *data.object_data.index_it,
                              NamePosition{
+                               parent_node_index,
                                data.object_data.name_length_it->char_type,
                                data.object_data.name_length_it->name_length,
-                               real_index(data.object_data.name_it - data.object_data.names.begin())
+                               sizeof (ObjectDescriptor) + data.object_data.name_lengths.length() + ui64(data.object_data.name_it - data.object_data.names.begin())
                              });
       default: return FileNodeVisitor(fmm, nullptr);
     }

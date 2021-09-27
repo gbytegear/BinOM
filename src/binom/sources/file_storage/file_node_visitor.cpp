@@ -5,6 +5,7 @@
 using namespace binom;
 
 class FileNodeVisitor::ObjectElementFinder {
+  virtual_index node_index;
   ByteArray indexes;
   ObjectDescriptor descriptor;
   ByteArray name_lengths;
@@ -23,8 +24,9 @@ public:
     virtual_index index;
   };
 
-  ObjectElementFinder(ByteArray data)
-    : indexes(std::move(data)),
+  ObjectElementFinder(ByteArray data, virtual_index node_index)
+    : node_index(node_index),
+      indexes(std::move(data)),
       descriptor(indexes.takeFront<ObjectDescriptor>()),
       name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength))),
       names(indexes.takeFront(descriptor.name_block_size)),
@@ -99,6 +101,7 @@ public:
 
   FileNodeVisitor::NamePosition getNamePosition() {
     return NamePosition{
+      node_index,
       name_length_it->char_type,
       name_length_it->name_length,
       sizeof (ObjectDescriptor) + name_lengths.length() + (name_it - names.begin())
@@ -322,7 +325,7 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
   if(descriptor.index == 0 && descriptor.size == 0)
     return Object();
 
-  ObjectElementFinder finder(fmm.getNodeData(descriptor));
+  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
   ByteArray data(9 + finder.getElementCount()*sizeof(void*)*2);
   data.get<VarType>(0) = VarType::object; // Set type
   data.get<ui64>(0, 1) = finder.getElementCount(); // Set length
@@ -471,7 +474,7 @@ std::optional<BufferArray> FileNodeVisitor::getName() {
   auto lk = getScopedRWGuard(LockType::shared_lock);
   if(name_pos.isNull())
     return std::optional<BufferArray>();
-  ByteArray data = fmm.getNodeDataPart(node_index, name_pos.name_pos, name_pos.length * toSize(name_pos.char_type));
+  ByteArray data = fmm.getNodeDataPart(name_pos.parent_node_index, name_pos.name_pos, name_pos.length * toSize(name_pos.char_type));
   return BufferArray(name_pos.char_type, data.begin(), name_pos.length);
 }
 
@@ -514,7 +517,7 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
   elif(descriptor.size == 0)
     throw Exception(ErrCode::binom_out_of_range);
 
-  ObjectElementFinder finder(fmm.getNodeData(descriptor));
+  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
   if(!finder.findBlock(name.getValType(), name.getMemberCount()).isNameBlockFinded())
     throw Exception(ErrCode::binom_out_of_range);
   if(!finder.findNameInBlock(name.getDataPointer()).isNameFinded())
@@ -804,7 +807,7 @@ void FileNodeVisitor::insert(BufferArray name, Variable var) {
     return;
   }
 
-  ObjectElementFinder finder(fmm.getNodeData(descriptor));
+  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
   finder.insert(name, createVariable(var));
   fmm.updateNode(node_index, finder.getNodeData(), &descriptor);
 }
@@ -848,7 +851,7 @@ void FileNodeVisitor::remove(BufferArray name) {
     throw Exception(ErrCode::binom_invalid_type);
   if(descriptor.size == 0)
     throw Exception(ErrCode::binom_out_of_range);
-  ObjectElementFinder finder(fmm.getNodeData(descriptor));
+  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
   if(!finder.remove(std::move(name)))
     throw Exception(ErrCode::binom_out_of_range);
 }
@@ -909,9 +912,9 @@ FileNodeVisitor::NodeIterator FileNodeVisitor::begin() {
   switch (toTypeClass(descriptor.type)) {
     default: throw Exception(ErrCode::binom_invalid_type);
     case binom::VarTypeClass::buffer_array:
-    return NodeIterator(fmm, descriptor.type, node_index, descriptor.size / toSize(toValueType(descriptor.type)));
+    return NodeIterator(fmm, node_index, descriptor.type, node_index, descriptor.size / toSize(toValueType(descriptor.type)));
     case binom::VarTypeClass::array:
     case binom::VarTypeClass::object:
-    return NodeIterator(fmm, descriptor.type, fmm.getNodeData(descriptor));
+    return NodeIterator(fmm, node_index, descriptor.type, fmm.getNodeData(descriptor));
   }
 }

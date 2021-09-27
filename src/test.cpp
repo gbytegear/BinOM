@@ -55,6 +55,14 @@ int main() {
                  "File storage:\n" << f_storage.getRoot().getVariable() << "\n\n";
 
 
+    FileNodeVisitor node = f_storage.getRoot();//({"usr", 0});
+    std::clog << "Test file storage getName:\n"
+                 "Root type: " << toTypeString(node.getType()) << '\n';
+    for(FileNodeVisitor child : node) {
+      std::clog << *child.getName() << '\n';
+    }
+
+
     std::clog << "=========================================================================\n"
                  "|                    Test completed successfully                        |\n"
                  "=========================================================================\n";

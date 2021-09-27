@@ -274,7 +274,7 @@ ByteArray FileMemoryManager::getNodeDataPart(NodeDescriptor descriptor, real_ind
       file.readBuffer(it, block.r_index, block.size);
       size -= block.size;
     } else {
-      ByteArray::iterator it = data.addSize(block.size);
+      ByteArray::iterator it = data.addSize(size);
       file.readBuffer(it, block.r_index, size);
       return data;
     }
