@@ -8,6 +8,9 @@ namespace binom {
 
 
 class FileNodeVisitor : public NodeVisitorBase {
+public:
+  class NodeIterator;
+private:
   typedef RWSyncMap::ScopedRWGuard ScopedRWGuard;
   typedef RWSyncMap::RWGuard RWGuard;
   typedef RWSyncMap::LockType LockType;
@@ -38,8 +41,19 @@ class FileNodeVisitor : public NodeVisitorBase {
       current_rwg(fmm.getRWGuard(node_index))
   {}
 
+  FileNodeVisitor(FileMemoryManager& fmm,
+           virtual_index node_index,
+           NamePosition name_pos)
+    : fmm(fmm),
+      node_index(node_index),
+      index(index),
+      name_pos(name_pos),
+      current_rwg(fmm.getRWGuard(node_index))
+  {}
+
   friend class FileNodeVisitor::ObjectElementFinder;
   friend class FileStorage;
+  friend class FileNodeVisitor::NodeIterator;
 
   Variable buildVariable(virtual_index node_index) const;
   Primitive buildPrimitive(virtual_index node_index, const NodeDescriptor* descriptor = nullptr, ScopedRWGuard* lk = nullptr) const;
@@ -79,8 +93,6 @@ class FileNodeVisitor : public NodeVisitorBase {
     : fmm(fmm), node_index(null_index), index(null_index) {}
 
 public:
-
-  class NodeIterator;
 
   FileNodeVisitor(const FileNodeVisitor& other)
     : fmm(other.fmm),
@@ -298,7 +310,12 @@ public:
       case binom::VarTypeClass::array:
       return FileNodeVisitor(fmm, *data.array_data.index_it);
       case binom::VarTypeClass::object:
-      return FileNodeVisitor(fmm, *data.object_data.index_it);
+      return FileNodeVisitor(fmm, *data.object_data.index_it,
+                             NamePosition{
+                               data.object_data.name_length_it->char_type,
+                               data.object_data.name_length_it->name_length,
+                               real_index(data.object_data.name_it - data.object_data.names.begin())
+                             });
       default: return FileNodeVisitor(fmm, nullptr);
     }
   }
