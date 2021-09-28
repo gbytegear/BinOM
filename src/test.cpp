@@ -5,6 +5,20 @@
 //#include"tests/multithreading_test.h"
 #include "tests/query_test.h"
 
+void foreachFNV(FileNodeVisitor& node, ui64 depth = 1) {
+  for(auto child : node) {
+    std::clog << std::string(depth, '|') << "Node index: " << child.getNodeIndex() << '\n';
+    std::clog << std::string(depth, '|') << "Node type: " << toTypeString(child.getType()) << '\n';
+    if(auto name = child.getName(); name)
+      std::clog << std::string(depth, '|') << "Name: " << *name << '\n';
+    if(child.isIterable())
+      foreachFNV(child, depth + 1);
+    else
+      std::clog << std::string(depth, '|') << "Node value: " << child.getVariable() << '\n';
+    std::clog << std::string(depth, '|') << "====\n";
+  }
+}
+
 int main() {
   using namespace binom;
   try {
@@ -55,12 +69,10 @@ int main() {
                  "File storage:\n" << f_storage.getRoot().getVariable() << "\n\n";
 
 
-    FileNodeVisitor node = f_storage.getRoot();//({"usr", 0});
+    FileNodeVisitor node = f_storage.getRoot();
     std::clog << "Test file storage getName:\n"
                  "Root type: " << toTypeString(node.getType()) << '\n';
-    for(FileNodeVisitor child : node) {
-      std::clog << *child.getName() << '\n';
-    }
+    foreachFNV(node);
 
 
     std::clog << "=========================================================================\n"

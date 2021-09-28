@@ -545,7 +545,7 @@ Variable FileNodeVisitor::getVariable() const {
     ByteArray data = fmm.getNodeDataPart(descriptor,
                                          index*toSize(toValueType(descriptor.type)),
                                          toSize(toValueType(descriptor.type)));
-    data.pushFront(descriptor.type);
+    data.pushFront(toVarType(toValueType(descriptor.type)));
     void* variable = data.unfree();
     return *reinterpret_cast<Variable*>(&variable);
   } else return buildVariable(node_index);

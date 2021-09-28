@@ -356,7 +356,9 @@ ByteArray FileMemoryManager::getNodeData(NodeDescriptor descriptor) {
 
     case binom::VarTypeClass::buffer_array:
     case binom::VarTypeClass::array:
-    case binom::VarTypeClass::object: break;
+    case binom::VarTypeClass::object:
+      if(!descriptor.size) return ByteArray();
+    break;
 
     default:
     case binom::VarTypeClass::invalid_type:
