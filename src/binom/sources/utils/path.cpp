@@ -207,11 +207,11 @@ Path Path::fromString(std::string str) {
               continue;
               case ',':
                 if(value.empty()) continue;
-                data.pushBack(std::stoull(value));
+                data.pushBack(ui64(std::stoull(value)));
                 value.clear();
               continue;
             }
-          if(!value.empty()) data.pushBack(std::stoull(value));
+          if(!value.empty()) data.pushBack(ui64(std::stoull(value)));
           if(i >= str.length()) throw Exception(ErrCode::invalid_data);
           data_value = data.toByteArray();
         }

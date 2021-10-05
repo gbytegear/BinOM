@@ -51,6 +51,11 @@ libs: libbinom.a libbinom.so
 	mv libbinom.so ../build
 	cp binom/includes ../build -r
 
+# Toolkit
+toolkit: libbinom.a
+	rm -rf ./*.o
+	$(CXX_CMP) -I. ./toolkit/*.cpp ./toolkit.cpp -o binomtk $(LIBS) ./libbinom.a
+
 all: libs
 	make clean
 
