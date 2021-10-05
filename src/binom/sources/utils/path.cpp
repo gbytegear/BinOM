@@ -8,6 +8,16 @@ Path::PathLiteral::PathLiteral(ui64 index) : type(PathNodeType::index), value(in
 
 Path::PathLiteral::PathLiteral(int index) : type(PathNodeType::index), value(index) {}
 
+Path::PathLiteral::PathLiteral(ui8arr byte_array) : type(PathNodeType::name), value(BufferArray(byte_array)) {}
+Path::PathLiteral::PathLiteral(i8arr byte_array) : type(PathNodeType::name), value(BufferArray(byte_array)) {}
+Path::PathLiteral::PathLiteral(ui16arr word_array) : type(PathNodeType::name), value(BufferArray(word_array)) {}
+Path::PathLiteral::PathLiteral(i16arr word_array) : type(PathNodeType::name), value(BufferArray(word_array)) {}
+Path::PathLiteral::PathLiteral(ui32arr dword_array) : type(PathNodeType::name), value(BufferArray(dword_array)) {}
+Path::PathLiteral::PathLiteral(i32arr dword_array) : type(PathNodeType::name), value(BufferArray(dword_array)) {}
+Path::PathLiteral::PathLiteral(ui64arr qword_array) : type(PathNodeType::name), value(BufferArray(qword_array)) {}
+Path::PathLiteral::PathLiteral(i64arr qword_array) : type(PathNodeType::name), value(BufferArray(qword_array)) {}
+
+
 Path::PathLiteral::PathLiteral(BufferArray string) : type(PathNodeType::name), value(std::move(string)) {}
 
 Path::PathLiteral::PathLiteral(const char* string) : type(PathNodeType::name), value(BufferArray(string)) {}
@@ -33,7 +43,8 @@ Path::Path(std::initializer_list<Path::PathLiteral> path) {
       break;
       case binom::PathNodeType::name:
         data.pushBack<PathNodeType>(PathNodeType::name);
-        data.pushBack<ui64>(path_node.value.string.getMemberCount());
+        data.pushBack<ValType>(path_node.value.string.getValType());
+        data.pushBack<ui64>(path_node.value.string.getMemberCount()*path_node.value.string.getMemberSize());
         data.pushBack(path_node.value.string.toByteArray());
       break;
     }
@@ -81,24 +92,10 @@ bool Path::operator==(const Path& other) const {
   return this_it == this_end && other_it == other_end;
 }
 
-//Path& Path::pushBack(Path::PathLiteral path_literal) {
-//  switch (path_literal.type) {
-//    case binom::PathNodeType::index:
-//      data.pushBack<PathNodeType>(PathNodeType::index);
-//      data.pushBack<ui64>(path_literal.value.index);
-//    break;
-//    case binom::PathNodeType::name:
-//      data.pushBack<PathNodeType>(PathNodeType::name);
-//      data.pushBack<ui64>(path_literal.value.string.getMemberCount());
-//      data.pushBack(path_literal.value.string.toByteArray());
-//    break;
-//  }
-//  return *this;
-//}
-
 Path& Path::pushBack(BufferArray name) {
   data.pushBack<PathNodeType>(PathNodeType::name);
-  data.pushBack<ui64>(name.getMemberCount());
+  data.pushBack<ValType>(name.getValType());
+  data.pushBack<ui64>(name.getMemberCount()*name.getMemberSize());
   data.pushBack(name.toByteArray());
   return *this;
 }
@@ -124,10 +121,16 @@ std::string Path::toString() const {
         str += "[" + std::to_string(node.index()) + "]";
         last_is_name = false;
       break;
-      case binom::PathNodeType::name:
-        str += (last_is_name? "." + node.name().toString() : node.name());
-        last_is_name = true;
-      break;
+      case binom::PathNodeType::name: {
+        BufferArray data = node.name();
+        str += std::string("{") + toTypeString(data.getValType()) + ":";
+        for(auto start = data.begin(), it = start, end = data.end(); it != end ;++it) {
+          if(it != start) str += ',';
+          str += std::to_string(it->asUi64());
+        }
+        str += '}';
+      } break;
+      default: throw Exception(ErrCode::invalid_data, "Invalid path data!");
     }
   }
   return str;
@@ -147,6 +150,7 @@ Path Path::fromString(std::string str) {
         if(shielding) {
           shielding = false;
           data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ValType>(ValType::byte);
           data.pushBack<ui64>(i - start);
           data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
           start = i + 1;
@@ -154,29 +158,84 @@ Path Path::fromString(std::string str) {
         }
         if(start < i) { // name"shielded.name[5]"
           data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ValType>(ValType::byte);
           data.pushBack<ui64>(i - start);
           data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
         }
         start = i + 1;
         shielding = true;
+      continue;
+
       case '.': // name.
         if(shielding) continue;
         if(start == i) continue; // name_1...name_2 (many dots)
         data.pushBack<PathNodeType>(PathNodeType::name);
+        data.pushBack<ValType>(ValType::byte);
         data.pushBack<ui64>(i - start);
         data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
         start = i + 1;
       continue;
+
+      case '{': { // {byte: 1, 2, 3} or {word: 1, 2, 3}
+        if(shielding) continue;
+        if(start < i) { // name{5}
+          data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ValType>(ValType::byte);
+          data.pushBack<ui64>(i - start);
+          data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
+        }
+
+        start = i + 1;
+        for(;i < str.length() && str[i] != ':'; ++i);
+        if(i >= str.length()) throw Exception(ErrCode::invalid_data);
+        ValType type = toValueType(str.substr(start, i - start).c_str());
+        if(type == ValType::invalid_type) throw Exception(ErrCode::invalid_data);
+        ++i;
+
+
+        ByteArray data_value;
+        {
+          BufferArray data(type);
+          std::string value;
+          for(;i < str.length() && str[i] != '}'; ++i)
+            switch (str[i]) {
+              default:
+                if(str[i] < '0' && str[i] > '9') throw Exception(ErrCode::invalid_data);
+                else value += str[i];
+              continue;
+              case ' ': case '\t': case '\n': case '\r': case '\x0B': case '\f':
+              continue;
+              case ',':
+                if(value.empty()) continue;
+                data.pushBack(std::stoull(value));
+                value.clear();
+              continue;
+            }
+          if(!value.empty()) data.pushBack(std::stoull(value));
+          if(i >= str.length()) throw Exception(ErrCode::invalid_data);
+          data_value = data.toByteArray();
+        }
+
+        data.pushBack<PathNodeType>(PathNodeType::name);
+        data.pushBack<ValType>(type);
+        data.pushBack<ui64>(data_value.length());
+        data.pushBack(data_value);
+        start = i + 1;
+
+      }continue;
+
       case '[': // [5]
         if(shielding) continue;
         if(start < i) { // name[5]
           data.pushBack<PathNodeType>(PathNodeType::name);
+          data.pushBack<ValType>(ValType::byte);
           data.pushBack<ui64>(i - start);
           data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
         }
         start = i + 1;
         for(;i < str.length() && str[i] != ']'; ++i)
           if(str[i] < '0' && str[i] > '9') throw Exception(ErrCode::invalid_data);
+        if(i >= str.length()) throw Exception(ErrCode::invalid_data);
         data.pushBack<PathNodeType>(PathNodeType::index);
         data.pushBack<ui64>(std::stoull(str.substr(start, i - start)));
         start = i + 1;
@@ -187,15 +246,10 @@ Path Path::fromString(std::string str) {
 
   if(start < str.length() - 1) {
     data.pushBack<PathNodeType>(PathNodeType::name);
+    data.pushBack<ValType>(ValType::byte);
     data.pushBack<ui64>(str.length() - start);
     data.pushBack(ByteArray(str.substr(start, data.last<ui64>()).c_str(), data.last<ui64>()));
   }
-
-//  std::clog << "Parsed path:\n";
-//  for(PathNode node : Path::fromByteArray(data)) {
-//    std::clog << "Path node type: "<< ((node.type() == PathNodeType::index) ? "index" : "name")
-//              << "\nPath node value: " << ((node.type() == PathNodeType::index) ? std::to_string(node.index()) : node.name().toString()) << "\n\n";
-//  }
 
   return Path::fromByteArray(data);
 }
@@ -207,10 +261,13 @@ PathNodeType Path::PathNode::type() const {return *ptr;}
 ui64 Path::PathNode::index() const {return *reinterpret_cast<ui64*>(ptr + 1);}
 
 BufferArray Path::PathNode::name() const {
-  return BufferArray(
-        reinterpret_cast<ui8*>(ptr + 1 + sizeof (ui64)),
-        *reinterpret_cast<ui64*>(ptr + 1)
-        );
+//  return BufferArray(
+//        reinterpret_cast<ui8*>(ptr + 1 + sizeof (ui64)),
+//        *reinterpret_cast<ui64*>(ptr + 1)
+//        );
+  return BufferArray(*reinterpret_cast<ValType*>(ptr + sizeof (PathNodeType)),
+                     reinterpret_cast<const void*>(ptr + sizeof (PathNodeType) + sizeof (ValType) + sizeof (ui64)),
+                     *reinterpret_cast<ui64*>(ptr + sizeof (PathNodeType) + sizeof (ValType))/toSize(*reinterpret_cast<ValType*>(ptr + sizeof (PathNodeType))));
 }
 
 
@@ -233,7 +290,10 @@ Path::iterator& Path::iterator::operator++() {
       ptr += 1 + sizeof (ui64);
     break;
     case PathNodeType::name:
-      ptr += 1 + sizeof(ui64) + *reinterpret_cast<ui64*>(ptr + 1);
+      ptr += sizeof (PathNodeType)
+             + sizeof(ValType)
+             + sizeof(ui64)
+             + *reinterpret_cast<ui64*>(ptr + sizeof(PathNodeType) + sizeof(ValType));// * toSize(*reinterpret_cast<ValType*>(ptr + 1 + sizeof(ui64)));
     break;
   }
   return *this;
