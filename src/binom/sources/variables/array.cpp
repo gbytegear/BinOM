@@ -92,14 +92,28 @@ Variable& Array::pushFront(Variable var) {
   return *new_var;
 }
 
+Array Array::subarr(ui64 index, ui64 n) {
+  if(index + n > getMemberCount())
+    n = getMemberCount() - index;
+  if(!n) return Array();
+  ByteArray result(9 + n * sizeof (Variable));
+  result.set<VarType>(0,0,VarType::array);
+  result.set<ui64>(0,1,n);
+  for(Variable* start = reinterpret_cast<Variable*>(data.bytes + 9 + index*sizeof(Variable)),
+      *it = start,
+      *res_it = result.begin<Variable>(9); ui64(it - start) < n; (++it, ++res_it))
+    *res_it = *it;
+  void* _result = result.unfree();
+  return *reinterpret_cast<Array*>(&_result);
+}
+
 void Array::remove(ui64 index, ui64 n) {
-  if(index + n > getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
+  if(index + n > getMemberCount())
+    n = getMemberCount() - index;
+  if(!n) return;
   Variable* start = reinterpret_cast<Variable*>(data.bytes + 9 + index*sizeof(Variable));
-  {
-    Variable* it = start;
-    for(ui64 i = 0;i < n;(++i,++it))
-      it->destroy();
-  }
+  for(Variable* it = start;ui64(it - start) < n;++it)
+    it->destroy();
   msubfrom(start, n*sizeof(Variable));
   length() -= n;
 }

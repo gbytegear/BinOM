@@ -144,8 +144,8 @@ public:
 
   void popBack(const ui64 n = 1);
   void popFront(const ui64 n = 1);
-  void remove(const ui64 index, const ui64 n = 1);
-  BufferArray subarr(const ui64 index, const ui64 n);
+  void remove(ui64 index, ui64 n = 1);
+  BufferArray subarr(ui64 index, ui64 n);
 
   void clear();
 

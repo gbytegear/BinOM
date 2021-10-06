@@ -43,6 +43,7 @@ public:
   Variable& insert(ui64 index, Variable var);
   Variable& pushBack(Variable var);
   Variable& pushFront(Variable var);
+  Array subarr(ui64 index, ui64 n);
 
   void remove(ui64 index, ui64 n = 1);
   void popBack(ui64 n = 1);

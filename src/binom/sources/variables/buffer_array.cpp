@@ -498,15 +498,19 @@ void BufferArray::popFront(const ui64 n) {
   length() -= n;
 }
 
-void BufferArray::remove(const ui64 index, const ui64 n) {
-  if(index + n >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
+void BufferArray::remove(binom::ui64 index, binom::ui64 n) {
+  if(index + n > getMemberCount())
+    n = getMemberCount() - index;
+  if(!n) return;
   size_t member_size = getMemberSize();
   msubfrom(data.bytes + 9 + index*member_size, member_size*n);
   length() -= n;
 }
 
-BufferArray BufferArray::subarr(const ui64 index, const ui64 n) {
-  if(index + n >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range);
+BufferArray BufferArray::subarr(binom::ui64 index, binom::ui64 n) {
+  if(index + n > getMemberCount())
+    n = getMemberCount() - index;
+  if(!n) return BufferArray(getType());
   ui8 member_size = getMemberSize();
   byte* ptr = tryMalloc<byte>(9 + n*member_size);
   *reinterpret_cast<VarType*>(ptr) = *data.type;

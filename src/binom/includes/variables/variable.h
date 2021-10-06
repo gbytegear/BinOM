@@ -145,6 +145,10 @@ public:
   inline BufferArray& toBufferArray() const     {throwIfNot(VarTypeClass::buffer_array); return const_cast<BufferArray&>(data.buffer_array);}
   inline Array& toArray() const                 {throwIfNot(VarTypeClass::array); return const_cast<Array&>(data.array);}
   inline Object& toObject() const               {throwIfNot(VarTypeClass::object); return const_cast<Object&>(data.object);}
+  inline operator Primitive&() const {return toPrimitive();}
+  inline operator BufferArray&() const {return toBufferArray();}
+  inline operator Array&() const {return toArray();}
+  inline operator Object&() const {return toObject();}
 
   // Member access
   inline Variable& getVariable(ui64 index) const         {throwIfNot(VarTypeClass::array); return toArray().getVariable(index);}
