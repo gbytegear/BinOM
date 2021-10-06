@@ -342,6 +342,14 @@ BufferArray::BufferArray(Primitive primitive) : data(tryMalloc(9 + toSize(primit
   length() = 1;
 }
 
+bool BufferArray::isPrintable() const {
+  if(getType() != binom::VarType::byte_array)
+    return false;
+  for(auto value_ref : *this)
+    if(!isprint(char(value_ref.asUi8()))) return false;
+  return true;
+}
+
 ByteArray BufferArray::serialize() const {
   ByteArray bytes(1);
   bytes[0] = byte(*data.type);

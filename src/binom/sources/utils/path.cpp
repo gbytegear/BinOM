@@ -123,12 +123,20 @@ std::string Path::toString() const {
       break;
       case binom::PathNodeType::name: {
         BufferArray data = node.name();
+        if(data.isPrintable()) {
+          if(last_is_name) str += '.';
+          str += data;
+          last_is_name = true;
+          break;
+        }
+
         str += std::string("{") + toTypeString(data.getValType()) + ":";
         for(auto start = data.begin(), it = start, end = data.end(); it != end ;++it) {
           if(it != start) str += ',';
           str += std::to_string(it->asUi64());
         }
         str += '}';
+        last_is_name = false;
       } break;
       default: throw Exception(ErrCode::invalid_data, "Invalid path data!");
     }
