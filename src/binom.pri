@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/binom/includes/lexer.h \
     binom/includes/file_storage/file_memory_manager.h \
     binom/includes/file_storage/file_node_visitor.h \
     binom/includes/file_storage/file_storage.h \
