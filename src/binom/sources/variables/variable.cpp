@@ -592,7 +592,7 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
 
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::BufferArray& buffer) {
   printIndent(os, ind, msg);
-  if(buffer.getType() == VarType::byte_array && OutputManip::buffer_array == OutputManip::BufferArray::STRING)
+  if(buffer.isPrintable() && OutputManip::buffer_array == OutputManip::BufferArray::STRING)
     return os << buffer.toString();
   for(const binom::ValueRef &val : buffer)
     os << val << ' ';
@@ -622,7 +622,7 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
   printIndent(os, ind, msg);
   os << "Object(" << object.getMemberCount() << ") {\n";
   for(NamedVariable& nvar : object) {
-    if(nvar.name.getType() == VarType::byte_array)
+    if(nvar.name.isPrintable())
       printWithIndent(os, ind + 1, nvar.name.toString() + ':', nvar.variable) << '\n';
     else
       printWithIndent(os, ind + 1, '[' + nameToString(nvar.name) + "]:", nvar.variable) << '\n';

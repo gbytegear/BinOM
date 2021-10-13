@@ -216,13 +216,13 @@ struct OutputManip {
 
   static inline bool print_type = false;
 
-  static inline enum class Primitive : ui8 {
+  static thread_local inline enum class Primitive : ui8 {
     HEX,
     SIGNED,
     UNSIGNED
   } primitive = Primitive::HEX;
 
-  static inline enum class BufferArray : ui8 {
+  static thread_local inline enum class BufferArray : ui8 {
     PRIMITIVE,
     STRING
   } buffer_array = BufferArray::STRING;

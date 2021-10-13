@@ -31,7 +31,10 @@ int main() {
     SerializedStorage ser_storage("test.binom");
     ser_storage = vobj {
       {"Hello", "World"},
-      {ui16arr{1,2,3,4}, ui64arr{5,6,7,8}}
+      {ui8arr{1,2,3,4,255}, ui8arr{ui8(-1)}},
+      {ui16arr{1,2,3,4}, ui16arr{ui16(-1)}},
+      {ui32arr{1,2,3,4}, ui32arr{ui32(-1)}},
+      {ui64arr{1,2,3,4}, ui64arr{ui64(-1)}}
     };
     Variable var = ser_storage;
     std::clog << "Deserialized: " << var << '\n';

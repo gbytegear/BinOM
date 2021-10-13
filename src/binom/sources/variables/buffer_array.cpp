@@ -345,7 +345,7 @@ BufferArray::BufferArray(Primitive primitive) : data(tryMalloc(9 + toSize(primit
 bool BufferArray::isPrintable() const {
   if(getType() != binom::VarType::byte_array)
     return false;
-  for(auto value_ref : *this)
+  for(const auto &value_ref : *this)
     if(!isprint(char(value_ref.asUi8()))) return false;
   return true;
 }
