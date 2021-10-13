@@ -89,7 +89,8 @@ ByteArray Object::serialize() const {
   ByteArray serialised;
   serialised += byte(VarType::object);
   for(NamedVariable& n_var : *this) {
-    serialised += n_var.name.toString().c_str();
+    serialised += n_var.name.serialize();
+//    serialised += n_var.name.toString().c_str();
     serialised += n_var.variable.serialize();
   }
   serialised += byte(VarType::end);
@@ -102,9 +103,10 @@ Object Object::deserialize(ByteArray::iterator& it) {
   ++it;
   Object obj;
   while (VarType(*it) != VarType::end) {
-    char* name = reinterpret_cast<char*>(it);
-    it += strlen(name) + 1;
-    obj.insert(name, Variable::deserialize(it));
+    BufferArray name = BufferArray::deserialize(it);
+//    char* name = reinterpret_cast<char*>(it);
+//    it += strlen(name) + 1;
+    obj.insert(std::move(name), Variable::deserialize(it));
   }
   ++it;
   return obj;

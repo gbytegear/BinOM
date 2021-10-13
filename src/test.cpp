@@ -23,10 +23,18 @@ int main() {
   using namespace binom;
   try {
 
-    Path pth = {1,2,3,"name","name_2",ui8arr{1,2,3},ui16arr{1,2,3},ui32arr{1,2,3},ui64arr{1,2,3}};
-    std::clog << pth.toString() << '\n';
-    Path pth_2 = Path::fromString(pth.toString());
-    std::clog << pth_2.toString() << '\n';
+//    Path pth = {1,2,3,"name","name_2",ui8arr{1,2,3},ui16arr{1,2,3},ui32arr{1,2,3},ui64arr{1,2,3}};
+//    std::clog << pth.toString() << '\n';
+//    Path pth_2 = Path::fromString(pth.toString());
+//    std::clog << pth_2.toString() << '\n';
+
+    SerializedStorage ser_storage("test.binom");
+    ser_storage = vobj {
+      {"Hello", "World"},
+      {ui16arr{1,2,3,4}, ui64arr{5,6,7,8}}
+    };
+    Variable var = ser_storage;
+    std::clog << "Deserialized: " << var << '\n';
 
 
     std::clog << "=========================================================================\n"
