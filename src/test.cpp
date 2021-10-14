@@ -4,40 +4,49 @@
 //#include "tests/file_node_visitor_test.h"
 //#include"tests/multithreading_test.h"
 #include "tests/query_test.h"
-
-//void foreachFNV(FileNodeVisitor& node, ui64 depth = 1) {
-//  for(auto child : node) {
-//    std::clog << std::string(depth, '|') << "Node index: " << child.getNodeIndex() << '\n';
-//    std::clog << std::string(depth, '|') << "Node type: " << toTypeString(child.getType()) << '\n';
-//    if(auto name = child.getName(); name)
-//      std::clog << std::string(depth, '|') << "Name: " << *name << '\n';
-//    if(child.isIterable())
-//      foreachFNV(child, depth + 1);
-//    else
-//      std::clog << std::string(depth, '|') << "Node value: " << child.getVariable() << '\n';
-//    std::clog << std::string(depth, '|') << "====\n";
-//  }
-//}
+#include "binom/includes/lexer.h"
 
 int main() {
   using namespace binom;
   try {
 
-//    Path pth = {1,2,3,"name","name_2",ui8arr{1,2,3},ui16arr{1,2,3},ui32arr{1,2,3},ui64arr{1,2,3}};
-//    std::clog << pth.toString() << '\n';
-//    Path pth_2 = Path::fromString(pth.toString());
-//    std::clog << pth_2.toString() << '\n';
+    const char struct_[] =
+//        "obj{"
+//          "user:\"admin\" "
+//          "password:\"admin\" "
+//          "access_lvl:0xFF_ui8 "
+//          "attributes: arr["
+//            "\"undeletable\" "
+//            "\"unchangable\""
+//        "]}";
+//        ""
+"obj{"
+"  usr: arr["
+"    obj{"
+"      login: \"admin\""
+"      password: \"admin\""
+"      access_lvl: 0xFF_ui8"
+"    },"
+"    obj{"
+"      login: \"user\""
+"      password: \"user\""
+"      access_lvl: 0x7F_ui8"
+"    },"
+"    obj{"
+"      login: \"guest\""
+"      password: \"guest\""
+"      access_lvl: 0x00_ui8"
+"    },"
+"  ],"
+"  grp: arr["
+"    obj{"
+"    }"
+"  ]"
+"}";
 
-    SerializedStorage ser_storage("test.binom");
-    ser_storage = vobj {
-      {"Hello", "World"},
-      {ui8arr{1,2,3,4,255}, ui8arr{ui8(-1)}},
-      {ui16arr{1,2,3,4}, ui16arr{ui16(-1)}},
-      {ui32arr{1,2,3,4}, ui32arr{ui32(-1)}},
-      {ui64arr{1,2,3,4}, ui64arr{ui64(-1)}}
-    };
-    Variable var = ser_storage;
-    std::clog << "Deserialized: " << var << '\n';
+    Variable var = lexer << struct_;
+
+    std::clog << "Builded variable: " << var;
 
 
     std::clog << "=========================================================================\n"

@@ -5,6 +5,14 @@ class BinOM {
 };
 
 (()=>{
+
+    class MemoryBuffer extends ArrayBuffer{
+        resize(new_byte_length) {
+            ArrayBuffer.transfer(this, new_byte_length)
+        }
+    };
+
+
     function isInt(n){
         return Number(n) === n && n % 1 === 0;
     }
@@ -16,7 +24,7 @@ class BinOM {
     BinOM.Byte = class Byte {
         constructor(value) {
             if(typeof value != "number")
-                throw Error("Invalid value type");
+                throw new Error("Invalid value type");
             let data = new Uint8Array(1);
             data[0] = value;
             Object.defineProperties(this, {
@@ -42,7 +50,7 @@ class BinOM {
     BinOM.Word = class Word {
         constructor(value) {
             if(typeof value != "number")
-                throw Error("Invalid value type");
+                throw new Error("Invalid value type");
             let data = new Uint16Array(1);
             data[0] = value;
             Object.defineProperties(this, {
@@ -68,7 +76,7 @@ class BinOM {
     BinOM.DWord = class DWord {
         constructor(value) {
             if(typeof value != "number")
-                throw Error("Invalid value type");
+                throw new Error("Invalid value type");
             let data = new Uint32Array(1);
             data[0] = value;
             Object.defineProperties(this, {
@@ -96,7 +104,7 @@ class BinOM {
             if(typeof value == "number")
                 value = BigInt(value)
             else if(typeof value != "bigint")
-                throw Error("Invalid value type");
+                throw new Error("Invalid value type");
             let data = new BigUint64Array(1);
             data[0] = value;
             Object.defineProperties(this, {
@@ -119,7 +127,49 @@ class BinOM {
         valueOf() {return this.data;}
     };
 
-    BinOM.ByteArray = class ByteArray {};
+    BinOM.ByteArray = class ByteArray {
+        constructor(array_data) {
+            let data;
+            if(typeof array_data == "string")
+                data = new TextEncoder("utf-8").encode(array_data).buffer;
+            else if(array_data.constructor.name == "Array")
+                data = new Uint8Array(array_data).buffer;
+            else if(array_data.constructor.name == "Uint8Array" ||
+                    array_data.constructor.name == "Int8Array" ||
+                    array_data.constructor.name == "Uint16Array" ||
+                    array_data.constructor.name == "Int16Array" ||
+                    array_data.constructor.name == "Uint32Array" ||
+                    array_data.constructor.name == "Int32Array" ||
+                    array_data.constructor.name == "BigUint64Array" ||
+                    array_data.constructor.name == "BigInt64Array")
+                data = array_data.buffer;
+            
+            Object.defineProperties(this, {
+                data: {get: () => new Uint8Array(data), set: new_array_data => {
+                    if(typeof array_data == "string")
+                        data = new TextEncoder("utf-8").encode(array_data).buffer;
+                    else if(array_data.constructor.name == "Array")
+                        data = new Uint8Array(array_data).buffer;
+                    else if(array_data.constructor.name == "Uint8Array" ||
+                            array_data.constructor.name == "Int8Array" ||
+                            array_data.constructor.name == "Uint16Array" ||
+                            array_data.constructor.name == "Int16Array" ||
+                            array_data.constructor.name == "Uint32Array" ||
+                            array_data.constructor.name == "Int32Array" ||
+                            array_data.constructor.name == "BigUint64Array" ||
+                            array_data.constructor.name == "BigInt64Array")
+                        data = array_data.buffer;
+                    return new Uint8Array(data);
+                }}
+            })
+        }
+
+        valueOf() {return this.data}
+
+        get(index) {return this.data[index];}
+        set(index, value) {return this.data[index] = value;}
+    };
+
     BinOM.WordArray = class WordArray {};
     BinOM.DWordArray = class DWordArray {};
     BinOM.QWordArray = class QWordArray {};

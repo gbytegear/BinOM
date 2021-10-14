@@ -27,6 +27,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/binom/sources/file_storage/file_node_iterator.cpp \
+    $$PWD/binom/sources/lexer.cpp \
     $$PWD/binom/sources/utils/node_visitor_base.cpp \
     binom/sources/utils/TestExpressionFrame.cpp \
     binom/sources/file_storage/file_node_visitor.cpp \

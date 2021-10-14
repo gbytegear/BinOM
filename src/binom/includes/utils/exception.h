@@ -7,27 +7,30 @@ namespace binom {
 /// Exceptions categories
 enum ErrCode : ui8 {
 
-    // General exceptions
-    any,
-    memory_allocation_error,
-    memory_free_error,
-    out_of_range,
-    file_open_error,
-    invalid_data,
+  // General exceptions
+  any,
+  memory_allocation_error,
+  memory_free_error,
+  out_of_range,
+  file_open_error,
+  invalid_data,
 
-    // BinOM Exceptions
-    binom_invalid_type,
-    binom_out_of_range,
-    binom_object_key_error,
-    binom_query_invalid_field,
-    binom_invalid_visitor,
+  // BinOM Exceptions
+  binom_invalid_type,
+  binom_out_of_range,
+  binom_object_key_error,
+  binom_query_invalid_field,
+  binom_invalid_visitor,
 
-    // BinOM DataBase Exceptions
-    binomdb_invalid_file,
-    binomdb_invalid_storage_version,
-    binomdb_memory_management_error,
-    binomdb_page_isnt_exist,
-    binomdb_block_isnt_exist,
+  // BinOM DataBase Exceptions
+  binomdb_invalid_file,
+  binomdb_invalid_storage_version,
+  binomdb_memory_management_error,
+  binomdb_page_isnt_exist,
+  binomdb_block_isnt_exist,
+
+  // BinOM Lexer
+  unexpected_expression
 };
 
 class Exception : public std::exception {
@@ -58,6 +61,8 @@ class Exception : public std::exception {
       return                                          "BinOM DB block isn't exist";
       case ErrCode::binom_query_invalid_field:
       return                                          "BinOM invalid Query field";
+
+      case ErrCode::unexpected_expression: return     "Unexpected expression";
 
       case ErrCode::any: return                       "Unknown exception";
       default: return                                 "INVALID ErrCode!";
