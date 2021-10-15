@@ -244,6 +244,8 @@ void ByteArray::split(ui64 second_start, ByteArray& first, ByteArray& second) {
   memcpy(second.array, array + second_start, second._length);
 }
 
+std::string ByteArray::toStdString() {return std::string(reinterpret_cast<char*>(array), _length);}
+
 ByteArray& ByteArray::operator=(ByteArray other) {
   if(array) free(array);
   _length = other._length;

@@ -140,6 +140,8 @@ public:
 
   void split(ui64 second_start, ByteArray& first, ByteArray& second);
 
+  std::string toStdString();
+
   ByteArray& operator=(ByteArray other);
 
   byte& operator[](ui64 index);                             // byte& get(ui64) alias operator

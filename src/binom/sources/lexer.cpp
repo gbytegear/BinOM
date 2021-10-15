@@ -93,7 +93,14 @@ BufferArray Lexer::parseName(Lexer::ParseContext& ctx) {
     ++ctx;
     ui64 start = ctx.index;
     for(;ctx.isNotEnd() && *ctx != '"';++ctx);
-    return BufferArray(ctx.text.substr(start, ctx.index - start));
+    ++ctx;
+    return BufferArray(ctx.text.substr(start, ctx.index - start - 1));
+  } elif(*ctx == '\'') {
+    ++ctx;
+    ui64 start = ctx.index;
+    for(;ctx.isNotEnd() && *ctx != '\'';++ctx);
+    ++ctx;
+    return BufferArray(ctx.text.substr(start, ctx.index - start - 1));
   }
 
   ui64 start = ctx.index;
@@ -301,6 +308,18 @@ BufferArray Lexer::parseName(Lexer::ParseContext& ctx) {
 Primitive Lexer::parsePrimitive(Lexer::ParseContext& ctx, Lexer::ContainerType container_type) {
   LiteralType type = LiteralType::number;
   ValueRecordType record_type = ValueRecordType::decimal;
+  if(*ctx == 't') {
+    if(ctx.getSubStr(4) == "true") return ui8(1);
+    else throw Exception(ErrCode::unexpected_expression,
+                         "Unexpected char 't' in struct description\n"
+                         "Maybe you haven't completed the 'true' literal?");
+  }elif(*ctx == 'f') {
+    if(ctx.getSubStr(5) == "false") return ui8(0);
+    else throw Exception(ErrCode::unexpected_expression,
+                         "Unexpected char 'f' in struct description\n"
+                         "Maybe you haven't completed the 'false' literal?");
+  }
+
   if(*ctx == '-') {type = LiteralType::signed_number; ++ctx;}
   if(*ctx == '0') {
     if(ctx + 1 == 'x') {record_type = ValueRecordType::hexadecimal; ++ctx; ++ctx;}
@@ -527,6 +546,11 @@ Primitive Lexer::parsePrimitive(Lexer::ParseContext& ctx, Lexer::ContainerType c
 
 Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
   switch (*ctx) {
+    case 't':
+      if(ctx.getSubStr(4) == "true") return ui8(1);
+      else throw Exception(ErrCode::unexpected_expression,
+                           "Unexpected char 't' in struct description\n"
+                           "Maybe you haven't completed the 'true' literal?");
     case 'i':
       ++ctx;
       switch (*ctx) {
@@ -589,7 +613,13 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
 
 
     case 'f':
+      ++ctx;
       switch (*ctx) {
+        case 'a':
+          if(ctx.getSubStr(4) == "alse") return ui8(0);
+          else throw Exception(ErrCode::unexpected_expression,
+                               "Unexpected char 'f' in struct description\n"
+                               "Maybe you haven't completed the 'false' literal?");
         case '3': if(ctx.getSubStr(2) == "32") {
             skipWhiteSpace(ctx);
             if(!isOpenParenthesis(ctx)) throw Exception(ErrCode::unexpected_expression, "Open parenthesis expected\n");
@@ -758,7 +788,12 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
       }
 
     case 'a':
-      if(ctx.getSubStr(3) == "arr") {
+      if(ctx.getSubStr(3) != "arr")
+        throw Exception(ErrCode::unexpected_expression,
+                                     "Unexpected 'a' in struct description\n"
+                                       "Maybe you haven't completed the 'arr' type?");
+    case '[':
+      {
         skipWhiteSpace(ctx);
         if(!isOpenParenthesis(ctx)) throw Exception(ErrCode::unexpected_expression, "Open parenthesis expected\n");
         Array data;
@@ -769,11 +804,14 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
           skipSeparator(ctx);
         }
         return data;
-      } else throw Exception(ErrCode::unexpected_expression,
-                             "Unexpected 'a' in struct description\n"
-                               "Maybe you haven't completed the 'arr' type?");
+      }
     case 'o':
-      if(ctx.getSubStr(3) == "obj") {
+      if(ctx.getSubStr(3) != "obj")
+        throw Exception(ErrCode::unexpected_expression,
+                                     "Unexpected 'o' in struct description\n"
+                                       "Maybe you haven't completed the 'obj' type?");
+    case '{':
+      {
         skipWhiteSpace(ctx);
         if(!isOpenParenthesis(ctx)) throw Exception(ErrCode::unexpected_expression, "Open parenthesis expected\n");
         Object data;
@@ -781,15 +819,14 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
         for(;ctx.isNotEnd();) {
           if(isCloseParenthesis(ctx)) break;
           BufferArray name = parseName(ctx);
+          skipWhiteSpace(ctx);
           if(*ctx == ':' || *ctx == '=') ++ctx;
           skipWhiteSpace(ctx);
           data.insert(std::move(name), parseLiteral(ctx));
           skipSeparator(ctx);
         }
         return data;
-      } else throw Exception(ErrCode::unexpected_expression,
-                             "Unexpected 'o' in struct description\n"
-                               "Maybe you haven't completed the 'obj' type?");
+      }
     default: throw Exception(ErrCode::unexpected_expression);
   }
 }
@@ -814,12 +851,21 @@ Variable Lexer::parseLiteral(Lexer::ParseContext& ctx) {
 
       case 'i': case 'f': case 'u': case 's': case 'a': case 'o': case '[': case '{':
       return parseContainer(ctx);
-      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '.':
+      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '.': case '-':
+      case 't':
       return parsePrimitive(ctx, ContainerType::heterogeneous_container);
       case '"':{
         ++ctx;
         ui64 start = ctx.index;
         for(;ctx.isNotEnd() && *ctx != '"';++ctx);
+        BufferArray data(ctx.text.substr(start, ctx.index - start));
+        ++ctx;
+        return data;
+      }
+      case '\'':{
+        ++ctx;
+        ui64 start = ctx.index;
+        for(;ctx.isNotEnd() && *ctx != '\'';++ctx);
         BufferArray data(ctx.text.substr(start, ctx.index - start));
         ++ctx;
         return data;

@@ -28,3 +28,6 @@ HEADERS += \
 
 SUBDIRS += \
     BinOM_tools.pro
+
+DISTFILES += \
+    ../example/test.json

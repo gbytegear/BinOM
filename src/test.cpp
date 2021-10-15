@@ -9,17 +9,12 @@
 int main() {
   using namespace binom;
   try {
+    FileIO file("../example/test.json");
+    binom::Variable data = lexer << file.read(0, file.getSize()).toStdString();
+    std::clog << "JSON deserialized to BinOM:\n" << data << '\n';
+
 
     const char struct_[] =
-//        "obj{"
-//          "user:\"admin\" "
-//          "password:\"admin\" "
-//          "access_lvl:0xFF_ui8 "
-//          "attributes: arr["
-//            "\"undeletable\" "
-//            "\"unchangable\""
-//        "]}";
-//        ""
 "obj{"
 "  usr: arr["
 "    obj{"
@@ -40,6 +35,11 @@ int main() {
 "  ],"
 "  grp: arr["
 "    obj{"
+"      name: 'system'"
+"      users: ["
+"        'admin'"
+"        'guest'"
+"      ]"
 "    }"
 "  ]"
 "}";
