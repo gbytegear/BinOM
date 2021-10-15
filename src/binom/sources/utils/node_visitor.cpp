@@ -280,10 +280,10 @@ void NodeVisitor::remove(BufferArray name) {
 }
 
 void NodeVisitor::remove(Path path) {
-  if(Path::iterator it = ++path.begin();it == path.end())
-    switch (it->type()) {
-    case binom::PathNodeType::index: remove(it->index()); return;
-    case binom::PathNodeType::name: remove(it->name()); return;
+  if(Path::iterator it = ++path.begin(), rm_it = path.begin();it == path.end())
+    switch (rm_it->type()) {
+    case binom::PathNodeType::index: remove(rm_it->index()); return;
+    case binom::PathNodeType::name: remove(rm_it->name()); return;
     }
 
   Path::PathNode last_node = *path.begin();

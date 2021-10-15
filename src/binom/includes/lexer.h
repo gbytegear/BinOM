@@ -2,6 +2,7 @@
 #define LEXER_H
 
 #include "variables/variable.h"
+#include "utils/file.h"
 
 namespace binom {
 
@@ -152,6 +153,12 @@ static inline class Lexer {
 public:
 
   Variable operator << (std::string text);
+  Variable parse(std::string text) {return *this << std::move(text);}
+  Variable fromFile(std::string_view url) {
+    FileIO file(url);
+    if(!file.isExist()) return nullptr;
+    return *this << file.read(0, file.getSize()).toStdString();
+  }
 
 } lexer;
 

@@ -1,359 +1,94 @@
 #include "cli.h"
+#include "binom/includes/lexer.h"
+
+#define ED_DEBUG
+#ifdef ED_DEBUG
+#define dbg_out(out) std::clog << out
+#else
+#define dbg_out(out)
+#endif
 
 using namespace binom;
 
 typedef std::unique_ptr<NodeVisitorBase> UnionNodeVisitor;
 
-void changeVariable(NodeVisitorBase* node);
-
-void changePrimitive(NodeVisitorBase* node) {
-  enum InputType : int {
-    sym     = 1,
-    sign    = 2,
-    unsign  = 3
+struct AddPosisition {
+  enum class PositionType : int {
+    front = 0,
+    by_index = 1,
+    back = 2
   };
-
-  InputType input_type;
-  std::string input;
-  ValType value_type = toValueType(node->getType());
-  switch (value_type) {
-    case binom::ValType::byte:
-      input_type = InputType(inputUnsigned("Enter byte input type:\n"
-        "| 1 - symbol\n"
-        "| 2 - signed number (-128...127)\n"
-        "| 3 - unsigned number (0...255)\n"
-        ":",
-                                           [](ui64 number){
-                               if(number < int(sym) || number > int(unsign)) {
-                                 std::cerr << "Invalid value!";
-                                 return false;
-                               }
-                               return true;
-                             }));
-
-      switch (input_type) {
-        case sym:{
-          char symbol;
-          std::clog << "Input value(symbol): ";
-          std::cin >> symbol;
-          node->setVariable(symbol);
-        }return;
-        default:
-        case sign:
-          node->setVariable(i8(inputSigned("Input value(-128...127): ", [](i64 number) {return number >= -128 && number <= 127;})));
-        return;
-        case unsign:
-          node->setVariable(ui8(inputUnsigned("Input value(0...255): ", [](ui64 number) {return number <= 255;})));
-        return;
-      }
-
-    break;
-    case binom::ValType::word:
-      input_type = InputType(inputUnsigned("Enter byte input type:\n"
-        "| 1 - signed number (-32768...32767)\n"
-        "| 2 - unsigned number (0...65535)\n"
-        ":",
-                                           [](ui64 number){
-                               if(number < int(sign) + 1 || number > int(unsign) + 1) {
-                                 std::cerr << "Invalid value!";
-                                 return false;
-                               }
-                               return true;
-                             }) - 1);
-
-      switch (input_type) {
-        default:
-        case sign:
-          node->setVariable(i16(inputSigned("Input value(-32768...32767): ", [](i64 number) {return number >= -32768 && number <= 32767;})));
-        return;
-        case unsign:
-          node->setVariable(ui16(inputUnsigned("Input value(0...65535): ", [](ui64 number) {return number <= 65535;})));
-        return;
-      }
-
-    break;
-    case binom::ValType::dword:
-      input_type = InputType(inputUnsigned("Enter byte input type:\n"
-        "| 1 - signed number (-2147483648...2147483647)\n"
-        "| 2 - unsigned number (0...4294967295)\n"
-        ":",
-                                           [](ui64 number){
-                               if(number < int(sign) + 1 || number > int(unsign) + 1) {
-                                 std::cerr << "Invalid value!";
-                                 return false;
-                               }
-                               return true;
-                             }) - 1);
-
-      switch (input_type) {
-        default:
-        case sign:
-          node->setVariable(i32(inputSigned("Input value(-32768...32767): ", [](i64 number) {return number >= -32768 && number <= 32767;})));
-        return;
-        case unsign:
-          node->setVariable(ui32(inputUnsigned("Input value(0...65535): ", [](ui64 number) {return number <= 65535;})));
-        return;
-      }
-
-    break;
-    case binom::ValType::qword:
-      input_type = InputType(inputUnsigned("Enter byte input type:\n"
-        "| 1 - signed number (-9223372036854775808...9223372036854775807)\n"
-        "| 2 - unsigned number (0...18446744073709551615)\n"
-        ":",
-                                           [](ui64 number){
-                               if(number < int(sign) + 1 || number > int(unsign) + 1) {
-                                 std::cerr << "Invalid value!";
-                                 return false;
-                               }
-                               return true;
-                             }) - 1);
-
-      switch (input_type) {
-        default:
-        case sign:
-          node->setVariable(i64(inputSigned("Input value(-9223372036854775808...9223372036854775807): ", [](i64 number) {return number >= -9223372036854775808_i64 && number <= 9223372036854775807_i64;})));
-        return;
-        case unsign:
-          node->setVariable(ui64(inputUnsigned("Input value(0...18446744073709551615): ", [](ui64 number) {return number <= 18446744073709551615_ui64;})));
-        return;
-      }
-
-    break;
-    case binom::ValType::invalid_type: throw Exception(ErrCode::binom_invalid_type);
+  PositionType type;
+  ui64 index;
+  AddPosisition(ui64 element_count)
+    : type(PositionType(inputUnsigned(
+             "Enter add type:\n"
+             "| 0 - add to front\n"
+             "| 1 - add by index\n"
+             "| 2 - add to back\n"
+             ": ",[](ui64 value)->bool { return value <= 2; }))) {
+    if(type == PositionType::by_index)
+      index = inputUnsigned("Enter index: ", [&element_count](ui64 value)->bool {
+              if(value > element_count) {
+                std::cerr << "Index highter then container element count\n"
+                             "index: " << value <<
+                             "\nelement_count: " << element_count << '\n';
+                return false;
+              }
+              return true;
+      });
   }
-
-
-
-}
-
-
-enum class InsertMode : int {
-  back = 1,
-  front = 2,
-  by_index = 3
+  AddPosisition(AddPosisition& other) : type(other.type), index(other.index) {}
+  AddPosisition(AddPosisition&& other) : type(other.type), index(other.index) {}
 };
 
-InsertMode inputInsertMode() {
-  return InsertMode(inputUnsigned("Enter insert mode\n"
-    "| 1 - push element back\n"
-    "| 2 - push element fron\n"
-    "| 3 - insert by index\n"
-    ":", [](ui64 number) {
-      if(number < int(InsertMode::back) || number > int(InsertMode::by_index)) {
-        std::cerr << "Invalid input\n";
-        return false;
-      }
-      return true;
-    }));
+Path inputPath() {
+  while (true) try {
+    std::string input;
+    std::clog << "Enter path: ";
+    std::getline(std::cin, input);
+    return Path::fromString(input);
+  }  catch (Exception& except) {
+    std::cerr << except.full() << '\n';
+    continue;
+  }
 }
 
-void changeBufferArray(NodeVisitorBase* node) {
-  if(node->getType() == VarType::byte_array && node->getElementCount() == 0)
-    if(inputBool("Input as string? (y/n):")) {
-      std::string value;
-      std::clog << "Enter value: ";
-      std::cin >> value;
-      node->setVariable(value);
-      return;
+Variable inputeVariable(const char* msg) {
+  while(true)
+    try {
+      std::string input;
+      std::clog << msg;
+      std::getline(std::cin, input);
+      return lexer << input;
+    } catch(Exception& except) {
+      std::cerr << except.full() << '\n';
+      continue;
     }
+}
 
-  VarType type = node->getType();
-  Primitive input(type);
-  NodeVisitor input_node = input.asVar();
-
-
-  while (true) {
-    std::clog << "Node: " << node->getVariableClone() << '\n';
-    if(!inputBool("Add element in buffer array? (y/n):"))
-      break;
-    switch (inputInsertMode()) {
-      case InsertMode::back:
-        changePrimitive(&input_node);
-        node->pushBack(input);
-      break;
-
-
-      case InsertMode::front:
-        changePrimitive(&input_node);
-        node->pushFront(input);
-      break;
-
-
-      case InsertMode::by_index: {
-        ui64 index = inputUnsigned("Input index: ", [&node](ui64 index) {
-            ui64 element_count = node->getElementCount();
-            if(index > element_count) {
-              std::clog << "Insert index highter then element count (" << element_count << ")\n";
-              return false;
-            }
-            return true;
-        });
-        changePrimitive(&input_node);
-        node->insert(index, input);
-      } break;
-    }
+UnionNodeVisitor getByPath(UnionNodeVisitor& root, Path path) {
+  switch (root->getVisitorType()) {
+    case binom::VisitorType::ram_storage_visitor: return UnionNodeVisitor(new NodeVisitor(root->toRAMVisitor()[path]));
+    case binom::VisitorType::file_storage_visitor: return UnionNodeVisitor(new FileNodeVisitor(root->toFileVisitor()[path]));
   }
 }
 
-void changeArray(NodeVisitorBase* node) {
-  while (true) {
-    std::clog << "Node: " << node->getVariableClone() << '\n';
-    if(!inputBool("Add element in array? (y/n):"))
-      break;
-
-    switch (inputInsertMode()) {
-      case InsertMode::back: {
-        VarType type;
-        std::clog << "Enter element type:\n"
-        "| 1 - byte\n"
-        "| 2 - word\n"
-        "| 3 - dword\n"
-        "| 4 - qword\n"
-        "| 5 - byte array\n"
-        "| 6 - word array\n"
-        "| 7 - dword array\n"
-        "| 8 - qword array\n"
-        "| 9 - array\n"
-        "| 10 - object\n"
-        ":";
-        std::cin >> type;
-        Variable element = type;
-        NodeVisitor input_node = element;
-        changeVariable(&input_node);
-        node->pushBack(std::move(element));
-      }break;
-
-
-      case InsertMode::front: {
-        VarType type;
-        std::clog << "Enter element type:\n"
-        "| 1 - byte\n"
-        "| 2 - word\n"
-        "| 3 - dword\n"
-        "| 4 - qword\n"
-        "| 5 - byte array\n"
-        "| 6 - word array\n"
-        "| 7 - dword array\n"
-        "| 8 - qword array\n"
-        "| 9 - array\n"
-        "| 10 - object\n"
-        ":";
-        std::cin >> type;
-        Variable element = type;
-        NodeVisitor input_node = element;
-        changeVariable(&input_node);
-        node->pushFront(std::move(element));
-      }break;
-
-
-      case InsertMode::by_index: {
-        ui64 index = inputUnsigned("Input index: ", [&node](ui64 index) {
-            ui64 element_count = node->getElementCount();
-            if(index > element_count) {
-              std::clog << "Insert index highter then element count (" << element_count << ")\n";
-              return false;
-            }
-            return true;
-        });
-        VarType type;
-        std::clog << "Enter element type:\n"
-        "| 1 - byte\n"
-        "| 2 - word\n"
-        "| 3 - dword\n"
-        "| 4 - qword\n"
-        "| 5 - byte array\n"
-        "| 6 - word array\n"
-        "| 7 - dword array\n"
-        "| 8 - qword array\n"
-        "| 9 - array\n"
-        "| 10 - object\n"
-        ":";
-        std::cin >> type;
-        Variable element = type;
-        NodeVisitor input_node = element;
-        changeVariable(&input_node);
-        node->insert(index, std::move(element));
-      }break;
-
-
-    }
-  }
-}
-
-void changeObject(NodeVisitorBase* node) {
-  while (true) {
-    std::clog << "Node: " << node->getVariableClone() << '\n';
-    if(!inputBool("Add element in object? (y/n):"))
-      break;
-
-    ValType name_type;
-    std::clog << "Enter name type:\n"
-    "| 1 - byte\n"
-    "| 2 - word\n"
-    "| 3 - dword\n"
-    "| 4 - qword\n"
-    ":";
-    std::cin >> name_type;
-    BufferArray name(name_type);
-    NodeVisitor input_node = name.asVar();
-    std::clog << "Enter name:\n";
-    changeVariable(&input_node);
-
-    VarType type;
-    std::clog << "Enter element type:\n"
-    "| 1 - byte\n"
-    "| 2 - word\n"
-    "| 3 - dword\n"
-    "| 4 - qword\n"
-    "| 5 - byte array\n"
-    "| 6 - word array\n"
-    "| 7 - dword array\n"
-    "| 8 - qword array\n"
-    "| 9 - array\n"
-    "| 10 - object\n"
-    ":";
-    std::cin >> type;
-    Variable element = type;
-    input_node = element;
-    changeVariable(&input_node);
-
-    node->insert(std::move(name), std::move(element));
-
-  }
-}
-
-
-void changeVariable(NodeVisitorBase* node) {
-  switch (node->getTypeClass()) {
-    case binom::VarTypeClass::primitive: return changePrimitive(node);
-    case binom::VarTypeClass::buffer_array: return changeBufferArray(node);
-    case binom::VarTypeClass::array: return changeArray(node);
-    case binom::VarTypeClass::object: return changeObject(node);
-    case binom::VarTypeClass::invalid_type: throw Exception(ErrCode::binom_invalid_type);
-  }
-}
-
-void editor(std::unique_ptr<NodeVisitorBase> root, bool edit_root) {
+void editor(std::unique_ptr<NodeVisitorBase> root) {
   enum Command : int {
     exit   = 0,
     change = 1,
-    set    = 2,
+    add    = 2,
     remove = 3,
   };
 
-  if(edit_root) {
-    edit_root = false;
-    changeVariable(&*root);
-  }
-
   while(true) try {
     std::clog << "File content:\n"
-    << root->getVariableClone();
+    << root->getVariableClone() << '\n';
 
     Command command = Command(inputUnsigned("Enter command:\n"
     "| 1 - change node\n"
-    "| 2 - set node\n"
+    "| 2 - add node\n"
     "| 3 - remove node\n"
     "| 0 - exit\n"
     ": ", [](ui64 command_num){
@@ -364,56 +99,111 @@ void editor(std::unique_ptr<NodeVisitorBase> root, bool edit_root) {
         return true;
     }));
 
-    Path path;
 
-    while (true) try {
-      std::string input;
-      std::clog << "Enter path: ";
-      std::cin >> input;
-      path = Path::fromString(input);
-      break;
-    }  catch (Exception& except) {
-      continue;
-    }
 
     switch (command) {
       case exit: return;
 
       case change: {
-        UnionNodeVisitor node = (root->getVisitorType() == VisitorType::file_storage_visitor)
-            ? UnionNodeVisitor(new FileNodeVisitor(root->toFileVisitor()))
-            : UnionNodeVisitor(new NodeVisitor(root->toRAMVisitor()));
-        node->stepInside(path);
-        changeVariable(&*node);
+        UnionNodeVisitor node;
+        while(true) try {
+          node = getByPath(root, inputPath());
+          break;
+        } catch(Exception& except) {
+          std::cerr << except.full() << '\n';
+          std::clog << "Node struct: " << root->getVariableClone() << '\n';
+          continue;
+        }
+
+        while(true) try {
+          Variable value = inputeVariable("Enter value: ");
+          dbg_out("Entered value: " << value);
+          node->setVariable(value);
+          break;
+        } catch(Exception& except) {
+          std::cerr << except.full() << '\n';
+          continue;
+        }
+
       }break;
 
-      case set:{
-        UnionNodeVisitor node = (root->getVisitorType() == VisitorType::file_storage_visitor)
-            ? UnionNodeVisitor(new FileNodeVisitor(root->toFileVisitor()))
-            : UnionNodeVisitor(new NodeVisitor(root->toRAMVisitor()));
-        node->stepInside(path);
-        VarType type;
-        std::clog << "Enter node type:\n"
-        "| 1 - byte\n"
-        "| 2 - word\n"
-        "| 3 - dword\n"
-        "| 4 - qword\n"
-        "| 5 - byte array\n"
-        "| 6 - word array\n"
-        "| 7 - dword array\n"
-        "| 8 - qword array\n"
-        "| 9 - array\n"
-        "| 10 - object\n"
-        ":";
-        std::cin >> type;
-        Variable element = type;
-        NodeVisitor input_node = element;
-        changeVariable(&input_node);
-        node->setVariable(element);
+      case add:{
+        UnionNodeVisitor node;
+        while(true) try {
+          node = getByPath(root, inputPath());
+          if(node->isPrimitive()) {
+            std::cerr << "No value can be added to a primitive variable\n";
+            continue;
+          }
+          break;
+        } catch(Exception& except) {
+          std::cerr << except.full() << '\n';
+          std::clog << "Node struct: " << root->getVariableClone() << '\n';
+          continue;
+        }
+
+        while(true) try {
+          if(node->isObject()) {
+            Variable name = inputeVariable("Enter name: ");
+            dbg_out("Entered name: " << name);
+            if(!name.isBufferArray()) {
+              std::cerr << "Expected buffer array as name\n";
+              continue;
+            }
+            Variable value = inputeVariable("Enter value: ");
+            dbg_out("Entered value: " << value);
+            node->insert(name.toBufferArray(), value);
+          } elif(node->isValueRef()) {
+            Variable value = inputeVariable("Enter primitive value: ");
+            dbg_out("Entered value: " << value);
+            if(!value.isPrimitive()) {
+              std::cerr << "Expected primitive as value of buffer array\n";
+              continue;
+            }
+            AddPosisition pos(node->getElementCount());
+            switch (pos.type) {
+              case AddPosisition::PositionType::front:
+                node->pushFront(value);
+              break;
+              case AddPosisition::PositionType::by_index:
+                node->insert(pos.index, value);
+              break;
+              case AddPosisition::PositionType::back:
+                node->pushBack(value);
+              break;
+            }
+          } else {
+            Variable value = inputeVariable("Enter value: ");
+            dbg_out("Entered value: " << value);
+            AddPosisition pos(node->getElementCount());
+            switch (pos.type) {
+              case AddPosisition::PositionType::front:
+                node->pushFront(value);
+              break;
+              case AddPosisition::PositionType::by_index:
+                node->insert(pos.index, value);
+              break;
+              case AddPosisition::PositionType::back:
+                node->pushBack(value);
+              break;
+            }
+          }
+          break;
+        } catch(Exception& except) {
+          std::cerr << except.full() << '\n';
+          continue;
+        }
+
       }break;
 
       case remove:
-        root->remove(path);
+        while(true) try {
+          root->remove(inputPath());
+          break;
+        } catch(Exception& except) {
+          std::cerr << except.full() << '\n';
+          continue;
+        }
       break;
 
     }

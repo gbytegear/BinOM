@@ -254,6 +254,7 @@ public:
   }
 
   ByteArray getNodeData() {
+    if(!descriptor.index_count) return ByteArray();
     return ByteArray{
       ByteArray(&descriptor, sizeof (ObjectDescriptor)),
       name_lengths,
@@ -802,6 +803,7 @@ void FileNodeVisitor::insert(BufferArray name, Variable var) {
     new(data.begin<ObjectNameLength>(sizeof (ObjectDescriptor))) ObjectNameLength {
       name.getValType(), name.getMemberCount(), 1
     };
+    memcpy(&data.get(sizeof (ObjectDescriptor) + sizeof (ObjectNameLength)), name.getDataPointer(), name_block_size);
     data.get<virtual_index>(0, sizeof (ObjectDescriptor) + sizeof (ObjectNameLength) + name_block_size) = createVariable(var);
     fmm.updateNode(node_index, data, &descriptor);
     return;
@@ -854,13 +856,14 @@ void FileNodeVisitor::remove(BufferArray name) {
   ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
   if(!finder.remove(std::move(name)))
     throw Exception(ErrCode::binom_out_of_range);
+  fmm.updateNode(node_index, finder.getNodeData(), &descriptor);
 }
 
 void FileNodeVisitor::remove(Path path) {
-  if(Path::iterator it = ++path.begin();it == path.end())
-      switch (it->type()) {
-      case binom::PathNodeType::index: remove(it->index()); return;
-      case binom::PathNodeType::name: remove(it->name()); return;
+  if(Path::iterator it = ++path.begin(), rm_it = path.begin();it == path.end())
+      switch (rm_it->type()) {
+      case binom::PathNodeType::index: remove(rm_it->index()); return;
+      case binom::PathNodeType::name: remove(rm_it->name()); return;
       }
 
     Path::PathNode last_node = *path.begin();

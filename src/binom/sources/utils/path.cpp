@@ -148,6 +148,7 @@ Path Path::fromByteArray(ByteArray path) {return path;}
 
 // name_1.name_2[10].name_3
 Path Path::fromString(std::string str) {
+  if(str == ".") return Path();
   ByteArray data;
   size_t start = 0;
   bool shielding = false;

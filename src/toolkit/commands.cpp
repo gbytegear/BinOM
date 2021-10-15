@@ -1,8 +1,9 @@
 #include "cli.h"
+#include "binom/includes/lexer.h"
 
 using namespace binom;
 
-void editor(std::unique_ptr<binom::NodeVisitorBase> root, bool edit_root = false);
+void editor(std::unique_ptr<binom::NodeVisitorBase> root);
 
 const std::map<BufferArray, command_t> CLI::commands = {
 
@@ -169,38 +170,72 @@ const std::map<BufferArray, command_t> CLI::commands = {
          Variable data(type);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new NodeVisitor(data));
          SerializedStorage storage(file_name);
-         editor(std::move(node), true);
+         editor(std::move(node));
          storage = data;
        }return;
        case FileType::file_storage: {
          FileStorage storage(file_name, type, true);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(storage));
-         editor(std::move(node), true);
+         editor(std::move(node));
        }return;
 
      }
 
-   }}
+   }},
 
-//{"edit", [](){
-//   requredArg("file", VarType::invalid_type,
-//              "File isn't entered! Example: \n"
-//              "$ binomtk edit <file>\n");
-//   clearConsole();
 
-//   if(std::string file_name =  getArgs()["file"].toBufferArray();
-//   FileIO::isExist(file_name)) {
-//     if(BinOMDataBase::isValid(file_name)) {
-//       BinOMDataBase db(file_name);
-//       editValue(db.getRoot());
-//     } else {
-//       BinOMFile file(file_name);
-//       Variable content = file.load();
-//       editValue(&content);
-//       file.write(content);
-//     }
-//   } else std::cerr << "File \"" << file_name << "\" isn't exist";
+  {"build", [](){
+     requredArg("files", VarType::invalid_type,
+                "Files isn't entered! Example:\n"
+                "$ binomtk build <source-file> <output-file>");
+     Array files = getArgs()["files"].toArray();
+     FileIO file(files[0].toBufferArray().toString());
+     if(!file.isExist()) {
+       std::cerr << "File \"" << file.getPath().string() << "\" isn't exist!";
+       std::exit(-1);
+     }
+     Variable data;
+     try {
+       data = lexer << file.read(0, file.getSize()).toStdString();
+     }  catch (Exception& except) {
+       std::cerr << except.full() << '\n';
+       std::exit(-1);
+     }
+     SerializedStorage ser_file(files[1].toBufferArray().toString());
+     ser_file.write(data);
+     std::exit(0);
+  }},
 
-//}},
+
+{"edit", [](){
+   requredArg("file", VarType::invalid_type,
+              "File isn't entered! Example: \n"
+              "$ binomtk edit <file>\n");
+   clearConsole();
+
+   if(std::string file_name =  getArgs()["file"].toBufferArray();
+   FileIO::isExist(file_name)) {
+     switch (binom::checkFileType(file_name)) {
+       case binom::FileType::undefined_file:
+        std::cerr << "Unknown file type\n";
+       return;
+       case binom::FileType::file_storage: {
+         FileStorage storage(file_name);
+         std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(storage));
+         editor(std::move(node));
+       } break;
+       case binom::FileType::serialized_file_storage:{
+         SerializedStorage storage(file_name);
+         Variable data = storage;
+         std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new NodeVisitor(data));
+         editor(std::move(node));
+         storage = data;
+       } break;
+     }
+   } else std::cerr << "File \"" << file_name << "\" isn't exist";
+
+}},
+
+  {"convert", [](){}}
 
 };

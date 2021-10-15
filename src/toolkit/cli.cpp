@@ -17,6 +17,8 @@ const char HELP_TEXT[] =
 "| $ binomtk mk <file>\n|\n"
 "| * edit - edit BinOM-file\n"
 "| $ binomtk edit <file>\n|\n"
+"| * build - build BinOM-file from BinOM source\n"
+"| $ binomtk build <source-file> <output-file>\n"
 "+\n\n"
 "Optional flags:\n|\n"
 "| * help - print this manual\n"
@@ -55,7 +57,8 @@ const binom::Object CLI::arg_tmpl = vobj {
     {"cat", varr{"files"}},
     {"pnode", varr{"file", "paths"}},
     {"mk", varr{"file"}},
-    {"edit", varr{"file"}}
+    {"edit", varr{"file"}},
+    {"build", varr{"files"}}
   }},
 
   {"arg_types", vobj{
