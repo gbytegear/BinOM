@@ -44,3 +44,15 @@ img {user-select: none;}
     background-color: var(--accent-1);
     color: var(--accent-2);
 }
+
+hr {
+    border: none;
+    height: 4px;
+    width: 100%;
+    background-color: var(--accent-1);
+}
+
+.scroll {
+    width: 100%;
+    overflow-x: scroll;
+}
