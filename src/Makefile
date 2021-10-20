@@ -50,7 +50,7 @@ libs: libbinom.a libbinom.so
 # Toolkit
 tk: libbinom.a
 	make clean_o
-	$(CXX_CMP) -I. ./toolkit/*.cpp ./toolkit.cpp -o binomtk $(LIBS) ./libbinom.a
+	$(CXX_CMP) -I. ./toolkit/*.cpp ./toolkit.cpp -o binomtk $(LIBS) ./libbinom.a $(CXX_FLAGS)
 	rm -rf ./*.o
 
 all: libs tk

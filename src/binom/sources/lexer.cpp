@@ -55,15 +55,22 @@ Lexer::LiteralType Lexer::clarifyLiteralType(Lexer::ContainerType container_type
 void Lexer::skipWhiteSpace(Lexer::ParseContext& ctx) {
   for(;ctx.isNotEnd();++ctx) switch (*ctx) {
     case ' ': case '\t': case '\n': case '\r': case '\x0B': case '\f': continue;
+    case '/': // Skip comments
+      ++ctx;
+      if(*ctx == '/') for(;*ctx != '\n';++ctx);
+      elif(*ctx == '*') for(;true;++ctx) {
+        if(*ctx == '*') { ++ctx; if(*ctx == '/') {continue;} }
+      } else --ctx;
+    continue;
     default: return;
   }
 }
 
 void Lexer::skipSeparator(Lexer::ParseContext& ctx) {
   for(;ctx.isNotEnd();++ctx) switch (*ctx) {
+    case ',': case ';': case '|': case '\\': // Separation symbols
     case ' ': case '\t': case '\n': case '\r': case '\x0B': case '\f': continue;
-    case ',': case ';': case '|': case '\\':
-    case '/':
+    case '/': // Skip comments
       ++ctx;
       if(*ctx == '/') for(;*ctx != '\n';++ctx);
       elif(*ctx == '*') for(;true;++ctx) {

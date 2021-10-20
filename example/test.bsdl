@@ -1,0 +1,15 @@
+{
+  usr: [ // Users
+    { login: "admin", password: "admin", access_lvl: 0xFF_ui8, attributes: [], data: {} }
+    { login: "guest", password: "", access_lvl: 0x00_ui8, attributes: [], data: {} }
+    { login: "user", password: "any_user_password", access_lvl: 0x7F_ui8, attributes: [], data: {} }
+  ],
+  grp: [ // Groups
+    { name: "SYSTEM", users: [ "admin", "guest" ], usr_attributes: [ "unremovable", "const_access_lvl" ], change_access_lvl: 0xFF_ui8 }
+  ],
+  msg: { // Messages between users
+    admin_guest: [
+      { from: "admin", to: "guest", content: "Hello, Guest. Please, login with your account." }
+    ]
+  }
+}

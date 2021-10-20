@@ -564,8 +564,8 @@ binom::Variable::operator NodeVisitor() {return NodeVisitor(this);}
 void printIndent(std::ostream& os, ui64 ind, std::string msg = "") {
   if(!ind)return;
   for(ui64 i = 0; i < ind; ++i)
-    os << '|';
-  os << ' ' << msg << ' ';
+    os << ' ';
+  os << msg;
 }
 
 
@@ -593,15 +593,34 @@ std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::BufferArray& buffer) {
   printIndent(os, ind, msg);
   if(buffer.isPrintable() && OutputManip::buffer_array == OutputManip::BufferArray::STRING)
-    return os << buffer.toString();
+    return os << '"' << buffer.toString() << '"';
+  switch (buffer.getValType()) {
+    case binom::ValType::byte:
+      os << "ByteArray(" << buffer.getMemberCount() << ") [ ";
+    break;
+    case binom::ValType::word:
+      os << "WordArray(" << buffer.getMemberCount() << ") [ ";
+    break;
+    case binom::ValType::dword:
+      os << "DWordArray(" << buffer.getMemberCount() << ") [ ";
+    break;
+    case binom::ValType::qword:
+      os << "QWordArray(" << buffer.getMemberCount() << ") [ ";
+    break;
+    case binom::ValType::invalid_type:
+    break;
+  }
   for(const binom::ValueRef &val : buffer)
     os << val << ' ';
-  return os;
+  return os << "]";
 }
 
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Array& array) {
   printIndent(os, ind, msg);
-  os << "Array(" << array.getMemberCount() << ") [\n";
+  ui64 length = array.getMemberCount();
+  if(!length)
+    return os << "Array(0) []";
+  os << "Array(" << length << ") [\n";
   ui64 i = 0;
   for(Variable& var : array) {
     printWithIndent(os, ind + 1, std::to_string(i)+':', var) << '\n';
@@ -620,7 +639,10 @@ std::string nameToString(binom::BufferArray buffer) {
 
 std::ostream& printWithIndent(std::ostream& os, ui64 ind, std::string msg, const binom::Object& object) {
   printIndent(os, ind, msg);
-  os << "Object(" << object.getMemberCount() << ") {\n";
+  ui64 length = object.getMemberCount();
+  if(!length)
+    return os << "Object(0) {}";
+  os << "Object(" << length<< ") {\n";
   for(NamedVariable& nvar : object) {
     if(nvar.name.isPrintable())
       printWithIndent(os, ind + 1, nvar.name.toString() + ':', nvar.variable) << '\n';
