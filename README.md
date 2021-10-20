@@ -79,15 +79,16 @@ int main() {
   DynamicStorage d_storage("data.binomdb", var);
   FileNodeVisitor root = d_storage;
   // Change "prop_3" variable in data.binomdb file
-  root["prop_3"].setVariable("Goodbie, world!");
+  root[{0, "prop_3"}].setVariable("Goodbie, world!");
   // Get "prop_2" value from data.binomdb file in Variable
-  Variable from_storgae = root.getVariable("prop_2");
+  Variable from_storgae = root[0].getVariable("prop_2");
 
   // Convert structure description to Variable (More details in the BSDL section)
   std::ifstream t("struct.bsdl");
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-  Variable data = lexer << buffer.str();
+  std::stringstream str_stream;
+  str_stream << t.rdbuf();
+  Variable data = lexer << str_stream.str();
+  std::cout << "From BSDL: " << data << '\n';
 
   // Serialize Variable
   ByteArray buffer = var.serialize();

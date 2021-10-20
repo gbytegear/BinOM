@@ -1,69 +1,44 @@
-//#include "tests/var_test.h"
-//#include "tests/heap_blocks_test.h"
-//#include "tests/memory_manager_test.h"
-//#include "tests/file_node_visitor_test.h"
-//#include"tests/multithreading_test.h"
-#include "tests/query_test.h"
+#include "binom/includes/binom.h"
 #include "binom/includes/lexer.h"
+#include <fstream>
+
 
 int main() {
+
+  // BinOM project namespace (all magic here)
   using namespace binom;
-  try {
-    FileIO file("../example/test.json");
-    binom::Variable data = lexer << file.read(0, file.getSize()).toStdString();
-    std::clog << "JSON deserialized to BinOM:\n" << data << '\n';
 
+  // Create BinOM variable
+  Variable var = varr{ // Array
+    vobj{ // Object
+      {"prop_1", 42_ui8}, // Byte
+      {"prop_2", ui32arr{1,2,3,4,5}}, // Word array
+      {"prop_3", "Hello, world!"} // Byte array from c-string
+    }
+  };
 
-    const char struct_[] =
-"obj{"
-"  usr: arr["
-"    obj{"
-"      login: \"admin\""
-"      password: \"admin\""
-"      access_lvl: 0xFF_ui8"
-"    },"
-"    obj{"
-"      login: \"user\""
-"      password: \"user\""
-"      access_lvl: 0x7F_ui8"
-"    },"
-"    obj{"
-"      login: \"guest\""
-"      password: \"guest\""
-"      access_lvl: 0x00_ui8"
-"    },"
-"  ],"
-"  grp: arr["
-"    obj{"
-"      name: 'system'"
-"      users: ["
-"        'admin'"
-"        'guest'"
-"      ]"
-"    }"
-"  ]"
-"}";
+  // Create BinOM serialized storage file
+  SerializedStorage s_storage("data.binom");
+  s_storage = var; // Save Variable to BinOM file
+  Variable loaded = s_storage; // Load Variable from BinOM file
+  std::cout << loaded << '\n'; // Print Variable
 
-    Variable var = lexer << struct_;
+  // Create BinOM dynamic storage file (with struct from var as default)
+  DynamicStorage d_storage("data.binomdb", var);
+  FileNodeVisitor root = d_storage;
+  // Change "prop_3" variable in data.binomdb file
+  root[{0, "prop_3"}].setVariable("Goodbie, world!");
+  // Get "prop_2" value from data.binomdb file in Variable
+  Variable from_storgae = root[0].getVariable("prop_2");
 
-    std::clog << "Builded variable: " << var;
+  // Convert structure description to Variable (More details in the BSDL section)
+  std::ifstream t("struct.bsdl");
+  std::stringstream str_stream;
+  str_stream << t.rdbuf();
+  Variable data = lexer << str_stream.str();
+  std::cout << "From BSDL: " << data << '\n';
 
-
-    std::clog << "=========================================================================\n"
-                 "|                    Test completed successfully                        |\n"
-                 "=========================================================================\n";
-    return 0;
-
-  } catch(Exception& except) {
-    std::cerr << except.full() << std::endl;
-  } catch(std::exception& except) {
-    std::cerr << except.what() << std::endl;
-  } catch(...) {
-    std::cerr << "Unknown exception!\n";
-  }
-
-  std::cerr << "=========================================================================\n"
-               "|                   !!! Test ended abnormally !!!                       |\n"
-               "=========================================================================\n";
-
+  // Serialize Variable
+  ByteArray buffer = var.serialize();
+  // ... And send it over network ...
 }
