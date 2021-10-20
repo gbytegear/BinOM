@@ -431,7 +431,8 @@ void FileMemoryManager::updateNode(virtual_index node_index, VarType type, ByteA
   if(type == VarType::end) type = descriptor.type;
   virtual_index rm_index = virtual_index(-1);
 
-  if(toTypeClass(descriptor.type) != VarTypeClass::primitive && (node_index || !descriptor.isFree()))
+  if(toTypeClass(descriptor.type) != VarTypeClass::primitive &&
+     !descriptor.isNoData())
       rm_index = descriptor.index;
 
   switch (toTypeClass(type)) {

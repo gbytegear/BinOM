@@ -9,8 +9,8 @@ namespace binom {
 
 enum class FileType {
   undefined_file = 0,
-  file_storage = 1,
-  serialized_file_storage = 2,
+  dynamic_storage = 1,
+  serialized_storage = 2,
 };
 
 FileType checkFileType(std::string_view file_name);

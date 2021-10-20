@@ -281,6 +281,7 @@ struct NodeDescriptor {
   static inline NodeDescriptor null() {return {VarType::invalid_type, 0xFFFFFFFFFFFFFFFF, 0};}
   bool isNull() {return type == VarType::invalid_type && index == 0xFFFFFFFFFFFFFFFF && !size;}
   bool isFree() {return type == VarType::end && !index && !size;}
+  bool isNoData() {return !index && !size;}
   VMemoryBlock toVMemoryBlock() {return {index, size};}
 };
 

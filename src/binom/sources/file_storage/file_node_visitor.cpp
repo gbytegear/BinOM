@@ -323,7 +323,7 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
   NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
-  if(descriptor.index == 0 && descriptor.size == 0)
+  if(descriptor.isNoData())
     return Object();
 
   ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);

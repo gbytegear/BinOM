@@ -23,8 +23,8 @@ FileType binom::checkFileType(std::string_view file_name) {
   if(file.getSize() < sizeof (version))
     return FileType::undefined_file;
   elif(!memcmp(version.file_type, "BinOM.FS", sizeof(current.file_type)))
-      return FileType::file_storage;
+      return FileType::dynamic_storage;
   elif(!memcmp(version.file_type, "BinOM.SS", sizeof(current.file_type)))
-      return FileType::serialized_file_storage;
+      return FileType::serialized_storage;
   else return FileType::undefined_file;
 }

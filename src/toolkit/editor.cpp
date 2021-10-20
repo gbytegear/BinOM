@@ -1,7 +1,9 @@
 #include "cli.h"
 #include "binom/includes/lexer.h"
 
-#define ED_DEBUG
+#include <limits>
+
+//#define ED_DEBUG
 #ifdef ED_DEBUG
 #define dbg_out(out) std::clog << out
 #else
@@ -46,7 +48,9 @@ Path inputPath() {
   while (true) try {
     std::string input;
     std::clog << "Enter path: ";
-    std::getline(std::cin, input);
+//    std::cin.clear();
+//    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::getline(std::cin, input, '\n');
     return Path::fromString(input);
   }  catch (Exception& except) {
     std::cerr << except.full() << '\n';
@@ -59,7 +63,9 @@ Variable inputeVariable(const char* msg) {
     try {
       std::string input;
       std::clog << msg;
-      std::getline(std::cin, input);
+//      std::cin.clear();
+//      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::getline(std::cin, input, '\n');
       return lexer << input;
     } catch(Exception& except) {
       std::cerr << except.full() << '\n';
@@ -83,6 +89,7 @@ void editor(std::unique_ptr<NodeVisitorBase> root) {
   };
 
   while(true) try {
+    clearConsole();
     std::clog << "File content:\n"
     << root->getVariableClone() << '\n';
 
@@ -160,32 +167,40 @@ void editor(std::unique_ptr<NodeVisitorBase> root) {
               std::cerr << "Expected primitive as value of buffer array\n";
               continue;
             }
-            AddPosisition pos(node->getElementCount());
-            switch (pos.type) {
-              case AddPosisition::PositionType::front:
-                node->pushFront(value);
-              break;
-              case AddPosisition::PositionType::by_index:
-                node->insert(pos.index, value);
-              break;
-              case AddPosisition::PositionType::back:
-                node->pushBack(value);
-              break;
+            if(!node->getElementCount()) {
+              node->pushBack(value);
+            } else {
+              AddPosisition pos(node->getElementCount());
+              switch (pos.type) {
+                case AddPosisition::PositionType::front:
+                  node->pushFront(value);
+                break;
+                case AddPosisition::PositionType::by_index:
+                  node->insert(pos.index, value);
+                break;
+                case AddPosisition::PositionType::back:
+                  node->pushBack(value);
+                break;
+              }
             }
           } else {
             Variable value = inputeVariable("Enter value: ");
             dbg_out("Entered value: " << value);
-            AddPosisition pos(node->getElementCount());
-            switch (pos.type) {
-              case AddPosisition::PositionType::front:
-                node->pushFront(value);
-              break;
-              case AddPosisition::PositionType::by_index:
-                node->insert(pos.index, value);
-              break;
-              case AddPosisition::PositionType::back:
-                node->pushBack(value);
-              break;
+            if(!node->getElementCount()) {
+              node->pushBack(value);
+            } else {
+              AddPosisition pos(node->getElementCount());
+              switch (pos.type) {
+                case AddPosisition::PositionType::front:
+                  node->pushFront(value);
+                break;
+                case AddPosisition::PositionType::by_index:
+                  node->insert(pos.index, value);
+                break;
+                case AddPosisition::PositionType::back:
+                  node->pushBack(value);
+                break;
+              }
             }
           }
           break;

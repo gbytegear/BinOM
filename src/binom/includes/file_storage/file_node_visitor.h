@@ -53,7 +53,7 @@ private:
   {}
 
   friend class FileNodeVisitor::ObjectElementFinder;
-  friend class FileStorage;
+  friend class DynamicStorage;
   friend class FileNodeVisitor::NodeIterator;
 
   Variable buildVariable(virtual_index node_index) const;

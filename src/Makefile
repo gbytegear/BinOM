@@ -9,7 +9,7 @@ ifeq ($(CXX_CMP), g++)
 LIBS = -lpthread -lstdc++fs
 endif
 ifeq ($(CXX_CMP), clang++)
-LIBS = -lpthread -lstdc++fs
+LIBS = -lpthread -lc++fs
 endif
 
 # Compile objects for libraries
@@ -46,17 +46,19 @@ test: objects
 
 # Compile libraries and move to folder "lbinom" with C++ headers
 libs: libbinom.a libbinom.so
+
+# Toolkit
+tk: libbinom.a
+	make clean_o
+	$(CXX_CMP) -I. ./toolkit/*.cpp ./toolkit.cpp -o binomtk $(LIBS) ./libbinom.a
+	rm -rf ./*.o
+
+all: libs tk
 	mkdir ../build -p
 	mv libbinom.a ../build
 	mv libbinom.so ../build
+	mv binomtk ../build
 	cp binom/includes ../build -r
-
-# Toolkit
-toolkit: libbinom.a
-	rm -rf ./*.o
-	$(CXX_CMP) -I. ./toolkit/*.cpp ./toolkit.cpp -o binomtk $(LIBS) ./libbinom.a
-
-all: libs
 	make clean
 
 clean:

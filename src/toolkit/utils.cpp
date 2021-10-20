@@ -38,7 +38,7 @@ binom::i64 inputSigned(const char* msg, std::function<bool (binom::i64)> check_c
   std::string input;
   while(true) {
     std::clog << msg;
-    std::cin >> input;
+    std::getline(std::cin, input, '\n');
     if(!isSigned(input)) {
       std::clog << "Entered isn't number value!\n";
       continue;
@@ -56,7 +56,7 @@ binom::ui64 inputUnsigned(const char* msg, std::function<bool (binom::ui64)> che
   std::string input;
   while(true) {
     std::clog << msg;
-    std::cin >> input;
+    std::getline(std::cin, input, '\n');
     if(!isUnsigned(input)) {
       std::clog << "Entered isn't unsigned number value!\n";
       continue;
@@ -74,7 +74,7 @@ bool inputBool(const char* msg) {
   std::string input;
   while (true) {
     std::clog << msg;
-    std::cin >> input;
+    std::getline(std::cin, input, '\n');
 
     if(input == "y") return true;
     elif(input == "n") return false;

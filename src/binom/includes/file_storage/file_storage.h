@@ -5,14 +5,14 @@
 
 namespace binom {
 
-class FileStorage {
+class DynamicStorage {
   FileMemoryManager fmm;
 public:
 
-  FileStorage(std::string_view file_name)
+  DynamicStorage(std::string_view file_name)
     : fmm(file_name) {}
 
-  FileStorage(std::string_view file_name, Variable init_var, bool force_init = false)
+  DynamicStorage(std::string_view file_name, Variable init_var, bool force_init = false)
     : fmm(file_name, force_init) {
     if(force_init || fmm.isEmpty())
       getRoot().setVariable(init_var);

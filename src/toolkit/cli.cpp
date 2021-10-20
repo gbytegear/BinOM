@@ -18,7 +18,9 @@ const char HELP_TEXT[] =
 "| * edit - edit BinOM-file\n"
 "| $ binomtk edit <file>\n|\n"
 "| * build - build BinOM-file from BinOM source\n"
-"| $ binomtk build <source-file> <output-file>\n"
+"| $ binomtk build <source-file> <output-file>\n|\n"
+"| * convert - automatically converts BinOM files to serialized or dynamic types\n"
+"| $ binomtk convert <old_file> <new_file>\n"
 "+\n\n"
 "Optional flags:\n|\n"
 "| * help - print this manual\n"
@@ -58,7 +60,8 @@ const binom::Object CLI::arg_tmpl = vobj {
     {"pnode", varr{"file", "paths"}},
     {"mk", varr{"file"}},
     {"edit", varr{"file"}},
-    {"build", varr{"files"}}
+    {"build", varr{"files"}},
+    {"convert", varr{"files"}}
   }},
 
   {"arg_types", vobj{
@@ -260,7 +263,8 @@ std::istream& binom::operator>>(std::istream& is, VarType& type) {
     ui16 number;
     std::string input;
 
-    is >> input;
+//    is >> input;
+    std::getline(is, input, '\n');
 
     if(!isUnsigned(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";
@@ -291,7 +295,8 @@ std::istream& binom::operator>>(std::istream& is, VarTypeClass& type_class) {
     ui16 number;
     std::string input;
 
-    is >> input;
+//    is >> input;
+    std::getline(is, input, '\n');
 
     if(!isUnsigned(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";
@@ -322,7 +327,8 @@ std::istream& binom::operator>>(std::istream& is, ValType& val_type) {
     ui16 number;
     std::string input;
 
-    is >> input;
+    std::getline(is, input, '\n');
+//    is >> input;
 
     if(!isUnsigned(input)) {
       std::cerr << "Invalid type\n"<< values <<"Try again: ";

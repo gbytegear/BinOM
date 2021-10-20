@@ -18,14 +18,14 @@ const std::map<BufferArray, command_t> CLI::commands = {
          switch (checkFileType(file_name)) {
            default: std::cerr << "File \"" << file_name << "\" is invalid";
            continue;
-           case binom::FileType::file_storage: {
-             binom::FileStorage storage(file_name);
+           case binom::FileType::dynamic_storage: {
+             binom::DynamicStorage storage(file_name);
              std::cout <<
              "File: \"" << file_name << "\";\n"
              "Type: Storage;"
              "\nContent: " << storage.getRoot().getVariable() << ";\n\n";
            }break;
-           case binom::FileType::serialized_file_storage: {
+           case binom::FileType::serialized_storage: {
              binom::SerializedStorage storage(file_name);
              std::cout <<
              "File: \"" << file_name << "\";\n"
@@ -59,7 +59,7 @@ const std::map<BufferArray, command_t> CLI::commands = {
 
          switch (checkFileType(file_name)) {
            default: std::cerr << "File \"" << file_name << "\" is invalid"; return;
-           case binom::FileType::serialized_file_storage: {
+           case binom::FileType::serialized_storage: {
              binom::SerializedStorage storage(file_name);
              binom::Variable variable = storage;
 
@@ -83,8 +83,8 @@ const std::map<BufferArray, command_t> CLI::commands = {
 
 
            }break;
-           case binom::FileType::file_storage: {
-             binom::FileStorage storage(file_name);
+           case binom::FileType::dynamic_storage: {
+             binom::DynamicStorage storage(file_name);
 
              std::cout <<
              "File: \"" << file_name << "\";\n"
@@ -119,17 +119,17 @@ const std::map<BufferArray, command_t> CLI::commands = {
      std::string file_name;
      if(!CLI::getArgs().contains("file")) {
        std::clog << "Enter file name: ";
-       std::cin >> file_name;
+       std::getline(std::cin, file_name, '\n');
      } else file_name = CLI::getArgs()["file"].toBufferArray();
 
      FileType file_type;
      while(true) {
        std::string input;
        std::clog << "Enter file type:\n"
-       "| 1 - File storage\n"
+       "| 1 - Dynamic storage\n"
        "| 2 - Serialized storage\n"
        ":";
-       std::cin >> input;
+       std::getline(std::cin, input, '\n');
 
        if(!isUnsigned(input)) {
          std::cerr << "Invalid input\n";
@@ -137,7 +137,7 @@ const std::map<BufferArray, command_t> CLI::commands = {
        }
 
        int i = std::stoi(input);
-       if(i != int(FileType::file_storage) && i != int(FileType::serialized_file_storage)) {
+       if(i != int(FileType::dynamic_storage) && i != int(FileType::serialized_storage)) {
          std::cerr << "Invalid input\n";
          continue;
        }
@@ -166,15 +166,15 @@ const std::map<BufferArray, command_t> CLI::commands = {
 
      switch (file_type) {
        default: std::cerr << "Invilid file type!"; return;
-       case FileType::serialized_file_storage: {
+       case FileType::serialized_storage: {
          Variable data(type);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new NodeVisitor(data));
          SerializedStorage storage(file_name);
          editor(std::move(node));
          storage = data;
        }return;
-       case FileType::file_storage: {
-         FileStorage storage(file_name, type, true);
+       case FileType::dynamic_storage: {
+         DynamicStorage storage(file_name, type, true);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(storage));
          editor(std::move(node));
        }return;
@@ -189,6 +189,15 @@ const std::map<BufferArray, command_t> CLI::commands = {
                 "Files isn't entered! Example:\n"
                 "$ binomtk build <source-file> <output-file>");
      Array files = getArgs()["files"].toArray();
+     if(files.getMemberCount() < 2) {
+       std::cerr << "2 arguments expected!\n"
+                    "$ binomtk build <source-file> <output-file>\n";
+       std::exit(-1);
+     } elif(files.getMemberCount() > 2) {
+       std::cerr << "2 arguments expected! The rest of the arguments will be ignored.\n"
+                    "$ binomtk build <source-file> <output-file>\n";
+     }
+
      FileIO file(files[0].toBufferArray().toString());
      if(!file.isExist()) {
        std::cerr << "File \"" << file.getPath().string() << "\" isn't exist!";
@@ -209,7 +218,7 @@ const std::map<BufferArray, command_t> CLI::commands = {
 
 {"edit", [](){
    requredArg("file", VarType::invalid_type,
-              "File isn't entered! Example: \n"
+              "File isn't entered! Example:\n"
               "$ binomtk edit <file>\n");
    clearConsole();
 
@@ -219,12 +228,12 @@ const std::map<BufferArray, command_t> CLI::commands = {
        case binom::FileType::undefined_file:
         std::cerr << "Unknown file type\n";
        return;
-       case binom::FileType::file_storage: {
-         FileStorage storage(file_name);
+       case binom::FileType::dynamic_storage: {
+         DynamicStorage storage(file_name);
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(storage));
          editor(std::move(node));
        } break;
-       case binom::FileType::serialized_file_storage:{
+       case binom::FileType::serialized_storage:{
          SerializedStorage storage(file_name);
          Variable data = storage;
          std::unique_ptr<NodeVisitorBase> node = std::unique_ptr<NodeVisitorBase>(new NodeVisitor(data));
@@ -236,6 +245,42 @@ const std::map<BufferArray, command_t> CLI::commands = {
 
 }},
 
-  {"convert", [](){}}
+  {"convert", [](){
+     requredArg("files", VarType::invalid_type,
+                "File isn't entered! Example:\n"
+                "$ binomtk convert <old_file> <new_file>\n");
+     Array files = getArgs()["files"].toArray();
+
+     if(files.getMemberCount() < 2) {
+       std::cerr << "2 arguments expected!\n"
+                    "$ binomtk convert <old_file> <new_file>\n";
+       std::exit(-1);
+     } elif(files.getMemberCount() > 2) {
+       std::cerr << "2 arguments expected! The rest of the arguments will be ignored.\n"
+                    "$ binomtk convert <old_file> <new_file>\n";
+     }
+
+     std::string url_str = files[0].toBufferArray().toString();
+     if(!FileIO::isExist(url_str)) {
+       std::cerr << "File \"" << url_str << "\" isn't exist\n";
+       std::exit(-1);
+     }
+
+     switch (checkFileType(url_str)) {
+       case binom::FileType::undefined_file:
+       std::cerr << "File \"" << url_str << "\" Unknown file type\n";
+       std::exit(-1);
+       case binom::FileType::dynamic_storage: {
+         SerializedStorage s_storage(files[1].toBufferArray().toString());
+         s_storage = DynamicStorage(url_str).getRoot().getVariable();
+         std::clog << "Converted: [DynamicStorage] " << url_str << " => [SerializedStorage] " << files[1].toBufferArray().toString() << '\n';
+       } break;
+       case binom::FileType::serialized_storage: {
+         DynamicStorage(files[1].toBufferArray().toString(), SerializedStorage(url_str), true);
+         std::clog << "Converted: [SerializedStorage] " << url_str << " => [DynamicStorage] " << files[1].toBufferArray().toString() << '\n';
+       } break;
+     }
+
+   }}
 
 };
