@@ -7,7 +7,6 @@ CONFIG += c++17 console
 LIBS += -lstdc++fs -lpthread;
 }
 
-
 win32 {
     CONFIG += c++17 console
     LIBS += -lstdc++fs C:\Qt\Tools\mingw730_64\x86_64-w64-mingw32\lib\libws2_32.a;
