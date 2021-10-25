@@ -120,7 +120,7 @@ Value separators: `, ; | \ white-space-symbols`
 Comments: `//...\n or /*...*/`
 
 Example:
-```json
+```
 {
   usr: [
     { login: "admin", password: "admin", access_lvl: 0xFF_ui8, attributes: [], data: {} }
