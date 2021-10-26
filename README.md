@@ -99,7 +99,7 @@ int main() {
 ### BinOM Struct Description Language (BSDL)
 JSON-like structure description language (JSON-compatible)
 
-#### BSDL Types:
+#### BSDL Literals:
 * **byte** - `5_si8, 5_ui8, 5_i8, 0x05_ui8, 05_i8`
 * **word** - `5_si16, 5_ui16, 5_i16, 0x05_i16, 05_i16`
 * **dword** - `5, 0.5, 0.5_f32, 5_si32, 5_ui32, 5_i32, 0x05_i32`
@@ -111,6 +111,8 @@ JSON-like structure description language (JSON-compatible)
 * **array** - `[...], arr[...]`
 * **object** - `{...}, obj{...}`
 
+Where `f` - float, `i` - integer, `si` - signed integer, `ui` - unsigned integer
+
 All types of brackets (`{}, [], <> or ()`) are equivalent to each other when specifying the data type.
 
 There can be two kinds of separator operators for name and value: `: or =`
@@ -120,19 +122,21 @@ Value separators: `, ; | \ white-space-symbols`
 Comments: `//...\n or /*...*/`
 
 Example:
-```json
+```
 {
   usr: [
-    { login: "admin", password: "admin", access_lvl: 0xFF_ui8, attributes: [], data: {} }
-    { login: "guest", password: "", access_lvl: 0x00_ui8, attributes: [], data: {} }
-    { login: "user", password: "any_user_password", access_lvl: 0x7F_ui8, attributes: [], data: {} }
-  ],
+    { login: "admin" password: "admin" access_lvl: 0xFF_ui8 attributes: [] data: {} }
+    { login: "guest" password: "" access_lvl: 0x00_ui8 attributes: [] data: {} }
+    { login: "user" password: "any_user_password" access_lvl: 0x7F_ui8 attributes: [] data: {} }
+  ]
+  
   grp: [
-    { name: "SYSTEM", users: [ "admin", "guest" ], usr_attributes: [ "unremovable", "const_access_lvl" ], change_access_lvl: 0xFF_ui8 }
-  ],
+    { name: "SYSTEM" users: [ "admin" "guest" ] usr_attributes: [ "unremovable" "const_access_lvl" ] change_access_lvl: 0xFF_ui8 }
+  ]
+  
   msg: {
     admin_guest: [
-      { from: "admin", to: "guest", content: "Hello, Guest. Please, login with your account." }
+      { from: "admin" to: "guest" content: "Hello, Guest. Please, login with your account." }
     ]
   }
 }
