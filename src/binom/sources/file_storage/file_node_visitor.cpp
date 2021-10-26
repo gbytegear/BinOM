@@ -465,6 +465,7 @@ ui64 FileNodeVisitor::getElementCount() const {
       return descriptor.size / toSize(toValueType(descriptor.type));
     case binom::VarTypeClass::array: return descriptor.size / sizeof (virtual_index);
     case binom::VarTypeClass::object: {
+      if(!descriptor.size) return 0;
       ObjectDescriptor obj_desriptor = fmm.getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
       return obj_desriptor.index_count;
     }
