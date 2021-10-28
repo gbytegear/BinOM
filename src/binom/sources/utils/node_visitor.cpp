@@ -174,6 +174,26 @@ std::optional<BufferArray> NodeVisitor::getName() const {
   return std::optional<BufferArray>();
 }
 
+bool NodeVisitor::contains(ui64 index) {
+  switch (getTypeClass()) {
+    case binom::VarTypeClass::primitive: return false;
+    case binom::VarTypeClass::buffer_array: return index < getVariable().toBufferArray().getMemberCount();
+    case binom::VarTypeClass::array: return index < getVariable().toArray().getMemberCount();
+    case binom::VarTypeClass::object: return false;
+    default: return false;
+  }
+}
+
+bool NodeVisitor::contains(BufferArray name) {
+  switch (getTypeClass()) {
+    case binom::VarTypeClass::primitive: return false;
+    case binom::VarTypeClass::buffer_array: return false;
+    case binom::VarTypeClass::array: return false;
+    case binom::VarTypeClass::object: return getVariable().toObject().contains(std::move(name));
+    default: return false;
+  }
+}
+
 void NodeVisitor::setVariable(Variable var) {
   switch (ref_type) {
     case binom::NodeVisitor::RefType::variable:

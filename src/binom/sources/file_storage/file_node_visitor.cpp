@@ -553,6 +553,32 @@ Variable FileNodeVisitor::getVariable() const {
   } else return buildVariable(node_index);
 }
 
+bool FileNodeVisitor::contains(ui64 index) {
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  switch (getTypeClass()) {
+    case binom::VarTypeClass::primitive: return false;
+    case binom::VarTypeClass::buffer_array: return index < getElementCount();
+    case binom::VarTypeClass::array: return index < getElementCount();
+    case binom::VarTypeClass::object: return false;
+    default: return false;
+  }
+}
+
+bool FileNodeVisitor::contains(BufferArray name) {
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  NodeDescriptor descriptor = getDescriptor();
+  if(descriptor.type != VarType::object)
+    return false;
+  elif(descriptor.size == 0)
+    return false;
+  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
+  if(!finder.findBlock(name.getValType(), name.getMemberCount()).isNameBlockFinded())
+    return false;
+  if(!finder.findNameInBlock(name.getDataPointer()).isNameFinded())
+    return false;
+  return true;
+}
+
 void FileNodeVisitor::setVariable(Variable var) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   ByteArray data;

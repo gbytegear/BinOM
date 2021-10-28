@@ -82,6 +82,9 @@ public:
   Variable& getVariable(Path path) const;
   std::optional<BufferArray> getName() const;
 
+  virtual bool contains(ui64 index) override;
+  virtual bool contains(BufferArray name) override;
+
   void setVariable(Variable var) override;
   void pushBack(Variable var) override;
   void pushFront(Variable var) override;

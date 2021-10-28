@@ -126,6 +126,9 @@ public:
   inline Variable getVariable(BufferArray name) const {return getChild(name).getVariable();}
   inline Variable getVariable(Path path) const {return getChild(path).getVariable();}
 
+  virtual bool contains(ui64 index) override;
+  virtual bool contains(BufferArray name) override;
+
   void setVariable(Variable var) override;
   void pushBack(Variable var) override;
   void pushFront(Variable var) override;

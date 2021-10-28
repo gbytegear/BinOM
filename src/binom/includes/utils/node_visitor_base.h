@@ -35,6 +35,9 @@ public:
   virtual NodeVisitorBase& stepInside(BufferArray name) = 0;
   virtual NodeVisitorBase& stepInside(Path path) = 0;
 
+  virtual bool contains(ui64 index) = 0;
+  virtual bool contains(BufferArray name) = 0;
+
   virtual void setVariable(Variable var) = 0;
   virtual void pushBack(Variable var) = 0;
   virtual void pushFront(Variable var) = 0;
