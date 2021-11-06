@@ -24,11 +24,6 @@ public:
   FileNodeVisitor getNode(virtual_index index, real_index element_index = 0xFFFFFFFFFFFFFFFF) {
     return FileNodeVisitor(fmm, index, element_index);
   }
-
-#ifdef DEBUG
-  void checkHeap() {fmm.checkHeap();}
-  void check() {fmm.check();}
-#endif
 };
 
 }

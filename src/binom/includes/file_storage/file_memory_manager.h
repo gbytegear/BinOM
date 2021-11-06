@@ -49,17 +49,15 @@ public:
   virtual_index createNode(VarType type, ByteArray data);
   void updateNode(virtual_index node_index, VarType type, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr);
   inline void updateNode(virtual_index node_index, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr) {return updateNode(node_index, VarType::end, std::move(data), descriptor_ptr);}
-  void updateNodeDataPart(virtual_index node_index, real_index shift, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr);
   void removeNode(virtual_index node_index);
+
+  void updateNodeDataPart(virtual_index node_index, real_index shift, ByteArray data, NodeDescriptor* descriptor_ptr = nullptr);
+  void insertNodeDataPart(virtual_index node_index, std::multimap<virtual_index, ByteArray> insert_blocks, NodeDescriptor* descriptor_ptr = nullptr);
+  void removeNodeDataParts(virtual_index node_index, std::list<RMemoryBlock> remove_blocks, NodeDescriptor* descriptor_ptr = nullptr);
 
   inline bool isEmpty() {return db_header.root_node.isFree();}
 
   inline RWSyncMap::RWGuard getRWGuard(f_virtual_index node_index) {return sync_map.get(node_index);}
-
-IF_DEBUG(
-  void checkHeap();
-  void check();
-)
 
 };
 

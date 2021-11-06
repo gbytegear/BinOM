@@ -18,10 +18,10 @@ void FileMemoryManager::init(bool force_init) {
     case binom::DBHeader::VersionDifference::file_type:
       throw Exception(ErrCode::binomdb_invalid_file, "Invalid file type");
     case binom::DBHeader::VersionDifference::major:
-      IF_DEBUG(std::cerr << "Warning: major version difference!\n");
+
     break;
     case binom::DBHeader::VersionDifference::minor:
-      IF_DEBUG(std::cerr << "Warning: minor version difference!\n");
+
     break;
   }
 
@@ -508,10 +508,111 @@ void FileMemoryManager::updateNode(virtual_index node_index, VarType type, ByteA
 void FileMemoryManager::updateNodeDataPart(virtual_index node_index, real_index shift, ByteArray data, NodeDescriptor* descriptor_ptr) {
   NodeDescriptor descriptor = descriptor_ptr? *descriptor_ptr : getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
-    throw Exception(ErrCode::binomdb_memory_management_error, "Set part of data of primitive data types is unsupported operation");
+    throw Exception(ErrCode::binomdb_memory_management_error, "Primitive types hasn't heap space");
   writeToVBlock({descriptor.index, descriptor.size}, std::move(data), shift);
 }
 
+void FileMemoryManager::insertNodeDataPart(virtual_index node_index, std::multimap<virtual_index, ByteArray> insert_blocks, NodeDescriptor* descriptor_ptr) {
+  NodeDescriptor descriptor = descriptor_ptr? *descriptor_ptr : getNodeDescriptor(node_index);
+  if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
+    throw Exception(ErrCode::binomdb_memory_management_error, "Primitive types hasn't heap space");
+
+  virtual_index rm_index = -1;
+  if(!descriptor.isNoData())
+      rm_index = descriptor.index;
+
+  ui64 required_memory = descriptor.size;
+  for(std::multimap<virtual_index, ByteArray>::reference insert_block : insert_blocks) {
+    if(insert_block.first > descriptor.size)
+      throw Exception(ErrCode::binomdb_memory_management_error, "Out of memory insertion range");
+    required_memory += insert_block.second.length();
+  }
+
+  VMemoryBlock block = allocHeapBlock(required_memory);
+  ui64 last_index = 0;
+  ui64 inserted_size = 0;
+  for(std::multimap<virtual_index, ByteArray>::reference insert_block : insert_blocks) {
+    if(insert_block.first > last_index) {
+      writeToVBlock(block, getNodeDataPart(node_index, last_index, insert_block.first - last_index), last_index + inserted_size);
+      last_index = insert_block.first;
+    }
+
+    writeToVBlock(block, insert_block.second, last_index + inserted_size);
+    inserted_size += insert_block.second.length();
+    last_index = insert_block.first;
+  }
+
+  if(last_index < descriptor.size) {
+    writeToVBlock(block, getNodeDataPart(descriptor, last_index, descriptor.size - last_index), last_index + inserted_size);
+  }
+
+  descriptor = NodeDescriptor{descriptor.type, block.v_index, block.size};
+  file.write(translateVNodeIndex(node_index), descriptor);
+  if(rm_index != virtual_index(-1))heap_map.freeBlock(rm_index);
+  if(descriptor_ptr) *descriptor_ptr = descriptor;
+
+}
+
+void FileMemoryManager::removeNodeDataParts(virtual_index node_index, std::list<RMemoryBlock> remove_blocks, NodeDescriptor* descriptor_ptr) {
+  NodeDescriptor descriptor = descriptor_ptr? *descriptor_ptr : getNodeDescriptor(node_index);
+  if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
+    throw Exception(ErrCode::binomdb_memory_management_error, "Primitive types hasn't heap space");
+  if(!descriptor.size)
+    return;
+
+  virtual_index rm_index = descriptor.index;
+
+  remove_blocks.sort([](RMemoryBlock& left, RMemoryBlock& right)->bool{return left.r_index < right.r_index;});
+
+  ui64 required_memory = descriptor.size;
+  { // Calculate required memory
+    RMemoryBlock* last_block_ptr = nullptr;
+    for(auto it = remove_blocks.begin(), end = remove_blocks.end(); it != end; ++it) {
+      RMemoryBlock& remove_block = *it;
+      if(last_block_ptr)
+        if(ui64 last_end_index = last_block_ptr->r_index + last_block_ptr->size;
+           last_end_index >= remove_block.r_index) { // Right edge of prev block in cur block
+          if(remove_block.r_index + remove_block.size <= last_end_index) { // Right edge of cur block in prev block
+            auto rm = it;
+            --it;
+            remove_blocks.erase(rm);
+            continue;
+          }
+          ui64 erased_size = remove_block.size - (last_end_index - remove_block.r_index);
+          required_memory -= erased_size;
+          last_block_ptr->size += erased_size;
+          auto rm = it;
+          --it;
+          remove_blocks.erase(rm);
+          continue;
+        }
+
+      required_memory -= remove_block.size;
+      last_block_ptr = &*it;
+      continue;
+    }
+  }
+
+  VMemoryBlock block = allocHeapBlock(required_memory);
+  ui64 last_index = 0;
+  ui64 skipped_size = 0;
+  for(RMemoryBlock& skip_block : remove_blocks) {
+    if(last_index < skip_block.r_index) {
+      writeToVBlock(block, getNodeDataPart(descriptor, last_index, skip_block.r_index - last_index), last_index - skipped_size);
+    }
+    skipped_size += skip_block.size;
+    last_index = skip_block.r_index + skip_block.size;
+  }
+
+  if(last_index < descriptor.size) {
+    writeToVBlock(block, getNodeDataPart(descriptor, last_index, descriptor.size - last_index), last_index - skipped_size);
+  }
+
+  descriptor = NodeDescriptor{descriptor.type, block.v_index, block.size};
+  file.write(translateVNodeIndex(node_index), descriptor);
+  heap_map.freeBlock(rm_index);
+  if(descriptor_ptr) *descriptor_ptr = descriptor;
+}
 
 
 void FileMemoryManager::removeNode(virtual_index node_index) {
@@ -534,173 +635,3 @@ void FileMemoryManager::removeNode(virtual_index node_index) {
   file.write(page_info.page_position, page_info.descriptor);
 
 }
-
-
-
-
-
-
-#ifdef DEBUG
-#include <iomanip>
-#include "binom/includes/variables/buffer_array.h"
-#include "binom/includes/variables/variable.h"
-
-void FileMemoryManager::checkHeap() {
-
-  std::clog << "--------------- Heap map check ------------------\n";
-  heap_map.check();
-
-  std::clog << "--------------- Node heap compare ------------------\n";
-  virtual_index index = 0;
-  NodeDescriptor descriptor;
-  VMemoryBlock memory_block;
-  if(!db_header.root_node.isFree()) {
-
-    descriptor = getNodeDescriptor(index);
-    if(toTypeClass(descriptor.type) != VarTypeClass::primitive) {
-      memory_block = heap_map.find(descriptor.index);
-      if(memory_block.isEmpty())
-        std::clog << "index: 0; Invalid virtual index!\n";
-      elif(memory_block.size != descriptor.size)
-        std::clog << "index: 0; Invalid block size in node descriptor!\n";
-      else
-        std::clog << "index: 0; Heap memory block ok\n";
-    } else
-      std::clog << "index: 0; Is primitive\n";
-
-    for(auto node_page : node_page_vector) {
-      for(auto bit : node_page.descriptor.node_map) {
-        ++index;
-
-        if(!bit.get()) {
-          std::clog << "index: " << index << "; Is empty\n";
-          continue;
-        }
-
-        descriptor = getNodeDescriptor(index);
-        if(toTypeClass(descriptor.type) != VarTypeClass::primitive) {
-          memory_block = heap_map.find(descriptor.index);
-          if(memory_block.isEmpty())
-            std::clog << "index: " << index << "; Invalid virtual index!\n";
-          elif(memory_block.size != descriptor.size)
-              std::clog << "index: " << index << "; Invalid block size in node descriptor!\n";
-          else
-          std::clog << "index: " << index << "; Heap memory block ok\n";
-        }else
-          std::clog << "index: " << index << "; Is primitive\n";
-
-      }
-    }
-  } else
-    std::clog << "Root is empty\n";
-}
-
-void binom::FileMemoryManager::check() {
-
-  auto printNode = [this](virtual_index index,NodeDescriptor descriptor) {
-    if(toTypeClass(descriptor.type) == VarTypeClass::primitive)
-      std::clog << "index: " << index
-                << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec
-                << ":[ type: " << toTypeString(descriptor.type)
-                << "; value: " << descriptor.index << "; ]\n";
-    else {
-      std::clog << "index: " << index
-                << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec
-                << ":[ type: " << toTypeString(descriptor.type)
-                << "; index: " << descriptor.index
-                << "; size: " << descriptor.size << "; ]\n";
-
-      ByteArray data = getNodeData(descriptor);
-      std::clog << "| at: 0x" << std::hex << translateVHeapIndex(descriptor.index) << std::dec << "; data: ";
-      switch (toTypeClass(descriptor.type)) {
-        case binom::VarTypeClass::object:{
-          if(!descriptor.size) break;
-          ByteArray indexes(getNodeData(descriptor));
-          ObjectDescriptor descriptor(indexes.takeFront<ObjectDescriptor>());
-          ByteArray name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength)));
-          ByteArray names(indexes.takeFront(descriptor.name_block_size));
-          byte* name_it(names.begin());
-          virtual_index* index_it(indexes.begin<virtual_index>());
-
-          for(ObjectNameLength* it = name_lengths.begin<ObjectNameLength>(),
-              * end = name_lengths.end<ObjectNameLength>();
-              it != end; ++it) {
-            ui64 name_count = it->name_count;
-            while (name_count) {
-              NodeDescriptor des = getNodeDescriptor(*index_it);
-              std::clog << "\n|| name: " << BufferArray(it->char_type, name_it, it->name_length)
-                        << "; index: " << *index_it
-                        << "; node: ";
-
-              if(toTypeClass(des.type) == VarTypeClass::primitive)
-                std::clog << "[ type: " << toTypeString(des.type)
-                          << "; value: " << des.index << "; ]";
-              else
-                std::clog << "[ type: " << toTypeString(des.type)
-                          << "; index: " << des.index
-                          << "; size: " << des.size << "; ]";
-
-              --name_count;
-              name_it += it->name_length;
-              ++index_it;
-            }
-          }
-
-        }break;
-
-        case binom::VarTypeClass::buffer_array:
-        for(auto byte : data)
-        std::clog << std::right << std::setw(2) << std::setfill('0') << std::hex << int(byte) << ' ' << std::dec;
-        break;
-
-        case binom::VarTypeClass::array:
-        for(virtual_index* index_it = data.begin<virtual_index>(),
-        * index_end = data.end<virtual_index>();
-        index_it != index_end; ++index_it) {
-          NodeDescriptor des = getNodeDescriptor(*index_it);
-          std::clog << "\n|| index: " << *index_it
-                    << "; node: ";
-          if(toTypeClass(des.type) == VarTypeClass::primitive) {
-            std::clog << "[ type: " << toTypeString(des.type)
-                      << "; value: " << des.index << "; ]";
-          } else {
-            std::clog << "[ type: " << toTypeString(des.type)
-                      << "; index: " << des.index
-                      << "; size: " << des.size << "; ]";
-          }
-        }
-        break;
-
-        default: break;
-
-      }
-      std::clog << "\n+---------\n\n";
-
-    }
-  };
-
-
-
-  std::clog << "Check nodes:\n";
-  if(!db_header.root_node.isFree()) {
-    std::clog << "Root node: ";
-    printNode(0, file.read<NodeDescriptor>(offsetof(DBHeader, root_node)));
-  }
-
-  virtual_index index = 0;
-  for(auto node_page : node_page_vector) {
-    std::clog << "Page position: 0x" << std::hex << node_page.page_position << std::dec
-              << "\nPage nodes:\n";
-    for(auto bit : node_page.descriptor.node_map) {
-          ++index;
-          if(bit.get()) {
-            printNode(index, file.read<NodeDescriptor>(node_page.page_position + sizeof (NodePageDescriptor) + bit.getBitIndex()*sizeof(NodeDescriptor)));
-          } else std::clog << "index: " << index << "; at: 0x" << std::hex << translateVNodeIndex(index) << std::dec << ":[ <Free node> ]\n";
-    }
-    std::clog << "\n";
-  }
-//  std::clog << "Check heap blocks:\n";
-//  heap_map.check();
-}
-
-#endif

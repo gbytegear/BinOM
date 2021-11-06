@@ -15,6 +15,7 @@ private:
   typedef RWSyncMap::RWGuard RWGuard;
   typedef RWSyncMap::LockType LockType;
   class ObjectElementFinder;
+  static constexpr virtual_index null_index = 0xFFFFFFFFFFFFFFFF;
 
   struct NamePosition {
     virtual_index parent_node_index = 0;
@@ -25,7 +26,6 @@ private:
     bool isNull() {return char_type == ValType::invalid_type;}
   };
 
-  static constexpr virtual_index null_index = 0xFFFFFFFFFFFFFFFF;
 
   FileMemoryManager& fmm;
   virtual_index node_index = 0;
@@ -142,8 +142,8 @@ public:
   inline FileNodeVisitor getChild(BufferArray name) const {return FileNodeVisitor(*this)(name);}
   inline FileNodeVisitor getChild(Path path) const {return FileNodeVisitor(*this)(path);}
 
-  NodeVector findAll(Query query, NodeVector node_vector = NodeVector()); /* Not_Impl */
-  FileNodeVisitor find(Query query); /* Not_Impl */
+  NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
+  FileNodeVisitor find(Query query);
 
   FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}
@@ -153,6 +153,8 @@ public:
   inline FileNodeVisitor operator[](BufferArray name) const {return getChild(name);}
   inline FileNodeVisitor operator[](Path path) const {return getChild(path);}
 
+//  NodeIterator beginFrom(ui64 index);
+//  NodeIterator beginFrom(BufferArray name);
   NodeIterator begin();
   static inline decltype(nullptr) end() {return nullptr;}
 
@@ -161,6 +163,80 @@ public:
   Variable getVariableClone() = delete;
 };
 
+}
+
+#include "file_object_element_finder.h"
+
+namespace binom {
+
+
+
+
+
+// New realization
+//class FileNodeVisitor::NodeIterator {
+//  FileNodeVisitor parent;
+
+//  union UnionIndex {
+//    struct ArrayIndex {
+//      ui64 index = 0;
+//    } array;
+
+//    struct ObjectIndex {
+//      ui64 index = 0;
+//      ui64 index_count = 0;
+//      ui64 name_block_index = 0;
+//      ui64 names_in_block = 0;
+//      ValType current_char_type = ValType::invalid_type;
+//      ui64 name_shift = 0;
+//    } object;
+//    UnionIndex() : object() {};
+//  };
+//  UnionIndex union_index;
+
+//public:
+//  NodeIterator(FileNodeVisitor parent, bool is_end = false)
+//    : parent(parent) {
+//    switch (parent.getTypeClass()) {
+//      case binom::VarTypeClass::primitive:
+//        union_index.array.index = is_end? 1 : 0;
+//      return;
+//      case binom::VarTypeClass::buffer_array:
+//      case binom::VarTypeClass::array:
+//        union_index.array.index = is_end? parent.getElementCount() : 0;
+//      break;
+//      case binom::VarTypeClass::object: {
+//        ObjectDescriptor descriptor = parent.fmm.getNodeDataPart(parent.node_index, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
+//        if(is_end) {
+//          union_index.object.index_count = descriptor.index_count;
+//          union_index.object.index = descriptor.index_count;
+//        } else {
+//          union_index.object.index_count = descriptor.index_count;
+//          ObjectNameLength name_block = parent.fmm.getNodeDataPart(parent.node_index, sizeof (ObjectDescriptor), sizeof (ObjectNameLength)).get<ObjectNameLength>(0);
+//          union_index.object.names_in_block = name_block.name_count;
+//          union_index.object.current_char_type = name_block.char_type;
+//        }
+//      }break;
+//      default: throw Exception(ErrCode::binom_invalid_type);
+//    }
+//  }
+
+//  FileNodeVisitor operator*() {
+//    switch (parent.getTypeClass()) {
+//      case binom::VarTypeClass::primitive: return parent;
+//      case binom::VarTypeClass::buffer_array:
+//      case binom::VarTypeClass::array:
+//        return parent.getChild(union_index.array.index);
+//      case binom::VarTypeClass::object: {
+//        if(union_index.object.index_count == union_index.object.index)
+//          return FileNodeVisitor(parent.fmm, nullptr);
+
+//      }break;
+//      case binom::VarTypeClass::invalid_type: return FileNodeVisitor(parent.fmm, nullptr);
+//    }
+//  }
+
+//};
 
 class FileNodeVisitor::NodeIterator {
   union Data {

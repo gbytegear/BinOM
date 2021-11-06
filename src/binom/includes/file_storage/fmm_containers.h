@@ -1,17 +1,12 @@
 #ifndef FMM_CONTAINERS_H
 #define FMM_CONTAINERS_H
 
-#ifdef DEBUG
-#define IF_DEBUG(expr) expr
-#include <iostream>
-#else
-#define IF_DEBUG(expr)
-#endif
-
 #include "file_structs.h"
 #include <vector>
 #include <map>
 #include <mutex>
+#include <algorithm>
+#include <list>
 
 namespace binom {
 
@@ -84,8 +79,6 @@ class HeapMap {
       }
     return false;
   }
-
-  IF_DEBUG(friend void test();)
 
 public:
 
@@ -206,40 +199,8 @@ public:
 
   void clear() {block_map.clear();free_block_map.clear();}
 
-  IF_DEBUG(
-      void check() {
-        ui64 allocated = 0;
-        ui64 free_memory = 0;
-        ui64 free_blocks = 0;
-        ui64 busy_memory = 0;
-        ui64 busy_blocks = 0;
-        std::clog << "Block map:\n";
-        for(auto block : block_map) {
-          allocated += block.second.size;
-          if(block.second.is_busy) {
-            busy_memory += block.second.size;
-            ++busy_blocks;
-          } else {
-            free_memory += block.second.size;
-            ++free_blocks;
-          }
-          std::clog << "[ index: " << block.first << ", size: " << block.second.size << ", is busy: " << block.second.is_busy << " ]\n";
-        }
-
-        std::clog << "\n\nFree map:\n";
-        for(auto block : free_block_map) {
-          std::clog << "[ size: " << block.first << " index: " << block.second->first << " ]\n";
-        }
-
-        std::clog << "\n\nFree blocks: " << free_blocks << '\n';
-        std::clog << "Busy blocks: " << busy_blocks << '\n';
-        std::clog << "Free memory: "<< free_memory << '\n';
-        std::clog << "Busy memory: "<< busy_memory << '\n';
-        std::clog << "Allocated: " << allocated << '\n';
-      }
-  )
-
 };
+
 
 
 }

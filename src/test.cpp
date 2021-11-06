@@ -2,43 +2,69 @@
 #include "binom/includes/lexer.h"
 #include <fstream>
 
+#include "tests/file_node_visitor_test.h"
+
 
 int main() {
 
   // BinOM project namespace (all magic here)
   using namespace binom;
+  bufferArrayInsertTest();
+  setTest();
 
-  // Create BinOM variable
-  Variable var = varr{ // Array
-    vobj{ // Object
-      {"prop_1", 42_ui8}, // Byte
-      {"prop_2", ui32arr{1,2,3,4,5}}, // Word array
-      {"prop_3", "Hello, world!"} // Byte array from c-string
-    }
-  };
+//  DynamicStorage storage("test.db", varr{}, true);
+//  FileNodeVisitor root = storage;
+//  root.pushBack("1");
+//  root.pushBack("3");
+//  root.pushFront("0");
+//  root.insert(2, "2");
+//  std::clog << root.getVariable() << '\n';
+//  root.remove(0, 2);
+//  std::clog << root.getVariable() << '\n';
+//  root.remove(0, 2);
+//  std::clog << root.getVariable() << '\n';
 
-  // Create BinOM serialized storage file
-  SerializedStorage s_storage("data.binom");
-  s_storage = var; // Save Variable to BinOM file
-  Variable loaded = s_storage; // Load Variable from BinOM file
-  std::cout << loaded << '\n'; // Print Variable
 
-  // Create BinOM dynamic storage file (with struct from var as default)
-  DynamicStorage d_storage("data.binomdb", var);
-  FileNodeVisitor root = d_storage;
-  // Change "prop_3" variable in data.binomdb file
-  root[{0, "prop_3"}].setVariable("Goodbie, world!");
-  // Get "prop_2" value from data.binomdb file in Variable
-  Variable from_storgae = root[0].getVariable("prop_2");
 
-  // Convert structure description to Variable (More details in the BSDL section)
-  std::ifstream t("struct.bsdl");
-  std::stringstream str_stream;
-  str_stream << t.rdbuf();
-  Variable data = lexer << str_stream.str();
-  std::cout << "From BSDL: " << data << '\n';
 
-  // Serialize Variable
-  ByteArray buffer = var.serialize();
-  // ... And send it over network ...
+//  DynamicStorage storage("test.db", vobj{}, true);
+//  FileNodeVisitor root = storage;
+//  std::clog << root.getVariable() << '\n';
+//  root.insert("Hello", "a");
+//  std::clog << root.getVariable() << '\n';
+//  root.insert("World", "b");
+//  std::clog << root.getVariable() << '\n';
+//  root.insert("Hello, world", "c");
+//  std::clog << root.getVariable() << '\n';
+//  root.insert("Hello, world!", "c");
+//  std::clog << root.getVariable() << '\n';
+
+//  FileNodeVisitor node = root["Hello"];
+//  std::clog << "Name: " << *node.getName() << '\n';
+
+//  root.remove("World");
+//  std::clog << root.getVariable() << '\n';
+//  root.remove("Hello, world");
+//  std::clog << root.getVariable() << '\n';
+//  root.remove("Hello, world!");
+//  std::clog << root.getVariable() << '\n';
+//  root.remove("Hello");
+//  std::clog << root.getVariable() << '\n';
+
+//  FileMemoryManager fmm("test.data", true);
+//  virtual_index node_index = fmm.createNode(VarType::byte_array, BufferArray(ui8arr{0,1,4,5,8}).toByteArray());
+//  ByteArray data = fmm.getNodeData(node_index);
+//  std::clog << BufferArray(data) << '\n';
+//  fmm.insertNodeDataPart(node_index, {
+//                           {2, BufferArray(ui8arr{2,3}).toByteArray()},
+//                           {4, BufferArray(ui8arr{6,7}).toByteArray()},
+//                           {5, BufferArray(ui8arr{9,10,11}).toByteArray()},
+//                           {5, BufferArray(ui8arr{12,13,14}).toByteArray()},
+//                           {5, BufferArray(ui8arr{15,16}).toByteArray()},
+//                         });
+//  data = fmm.getNodeData(node_index);
+//  std::clog << BufferArray(data) << '\n';
+//  fmm.removeNodeDataParts(node_index, {{3,2}, {0,2}});
+
+
 }

@@ -5,7 +5,7 @@
 
 void setTest() {
   using namespace binom;
-  FileStorage storage("assign_test.db");
+  DynamicStorage storage("assign_test.db");
   std::clog << " * File storage has been inited\n";
   FileNodeVisitor root_node = storage;
   std::clog << " * Root node has been getted\n";
@@ -38,16 +38,6 @@ void setTest() {
 
   root_node.setVariable(var);
 
-  std::clog << "=========================================================================\n"
-                 "|                  Check Data of changed Storage BEGIN                  |\n"
-                 "=========================================================================\n";
-
-  storage.check();
-
-  std::clog << "=========================================================================\n"
-                 "|                  Check Data of changed Storage END                    |\n"
-                 "=========================================================================\n";
-
   std::clog << root_node.getVariable() << '\n';
   std::clog << "Variable:\n" << var;
 
@@ -56,7 +46,7 @@ void setTest() {
 void bufferArrayInsertTest() {
   using namespace binom;
 
-  FileStorage storage("buffer_array_insert_test.db", varr{
+  DynamicStorage storage("buffer_array_insert_test.db", varr{
                         ui8arr{3,6,9},
                         ui16arr{3,6,9},
                         ui32arr{3,6,9},
@@ -134,7 +124,7 @@ void file_node_visitor_test() {
   using namespace binom;
 //  setTest();
 
-  FileStorage storage("set_buffarr_element.binomdb", vobj{ {"test", ui16arr{1,2,2,4,5}} });
+  DynamicStorage storage("set_buffarr_element.binomdb", vobj{ {"test", ui16arr{1,2,2,4,5}} });
   FileNodeVisitor node = storage;
   std::clog << "Before change:\n" << node.getVariable() << '\n';
   node[{"test", 2}].setVariable(3_ui16);

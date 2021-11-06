@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/binom/includes/file_storage/file_object_element_finder.h \
     $$PWD/binom/includes/lexer.h \
     binom/includes/file_storage/file_memory_manager.h \
     binom/includes/file_storage/file_node_visitor.h \
@@ -27,6 +28,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/binom/sources/file_storage/file_node_iterator.cpp \
+    $$PWD/binom/sources/file_storage/file_object_element_finder.cpp \
     $$PWD/binom/sources/lexer.cpp \
     $$PWD/binom/sources/utils/node_visitor_base.cpp \
     binom/sources/utils/TestExpressionFrame.cpp \

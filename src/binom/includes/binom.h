@@ -56,10 +56,8 @@ public:
         case Header::VersionDifference::file_type:
           throw Exception(ErrCode::binomdb_invalid_file, "Invalid file type");
         case Header::VersionDifference::major:
-          IF_DEBUG(std::cerr << "Warning: major version difference!\n");
         break;
         case Header::VersionDifference::minor:
-          IF_DEBUG(std::cerr << "Warning: minor version difference!\n");
         break;
       }
     }
