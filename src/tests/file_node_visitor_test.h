@@ -5,7 +5,33 @@
 
 void setTest() {
   using namespace binom;
-  DynamicStorage storage("assign_test.db");
+  DynamicStorage storage("assign_test.db",
+                         vobj{
+                             {ui64arr{1,2,3,255}, ui64arr{4,5,6}},
+                             {ui32arr{1,2,3,255}, ui32arr{4,5,6}},
+                             {ui16arr{1,2,3,255}, ui16arr{4,5,6}},
+                             {ui8arr{1,2,3,255}, ui8arr{4,5,6}},
+                             {"a", 1_ui8},
+                             {"b", 2_ui16},
+                             {"c", 4_ui32},
+                             {"d", 8_ui64},
+                             {"e", ui8arr{1,2,3}},
+                             {"f", ui16arr{4,5,6}},
+                             {"g", ui32arr{7,8,9}},
+                             {"h", ui64arr{10,11,12}},
+                             {"j", varr{1,2,3}},
+                             {"k", vobj{
+                               {"a", 1_ui8},
+                               {"b", 2_ui16},
+                               {"c", 4_ui32},
+                               {"d", 8_ui64},
+                               {"e", ui8arr{1,2,3}},
+                               {"f", ui16arr{4,5,6}},
+                               {"g", ui32arr{7,8,9}},
+                               {"h", ui64arr{10,11,12}},
+                               {"j", varr{1,2,3}}
+                             }}
+                           }, true);
   std::clog << " * File storage has been inited\n";
   std::clog << storage.getRoot().getVariable() << '\n';
 //  FileNodeVisitor root_node = storage;
@@ -26,14 +52,14 @@ void setTest() {
 //    {"j", varr{1,2,3}},
 //    {"k", vobj{
 //      {"a", 1_ui8},
-////      {"b", 2_ui16},
-////      {"c", 4_ui32},
-////      {"d", 8_ui64},
-////      {"e", ui8arr{1,2,3}},
-////      {"f", ui16arr{4,5,6}},
-////      {"g", ui32arr{7,8,9}},
-////      {"h", ui64arr{10,11,12}},
-////      {"j", varr{1,2,3}}
+//      {"b", 2_ui16},
+//      {"c", 4_ui32},
+//      {"d", 8_ui64},
+//      {"e", ui8arr{1,2,3}},
+//      {"f", ui16arr{4,5,6}},
+//      {"g", ui32arr{7,8,9}},
+//      {"h", ui64arr{10,11,12}},
+//      {"j", varr{1,2,3}}
 //    }}
 //  };
 

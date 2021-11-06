@@ -292,9 +292,6 @@ struct ObjectNameLength {
 };
 
 struct ObjectDescriptor {
-  static constexpr block_size length_element_size = sizeof (ObjectNameLength);
-  static constexpr block_size index_size = sizeof (virtual_index);
-
   element_cnt length_element_count = 0;
   block_size name_block_size = 0;
   element_cnt index_count = 0;

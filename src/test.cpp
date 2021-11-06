@@ -9,7 +9,7 @@ int main() {
 
   // BinOM project namespace (all magic here)
   using namespace binom;
-  bufferArrayInsertTest();
+//  bufferArrayInsertTest();
   setTest();
 
 //  DynamicStorage storage("test.db", varr{}, true);

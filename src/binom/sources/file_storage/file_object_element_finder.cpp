@@ -64,16 +64,10 @@ binom::FileNodeVisitor::ObjectElementFinder& FileNodeVisitor::ObjectElementFinde
 }
 
 binom::FileNodeVisitor::ObjectElementFinder& FileNodeVisitor::ObjectElementFinder::findNameInBlock(void* name) {
+  ScopedRWGuard rwg(rw_gurad, LockType::shared_lock);
   const ui8 char_size = toSize(name_block_descriptor.char_type);
   const i64 name_count = name_block_descriptor.name_count;
   const ui64 name_byte_length = name_block_descriptor.name_length*char_size;
-  rw_gurad.lockShared();
-  ByteArray name_block = fmm.getNodeDataPart(node_index,
-                                             sizeof (ObjectDescriptor) +
-                                             sizeof (ObjectNameLength)*descriptor.length_element_count +
-                                             name_index,
-                                             name_count*name_byte_length);
-  rw_gurad.unlock();
 
   i64 middle = 0;
   i64 left = 0;
@@ -87,7 +81,14 @@ binom::FileNodeVisitor::ObjectElementFinder& FileNodeVisitor::ObjectElementFinde
       break;
     }
 
-    int cmp = memcmp(name_block.begin() + middle*name_byte_length, name, name_byte_length);
+    int cmp = memcmp(fmm.getNodeDataPart(node_index,
+                                         sizeof (ObjectDescriptor) +
+                                         sizeof (ObjectNameLength)*descriptor.length_element_count +
+                                         name_index+middle*name_byte_length,
+                                         name_byte_length)
+                     .begin(),
+                     name,
+                     name_byte_length);
 
     if(cmp > 0) right = middle - 1;
     elif(cmp < 0) left = middle + 1;
@@ -233,11 +234,7 @@ void FileNodeVisitor::ObjectElementFinder::insert(BufferArray name, virtual_inde
 
   const i64 name_count = name_block_descriptor.name_count;
   const i64 name_byte_length = name_length * toSize(type);
-  ByteArray name_block = fmm.getNodeDataPart(node_index,
-                                             sizeof (ObjectDescriptor) +
-                                             sizeof (ObjectNameLength)*descriptor.length_element_count +
-                                             name_index,
-                                             name_count*name_byte_length);
+
 
   i64 middle = 0;
   i64 left = 0;
@@ -248,7 +245,14 @@ void FileNodeVisitor::ObjectElementFinder::insert(BufferArray name, virtual_inde
 
     if(left > right || middle > name_count) break;
 
-    int cmp = memcmp(name_block.begin() + middle*name_byte_length, name.getDataPointer(), name_byte_length);
+    int cmp = memcmp(fmm.getNodeDataPart(node_index,
+                                         sizeof (ObjectDescriptor) +
+                                         sizeof (ObjectNameLength)*descriptor.length_element_count +
+                                         name_index+middle*name_byte_length,
+                                         name_byte_length)
+                     .begin(),
+                     name.getDataPointer(),
+                     name_byte_length);
 
     if(cmp > 0) right = middle - 1;
     elif(cmp < 0) left = middle + 1;
@@ -259,7 +263,14 @@ void FileNodeVisitor::ObjectElementFinder::insert(BufferArray name, virtual_inde
   }
 
   for(;(middle < name_count)
-      ? memcmp(name_block.begin() + middle*name_byte_length, name.getDataPointer(), name_byte_length) < 0
+      ? memcmp(fmm.getNodeDataPart(node_index,
+                                   sizeof (ObjectDescriptor) +
+                                   sizeof (ObjectNameLength)*descriptor.length_element_count +
+                                   name_index+middle*name_byte_length,
+                                   name_byte_length)
+               .begin(),
+               name.getDataPointer(),
+               name_byte_length) < 0
       : false;
       ++middle);
 
@@ -379,7 +390,7 @@ void FileNodeVisitor::ObjectElementFinder::foreach(std::function<void (FileNodeV
       ByteArray name = fmm.getNodeDataPart(node_index,
                                            sizeof (ObjectDescriptor) +
                                            sizeof (ObjectNameLength)*descriptor.length_element_count +
-                                           name_index, it->name_length);
+                                           name_index, it->name_length*toSize(it->char_type));
       virtual_index index = fmm.getNodeDataPart(node_index,
                                                 sizeof (ObjectDescriptor) +
                                                 sizeof (ObjectNameLength)*descriptor.length_element_count +
@@ -387,7 +398,7 @@ void FileNodeVisitor::ObjectElementFinder::foreach(std::function<void (FileNodeV
                                                 sizeof (virtual_index)*index_pos,
                                                 sizeof (virtual_index)).get<virtual_index>(0);
       handler({it->char_type, it->name_length, name.begin(), index});
-      name_index += it->name_length;
+      name_index += it->name_length*toSize(it->char_type);
       ++index_pos;
       --name_count;
     }
