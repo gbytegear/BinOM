@@ -7,7 +7,6 @@ namespace binom {
 
 class FileNodeVisitor::ObjectElementFinder{
   // Node Control
-  FileNodeVisitor& node_visitor;
   FileMemoryManager& fmm;
   virtual_index node_index;
   RWGuard& rw_gurad;
@@ -31,6 +30,7 @@ public:
   };
 
   ObjectElementFinder(FileNodeVisitor& node_visitor);
+  ObjectElementFinder(FileMemoryManager& fmm, virtual_index node_index, RWGuard& rw_gurad);
 
   ObjectElementFinder& dropPosition();
 

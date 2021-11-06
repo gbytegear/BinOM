@@ -328,7 +328,7 @@ Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescript
     return Object();
 
 //  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
-  ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
+  ObjectElementFinder finder(fmm, node_index, cur_lk.getRWGuard());
   ByteArray data(9 + finder.getElementCount()*sizeof(void*)*2);
   data.get<VarType>(0) = VarType::object; // Set type
   data.get<ui64>(0, 1) = finder.getElementCount(); // Set length

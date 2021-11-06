@@ -13,10 +13,19 @@ ObjectNameLength FileNodeVisitor::ObjectElementFinder::getNameBlockDescriptor(ui
 }
 
 FileNodeVisitor::ObjectElementFinder::ObjectElementFinder(FileNodeVisitor& node_visitor)
-  : node_visitor(node_visitor),
-    fmm(node_visitor.fmm),
+  : fmm(node_visitor.fmm),
     node_index(node_visitor.node_index),
     rw_gurad(node_visitor.current_rwg),
+    descriptor(getObjectDescriptor()),
+    name_block_descriptor(getNameBlockDescriptor(0)),
+    name_block_index(0),
+    name_index(0),
+    index(0) {}
+
+FileNodeVisitor::ObjectElementFinder::ObjectElementFinder(FileMemoryManager& fmm, virtual_index node_index, RWGuard& rw_gurad)
+  : fmm(fmm),
+    node_index(node_index),
+    rw_gurad(rw_gurad),
     descriptor(getObjectDescriptor()),
     name_block_descriptor(getNameBlockDescriptor(0)),
     name_block_index(0),
@@ -301,7 +310,7 @@ bool FileNodeVisitor::ObjectElementFinder::remove(BufferArray name) {
         sizeof (virtual_index)*index,
         sizeof (virtual_index));
 
-  remove_indexes += node_visitor.getContainedNodeIndexes(remove_indexes.get<virtual_index>(0));
+  remove_indexes += FileNodeVisitor(fmm).getContainedNodeIndexes(remove_indexes.get<virtual_index>(0));
 
   fmm.removeNodeDataParts(node_index,
                           (!--name_block_descriptor.name_count)

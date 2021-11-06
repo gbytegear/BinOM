@@ -215,6 +215,7 @@ public:
     inline LockType getScopeLockType() {return lock_type;}
     inline LockType getGuardLockType() {if(rwg)return rwg->getLockType(); return LockType::unlocked;}
     inline f_virtual_index getLockIndex() {if(rwg)return rwg->getLockedIndex(); return 0xFFFFFFFFFFFFFFFF_ui64;}
+    inline RWGuard& getRWGuard() {return *rwg;}
   };
 
   RWSyncMap() = default;
