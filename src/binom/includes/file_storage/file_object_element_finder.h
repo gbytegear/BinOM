@@ -6,22 +6,7 @@
 namespace binom {
 
 class FileNodeVisitor::ObjectElementFinder{
-  // Node Control
-  FileMemoryManager& fmm;
-  virtual_index node_index;
-  RWGuard& rw_gurad;
-
-  ObjectDescriptor descriptor;
-  ObjectNameLength name_block_descriptor;
-
-  ObjectDescriptor getObjectDescriptor();
-  ObjectNameLength getNameBlockDescriptor(ui64 index);
-
-  real_index name_block_index = 0;
-  real_index name_index = 0;
-  real_index index = 0;
 public:
-
   struct ObjectElement{
     ValType type;
     ui64 name_size;
@@ -29,23 +14,38 @@ public:
     virtual_index index;
   };
 
+private:
+  // Node Control
+  FileMemoryManager& fmm;
+  virtual_index node_index;
+  RWGuard& rw_gurad;
+
+  ObjectElementPosition pos;
+
+  ObjectDescriptor getObjectDescriptor();
+  ObjectNameLength getNameBlockDescriptor(ui64 index);
+
+  ObjectElementFinder& findBlock(ValType type, block_size name_length);
+  inline bool isNameBlockFinded() const {return pos.name_block_index != pos.descriptor.length_element_count;}
+
+  ObjectElementFinder& findNameInBlock(void* name);
+  inline bool isNameFinded() {return pos.name_shift != pos.descriptor.name_block_size;}
+
+public:
+
   ObjectElementFinder(FileNodeVisitor& node_visitor);
   ObjectElementFinder(FileMemoryManager& fmm, virtual_index node_index, RWGuard& rw_gurad);
 
   ObjectElementFinder& dropPosition();
 
-  ObjectElementFinder& findBlock(ValType type, block_size name_length);
-  inline bool isNameBlockFinded() const {return name_block_index != descriptor.length_element_count;}
-
-  ObjectElementFinder& findNameInBlock(void* name);
-  inline bool isNameFinded() {return name_index != descriptor.name_block_size;}
-
   bool findElement(BufferArray name);
 
-  FileNodeVisitor::NamePosition getNamePosition();
+  NamePosition getNamePosition();
   BufferArray getName();
-  inline ui64 getElementCount() const {return descriptor.index_count;}
+  inline ui64 getElementCount() const {return pos.descriptor.index_count;}
   virtual_index getNodeIndex() const;
+
+  inline ObjectElementPosition getObjectElementPosition() const {return pos;}
 
   void insert(BufferArray name, virtual_index node_index);
   bool remove(BufferArray name);

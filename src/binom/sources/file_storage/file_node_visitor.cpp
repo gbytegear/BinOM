@@ -4,269 +4,6 @@
 
 using namespace binom;
 
-
-//class FileNodeVisitor::ObjectElementFinder {
-//  virtual_index node_index;
-//  ByteArray indexes;
-//  ObjectDescriptor descriptor;
-//  ByteArray name_lengths;
-//  ByteArray names;
-//  ObjectNameLength* name_length_it;
-//  ObjectNameLength* const name_length_end;
-//  byte* name_it;
-//  byte* const name_end;
-//  virtual_index* index_it;
-//public:
-
-//  struct ObjectElement{
-//    ValType type;
-//    ui64 name_size;
-//    const void* name;
-//    virtual_index index;
-//  };
-
-//  ObjectElementFinder(ByteArray data, virtual_index node_index)
-//    : node_index(node_index),
-//      indexes(std::move(data)),
-//      descriptor(indexes.takeFront<ObjectDescriptor>()),
-//      name_lengths(indexes.takeFront(descriptor.length_element_count * sizeof (ObjectNameLength))),
-//      names(indexes.takeFront(descriptor.name_block_size)),
-//      name_length_it(name_lengths.begin<ObjectNameLength>()),
-//      name_length_end(name_lengths.end<ObjectNameLength>()),
-//      name_it(names.begin()),
-//      name_end(names.end()),
-//      index_it(indexes.begin<virtual_index>()) {}
-
-//  ObjectElementFinder& dropPosition() {
-//    name_length_it = name_lengths.begin<ObjectNameLength>();
-//    name_it = names.begin();
-//    index_it = indexes.begin<virtual_index>();
-//    return *this;
-//  }
-
-//  // O(length_element_count)
-//  ObjectElementFinder& findBlock(ValType type, block_size name_length) {
-//    if(name_length_it != name_lengths.begin<ObjectNameLength>())
-//      dropPosition();
-
-//    for(;name_length_it != name_length_end; ++name_length_it) {
-//      if(name_length_it->char_type < type || name_length_it->name_length < name_length) {
-//        index_it += name_length_it->name_count;
-//        name_it += toSize(name_length_it->char_type) * name_length_it->name_length * name_length_it->name_count;
-//      } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
-//      else {
-//        name_length_it = name_length_end;
-//        break;
-//      }
-//    }
-//    return *this;
-//  }
-
-//  inline bool isNameBlockFinded() const {return name_length_it != name_length_end;}
-
-//  // O(log(name_count))
-//  ObjectElementFinder& findNameInBlock(void* name) {
-//    const ui8 char_size = toSize(name_length_it->char_type);
-//    const i64 name_count = name_length_it->name_count;
-//    const ui64 name_byte_length = name_length_it->name_length*char_size;
-
-//    i64 middle = 0;
-//    i64 left = 0;
-//    i64 right = name_length_it->name_count;
-
-//    while(true) {
-//      middle = (left + right) / 2;
-
-//      if(left > right || middle > name_count) {
-//        middle = -1;
-//        break;
-//      }
-
-//      int cmp = memcmp(name_it + middle*name_byte_length, name, name_byte_length);
-
-//      if(cmp > 0) right = middle - 1;
-//      elif(cmp < 0) left = middle + 1;
-//      else break;
-//    }
-
-//    if(middle == -1)
-//      name_it = name_end;
-//    else {
-//      name_it += middle*name_byte_length;
-//      index_it += middle;
-//    }
-//    return *this;
-//  }
-
-//  bool isNameFinded() {return name_it != name_end;}
-
-//  FileNodeVisitor::NamePosition getNamePosition() {
-//    return NamePosition{
-//      node_index,
-//      name_length_it->char_type,
-//      name_length_it->name_length,
-//      sizeof (ObjectDescriptor) + name_lengths.length() + (name_it - names.begin())
-//    };
-//  }
-//  BufferArray getName() const {return BufferArray(name_length_it->char_type, name_it, name_length_it->name_length);}
-//  virtual_index getNodeIndex() const {return *index_it;}
-
-//  ui64 getElementCount() const {return descriptor.index_count;}
-
-//  void foreach(std::function<void(ObjectElement)> handler) {
-//    byte* name_it = names.begin();
-//    virtual_index* index_it = indexes.begin<virtual_index>();
-//    for(ObjectNameLength* it = name_lengths.begin<ObjectNameLength>(),
-//        * end = name_lengths.end<ObjectNameLength>();
-//        it != end; ++it) {
-//      ui64 name_count = it->name_count;
-//      while (name_count) {
-//        handler({it->char_type, it->name_length, name_it, *index_it});
-//        --name_count;
-//        name_it += it->name_length * toSize(it->char_type);
-//        ++index_it;
-//      }
-//    }
-//  }
-
-//  void insert(BufferArray name, virtual_index node_index) {
-//    if(name_length_it != name_lengths.begin<ObjectNameLength>())
-//      dropPosition();
-
-//    const ValType type = name.getValType();
-//    const ui64 name_length = name.getMemberCount();
-//    for(;name_length_it != name_length_end; ++name_length_it) {
-//      if(name_length_it->char_type < type || name_length_it->name_length < name_length) {
-//        index_it += name_length_it->name_count;
-//        name_it += toSize(name_length_it->char_type) * name_length_it->name_length * name_length_it->name_count;
-//      } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
-//      else { // Insertion between name blocks
-//        name_lengths.insert<ObjectNameLength>(name_length_it - name_lengths.begin<ObjectNameLength>(), 0, {type, name_length, 1});
-//        ++descriptor.length_element_count;
-//        names.insert(name_it - names.begin(), name.toByteArray());
-//        descriptor.name_block_size += name.getDataSize();
-//        indexes.insert<virtual_index>(index_it - indexes.begin<virtual_index>(), 0, node_index);
-//        ++descriptor.index_count;
-
-//        return;
-//      }
-//    }
-
-//    if (name_length_it == name_length_end) { // Insertion at the end of Object
-//      name_lengths.pushBack<ObjectNameLength>({type, name_length, 1});
-//      ++descriptor.length_element_count;
-//      names.pushBack(name.toByteArray());
-//      descriptor.name_block_size = names.length();
-//      indexes.pushBack<virtual_index>(node_index);
-//      ++descriptor.index_count;
-//      return;
-//    }
-
-//    const i64 name_count = name_length_it->name_count;
-//    const i64 name_byte_length = name_length * toSize(type);
-//    i64 middle = 0;
-//    i64 left = 0;
-//    i64 right = name_length_it->name_count;
-
-//    while(true) {
-//      middle = (left + right) / 2;
-
-//      if(left > right || middle > name_count) break;
-
-//      int cmp = memcmp(name_it + middle*name_byte_length, name.getDataPointer(), name_byte_length);
-
-//      if(cmp > 0) right = middle - 1;
-//      elif(cmp < 0) left = middle + 1;
-//      else {
-//        dropPosition();
-//        throw Exception(ErrCode::binom_object_key_error);
-//      }
-//    }
-
-//    for(;(middle < name_count)
-//              ? memcmp(name_it + middle*name_byte_length, name.getDataPointer(), name_byte_length) < 0
-//              : false;
-//              ++middle);
-
-//    name_it += middle*name_byte_length;
-//    names.insert(name_it - names.begin(), name.toByteArray());
-//    descriptor.name_block_size += name.getDataSize();
-//    index_it += middle;
-//    indexes.insert<virtual_index>(index_it - indexes.begin<virtual_index>(), 0, node_index);
-//    ++descriptor.index_count;
-//    ++name_length_it->name_count;
-//  }
-
-//  bool remove(BufferArray name) {
-//    if(name_length_it != name_lengths.begin<ObjectNameLength>())
-//      dropPosition();
-
-//    const ValType type = name.getValType();
-//    const ui64 name_length = name.getMemberCount();
-//    for(;name_length_it != name_length_end; ++name_length_it) {
-//      if(name_length_it->char_type < type || name_length_it->name_length < name_length) {
-//        index_it += name_length_it->name_count;
-//        name_it += toSize(name_length_it->char_type) * name_length_it->name_length * name_length_it->name_count;
-//      } elif(name_length_it->char_type == type && name_length_it->name_length == name_length) break;
-//      else return false;
-//    }
-
-//    const ui8 char_size = toSize(name_length_it->char_type);
-//    const i64 name_count = name_length_it->name_count;
-//    const ui64 name_byte_length = name_length_it->name_length*char_size;
-
-//    i64 middle = 0;
-//    i64 left = 0;
-//    i64 right = name_length_it->name_count;
-
-//    while(true) {
-//      middle = (left + right) / 2;
-
-//      if(left > right || middle > name_count) {
-//        middle = -1;
-//        break;
-//      }
-
-//      int cmp = memcmp(name_it + middle*name_byte_length, name.getDataPointer(), name_byte_length);
-
-//      if(cmp > 0) right = middle - 1;
-//      elif(cmp < 0) left = middle + 1;
-//      else break;
-//    }
-
-//    if(middle == -1) {
-//      name_it = name_end;
-//      return false;
-//    } else {
-//      name_it += middle*name_byte_length;
-//      index_it += middle;
-//    }
-
-//    names.remove(name_it - names.begin(), name_byte_length);
-//    descriptor.name_block_size += name.getDataSize();
-//    indexes.remove<virtual_index>(index_it - indexes.begin<virtual_index>(), 0);
-//    --descriptor.index_count;
-//    if(!--name_length_it->name_count) {
-//      name_lengths.remove<ObjectNameLength>(name_length_it - name_lengths.begin<ObjectNameLength>(), 0);
-//      --descriptor.length_element_count;
-//    }
-
-//    return true;
-//  }
-
-//  ByteArray getNodeData() {
-//    if(!descriptor.index_count) return ByteArray();
-//    return ByteArray{
-//      ByteArray(&descriptor, sizeof (ObjectDescriptor)),
-//      name_lengths,
-//      names,
-//      indexes
-//    };
-//  }
-
-//};
-
-
 Variable FileNodeVisitor::buildVariable(virtual_index node_index) const {
   RWGuard rwg = fmm.getRWGuard(node_index);
   ScopedRWGuard lk(rwg, LockType::shared_lock);
@@ -529,13 +266,7 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
   }
 
   ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
-  if(!finder.findBlock(name.getValType(), name.getMemberCount()).isNameBlockFinded()) {
-    setNull();
-    current_rwg = fmm.getRWGuard(node_index);
-    return *this;
-  }
-
-  if(!finder.findNameInBlock(name.getDataPointer()).isNameFinded()) {
+  if(!finder.findElement(std::move(name))){
     setNull();
     current_rwg = fmm.getRWGuard(node_index);
     return *this;
@@ -588,11 +319,7 @@ bool FileNodeVisitor::contains(BufferArray name) {
   elif(descriptor.size == 0)
     return false;
   ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
-  if(!finder.findBlock(name.getValType(), name.getMemberCount()).isNameBlockFinded())
-    return false;
-  if(!finder.findNameInBlock(name.getDataPointer()).isNameFinded())
-    return false;
-  return true;
+  return finder.findElement(std::move(name));
 }
 
 void FileNodeVisitor::setVariable(Variable var) {
@@ -693,103 +420,9 @@ void FileNodeVisitor::pushBack(Variable var) {
   insert(getElementCount(), std::move(var));
 }
 
-//void FileNodeVisitor::pushBack(Variable var) {
-//  ScopedRWGuard lk(current_rwg, LockType::unique_lock);
-//  NodeDescriptor descriptor = getDescriptor();
-//  ByteArray data;
-
-//  switch (toTypeClass(descriptor.type)) {
-//    default: throw Exception(ErrCode::binom_invalid_type);
-
-//    case binom::VarTypeClass::buffer_array: {
-//      data = fmm.getNodeData(descriptor);
-//      switch (var.typeClass()) {
-//        default: throw Exception(ErrCode::binom_invalid_type);
-
-//        case VarTypeClass::primitive: {
-//          switch (toValueType(descriptor.type)) {
-//            case binom::ValType::byte: data.pushBack<ui8>(var.toPrimitive().getValue().asUi8()); break;
-//            case binom::ValType::word: data.pushBack<ui16>(var.toPrimitive().getValue().asUi16()); break;
-//            case binom::ValType::dword: data.pushBack<ui32>(var.toPrimitive().getValue().asUi32()); break;
-//            case binom::ValType::qword: data.pushBack<ui64>(var.toPrimitive().getValue().asUi64()); break;
-//            case binom::ValType::invalid_type:
-//            break;
-//          }
-//        } break;
-
-//        case VarTypeClass::buffer_array: {
-//           ByteArray::iterator it = data.addSize(toSize(toValueType(descriptor.type)) * var.toBufferArray().getMemberCount());
-//           switch (toValueType(descriptor.type)) {
-//             case binom::ValType::byte: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui8*>(it) = val_ref.asUi8(); ++it;} break;
-//             case binom::ValType::word: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui16*>(it) = val_ref.asUi16(); it += 2;} break;
-//             case binom::ValType::dword: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui32*>(it) = val_ref.asUi32(); it += 4;} break;
-//             case binom::ValType::qword: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui64*>(it) = val_ref.asUi64(); it += 8;} break;
-//             case binom::ValType::invalid_type:
-//             break;
-//           }
-//        } break;
-//      }
-//    } break;
-
-//    case binom::VarTypeClass::array: {
-//      data = fmm.getNodeData(descriptor);
-//      data.pushBack<virtual_index>(createVariable(var));
-//    } break;
-//  }
-
-//  fmm.updateNode(node_index, descriptor.type, data, &descriptor);
-//}
-
 void FileNodeVisitor::pushFront(Variable var) {
   insert(0, std::move(var));
 }
-
-//void FileNodeVisitor::pushFront(Variable var) {
-//  ScopedRWGuard lk(current_rwg, LockType::unique_lock);
-//  NodeDescriptor descriptor = getDescriptor();
-//  ByteArray data;
-
-//  switch (toTypeClass(descriptor.type)) {
-//    default: throw Exception(ErrCode::binom_invalid_type);
-
-//    case binom::VarTypeClass::buffer_array: {
-//      data = fmm.getNodeData(descriptor);
-//      switch (var.typeClass()) {
-//        default: throw Exception(ErrCode::binom_invalid_type);
-
-//        case VarTypeClass::primitive: {
-//          switch (toValueType(descriptor.type)) {
-//            case binom::ValType::byte: data.pushFront<ui8>(var.toPrimitive().getValue().asUi8()); break;
-//            case binom::ValType::word: data.pushFront<ui16>(var.toPrimitive().getValue().asUi16()); break;
-//            case binom::ValType::dword: data.pushFront<ui32>(var.toPrimitive().getValue().asUi32()); break;
-//            case binom::ValType::qword: data.pushFront<ui64>(var.toPrimitive().getValue().asUi64()); break;
-//            case binom::ValType::invalid_type:
-//            break;
-//          }
-//        } break;
-
-//        case VarTypeClass::buffer_array: {
-//           ByteArray::iterator it = data.addSizeFront(toSize(toValueType(descriptor.type)) * var.toBufferArray().getMemberCount());
-//           switch (toValueType(descriptor.type)) {
-//             case binom::ValType::byte: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui8*>(it) = val_ref.asUi8(); ++it;} break;
-//             case binom::ValType::word: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui16*>(it) = val_ref.asUi16(); it += 2;} break;
-//             case binom::ValType::dword: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui32*>(it) = val_ref.asUi32(); it += 4;} break;
-//             case binom::ValType::qword: for(ValueRef val_ref : var.toBufferArray()) {*reinterpret_cast<ui64*>(it) = val_ref.asUi64(); it += 8;} break;
-//             case binom::ValType::invalid_type:
-//             break;
-//           }
-//        } break;
-//      }
-//    } break;
-
-//    case binom::VarTypeClass::array: {
-//      data = fmm.getNodeData(descriptor);
-//      data.pushFront<virtual_index>(createVariable(var));
-//    } break;
-//  }
-
-//  fmm.updateNode(node_index, descriptor.type, std::move(data), &descriptor);
-//}
 
 void FileNodeVisitor::insert(ui64 index, Variable var) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
@@ -953,15 +586,14 @@ FileNodeVisitor FileNodeVisitor::find(Query query) {
   return FileNodeVisitor(fmm, nullptr);
 }
 
-FileNodeVisitor::NodeIterator FileNodeVisitor::begin() {
-  auto lk = getScopedRWGuard(LockType::shared_lock);
-  NodeDescriptor descriptor = getDescriptor();
-  switch (toTypeClass(descriptor.type)) {
-    default: throw Exception(ErrCode::binom_invalid_type);
-    case binom::VarTypeClass::buffer_array:
-    return NodeIterator(fmm, node_index, descriptor.type, node_index, descriptor.size / toSize(toValueType(descriptor.type)));
-    case binom::VarTypeClass::array:
-    case binom::VarTypeClass::object:
-    return NodeIterator(fmm, node_index, descriptor.type, fmm.getNodeData(descriptor));
-  }
+FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(ui64 index) {return NodeIterator(*this, index);}
+
+FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(BufferArray name) {
+  if(getType() != VarType::object)
+    throw Exception(ErrCode::binom_invalid_type);
+  ObjectElementFinder finder(static_cast<FileNodeVisitor&>(*this));
+  finder.findElement(std::move(name));
+  return NodeIterator(*this, finder.getObjectElementPosition());
 }
+FileNodeVisitor::NodeIterator FileNodeVisitor::begin() {return NodeIterator(*this);}
+FileNodeVisitor::NodeIterator FileNodeVisitor::end() {return NodeIterator(*this, true);}

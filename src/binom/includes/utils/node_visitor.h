@@ -156,11 +156,13 @@ class NodeVisitor::NodeIterator {
   VarTypeClass type;
   Ptr ptr;
 
-public:
+  friend class NodeVisitor;
   NodeIterator(NodeVisitor& node, bool is_end = false)
     : parent(&node.getVariable()),
       type(toTypeClass(node.getType())),
       ptr(type, *parent, is_end) {}
+
+public:
 
   NodeIterator(NodeIterator& other)
     : parent(other.parent),
