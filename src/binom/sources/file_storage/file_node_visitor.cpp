@@ -47,8 +47,12 @@ Array FileNodeVisitor::buildArray(virtual_index node_index, const NodeDescriptor
   if(toTypeClass(descriptor.type) != VarTypeClass::array)
     throw Exception(ErrCode::binom_invalid_type);
   ByteArray data = fmm.getNodeData(descriptor);
-  for(auto it = data.begin<virtual_index>(), end = data.end<virtual_index>(); it != end; ++it)
-    new(it) Variable(buildVariable(*it));
+  {
+    void** array_it = data.begin<void*>();
+    for(auto it = data.begin<virtual_index>(), end = data.end<virtual_index>(); it != end; (++it, ++array_it))
+      new(array_it) Variable(buildVariable(*it));
+    data.resize(data.length<virtual_index>()*PTR_SZ);
+  }
   data.pushFront<ui64>(data.length() / sizeof (void*));
   data.pushFront(descriptor.type);
   void* variable = data.unfree();
