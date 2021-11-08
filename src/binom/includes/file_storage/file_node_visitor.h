@@ -226,6 +226,7 @@ class FileNodeVisitor::NodeIterator {
         index = pos.index;
         name_index = pos.name_index;
         name_shift = pos.name_shift;
+        name_block_index = pos.name_block_index;
         name_block_descriptor = pos.name_block_descriptor;
       break;
       default:
