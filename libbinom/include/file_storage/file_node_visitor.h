@@ -198,6 +198,7 @@ class FileNodeVisitor::NodeIterator {
         index = is_end? node_visitor.getElementCount() : 0;
       break;
       case binom::VarTypeClass::object:
+        if(!node_visitor.getElementCount()) return;
         obj_descriptor = node_visitor.fmm
             .getNodeDataPart( node_visitor.node_index, 0, sizeof(ObjectDescriptor) )
             .get<ObjectDescriptor>(0);
