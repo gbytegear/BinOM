@@ -220,8 +220,8 @@ void NodeVisitor::setVariable(Variable var) {
   }
 }
 
-void NodeVisitor::setVariable(ui64 index, Variable var) {return getChild(index).setVariable(std::move(var));}
-void NodeVisitor::setVariable(BufferArray name, Variable var) {return getChild(std::move(name)).setVariable(std::move(var));}
+void NodeVisitor::setVariable(ui64 index, Variable var) {return contains(index)? getChild(index).setVariable(std::move(var)) : insert(index, std::move(var));}
+void NodeVisitor::setVariable(BufferArray name, Variable var) {return contains(name)? getChild(std::move(name)).setVariable(std::move(var)) : insert(std::move(name), std::move(var));}
 void NodeVisitor::setVariable(Path path, Variable var) {return getChild(std::move(path)).setVariable(std::move(var));}
 
 void NodeVisitor::pushBack(Variable var) {
