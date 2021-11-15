@@ -194,6 +194,18 @@ bool NodeVisitor::contains(BufferArray name) {
   }
 }
 
+bool NodeVisitor::contains(Path path) {
+  NodeVisitor node(*this);
+  for(const Path::PathNode& path_node : path)
+    if(isNull()) return false;
+    else
+      switch (path_node.type()) {
+        case PathNodeType::index: node.stepInside(path_node.index()); continue;
+        case PathNodeType::name:  node.stepInside(path_node.name()); continue;
+      }
+  return !node.isNull();
+}
+
 void NodeVisitor::setVariable(Variable var) {
   switch (ref_type) {
     case binom::NodeVisitor::RefType::variable:
@@ -207,6 +219,10 @@ void NodeVisitor::setVariable(Variable var) {
     case binom::NodeVisitor::RefType::value: throw Exception(ErrCode::binom_invalid_type);
   }
 }
+
+void NodeVisitor::setVariable(ui64 index, Variable var) {return getChild(index).setVariable(std::move(var));}
+void NodeVisitor::setVariable(BufferArray name, Variable var) {return getChild(std::move(name)).setVariable(std::move(var));}
+void NodeVisitor::setVariable(Path path, Variable var) {return getChild(std::move(path)).setVariable(std::move(var));}
 
 void NodeVisitor::pushBack(Variable var) {
   switch (getTypeClass()) {

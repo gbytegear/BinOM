@@ -136,10 +136,14 @@ public:
   inline Variable getVariable(BufferArray name) const {return getChild(name).getVariable();}
   inline Variable getVariable(Path path) const {return getChild(path).getVariable();}
 
-  virtual bool contains(ui64 index) override;
-  virtual bool contains(BufferArray name) override;
+  bool contains(ui64 index) override;
+  bool contains(BufferArray name) override;
+  bool contains(Path path) override;
 
   void setVariable(Variable var) override;
+  void setVariable(ui64 index, Variable var) override;
+  void setVariable(BufferArray name, Variable var) override;
+  void setVariable(Path path, Variable var) override;
   void pushBack(Variable var) override;
   void pushFront(Variable var) override;
   void insert(ui64 index, Variable var) override;

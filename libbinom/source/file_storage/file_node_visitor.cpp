@@ -232,7 +232,8 @@ FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
     case binom::VarTypeClass::primitive:
     case binom::VarTypeClass::object:
     case binom::VarTypeClass::invalid_type:
-      throw Exception(ErrCode::binom_invalid_type);
+      setNull();
+    return *this;
 
     case binom::VarTypeClass::buffer_array:
       if(isValueRef())
@@ -261,8 +262,10 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
 
   // Validation
   NodeDescriptor descriptor = getDescriptor();
-  if(descriptor.type != VarType::object)
-    throw Exception(ErrCode::binom_invalid_type);
+  if(descriptor.type != VarType::object) {
+    setNull();
+    return *this;
+  }
   elif(!descriptor.size) {
     setNull();
     current_rwg = fmm.getRWGuard(node_index);
@@ -284,10 +287,11 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
 
 FileNodeVisitor& FileNodeVisitor::stepInside(Path path) {
   for(const Path::PathNode& path_node : path)
-    switch (path_node.type()) {
-      case binom::PathNodeType::index: stepInside(path_node.index()); continue;
-      case binom::PathNodeType::name: stepInside(path_node.name()); continue;
-    }
+    if(isNull()) return *this;
+    else switch (path_node.type()) {
+        case binom::PathNodeType::index: stepInside(path_node.index()); continue;
+        case binom::PathNodeType::name: stepInside(path_node.name()); continue;
+      }
   return *this;
 }
 
@@ -324,6 +328,17 @@ bool FileNodeVisitor::contains(BufferArray name) {
     return false;
   ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
   return finder.findElement(std::move(name));
+}
+
+bool FileNodeVisitor::contains(Path path) {
+  FileNodeVisitor node(*this);
+  for(const Path::PathNode& path_node : path)
+    if(node.isNull()) return false;
+    else switch (path_node.type()) {
+        case binom::PathNodeType::index: node.stepInside(path_node.index()); continue;
+        case binom::PathNodeType::name: node.stepInside(path_node.name()); continue;
+      }
+  return !node.isNull();
 }
 
 void FileNodeVisitor::setVariable(Variable var) {
@@ -418,6 +433,10 @@ void FileNodeVisitor::setVariable(Variable var) {
   // Update node
   fmm.updateNode(node_index, var.type(), std::move(data));
 }
+
+void FileNodeVisitor::setVariable(ui64 index, Variable var) {return getChild(index).setVariable(std::move(var));}
+void FileNodeVisitor::setVariable(BufferArray name, Variable var) {return getChild(std::move(name)).setVariable(std::move(var));}
+void FileNodeVisitor::setVariable(Path path, Variable var) {return getChild(std::move(path)).setVariable(std::move(var));}
 
 void FileNodeVisitor::pushBack(Variable var) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);

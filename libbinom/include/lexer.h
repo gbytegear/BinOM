@@ -70,7 +70,7 @@ obj{
 */
 
 
-static inline class Lexer {
+extern inline class Lexer {
 
   enum class ContainerType : ui8 {
     unsigned_byte_array,    // ui8[...] or ui8{...} (by default for i8)

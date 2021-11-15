@@ -149,6 +149,7 @@ BufferArray Lexer::parseName(Lexer::ParseContext& ctx) {
               data.pushBack(parsePrimitive(ctx, ContainerType::unsigned_dword_array));
               skipSeparator(ctx);
             }
+            return data;
           } else {ctx.index = start; break;}
         case '6': if(ctx.getSubStr(2) == "64") {
             skipWhiteSpace(ctx);
@@ -160,6 +161,7 @@ BufferArray Lexer::parseName(Lexer::ParseContext& ctx) {
               data.pushBack(parsePrimitive(ctx, ContainerType::unsigned_qword_array));
               skipSeparator(ctx);
             }
+            return data;
           } else  {ctx.index = start; break;}
         default:  {ctx.index = start; break;}
       } break;
@@ -599,7 +601,7 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
             }
           } else throw Exception(ErrCode::unexpected_expression,
                                  "Unexpected char 'i' in struct description\n"
-                                   "Maybe you haven't completed the 'i32' type?");
+                                 "Maybe you haven't completed the 'i32' type?");
         case '6': if(ctx.getSubStr(2) == "64") {
             skipWhiteSpace(ctx);
             if(!isOpenParenthesis(ctx)) throw Exception(ErrCode::unexpected_expression, "Open parenthesis expected\n");
@@ -612,10 +614,10 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
             }
           } else throw Exception(ErrCode::unexpected_expression,
                                  "Unexpected char 'i' in struct description\n"
-                                   "Maybe you haven't completed the 'i64' type?");
+                                 "Maybe you haven't completed the 'i64' type?");
         default: throw Exception(ErrCode::unexpected_expression,
                                  "Unexpected char 'i' in struct description\n"
-                                   "Maybe you haven't completed the 'i8', 'i16', 'i32' or 'i64' type?");
+                                 "Maybe you haven't completed the 'i8', 'i16', 'i32' or 'i64' type?");
       }
 
 
