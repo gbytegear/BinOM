@@ -6,61 +6,35 @@
 
 using namespace binom;
 
-binom::FileStorage storage("mthr_test.db",
-                           varr{
-                             vobj{
-                               {"a", 1_ui8},
-                               {"b", 2_ui16},
-                               {"c", 4_ui32},
-                               {"d", 8_ui64},
-                               {"e", ui8arr{1,2,3}},
-                               {"f", ui16arr{4,5,6}},
-                               {"g", ui32arr{7,8,9}},
-                               {"h", ui64arr{10,11,12}},
-                               {"j", varr{1,2,3}}
-                             }
-                           }, false);
-
-//binom::FileStorage storage("mthr_test.db",
-//                           varr{
-//                             vobj{
-//                               {"a", 1_ui8},
-//                               {"b", 2_ui16},
-//                               {"c", 4_ui32},
-//                               {"d", 8_ui64},
-//                               {"e", ui8arr{1,2,3}},
-//                               {"f", ui16arr{4,5,6}},
-//                               {"g", ui32arr{7,8,9}},
-//                               {"h", ui64arr{10,11,12}},
-//                               {"j", varr{1,2,3}},
-//                               {"k", vobj{
-//                                  {"a", 1_ui8},
-//                                  {"b", 2_ui16},
-//                                  {"c", 4_ui32},
-//                                  {"d", 8_ui64},
-//                                  {"e", ui8arr{1,2,3}},
-//                                  {"f", ui16arr{4,5,6}},
-//                                  {"g", ui32arr{7,8,9}},
-//                                  {"h", ui64arr{10,11,12}},
-//                                  {"j", varr{1,2,3}}
-//                                }}
-//                             }
-//                           }, false);
+binom::DynamicStorage storage("mthr_test.db",
+                              varr{
+                                vobj{
+                                  {"a", 1_ui8},
+                                  {"b", 2_ui16},
+                                  {"c", 4_ui32},
+                                  {"d", 8_ui64},
+                                  {"e", ui8arr{1,2,3}},
+                                  {"f", ui16arr{4,5,6}},
+                                  {"g", ui32arr{7,8,9}},
+                                  {"h", ui64arr{10,11,12}},
+                                  {"j", varr{1,2,3}}
+                                }
+                              }, false);
 
 void writer() {
   try{
     FileNodeVisitor node = storage;
     Variable var = vobj{
-    {"a", 1_ui8},
-    {"b", 2_ui16},
-    {"c", 4_ui32},
-    {"d", 8_ui64},
-    {"e", ui8arr{1,2,3}},
-    {"f", ui16arr{4,5,6}},
-    {"g", ui32arr{7,8,9}},
-    {"h", ui64arr{10,11,12}},
-    {"j", varr{1,2,3}}
-  };
+      {"a", 1_ui8},
+      {"b", 2_ui16},
+      {"c", 4_ui32},
+      {"d", 8_ui64},
+      {"e", ui8arr{1,2,3}},
+      {"f", ui16arr{4,5,6}},
+      {"g", ui32arr{7,8,9}},
+      {"h", ui64arr{10,11,12}},
+      {"j", varr{1,2,3}}
+    };
     switch (rand()%3) {
       case 0:
         node.pushBack(var);
@@ -98,19 +72,17 @@ void reader() {
 #include <list>
 
 void file_storage_multithreading_test() {
-  storage.checkHeap();
   std::clog << "Start multithreading test\n";
   srand(time(nullptr));
   std::list<std::thread> threads;
-  for(int i = 0; i < 1000; ++i) {
+  for(int i = 0; i < 20; ++i) {
     threads.emplace_back(reader);
     threads.emplace_back(writer);
   }
   for(std::thread& thr : threads)
     thr.join();
 
-  std::clog << "Result: " << storage.getRoot().getVariable() << '\n';
-  storage.check();
+//  std::clog << "Result: " << storage.getRoot().getVariable() << '\n';
 }
 
 #endif // MULTITHREADING_TEST_H

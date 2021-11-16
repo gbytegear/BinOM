@@ -61,7 +61,11 @@ namespace binom {
     invalid_type        = 0xFF
   };
 
-  //! Cast VarType => VarTypeClass
+  /**
+   * @brief Cast VarType => VarTypeClass
+   * @param type - VarType
+   * @return VarTypeClass
+   */
   inline VarTypeClass toTypeClass(VarType type) {
     switch(type) {
       case VarType::byte: case VarType::word: case VarType::dword: case VarType::qword:
@@ -77,7 +81,11 @@ namespace binom {
     }
   }
 
-  //! Cast VarType => ValType
+  /**
+   * @brief Cast VarType => ValType
+   * @param type - VarType
+   * @return ValType
+   */
   inline ValType toValueType(VarType type) {
       switch (type) {
           case VarType::byte: return ValType::byte;
@@ -92,7 +100,11 @@ namespace binom {
       }
   }
 
-  //! Cast ValType => VarType
+  /**
+   * @brief Cast ValType => VarType
+   * @param type - ValType
+   * @return VarType
+   */
   inline VarType toVarType(ValType type) {
     switch (type) {
       case ValType::byte: return VarType::byte;
@@ -103,7 +115,11 @@ namespace binom {
     }
   }
 
-  //! Cast ValType => VarType
+  /**
+   * @brief Cast ValType => VarType
+   * @param type - VarType
+   * @return ValType
+   */
   inline VarType toVarBufferType(ValType type) {
     switch (type) {
       case ValType::byte: return VarType::byte_array;
@@ -114,7 +130,11 @@ namespace binom {
     }
   }
 
-  //! Cast ValType => Size of element
+  /**
+   * @brief Cast ValType => Size of element
+   * @param type - ValType
+   * @return Size of element
+   */
   constexpr ui8 toSize(ValType type) {
     switch (type) {
       case ValType::byte: return 1;
@@ -125,7 +145,11 @@ namespace binom {
     }
   }
 
-  //! Cast VarType => Name of type
+  /**
+   * @brief Cast VarType => String name of type
+   * @param type - VarType
+   * @return String name of type
+   */
   inline const char* toTypeString(VarType type) {
     switch (type) {
     case binom::VarType::byte:  return "byte";
@@ -143,7 +167,11 @@ namespace binom {
     }
   }
 
-  //! Cast VarTypeClass => Name of type class
+  /**
+   * @brief Cast VarTypeClass => String name of type class
+   * @param type_class - VarTypeClass
+   * @return
+   */
   inline const char* toTypeString(VarTypeClass type_class) {
     switch (type_class) {
     case binom::VarTypeClass::primitive: return "primitive";
@@ -155,7 +183,11 @@ namespace binom {
     }
   }
 
-  //! Cast VarTypeClass => Name of value type
+  /**
+   * @brief Cast ValType => Name of value type
+   * @param val_type - ValType
+   * @return String name of value type
+   */
   inline const char* toTypeString(ValType val_type) {
     switch (val_type) {
     case binom::ValType::byte: return "byte";
@@ -166,6 +198,12 @@ namespace binom {
     }
   }
 
+  /**
+   * @brief Is strings equal
+   * @param s1 - first string
+   * @param s2 - second string
+   * @return comparison result
+   */
   inline bool isstreq(const char* s1, const char* s2) {
     while(true)
       if(*s1 == *s2) {
@@ -176,6 +214,11 @@ namespace binom {
       } else return false;
   }
 
+  /**
+   * @brief Cast Name of value type => ValType
+   * @param str - Name of value type
+   * @return ValType
+   */
   inline ValType toValueType(const char* str) {
     if(isstreq(str, "byte"))
       return ValType::byte;
@@ -188,18 +231,28 @@ namespace binom {
     else return ValType::invalid_type;
   }
 
+  /**
+   * @brief Cast String name of type class => VarTypeClass
+   * @param str - String name of type class
+   * @return VarTypeClass
+   */
   inline VarTypeClass toVarTypeClass(const char* str) {
-    if(isstreq(str, "primitive"))
-      return VarTypeClass::primitive;
-    elif(isstreq(str, "buffer_array"))
-        return VarTypeClass::buffer_array;
-    elif(isstreq(str, "array"))
+    if(isstreq(str, "array"))
         return VarTypeClass::array;
     elif(isstreq(str, "object"))
         return VarTypeClass::object;
+    elif(isstreq(str, "primitive"))
+      return VarTypeClass::primitive;
+    elif(isstreq(str, "buffer_array"))
+        return VarTypeClass::buffer_array;
     else return VarTypeClass::invalid_type;
   }
 
+  /**
+   * @brief Cast String name of type => VarType
+   * @param str - String name of type
+   * @return VarType
+   */
   inline VarType toVarType(const char* str) {
     if(isstreq(str, "byte"))
       return VarType::byte;
@@ -209,6 +262,10 @@ namespace binom {
         return VarType::dword;
     elif(isstreq(str, "qword"))
         return VarType::qword;
+    elif(isstreq(str, "array"))
+        return VarType::array;
+    elif(isstreq(str, "object"))
+        return VarType::object;
     elif(isstreq(str, "byte_array"))
         return VarType::byte_array;
     elif(isstreq(str, "word_array"))
@@ -217,10 +274,6 @@ namespace binom {
         return VarType::dword_array;
     elif(isstreq(str, "qword_array"))
         return VarType::qword_array;
-    elif(isstreq(str, "array"))
-        return VarType::array;
-    elif(isstreq(str, "object"))
-        return VarType::object;
     else return VarType::invalid_type;
   }
 
@@ -260,7 +313,7 @@ namespace binom {
   //! File Node Visitor
   class FileNodeVisitor;
 
-  // Initilizers
+  namespace literals {
   typedef std::initializer_list<const ui8> ui8arr;
   typedef std::initializer_list<const i8> i8arr;
   typedef std::initializer_list<const ui16> ui16arr;
@@ -271,6 +324,8 @@ namespace binom {
   typedef std::initializer_list<const i64> i64arr;
   typedef std::initializer_list<const Variable> varr;
   typedef std::initializer_list<const NamedVariable> vobj;
+  }
+  using namespace literals;
 }
 
 #endif

@@ -1,4 +1,5 @@
 #include "libbinom/include/file_storage/file_node_visitor.h"
+#include "libbinom/include/file_storage/file_object_element_finder.h"
 
 #include <functional>
 
@@ -614,9 +615,9 @@ FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(ui64 index) {return Nod
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(BufferArray name) {
   if(getType() != VarType::object)
     throw Exception(ErrCode::binom_invalid_type);
-  ObjectElementFinder finder(static_cast<FileNodeVisitor&>(*this));
-  finder.findElement(std::move(name));
-  return NodeIterator(*this, finder.getObjectElementPosition());
+  if(ObjectElementFinder finder(static_cast<FileNodeVisitor&>(*this)); finder.findElement(std::move(name)))
+    return NodeIterator(*this, finder.getObjectElementPosition());
+  else return NodeIterator(*this, true);
 }
 FileNodeVisitor::NodeIterator FileNodeVisitor::begin() {return NodeIterator(*this);}
 FileNodeVisitor::NodeIterator FileNodeVisitor::end() {return NodeIterator(*this, true);}

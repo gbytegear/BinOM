@@ -259,7 +259,7 @@ struct DBVersion {
 };
 
 //! Current version of data base
-constexpr DBVersion current{"BinOM.FS", 0, 1};
+constexpr DBVersion current{"BinOM.FS", 1, 0};
 
 //! Descriptor of node page
 struct NodePageDescriptor {
@@ -302,9 +302,9 @@ struct ObjectDescriptor {
 struct DBHeader {
   enum class VersionDifference {
     identical = 0,
-    file_type = 1,
+    minor = 1,
     major = 2,
-    minor = 3,
+    file_type = 3,
   };
 
   DBVersion version = current;

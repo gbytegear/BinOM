@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/libbinom/include/file_storage/file_node_iterator.h \
     libbinom/include/file_storage/file_object_element_finder.h \
     libbinom/include/lexer.h \
     libbinom/include/file_storage/file_memory_manager.h \
