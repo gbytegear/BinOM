@@ -120,6 +120,9 @@ public:
     return ValueRef(pointer.type, pointer.ptr.ui8ptr + getShift() * index);
   }
 
+  ValueIterator operator+(i64 shift) {return ValueIterator(*this) += shift;}
+  ValueIterator operator-(i64 shift) {return ValueIterator(*this) -= shift;}
+
   ValueIterator& operator++() {
     pointer.ptr.ui8ptr += getShift();
     return *this;

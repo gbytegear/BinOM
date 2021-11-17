@@ -121,8 +121,8 @@ public:
     return begin()[index];
   }
 
-  void* getDataPointer() {return data.bytes + 9;}
-  ui64 getDataSize() {return getMemberCount() * getMemberSize();}
+  void* getDataPointer() const;
+  ui64 getDataSize() const;
 
   ValueRef pushBack(ui64 value);
   ValueRef pushBack(i64 value);
@@ -167,6 +167,9 @@ public:
   bool operator<=(BufferArray other) const;
 
   i8 getCompare(BufferArray other) const;
+
+  iterator findMemory(BufferArray data) const;
+  iterator findValue(BufferArray data) const;
 
   iterator begin() const;
   iterator end() const;

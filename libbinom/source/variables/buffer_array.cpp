@@ -381,8 +381,11 @@ ui64 BufferArray::serializedSize(ByteArray::iterator it) {
   return it - old_it;
 }
 
+void* BufferArray::getDataPointer() const {return data.bytes + 9;}
+ui64 BufferArray::getDataSize() const {return getMemberCount() * getMemberSize();}
+
 ValueRef BufferArray::pushBack(ui64 value) {
-    ValueRef val(*data.type, madd(getMemberSize()));
+  ValueRef val(*data.type, madd(getMemberSize()));
     val.setUnsigned(value);
     ++length();
     return val;
@@ -626,6 +629,39 @@ i8 BufferArray::getCompare(BufferArray other) const {
     ++it;
   }
   return 0;
+}
+
+BufferArray::iterator BufferArray::findMemory(BufferArray data) const {
+  ui64 f_size = getDataSize(), s_size = data.getDataSize();
+  if(f_size < s_size) return end();
+  f_size -= s_size-1;
+  const ui8* f_mem_ptr = reinterpret_cast<ui8*>(getDataPointer());
+  const ui8* s_mem_ptr = reinterpret_cast<ui8*>(data.getDataPointer());
+  ui8* f_it = const_cast<ui8*>(f_mem_ptr);
+  for(;f_size;(--f_size, ++f_it))
+    if(ismemeq(f_it, s_mem_ptr, s_size))
+      return ValueIterator(getType(), this->data.bytes + 9 + static_cast<ui64>(std::floor((f_it - f_mem_ptr)/getDataSize())));
+  return end();
+}
+
+BufferArray::iterator BufferArray::findValue(BufferArray data) const {
+  ui64 f_count = getMemberCount(), s_count = data.getMemberCount();
+  if(f_count < s_count) return end();
+  iterator f_start = begin(),
+           f_it = f_start,
+           f_end = begin() + (f_count - s_count + 1),
+           s_it = data.begin();
+  for(;f_it != f_end; (++f_it, ++s_it))
+    if(f_it == s_it) {
+      bool is_equal = true;
+      ui64 cmp_cout = s_count;
+      for(auto cmp_f_it = f_it+1, cmp_s_it = s_it+1;cmp_cout;(++f_it, ++s_it, --cmp_cout)) {
+        if(cmp_f_it == cmp_s_it) continue;
+        else {is_equal = false; break;}
+      }
+      if(is_equal) return f_it;
+    } else continue;
+  return end();
 }
 
 BufferArray::iterator BufferArray::begin() const {return ValueIterator(*data.type, data.bytes + 9);}

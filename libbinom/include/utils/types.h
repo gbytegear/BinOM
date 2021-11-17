@@ -215,6 +215,22 @@ namespace binom {
   }
 
   /**
+   * @brief Is memory equal
+   * @param s1 - first memory part
+   * @param s2 - second memory part
+   * @return comparison result
+   */
+  inline bool ismemeq(const void* m1, const void* m2, ui64 size) {
+    for(;size;--size)
+      if(*(const byte*)m1 == *(const byte*)m2) {
+        m1 = ((const char*)m1 + 1);
+        m2 = ((const char*)m2 + 1);
+        continue;
+      } else return false;
+    return true;
+  }
+
+  /**
    * @brief Cast Name of value type => ValType
    * @param str - Name of value type
    * @return ValType
