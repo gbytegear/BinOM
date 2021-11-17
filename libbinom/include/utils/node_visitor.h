@@ -42,6 +42,7 @@ class NodeVisitor : public NodeVisitorBase {
   void setNull();
 
   friend class UnionNodeVisitor;
+  friend class NodeIterator;
 
 public:
 
@@ -110,10 +111,17 @@ public:
   NodeVisitor& operator()(BufferArray name) override {return stepInside(std::move(name));}
   NodeVisitor& operator()(Path path) override {return stepInside(std::move(path));}
 
-  NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
+  NodeVector findSet(Query query, ui64 count = find_all, NodeVector node_vector = NodeVector());
   NodeVisitor find(Query query);
 
+  NodeVisitor findFrom(ui64 index, Query query);
+  NodeVisitor findFrom(BufferArray name, Query query);
+  NodeVector findSetFrom(ui64 index, Query query, ui64 count = find_all, NodeVector node_vector = NodeVector());
+  NodeVector findSetFrom(BufferArray name, Query query, ui64 count = find_all, NodeVector node_vector = NodeVector());
+
   NodeIterator begin();
+  NodeIterator beginFrom(ui64 index);
+  NodeIterator beginFrom(BufferArray name);
   NodeIterator end();
 
   // Functional
@@ -146,6 +154,16 @@ class NodeVisitor::NodeIterator {
       }
     }
 
+    Ptr(VarTypeClass type, NodeVisitor& child) {
+      switch (type) {
+        case VarTypeClass::buffer_array: value_it = child.ref.value; return;
+        case VarTypeClass::array:        variable = child.ref.variable; return;
+        case VarTypeClass::object:       named_variable = child.ref.named_variable; return;
+        default: throw Exception(ErrCode::binom_invalid_type);
+      }
+    }
+
+
     Ptr(VarTypeClass type, Ptr& other) {
       switch (type) {
         case VarTypeClass::buffer_array: value_it = other.value_it; return;
@@ -165,6 +183,12 @@ class NodeVisitor::NodeIterator {
     : parent(&node.getVariable()),
       type(toTypeClass(node.getType())),
       ptr(type, *parent, is_end) {}
+
+  NodeIterator(NodeVisitor& node, NodeVisitor from)
+    : parent(&node.getVariable()),
+      type(toTypeClass(node.getType())),
+      ptr(type, from) {}
+
 
 public:
 

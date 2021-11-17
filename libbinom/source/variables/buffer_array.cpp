@@ -640,7 +640,7 @@ BufferArray::iterator BufferArray::findMemory(BufferArray data) const {
   ui8* f_it = const_cast<ui8*>(f_mem_ptr);
   for(;f_size;(--f_size, ++f_it))
     if(ismemeq(f_it, s_mem_ptr, s_size))
-      return ValueIterator(getType(), this->data.bytes + 9 + static_cast<ui64>(std::floor((f_it - f_mem_ptr)/getDataSize())));
+      return ValueIterator(getType(), this->data.bytes + 9 + static_cast<ui64>((f_it - f_mem_ptr)/getMemberSize())*getMemberSize());
   return end();
 }
 
@@ -651,15 +651,16 @@ BufferArray::iterator BufferArray::findValue(BufferArray data) const {
            f_it = f_start,
            f_end = begin() + (f_count - s_count + 1),
            s_it = data.begin();
-  for(;f_it != f_end; (++f_it, ++s_it))
-    if(f_it == s_it) {
+  for(;f_it != f_end; ++f_it)
+    if(*f_it == *s_it) {
       bool is_equal = true;
-      ui64 cmp_cout = s_count;
-      for(auto cmp_f_it = f_it+1, cmp_s_it = s_it+1;cmp_cout;(++f_it, ++s_it, --cmp_cout)) {
-        if(cmp_f_it == cmp_s_it) continue;
+      ui64 cmp_cout = s_count - 1;
+      for(auto cmp_f_it = f_it+1, cmp_s_it = s_it+1;cmp_cout;(++cmp_f_it, ++cmp_s_it, --cmp_cout)) {
+        if(*cmp_f_it == *cmp_s_it) continue;
         else {is_equal = false; break;}
       }
       if(is_equal) return f_it;
+      else continue;
     } else continue;
   return end();
 }

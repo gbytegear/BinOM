@@ -3,6 +3,7 @@
 #include "libbinom/include/file_storage/file_node_visitor.h"
 
 #include <optional>
+#include <regex>
 
 using namespace binom;
 
@@ -190,7 +191,31 @@ inline void TestExpressionFrame::testString(BufferArray node_string, Query::Quer
                         node_string >= field.getString()
                         );
         return;
-        default: invalidTest(); return;
+      case QOper::contains_memory:
+        last_value = getRelationResult(
+                        last_value,
+                        last_rel,
+                        node_string.findMemory(field.getString()) != node_string.end()
+                        );
+        return;
+      case QOper::contains_values:
+        last_value = getRelationResult(
+                        last_value,
+                        last_rel,
+                        node_string.findValue(field.getString()) != node_string.end()
+                        );
+        return;
+      case QOper::reg_test: {
+        BufferArray reg_str = field.getString();
+        if(!reg_str.isPrintable() || !node_string.isPrintable()) return invalidTest();
+        const std::regex reg(reg_str.toString());
+        last_value = getRelationResult(
+                        last_value,
+                        last_rel,
+                        std::regex_match(node_string.toString(), reg)
+                        );
+      }return;
+      default: invalidTest(); return;
     }
 }
 

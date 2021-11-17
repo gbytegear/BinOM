@@ -18,6 +18,7 @@ enum class VisitorType : ui8 {
 
 class NodeVisitorBase {
 public:
+  static constexpr ui64 find_all = ui64(-1);
   virtual ~NodeVisitorBase() = default;
 
   virtual VarType getType() const = 0;

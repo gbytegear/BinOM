@@ -588,33 +588,71 @@ bool FileNodeVisitor::test(Query query, ui64 index) noexcept {
     return test_expr.getValue();
 }
 
-NodeVector FileNodeVisitor::findAll(Query query, NodeVector node_vector) {
+NodeVector FileNodeVisitor::findSet(Query query, NodeVector node_vector) {
   if(!isIterable()) return node_vector;
-  ui64 index = 0;
-  for(FileNodeVisitor node : *this) {
-    if(node.test(query, index))
+  for(auto it = begin(), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, it.index))
       node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(node)));
-    ++index;
   }
   return node_vector;
 }
 
 FileNodeVisitor FileNodeVisitor::find(Query query) {
   if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
-  ui64 index = 0;
-  for(FileNodeVisitor node : *this ){
-    if(node.test(query, index))
+  for(auto it = begin(), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, it.index))
       return node;
-    ++index;
   }
   return FileNodeVisitor(fmm, nullptr);
+}
+
+FileNodeVisitor FileNodeVisitor::findFrom(ui64 index, Query query) {
+  if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
+  for(auto it = beginFrom(index), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, it.index))
+      return node;
+  }
+  return FileNodeVisitor(fmm, nullptr);
+}
+
+FileNodeVisitor FileNodeVisitor::findFrom(BufferArray name, Query query) {
+  if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
+  for(auto it = beginFrom(name), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, it.index))
+      return node;
+  }
+  return FileNodeVisitor(fmm, nullptr);
+}
+
+NodeVector FileNodeVisitor::findSetFrom(ui64 index, Query query, NodeVector node_vector) {
+  if(!isIterable()) return node_vector;
+  for(auto it = beginFrom(index), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, it.index))
+      node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(node)));
+  }
+  return node_vector;
+}
+
+NodeVector FileNodeVisitor::findSetFrom(BufferArray name, Query query, NodeVector node_vector) {
+  if(!isIterable()) return node_vector;
+  for(auto it = beginFrom(name), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, it.index))
+      node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new FileNodeVisitor(node)));
+  }
+  return node_vector;
 }
 
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(ui64 index) {return NodeIterator(*this, index);}
 
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(BufferArray name) {
   if(getType() != VarType::object)
-    throw Exception(ErrCode::binom_invalid_type);
+    return NodeIterator(*this, true);
   if(ObjectElementFinder finder(static_cast<FileNodeVisitor&>(*this)); finder.findElement(std::move(name)))
     return NodeIterator(*this, finder.getObjectElementPosition());
   else return NodeIterator(*this, true);

@@ -25,8 +25,9 @@ enum class QOper : ui8 {
   lower_equal,
   in_range,
   out_range,
-  reg_test,
-  contains
+  reg_test, //!< Regular expression test
+  contains_values,
+  contains_memory
 };
 
 enum class QRel : ui8 {
@@ -160,6 +161,7 @@ struct Query::QValue {
   QValue(i64 number);
   QValue(Range range);
   QValue(BufferArray string);
+  QValue(const char* c_str);
   QValue(QValue&& other);
   ~QValue();
 };
@@ -229,6 +231,9 @@ public:
   iterator begin();
   iterator end();
 };
+
+typedef std::initializer_list<Query::QueryLiteral> query;
+typedef Query::QueryLiteral qexpr;
 
 }
 

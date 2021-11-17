@@ -63,8 +63,12 @@ Query::QValue::QValue(Range range)
     data(range) {}
 
 Query::QValue::QValue(BufferArray string)
-    : value_type(QValType::string),
-      data(std::move(string)) {}
+  : value_type(QValType::string),
+    data(std::move(string)) {}
+
+Query::QValue::QValue(const char* c_str)
+  : value_type(QValType::string),
+    data(BufferArray(c_str)) {}
 
 Query::QValue::QValue(binom::Query::QValue&& other)
     : value_type(other.value_type),

@@ -159,8 +159,12 @@ public:
   inline FileNodeVisitor getChild(BufferArray name) const {return FileNodeVisitor(*this)(name);}
   inline FileNodeVisitor getChild(Path path) const {return FileNodeVisitor(*this)(path);}
 
-  NodeVector findAll(Query query, NodeVector node_vector = NodeVector());
+  NodeVector findSet(Query query, NodeVector node_vector = NodeVector());
   FileNodeVisitor find(Query query);
+  FileNodeVisitor findFrom(ui64 index, Query query);
+  FileNodeVisitor findFrom(BufferArray name, Query query);
+  NodeVector findSetFrom(ui64 index, Query query, NodeVector node_vector = NodeVector());
+  NodeVector findSetFrom(BufferArray name, Query query, NodeVector node_vector = NodeVector());
 
   FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}

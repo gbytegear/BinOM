@@ -343,12 +343,15 @@ bool NodeVisitor::test(Query query, ui64 index) noexcept {
     return test_expr.getValue();
 }
 
-NodeVector NodeVisitor::findAll(Query query, NodeVector node_vector) {
+NodeVector NodeVisitor::findSet(Query query, ui64 count, NodeVector node_vector) {
   if(!isIterable()) return node_vector;
   ui64 index = 0;
-  for(NodeVisitor node : *this) {
-    if(node.test(query, index))
+  for(auto it = beginFrom(index), _end = end(); it != _end && count; ++it) {
+    auto node = *it;
+    if(node.test(query, index)) {
       node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new NodeVisitor(node)));
+      --count;
+    }
     ++index;
   }
   return node_vector;
@@ -365,7 +368,63 @@ NodeVisitor NodeVisitor::find(Query query) {
   return nullptr;
 }
 
+NodeVisitor NodeVisitor::findFrom(ui64 index, Query query) {
+  if(!isIterable()) return nullptr;
+  for(auto it = beginFrom(index), _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, index))
+      return node;
+    ++index;
+  }
+  return nullptr;
+}
+
+NodeVisitor NodeVisitor::findFrom(BufferArray name, Query query) {
+  if(!isObject()) return nullptr;
+  if(!isIterable()) return nullptr;
+  auto it = beginFrom(name);
+  ui64 index = it.ptr.named_variable - this->begin().ptr.named_variable;
+  for(auto _end = end(); it != _end; ++it) {
+    auto node = *it;
+    if(node.test(query, index))
+      return node;
+    ++index;
+  }
+  return nullptr;
+}
+
+NodeVector NodeVisitor::findSetFrom(ui64 index, Query query, ui64 count, NodeVector node_vector) {
+  if(!isIterable()) return node_vector;
+  for(auto it = beginFrom(index), _end = end(); it != _end && count; ++it) {
+    auto node = *it;
+    if(node.test(query, index)) {
+      node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new NodeVisitor(node)));
+      --count;
+    }
+    ++index;
+  }
+  return node_vector;
+}
+
+NodeVector NodeVisitor::findSetFrom(BufferArray name, Query query, ui64 count, NodeVector node_vector) {
+  if(!isObject()) return node_vector;
+  if(!isIterable()) return node_vector;
+  auto it = beginFrom(name);
+  ui64 index = it.ptr.named_variable - this->begin().ptr.named_variable;
+  for(auto _end = end(); it != _end && count; ++it) {
+    auto node = *it;
+    if(node.test(query, index))
+      node_vector.emplace_back(std::unique_ptr<NodeVisitorBase>(new NodeVisitor(node)));
+    ++index;
+  }
+  return node_vector;
+}
+
 NodeVisitor::NodeIterator NodeVisitor::begin() {return NodeIterator(*this);}
+
+NodeVisitor::NodeIterator NodeVisitor::beginFrom(ui64 index) {return NodeIterator(*this, getChild(index));}
+
+NodeVisitor::NodeIterator NodeVisitor::beginFrom(BufferArray name) {return NodeIterator(*this, getChild(std::move(name)));}
 
 NodeVisitor::NodeIterator NodeVisitor::end() {return NodeIterator(*this, true);}
 
