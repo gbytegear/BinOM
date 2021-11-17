@@ -626,7 +626,7 @@ void FileMemoryManager::removeNode(virtual_index node_index) {
 
   NodeDescriptor descriptor = getNodeDescriptor(node_index);
 
-  if(toTypeClass(descriptor.type) != VarTypeClass::primitive)
+  if(toTypeClass(descriptor.type) != VarTypeClass::primitive && descriptor.size)
     heap_map.freeBlock(descriptor.index);
 
   --node_index; // Without root node
