@@ -648,6 +648,10 @@ NodeVector FileNodeVisitor::findSetFrom(BufferArray name, Query query, NodeVecto
   return node_vector;
 }
 
+FileNodeVisitor& FileNodeVisitor::operator=(FileNodeVisitor other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(std::move(other));}
+
+binom::FileNodeVisitor::operator Variable() {return getVariable();}
+
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(ui64 index) {return NodeIterator(*this, index);}
 
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(BufferArray name) {

@@ -337,6 +337,8 @@ void NodeVisitor::remove(Path path) {
   }
 }
 
+binom::NodeVisitor::operator Variable() {return getVariable();}
+
 bool NodeVisitor::test(Query query, ui64 index) noexcept {
     TestExpressionFrame test_expr;
     for(Query::QueryEpression& expr : query) test_expr(expr, *this, index);

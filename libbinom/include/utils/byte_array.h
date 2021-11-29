@@ -8,10 +8,10 @@
 namespace binom {
 
 class ByteArray {
+protected:
   ui64 _length = 0;
   byte* array = nullptr;
-
-  friend class SharedByteArray;
+  friend class ByteArrayView;
 
 public:
 
@@ -144,15 +144,36 @@ public:
 
   ByteArray& operator=(ByteArray other);
 
-  byte& operator[](ui64 index);                             // byte& get(ui64) alias operator
-  ByteArray& operator+=(byte b);                            // ByteArray& pushBack(byte) alias operator
-  ByteArray& operator+=(const ByteArray& byte_array);       // ByteArray& pushBack(const ByteArray&) alias operator
-  ByteArray& operator+=(const ByteArray&& byte_array);      // ByteArray& pushBack(const ByteArray&&) alias operator
+  byte& operator[](ui64 index);
+  ByteArray& operator+=(byte b);
+  ByteArray& operator+=(ByteArray byte_array);
   ByteArray& operator+=(const char* c_str);
+
+  ByteArray operator+(byte b);
+  ByteArray operator+(ByteArray byte_array);
+  ByteArray operator+(const char* c_str);
+
   template<typename Type>
   ByteArray& operator+=(const Type& data) {return pushBack(data);}
 };
 
+class ByteArrayView : protected ByteArray {
+public:
+  ByteArrayView(decltype(nullptr)) : ByteArray() {}
+  ByteArrayView(const void* buffer, ui64 size) {array = (byte*)buffer; _length = size;}
+  ByteArrayView(const ByteArray& other) {array = other.array; _length = other._length;}
+  ByteArrayView(ByteArray&& other) {array = other.array; _length = other._length;}
+  ~ByteArrayView() {array = nullptr;}
+
+  void freeMemory() {
+    if(!array) return;
+    free(array);
+    array = nullptr;
+    _length = 0;
+  }
+
+  void* pointer() {return array;}
+};
 
 }
 

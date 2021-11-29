@@ -72,6 +72,8 @@ public:
     return *reinterpret_cast<FileNodeVisitor*>(this);
   }
 
+ virtual operator Variable() = 0;
+
   NodeVisitorBase& upCast() {return *reinterpret_cast<NodeVisitorBase*>(this);}
 };
 

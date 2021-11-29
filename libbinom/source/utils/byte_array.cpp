@@ -38,6 +38,7 @@ byte& ByteArray::operator[](ui64 index) {
   return array[index];
 }
 
+
 ByteArray& ByteArray::pushBack(byte b) {
   array = tryRealloc<byte>(array, ++_length);
   array[_length - 1] = b;
@@ -195,13 +196,13 @@ ui64 ByteArray::pointerToIndex(void* pos) {
   return ui64(reinterpret_cast<byte*>(pos) - array);
 }
 
-ByteArray& ByteArray::operator+=(byte b) {return pushBack (b);}
+ByteArray& ByteArray::operator+=(byte b) {return pushBack(b);}
+ByteArray& ByteArray::operator+=(ByteArray byte_array) {return pushBack (std::move(byte_array));}
+ByteArray& ByteArray::operator+=(const char* c_str) {return pushBack(c_str);}
 
-ByteArray& ByteArray::operator+=(const ByteArray& byte_array) {return pushBack (byte_array);}
-
-ByteArray& ByteArray::operator+=(const ByteArray&& byte_array) {return pushBack (byte_array);}
-
-ByteArray& ByteArray::operator+=(const char* c_str) {return pushBack (c_str);}
+ByteArray ByteArray::operator+(byte b) {return ByteArray(*this).pushBack(b);}
+ByteArray ByteArray::operator+(ByteArray byte_array) {return ByteArray(*this).pushBack (std::move(byte_array));}
+ByteArray ByteArray::operator+(const char* c_str) {return ByteArray(*this).pushBack(c_str);}
 
 byte& ByteArray::get(ui64 index) {return array[index];}
 

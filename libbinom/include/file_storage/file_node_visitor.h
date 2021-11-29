@@ -166,6 +166,8 @@ public:
   NodeVector findSetFrom(ui64 index, Query query, NodeVector node_vector = NodeVector());
   NodeVector findSetFrom(BufferArray name, Query query, NodeVector node_vector = NodeVector());
 
+  FileNodeVisitor& operator=(FileNodeVisitor other);
+
   FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}
   FileNodeVisitor& operator()(Path path) override {return stepInside(path);}
@@ -173,6 +175,8 @@ public:
   inline FileNodeVisitor operator[](ui64 index) const {return getChild(index);}
   inline FileNodeVisitor operator[](BufferArray name) const {return getChild(name);}
   inline FileNodeVisitor operator[](Path path) const {return getChild(path);}
+
+  operator Variable() override;
 
   NodeIterator beginFrom(ui64 index);
   NodeIterator beginFrom(BufferArray name);

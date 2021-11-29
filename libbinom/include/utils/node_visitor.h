@@ -111,6 +111,8 @@ public:
   NodeVisitor& operator()(BufferArray name) override {return stepInside(std::move(name));}
   NodeVisitor& operator()(Path path) override {return stepInside(std::move(path));}
 
+  operator Variable() override;
+
   NodeVector findSet(Query query, ui64 count = find_all, NodeVector node_vector = NodeVector());
   NodeVisitor find(Query query);
 
