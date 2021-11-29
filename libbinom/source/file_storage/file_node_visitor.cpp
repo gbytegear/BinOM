@@ -297,6 +297,7 @@ FileNodeVisitor& FileNodeVisitor::stepInside(Path path) {
 }
 
 Variable FileNodeVisitor::getVariable() const {
+  if(isNull()) return nullptr;
   if(isValueRef()) {
     ScopedRWGuard lk(current_rwg, LockType::shared_lock);
     NodeDescriptor descriptor = fmm.getNodeDescriptor(node_index);
