@@ -22,7 +22,7 @@ class FileMemoryManager {
   void init(bool force_init);
 
   void allocNodePage();
-  void allocHeapPage();
+  void allocHeapPage(ui64 page_count = 1);
 
   VMemoryBlock allocHeapBlock(block_size size);
 

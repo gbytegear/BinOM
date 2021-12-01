@@ -1,4 +1,5 @@
 ﻿#include "libbinom/include/file_storage/file_memory_manager.h"
+#include <cmath>
 
 using namespace binom;
 
@@ -94,29 +95,36 @@ void FileMemoryManager::allocNodePage() {
   node_page_vector.push_back(NodePageInfo{descriptor, last.descriptor.next_node_page});
 }
 
-void FileMemoryManager::allocHeapPage() {
+void FileMemoryManager::allocHeapPage(ui64 page_count) {
   std::scoped_lock lk(heap_page_mtx);
-  HeapPageDescriptor descriptor;
-  if(heap_page_vector.empty()) {
-    db_header.first_heap_page_index = file.addSize(heap_page_size);
-    file.write(offsetof(DBHeader, first_heap_page_index), db_header.first_heap_page_index);
-    heap_page_vector.push_back(HeapPageInfo{descriptor, db_header.first_heap_page_index});
-    heap_map.expandMemory(heap_page_data_size);
-    return;
+  ui64 page_set_start = file.addSize(heap_page_size * page_count);
+  heap_map.expandMemory(heap_page_data_size * page_count);
+
+  for(ui64 i = 0; i < page_count; ++i) {
+    HeapPageDescriptor descriptor;
+
+    if(heap_page_vector.empty()) {
+      db_header.first_heap_page_index = page_set_start;
+      file.write(offsetof(DBHeader, first_heap_page_index), page_set_start);
+      heap_page_vector.push_back(HeapPageInfo{descriptor, db_header.first_heap_page_index});
+      continue;
+    }
+
+    HeapPageInfo& last = heap_page_vector.back();
+    last.descriptor.next_heap_page = page_set_start + i*heap_page_size;
+    file.write(last.page_position, last.descriptor);
+    file.write(last.descriptor.next_heap_page, descriptor);
+    heap_page_vector.push_back(HeapPageInfo{descriptor, last.descriptor.next_heap_page});
+    continue;
   }
-  HeapPageInfo& last = heap_page_vector.back();
-  last.descriptor.next_heap_page = file.addSize(heap_page_size);
-  file.write(last.page_position, last.descriptor);
-  file.write(last.descriptor.next_heap_page, descriptor);
-  heap_page_vector.push_back(HeapPageInfo{descriptor, last.descriptor.next_heap_page});
-  heap_map.expandMemory(heap_page_data_size);
+
 }
 
 VMemoryBlock FileMemoryManager::allocHeapBlock(block_size size) {
   if(!size) return VMemoryBlock{0,0};
   VMemoryBlock v_block = heap_map.allocBlock(size);
   while (v_block.isEmpty()) {
-    allocHeapPage();
+    allocHeapPage(std::ceil(llf_t(size - heap_map.getLastBlockSize()) / heap_page_data_size));
     v_block = heap_map.allocBlock(size);
   }
   return v_block;
@@ -379,7 +387,6 @@ ByteArray FileMemoryManager::getNodeData(NodeDescriptor descriptor) {
 }
 
 virtual_index FileMemoryManager::createNode(VarType type, ByteArray data) {
-
   switch (toTypeClass(type)) {
     case binom::VarTypeClass::primitive: {
       virtual_index node_index = allocNode();

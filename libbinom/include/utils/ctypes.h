@@ -5,6 +5,7 @@
 
 #define elif else if
 
+
 namespace binom {
 
 typedef uint8_t ui8;
@@ -55,6 +56,10 @@ constexpr l_t operator "" _l (ull_t val) {return val;}
 constexpr ul_t operator "" _ul (ull_t val) {return val;}
 constexpr ll_t operator "" _ll (ull_t val) {return val;}
 constexpr ull_t operator "" _ull (ull_t val) {return val;}
+
+constexpr ui64 operator""_kb(ull_t val) {return val*1024;}
+constexpr ui64 operator""_mb(ull_t val) {return val*1048576;}
+constexpr ui64 operator""_gb(ull_t val) {return val*1073741824;}
 
 }
 

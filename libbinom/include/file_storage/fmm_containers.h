@@ -84,6 +84,13 @@ public:
 
   inline std::recursive_mutex& getHeapControlMutex() {return mtx;}
 
+  ui64 getLastBlockSize() {
+    if(block_map.empty()) return 0;
+    auto last_element = *block_map.rbegin();
+    if(last_element.second.is_busy) return 0;
+    return last_element.second.size;
+  }
+
   void occupyBlock(virtual_index v_index, block_size size) {
     if(!size) return;
     block_iterator block_it = --block_map.upper_bound(v_index);
