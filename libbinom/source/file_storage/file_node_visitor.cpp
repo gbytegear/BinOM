@@ -557,8 +557,10 @@ void FileNodeVisitor::remove(ui64 index, ui64 count) {
 
 void FileNodeVisitor::remove(BufferArray name) {
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
-  ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
-  finder.remove(std::move(name));
+  if(getElementCount()) {
+    ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
+    finder.remove(std::move(name));
+  }
 }
 
 void FileNodeVisitor::remove(Path path) {

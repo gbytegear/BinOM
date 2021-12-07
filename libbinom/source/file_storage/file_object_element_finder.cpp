@@ -307,7 +307,11 @@ bool FileNodeVisitor::ObjectElementFinder::remove(BufferArray name) {
   }
   if(getElementCount() == 1) {
     fmm.updateNode(node_index, VarType::end, ByteArray());
-    dropPosition();
+    pos.name_block_index = 0;
+    pos.name_shift = 0;
+    pos.name_index = 0;
+    pos.index = 0;
+    pos.name_block_descriptor = ObjectNameLength{};
     return true;
   }
   NodeDescriptor node_descriptor = fmm.getNodeDescriptor(node_index);
