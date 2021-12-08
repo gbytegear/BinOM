@@ -71,6 +71,11 @@ public:
   Variable(const std::u32string_view str);
   Variable(const std::wstring_view wstr);
 
+  Variable(const std::string str);
+  Variable(const std::u16string str);
+  Variable(const std::u32string str);
+  Variable(const std::wstring wstr);
+
   Variable(const char* str);
   Variable(const char16_t* str);
   Variable(const char32_t* str);

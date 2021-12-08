@@ -49,6 +49,11 @@ public:
   BufferArray(const std::u32string_view str);
   BufferArray(const std::wstring_view wstr);
 
+  BufferArray(const std::string str) : BufferArray(std::string_view(str)) {}
+  BufferArray(const std::u16string str) : BufferArray(std::u16string_view(str)) {}
+  BufferArray(const std::u32string str) : BufferArray(std::u32string_view(str)) {}
+  BufferArray(const std::wstring wstr) : BufferArray(std::wstring_view(wstr)) {}
+
   BufferArray(const char* c_str) : BufferArray(std::string_view(c_str)) {}
   BufferArray(const char16_t* c_str) : BufferArray(std::u16string_view(c_str)) {}
   BufferArray(const char32_t* c_str) : BufferArray(std::u32string_view(c_str)) {}

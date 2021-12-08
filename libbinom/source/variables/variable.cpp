@@ -100,6 +100,11 @@ Variable::Variable(const std::u16string_view str) : data(nullptr) {new(this) Buf
 Variable::Variable(const std::u32string_view str) : data(nullptr) {new(this) BufferArray(str);}
 Variable::Variable(const std::wstring_view wstr) : data(nullptr) {new(this) BufferArray(wstr);}
 
+Variable::Variable(const std::string str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::u16string str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::u32string str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::wstring wstr) : data(nullptr) {new(this) BufferArray(wstr);}
+
 Variable::Variable(const char* str) : data(nullptr) {new(this) BufferArray(str);}
 Variable::Variable(const char16_t* str) : data(nullptr) {new(this) BufferArray(str);}
 Variable::Variable(const char32_t* str) : data(nullptr) {new(this) BufferArray(str);}
