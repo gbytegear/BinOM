@@ -7,6 +7,8 @@
 
 namespace binom {
 
+class ByteArrayView;
+
 class ByteArray {
 protected:
   ui64 _length = 0;
@@ -25,11 +27,23 @@ public:
   ByteArray(ByteArray&& other);
   ByteArray(ui64 size);
   ByteArray(std::initializer_list<const ByteArray> arrays);
+  ByteArray(const ByteArrayView view);
+
+  static ByteArray move(ByteArrayView view);
+  static ByteArray move(const void* buffer, ui64 size);
 
   ~ByteArray();
 
   bool isEmpty() const;
-  bool isEqual(const ByteArray& other);
+  bool isEqual(const ByteArray& other) const;
+  bool isEqual(ByteArray&& other) const;
+  bool isEqual(ByteArrayView view) const;
+  inline bool operator==(const ByteArray& other) {return isEqual(other);}
+  inline bool operator==(ByteArray&& other) {return isEqual(other);}
+  bool operator==(ByteArrayView other);
+  inline bool operator!=(const ByteArray& other) {return !isEqual(other);}
+  inline bool operator!=(ByteArray&& other) {return !isEqual(other);}
+  bool operator!=(ByteArrayView other);
 
   template<typename Type>
   ui64 length() const {return _length/sizeof(Type);}
@@ -75,16 +89,16 @@ public:
   byte& set(ui64 index, byte value);
 
   template<typename Type>
-  Type& get(ui64 index, ui64 shift = 0) {return reinterpret_cast<Type*>(array + shift)[index];}
-  byte& get(ui64 index);
+  Type& get(ui64 index, ui64 shift = 0) const {return reinterpret_cast<Type*>(array + shift)[index];}
+  byte& get(ui64 index) const;
 
   template<typename Type>
-  Type& first() {return *reinterpret_cast<Type*>(array);}
-  byte& first();
+  Type& first() const {return *reinterpret_cast<Type*>(array);}
+  byte& first() const;
 
   template<typename Type>
-  Type& last() {return *reinterpret_cast<Type*>(array + _length - sizeof (Type));}
-  byte& last();
+  Type& last() const {return *reinterpret_cast<Type*>(array + _length - sizeof (Type));}
+  byte& last() const;
 
   template<typename Type>
   Type takeBackAs() {
@@ -137,6 +151,8 @@ public:
   const_iterator cend() const;
 
   void* unfree();
+  void* pointer() {return array;}
+  void free();
 
   void split(ui64 second_start, ByteArray& first, ByteArray& second);
 
@@ -155,24 +171,20 @@ public:
 
   template<typename Type>
   ByteArray& operator+=(const Type& data) {return pushBack(data);}
+
+  operator ByteArrayView() const;
 };
 
-class ByteArrayView : protected ByteArray {
+class ByteArrayView : public ByteArray {
 public:
+  ByteArrayView() : ByteArray() {}
   ByteArrayView(decltype(nullptr)) : ByteArray() {}
   ByteArrayView(const void* buffer, ui64 size) {array = (byte*)buffer; _length = size;}
   ByteArrayView(const ByteArray& other) {array = other.array; _length = other._length;}
   ByteArrayView(ByteArray&& other) {array = other.array; _length = other._length;}
+  ByteArrayView(const ByteArrayView& other) {array = other.array; _length = other._length;}
+  ByteArrayView(ByteArrayView&& other) {array = other.array; _length = other._length;}
   ~ByteArrayView() {array = nullptr;}
-
-  void freeMemory() {
-    if(!array) return;
-    free(array);
-    array = nullptr;
-    _length = 0;
-  }
-
-  void* pointer() {return array;}
 };
 
 }

@@ -11,12 +11,12 @@ class VarMemoryManager {
   friend class Variable;
   friend struct NamedVariable;
 
-  size_t msize() const {return static_cast<const T*>(this)->msizeImpl();}
-  byte*& ptr() {return static_cast<T*>(this)->ptrImpl();}
-  void* clone() const {return static_cast<const T*>(this)->cloneImpl();}
-  void destroy() {static_cast<T*>(this)->destroyImpl();}
+  inline size_t msize() const {return static_cast<const T*>(this)->msizeImpl();}
+  inline byte*& ptr() {return static_cast<T*>(this)->ptrImpl();}
+  inline void* clone() const {return static_cast<const T*>(this)->cloneImpl();}
+  inline void destroy() {static_cast<T*>(this)->destroyImpl();}
 
-  void mch(size_t new_size) { ptr() = tryRealloc(ptr(), new_size); }
+  inline void mch(size_t new_size) { ptr() = tryRealloc(ptr(), new_size); }
 
   void* madd(size_t add_size) {
     size_t shift = msize();

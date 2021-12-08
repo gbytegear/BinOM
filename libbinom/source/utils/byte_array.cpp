@@ -22,12 +22,23 @@ ByteArray::ByteArray(std::initializer_list<const ByteArray> arrays) {
   }
 }
 
-ByteArray::~ByteArray() {
-  if(!array) return;
-  free(array);
-  array = nullptr;
-  _length = 0;
+ByteArray::ByteArray(const ByteArrayView view) : _length(view._length), array(tryMalloc<byte>(_length)) {memcpy(array, view.begin(), _length);}
+
+ByteArray ByteArray::move(ByteArrayView view) {
+  ByteArray data;
+  data.array = view.array;
+  data._length = view._length;
+  return data;
 }
+
+ByteArray ByteArray::move(const void* buffer, ui64 size) {
+  ByteArray data;
+  data.array = (byte*)buffer;
+  data._length = size;
+  return data;
+}
+
+ByteArray::~ByteArray() {free();}
 
 bool ByteArray::isEmpty() const {return !_length;}
 
@@ -100,7 +111,7 @@ ByteArray& ByteArray::insert(ui64 index, const ByteArray&& byte_array) { return 
 ByteArray& ByteArray::remove(ui64 index, ui64 size) {
   if(!index && size == _length) {
     _length = 0;
-    free(array);
+    std::free(array);
     array = nullptr;
     return *this;
   }
@@ -119,7 +130,8 @@ ByteArray ByteArray::takeBack(ui64 size) {
   return _new;
 }
 
-bool ByteArray::isEqual(const ByteArray& other) {
+bool ByteArray::isEqual(ByteArray&& other) const {return isEqual(other);}
+bool ByteArray::isEqual(const ByteArray& other) const {
   if(length() != other.length()) return false;
   iterator o_it = other.begin();
   for(ui8 it : *this) {
@@ -129,6 +141,20 @@ bool ByteArray::isEqual(const ByteArray& other) {
   }
   return true;
 }
+
+bool ByteArray::isEqual(ByteArrayView view) const {
+  if(length() != view.length()) return false;
+  iterator o_it = view.begin();
+  for(ui8 it : *this) {
+    if(it != *o_it)
+      return false;
+    ++o_it;
+  }
+  return true;
+}
+
+bool ByteArray::operator==(ByteArrayView other) {return isEqual(other);}
+bool ByteArray::operator!=(ByteArrayView other) {return !isEqual(other);}
 
 void ByteArray::reset(ui64 new_length) {
   _length = new_length;
@@ -201,10 +227,13 @@ ByteArray& ByteArray::operator+=(ByteArray byte_array) {return pushBack (std::mo
 ByteArray& ByteArray::operator+=(const char* c_str) {return pushBack(c_str);}
 
 ByteArray ByteArray::operator+(byte b) {return ByteArray(*this).pushBack(b);}
+
+binom::ByteArray::operator ByteArrayView() const {return ByteArrayView(*this);}
+
 ByteArray ByteArray::operator+(ByteArray byte_array) {return ByteArray(*this).pushBack (std::move(byte_array));}
 ByteArray ByteArray::operator+(const char* c_str) {return ByteArray(*this).pushBack(c_str);}
 
-byte& ByteArray::get(ui64 index) {return array[index];}
+byte& ByteArray::get(ui64 index) const {return array[index];}
 
 byte& ByteArray::set(ui64 index, byte value) {return get(index) = value;}
 
@@ -219,9 +248,9 @@ ByteArray::iterator ByteArray::set(ui64 index, ByteArray data) {
   return ret;
 }
 
-byte& ByteArray::first() {return *array;}
+byte& ByteArray::first() const {return *array;}
 
-byte& ByteArray::last() {return array[_length - 1];}
+byte& ByteArray::last() const {return array[_length - 1];}
 
 ByteArray::iterator ByteArray::begin() const {return array;}
 
@@ -238,6 +267,13 @@ void* ByteArray::unfree() {
   return ptr;
 }
 
+void ByteArray::free() {
+  if(!array) return;
+  std::free(array);
+  array = nullptr;
+  _length = 0;
+}
+
 void ByteArray::split(ui64 second_start, ByteArray& first, ByteArray& second) {
   first.reset(second_start);
   memcpy(first.array, array, second_start);
@@ -248,7 +284,7 @@ void ByteArray::split(ui64 second_start, ByteArray& first, ByteArray& second) {
 std::string ByteArray::toStdString() {return std::string(reinterpret_cast<char*>(array), _length);}
 
 ByteArray& ByteArray::operator=(ByteArray other) {
-  if(array) free(array);
+  if(array) std::free(array);
   _length = other._length;
   array = other.array;
   other.array = nullptr;

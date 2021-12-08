@@ -62,18 +62,92 @@ BufferArray::BufferArray(VarType type, size_t count) : data(nullptr){
 BufferArray::BufferArray(ValType type) : BufferArray(toVarBufferType(type)) {}
 BufferArray::BufferArray(ValType type, size_t count) : BufferArray(toVarBufferType(type), count) {}
 
-BufferArray::BufferArray(const std::string_view str) : data(tryMalloc(9 + str.length())) {
-  data.type[0] = VarType::byte_array;
+BufferArray::BufferArray(const std::string_view str) : data(tryMalloc(9 + str.length() * sizeof (std::string_view::value_type))) {
+  constexpr size_t char_size = sizeof (std::string_view::value_type);
   ui64 size = str.length();
-  *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-  memcpy(reinterpret_cast<char*>(data.bytes + 9), str.data(), size);
+  if constexpr (char_size == 1) {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 2) {
+    data.type[0] = binom::VarType::word_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 4) {
+    data.type[0] = binom::VarType::dword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 8) {
+    data.type[0] = binom::VarType::qword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size * char_size;
+  }
+  memcpy(reinterpret_cast<char*>(data.bytes + 9), str.data(), size * char_size);
+}
+
+BufferArray::BufferArray(const std::u16string_view str) : data(tryMalloc(9 + str.length() * sizeof (std::u16string_view::value_type))) {
+  constexpr size_t char_size = sizeof (std::u16string_view::value_type);
+  ui64 size = str.length();
+  if constexpr (char_size == 1) {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 2) {
+    data.type[0] = binom::VarType::word_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 4) {
+    data.type[0] = binom::VarType::dword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 8) {
+    data.type[0] = binom::VarType::qword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size * char_size;
+  }
+  memcpy(reinterpret_cast<char*>(data.bytes + 9), str.data(), size * char_size);
+}
+
+BufferArray::BufferArray(const std::u32string_view str) : data(tryMalloc(9 + str.length() * sizeof (std::u32string_view::value_type))) {
+  constexpr size_t char_size = sizeof (std::u32string_view::value_type);
+  ui64 size = str.length();
+  if constexpr (char_size == 1) {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 2) {
+    data.type[0] = binom::VarType::word_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 4) {
+    data.type[0] = binom::VarType::dword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 8) {
+    data.type[0] = binom::VarType::qword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size * char_size;
+  }
+  memcpy(reinterpret_cast<char*>(data.bytes + 9), str.data(), size * char_size);
 }
 
 BufferArray::BufferArray(const std::wstring_view wstr) : data(tryMalloc(9 + wstr.length() * sizeof (std::wstring_view::value_type))) {
-  data.type[0] = VarType::word_array;
-  ui64 size = wstr.length() * sizeof (std::wstring_view::value_type);
-  *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-  memcpy(reinterpret_cast<char*>(data.bytes + 9), wstr.data(), size);
+  constexpr size_t char_size = sizeof (std::wstring_view::value_type);
+  ui64 size = wstr.length();
+  if constexpr (char_size == 1) {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 2) {
+    data.type[0] = binom::VarType::word_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 4) {
+    data.type[0] = binom::VarType::dword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else if constexpr (char_size == 8) {
+    data.type[0] = binom::VarType::qword_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size;
+  } else {
+    data.type[0] = binom::VarType::byte_array;
+     *reinterpret_cast<ui64*>(data.bytes + 1) = size * char_size;
+  }
+  memcpy(reinterpret_cast<char*>(data.bytes + 9), wstr.data(), size * char_size);
 }
 
 BufferArray::BufferArray(size_t size, ui8 value) : data(tryMalloc(9 + size)) {
@@ -343,11 +417,32 @@ BufferArray::BufferArray(Primitive primitive) : data(tryMalloc(9 + toSize(primit
 }
 
 bool BufferArray::isPrintable() const {
-  if(getType() != binom::VarType::byte_array)
-    return false;
   for(const auto &value_ref : *this)
-    if(!isprint(char(value_ref.asUi8()))) return false;
+    if(!isprint(char(value_ref.asUi8())) && !iscntrl(char(value_ref.asUi8()))) return false;
   return true;
+}
+
+bool BufferArray::isWPrintable() const {
+  constexpr size_t char_size = sizeof (wchar_t);
+  if constexpr (char_size == 1) {
+    for(const auto &value_ref : *this)
+      if(!iswprint(wchar_t(value_ref.asUi8())) && !iswcntrl(wchar_t(value_ref.asUi8()))) return false;
+    return true;
+  } else if constexpr (char_size == 2) {
+    for(const auto &value_ref : *this)
+      if(!iswprint(wchar_t(value_ref.asUi16())) && !iswcntrl(wchar_t(value_ref.asUi16()))) return false;
+    return true;
+  } else if constexpr (char_size == 4) {
+    for(const auto &value_ref : *this)
+      if(!iswprint(wchar_t(value_ref.asUi32())) && !iswcntrl(wchar_t(value_ref.asUi32()))) return false;
+    return true;
+  } else if constexpr (char_size == 8) {
+    for(const auto &value_ref : *this)
+      if(!iswprint(wchar_t(value_ref.asUi64())) && !iswcntrl(wchar_t(value_ref.asUi64()))) return false;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 ByteArray BufferArray::serialize() const {
@@ -380,9 +475,6 @@ ui64 BufferArray::serializedSize(ByteArray::iterator it) {
   it += fromChainNumber(it) * getMemberSize(type);
   return it - old_it;
 }
-
-void* BufferArray::getDataPointer() const {return data.bytes + 9;}
-ui64 BufferArray::getDataSize() const {return getMemberCount() * getMemberSize();}
 
 ValueRef BufferArray::pushBack(ui64 value) {
   ValueRef val(*data.type, madd(getMemberSize()));
@@ -522,7 +614,7 @@ BufferArray BufferArray::subarr(binom::ui64 index, binom::ui64 n) {
   return ptr;
 }
 
-void BufferArray::clear() {mch(9);length() = 0;}
+void BufferArray::clear() {mch(9);length()=0;}
 
 
 BufferArray& BufferArray::operator=(BufferArray other) {
@@ -679,9 +771,33 @@ std::string BufferArray::toString() const {
   return str;
 }
 
+std::string BufferArray::toU8String() const {
+  std::string str;
+  str.reserve(length());
+  for(const ValueRef &val : *this)
+    str += char(val.asSigned());
+  return str;
+}
+
+std::u16string BufferArray::toU16String() const {
+  std::u16string str;
+  str.reserve(length());
+  for(const ValueRef &val : *this)
+    str += char16_t(val.asSigned());
+  return str;
+}
+
+std::u32string BufferArray::toU32String() const {
+  std::u32string str;
+  str.reserve(length());
+  for(const ValueRef &val : *this)
+    str += char32_t(val.asSigned());
+  return str;
+}
+
 std::wstring BufferArray::toWString() const {
   std::wstring wstr;
-  wstr.reserve (length());
+  wstr.reserve(length());
   for(const ValueRef &val : *this)
     wstr += wchar_t(val.asUnsigned());
   return wstr;
@@ -693,5 +809,7 @@ ByteArray BufferArray::toByteArray() const {
   memcpy(array.begin(), data.bytes + 9, size);
   return array;
 }
+
+ByteArrayView BufferArray::toByteArrayView() const {return ByteArrayView(getDataPointer(), msize() - 9);}
 
 const binom::BufferArray operator ""_vbfr(const char* c_str, std::size_t) {return c_str;}

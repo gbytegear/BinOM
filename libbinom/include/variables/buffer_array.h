@@ -45,8 +45,13 @@ public:
   BufferArray(ValType type, size_t count);
 
   BufferArray(const std::string_view str);
-  BufferArray(const char* c_str) : BufferArray(std::string_view(c_str)) {}
+  BufferArray(const std::u16string_view str);
+  BufferArray(const std::u32string_view str);
   BufferArray(const std::wstring_view wstr);
+
+  BufferArray(const char* c_str) : BufferArray(std::string_view(c_str)) {}
+  BufferArray(const char16_t* c_str) : BufferArray(std::u16string_view(c_str)) {}
+  BufferArray(const char32_t* c_str) : BufferArray(std::u32string_view(c_str)) {}
   BufferArray(const wchar_t* c_wstr) : BufferArray(std::wstring_view(c_wstr)) {}
 
   BufferArray(size_t size, ui8 value);
@@ -91,7 +96,9 @@ public:
   inline bool inRange(ui64 index) const {return length() > index;}
   inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
-  inline ui8 getMemberSize() const { return toSize(getValType());}
+  inline ui8 getMemberSize() const {return toSize(getValType());}
+  inline ui64 getDataSize() const {return msize();}
+  inline void* getDataPointer() const {return data.bytes + 9;}
 
   inline bool isByte() const {return getType() == VarType::byte_array;}
   inline bool isWord() const {return getType() == VarType::word_array;}
@@ -99,6 +106,7 @@ public:
   inline bool isQWord() const {return getType() == VarType::qword_array;}
 
   bool isPrintable() const;
+  bool isWPrintable() const;
 
   ByteArray serialize() const;
   static BufferArray deserialize(ByteArray::iterator& it);
@@ -120,9 +128,6 @@ public:
     if(index >= getMemberCount()) throw Exception(ErrCode::binom_out_of_range, "Out of buffer array range!");
     return begin()[index];
   }
-
-  void* getDataPointer() const;
-  ui64 getDataSize() const;
 
   ValueRef pushBack(ui64 value);
   ValueRef pushBack(i64 value);
@@ -177,10 +182,19 @@ public:
   const_iterator cend() const;
 
   inline operator std::string() const { return toString(); }
+  inline operator std::u16string() const { return toU16String(); }
+  inline operator std::u32string() const { return toU32String(); }
+  inline operator std::wstring() const { return toWString(); }
+  inline operator ByteArray() const { return toByteArray(); }
+  inline operator ByteArrayView() const { return toByteArrayView(); }
 
   std::string toString() const;
+  std::string toU8String() const;
+  std::u16string toU16String() const;
+  std::u32string toU32String() const;
   std::wstring toWString() const;
   ByteArray toByteArray() const;
+  ByteArrayView toByteArrayView() const;
 
   Variable& asVar() {return *reinterpret_cast<Variable*>(this);}
 };

@@ -30,8 +30,7 @@ class Variable {
   void destroy();
 
   inline void throwIfNot(VarTypeClass type_class) const {
-    if(type_class != typeClass())
-      throw Exception(ErrCode::binom_invalid_type, "Bad Variable-cast!");
+    if(type_class != typeClass()) throw Exception(ErrCode::binom_invalid_type, "Bad Variable-cast!");
   }
 
   friend class Primitive;
@@ -123,6 +122,7 @@ public:
   ByteArray serialize() const;
   static Variable deserialize(ByteArray::iterator& it);
   static inline Variable deserialize(ByteArray serialized) {ByteArray::iterator it = serialized.begin(); return deserialize(it);}
+  static inline Variable deserialize(ByteArrayView serialized) {ByteArray::iterator it = serialized.begin(); return deserialize(it);}
 
   inline void* getDataPointer() const {return data.ptr;}
 
@@ -145,10 +145,10 @@ public:
   inline BufferArray& toBufferArray() const     {throwIfNot(VarTypeClass::buffer_array); return const_cast<BufferArray&>(data.buffer_array);}
   inline Array& toArray() const                 {throwIfNot(VarTypeClass::array); return const_cast<Array&>(data.array);}
   inline Object& toObject() const               {throwIfNot(VarTypeClass::object); return const_cast<Object&>(data.object);}
-  inline operator Primitive&() const {return toPrimitive();}
-  inline operator BufferArray&() const {return toBufferArray();}
-  inline operator Array&() const {return toArray();}
-  inline operator Object&() const {return toObject();}
+  inline operator Primitive&() const            {return toPrimitive();}
+  inline operator BufferArray&() const          {return toBufferArray();}
+  inline operator Array&() const                {return toArray();}
+  inline operator Object&() const               {return toObject();}
 
   // Member access
   inline Variable& getVariable(ui64 index) const         {throwIfNot(VarTypeClass::array); return toArray().getVariable(index);}
@@ -161,13 +161,8 @@ public:
 
   Variable& operator=(Variable other);
 
-  inline ui64 length() {
-    return isNull()
-        ? 0
-        : (isBufferArray() || isArray() || isObject())
-        ? *reinterpret_cast<ui64*>(data.bytes + 1)
-        : 1;
-  }
+  ui64 length() const;
+  inline ui64 getMemberCount() const {return length();}
 
   bool operator==(Variable other) const;
   bool operator!=(Variable other) const;

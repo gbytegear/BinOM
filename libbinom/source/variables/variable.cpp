@@ -476,6 +476,17 @@ Variable& Variable::operator=(Variable other) {
   return *this;
 }
 
+ui64 Variable::length() const {
+  switch (toTypeClass(*data.type)) {
+    case VarTypeClass::primitive: return 1;
+    case VarTypeClass::buffer_array: return toBufferArray().getMemberCount();
+    case VarTypeClass::array: return toArray().getMemberCount();
+    case VarTypeClass::object: return toObject().getMemberCount();
+    default:
+    case VarTypeClass::invalid_type: return 0;
+  }
+}
+
 bool Variable::operator==(Variable other) const {
   if(type() != other.type()) return false;
   switch (typeClass()) {
