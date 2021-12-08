@@ -102,7 +102,7 @@ public:
   inline bool isEmpty() const {return !length();}
   inline ui64 getMemberCount() const {return *reinterpret_cast<ui64*>(data.bytes + 1);}
   inline ui8 getMemberSize() const {return toSize(getValType());}
-  inline ui64 getDataSize() const {return msize();}
+  inline ui64 getDataSize() const {return msize() - 9;}
   inline void* getDataPointer() const {return data.bytes + 9;}
 
   inline bool isByte() const {return getType() == VarType::byte_array;}
