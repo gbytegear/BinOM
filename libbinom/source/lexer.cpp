@@ -50,6 +50,7 @@ Lexer::LiteralType Lexer::clarifyLiteralType(Lexer::ContainerType container_type
       }
     default: return currtent_type;
   }
+  return currtent_type;
 }
 
 void Lexer::skipWhiteSpace(Lexer::ParseContext& ctx) {
@@ -195,7 +196,7 @@ BufferArray Lexer::parseName(Lexer::ParseContext& ctx) {
             return data;
           } else  {ctx.index = start; break;}
         default:  {ctx.index = start; break;}
-      }
+      } break;
 
     case 'u':
       ++ctx;
@@ -599,6 +600,7 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
               data.pushBack(parsePrimitive(ctx, ContainerType::unsigned_dword_array));
               skipSeparator(ctx);
             }
+            return data;
           } else throw Exception(ErrCode::unexpected_expression,
                                  "Unexpected char 'i' in struct description\n"
                                  "Maybe you haven't completed the 'i32' type?");
@@ -612,6 +614,7 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
               data.pushBack(parsePrimitive(ctx, ContainerType::unsigned_qword_array));
               skipSeparator(ctx);
             }
+            return data;
           } else throw Exception(ErrCode::unexpected_expression,
                                  "Unexpected char 'i' in struct description\n"
                                  "Maybe you haven't completed the 'i64' type?");
@@ -801,6 +804,7 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
         throw Exception(ErrCode::unexpected_expression,
                                      "Unexpected 'a' in struct description\n"
                                        "Maybe you haven't completed the 'arr' type?");
+    break;
     case '[':
       {
         skipWhiteSpace(ctx);
@@ -819,6 +823,7 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
         throw Exception(ErrCode::unexpected_expression,
                                      "Unexpected 'o' in struct description\n"
                                        "Maybe you haven't completed the 'obj' type?");
+    break;
     case '{':
       {
         skipWhiteSpace(ctx);
@@ -838,6 +843,7 @@ Variable Lexer::parseContainer(Lexer::ParseContext& ctx) {
       }
     default: throw Exception(ErrCode::unexpected_expression);
   }
+  throw Exception(ErrCode::unexpected_expression);
 }
 
 Variable Lexer::parseLiteral(Lexer::ParseContext& ctx) {

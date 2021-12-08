@@ -95,7 +95,6 @@ Variable::Variable(f64 value) : data(tryMalloc(9)) {
   *reinterpret_cast<f64*>(data.bytes + 1) = value;
 }
 
-Variable::Variable(const std::string str) : data(nullptr) {new(this) BufferArray(str);}
 Variable::Variable(const std::string_view str) : data(nullptr) {new(this) BufferArray(str);}
 Variable::Variable(const std::u16string_view str) : data(nullptr) {new(this) BufferArray(str);}
 Variable::Variable(const std::u32string_view str) : data(nullptr) {new(this) BufferArray(str);}
@@ -690,8 +689,9 @@ std::ostream& operator<<(std::ostream& os, const binom::ValueRef val) {
         case binom::ValType::qword: return os << val.asUi64();
       }
     break;
-
   }
+
+  return os;
 }
 
 std::ostream& operator<<(std::ostream& os, binom::Primitive& primitive) {return printWithIndent(os, 0, "", primitive);}
