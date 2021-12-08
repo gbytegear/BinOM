@@ -95,22 +95,16 @@ Variable::Variable(f64 value) : data(tryMalloc(9)) {
   *reinterpret_cast<f64*>(data.bytes + 1) = value;
 }
 
+Variable::Variable(const std::string str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::string_view str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::u16string_view str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::u32string_view str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const std::wstring_view wstr) : data(nullptr) {new(this) BufferArray(wstr);}
 
-
-
-Variable::Variable(const char* str) : data(tryMalloc(9 + strlen(str))) {
-  data.type[0] = VarType::byte_array;
-  ui64 size = strlen(str);
-  *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-  memcpy(reinterpret_cast<char*>(data.bytes + 9), str, size);
-}
-
-Variable::Variable(const std::string str) : data(tryMalloc(9 + str.length())) {
-  data.type[0] = VarType::byte_array;
-  ui64 size = str.length();
-  *reinterpret_cast<ui64*>(data.bytes + 1) = size;
-  memcpy(reinterpret_cast<char*>(data.bytes + 9), str.c_str(), size);
-}
+Variable::Variable(const char* str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const char16_t* str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const char32_t* str) : data(nullptr) {new(this) BufferArray(str);}
+Variable::Variable(const wchar_t* str) : data(nullptr) {new(this) BufferArray(str);}
 
 
 

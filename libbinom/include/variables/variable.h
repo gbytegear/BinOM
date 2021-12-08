@@ -66,8 +66,16 @@ public:
   Variable(f64 value);
 
   // Buffer_array init
+  Variable(const std::string str) : data(nullptr) {new(this) BufferArray(str);}
+  Variable(const std::string_view str) : data(nullptr) {new(this) BufferArray(str);}
+  Variable(const std::u16string_view str) : data(nullptr) {new(this) BufferArray(str);}
+  Variable(const std::u32string_view str) : data(nullptr) {new(this) BufferArray(str);}
+  Variable(const std::wstring_view wstr) : data(nullptr) {new(this) BufferArray(wstr);}
+
   Variable(const char* str);
-  Variable(const std::string str);
+  Variable(const char16_t* str);
+  Variable(const char32_t* str);
+  Variable(const wchar_t* str);
 
   Variable(size_t size, ui8 value);
   Variable(size_t size, ui16 value);
