@@ -207,13 +207,21 @@ inline void TestExpressionFrame::testString(BufferArray node_string, Query::Quer
         return;
       case QOper::reg_test: {
         BufferArray reg_str = field.getString();
-        if(!reg_str.isPrintable() || !node_string.isPrintable()) return invalidTest();
-        const std::regex reg(reg_str.toString());
-        last_value = getRelationResult(
-                        last_value,
-                        last_rel,
-                        std::regex_match(node_string.toString(), reg)
-                        );
+        if(reg_str.isPrintable() && node_string.isPrintable()) {
+          const std::regex reg(reg_str.toString());
+          last_value = getRelationResult(
+                          last_value,
+                          last_rel,
+                          std::regex_match(node_string.toString(), reg)
+                          );
+        } elif(reg_str.isWPrintable() && node_string.isWPrintable()) {
+          const std::wregex reg(reg_str.toWString());
+          last_value = getRelationResult(
+                          last_value,
+                          last_rel,
+                          std::regex_match(node_string.toWString(), reg)
+                          );
+        } else return invalidTest();
       }return;
       default: invalidTest(); return;
     }
@@ -316,8 +324,7 @@ void TestExpressionFrame::operator()(Query::QueryEpression expr, NodeVisitor nod
         case binom::QProp::name:
             if(std::optional<BufferArray> name = node.getName(); name)
                 testString(std::move(*name), expr);
-            else
-                invalidTest();
+            else invalidTest();
         break;
 
 
@@ -459,10 +466,7 @@ void TestExpressionFrame::operator()(Query::QueryEpression expr, FileNodeVisitor
                 break;
 
                 case VarTypeClass::buffer_array:
-                    if(toValueType(node.getType()) != ValType::byte)
-                        invalidTest();
-                    else
-                        testString(node.getVariable().toBufferArray(), expr);
+                    testString(node.getVariable().toBufferArray(), expr);
                 break;
 
                 default: invalidTest(); break;
