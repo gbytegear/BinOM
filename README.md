@@ -1,4 +1,4 @@
-# <img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">BinOM
+# <a href="https://gbytegear.github.io/BinOM/"><img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">BinOM</a>
 
 ## Definitions
 
@@ -20,6 +20,15 @@
 * Object type class:
   * **object** - heterogeneous "key-value" container
 
+### Supported compliers and arhictectures:
+* Windows
+  * MinGw32
+  * MinGw64
+* Linux
+  * GCC x32
+  * GCC x64
+  * GCC ARM
+
 ### Build library
 
 For build BinOM library from source code from this repository, required GCC compile and Make utilite, or MinGw for windows:
@@ -37,15 +46,30 @@ $ git clone https://github.com/gbytegear/BinOM.git
 ```
 Then you need to go to the directory with source files `./src/` and compile library:
 ```bash
-$ cd BinOM/src
+$ cd BinOM
 $ make all
 ```
 The compiled library and BinOM ToolKit will be in `BinOM/build/`
 
 Link library with your project:
 ```
-$ g++ -Ipath/to/lbinom/includes -Lpath/to/lbinom/ -lbinom -lstdc++fs <your sources>
+$ g++ -Ipath/to/lbinom/includes -Lpath/to/libbinom/ -lbinom -lstdc++fs <your sources>
 ```
+
+
+### BinOM C++ Classes
+* binom::Variable - container for storing and processing BinOM data in RAM
+  * binom::Primitive - container for primitive data types
+  * binom::BufferArray - container for buffer array data types
+  * binom::Array - container for array data type
+  * binom::Object - container for object data type
+  * binom::NodeVisitor - interface for traversing the hierarchical BinOM structure
+* binom::SerializedStorage - container for storing static BinOM data in File
+* binom::DynamicStorage - container for storing and processing dynamic BinOM data in File
+  * binom::FileNodeVisitor - interface for traversing the hierarchical BinOM structure
+* binom::Path - path to BinOM node
+* binom::Query - query for conditionally searching data in a BinOM node
+* binom::lexer - BSDL parsing interface
 
 ### Library usage example
 
@@ -57,7 +81,6 @@ $ g++ -Ipath/to/lbinom/includes -Lpath/to/lbinom/ -lbinom -lstdc++fs <your sourc
 
 int main() {
 
-  // BinOM project namespace (all magic here)
   using namespace binom;
 
   // Create BinOM variable
@@ -68,6 +91,42 @@ int main() {
       {"prop_3", "Hello, world!"} // Byte array from c-string
     }
   };
+  /* Description:
+    In BinOM it is possible to initialize a structure using initialization lists.
+    This method is most convenient for initializing BinOM structures of any complexity.
+    The following initialization lists are available for specifying structures:
+    * varr - array,
+    * vobj - object,
+    * ui8arr - byte array,
+    * ui16arr - word array,
+    * ui32arr - dword array,
+    * ui64ahr - qword array,
+    * i8arr - byte array,
+    * i16arr - word array,
+    * i32arr - dword array,
+    * i64arr - qword array.
+    To indicate the size of numbers, it is better to use the declared
+    literals of numbers:
+    * 1_ui8 - byte,
+    * 2_ui16 - word,
+    * 3_ui32 - dword,
+    * 4_ui64 - qword,
+    * 5_i8 - byte,
+    * 6_i16 - word,
+    * 7_i32 - dword,
+    * 8_i64 - qword,
+    * 9.5_f32 - dword,
+    * 10.5_f64 - qword.
+    You can also use strings of different encodings to initialize
+    buffer arrays:
+    * "..." and u8"..." - byte array
+    * L"..." - implementation defined
+    * u16"..." - word array
+    * u32"..." - dword array
+    
+    All initialization lists declared in `libbinom/include/utils/types.h`
+    All number literals declared in `libbinom/include/utils/ctypes.h`
+  */
 
   // Create BinOM serialized storage file
   SerializedStorage s_storage("data.binom");
@@ -77,11 +136,11 @@ int main() {
 
   // Create BinOM dynamic storage file (with struct from var as default)
   DynamicStorage d_storage("data.binomdb", var);
-  FileNodeVisitor root = d_storage;
+  FileNodeVisitor root = d_storage; // Atomaticly call DynamicStorage::getRoot()
   // Change "prop_3" variable in data.binomdb file
-  root[{0, "prop_3"}].setVariable("Goodbie, world!");
+  root[{0, "prop_3"}].setVariable("Goodbie, world!"); // or root[0].setVariable("prop_3", "Goodbie, world!");
   // Get "prop_2" value from data.binomdb file in Variable
-  Variable from_storgae = root[0].getVariable("prop_2");
+  Variable from_storgae = root[0]["prop_2"]; // or auto from_storgae = root[0].getVariable("prop_2");
 
   // Convert structure description to Variable (More details in the BSDL section)
   std::ifstream t("struct.bsdl");
@@ -142,3 +201,49 @@ Example:
 }
 ```
 
+### BinOM Toolkit (binomtk)
+
+BinOM Toolkit - a set of tools for working with BinOM data.
+#### Commands:
+* **cat** - print BinOM-files content
+```
+$ binomtk cat <file_#1> <file_#2> ... <file_#N>
+```
+* **pnode** - print nodes from BinOM-file
+```
+# path example: name[0]name_1.name_2
+$ binomtk pnode <file> <path_to_node_#1> <path_to_node_#2> ... <path_to_node_#N>
+```
+* **mk** - create BinOM-file
+```
+$ binomtk mk <file>
+```
+* **edit** - edit BinOM-file
+```
+$ binomtk edit <file>
+```
+* **build** - build BinOM-file from BinOM source
+```
+$ binomtk build <source-file> <output-file>
+```
+* **convert** - automatically converts BinOM files to serialized or dynamic types
+```
+$ binomtk convert <old_file> <new_file>
+```
+
+#### Optional flags:
+* **help** - print this manual
+```
+$ binomtk -help [or:-h, --help]
+```
+* **license** - print license
+```
+$ binomtk -license [or:-l, --license]
+```
+* **outflag** - change BinOM-tree output mode
+```
+# primitive: 's' - signed int, 'u' - unsigned int, 'h' - hex
+# buffer array: 'p' - primitive array, 't' - string (if printable)
+$ binomtk -outflag hp
+# primitive - hex, buffer array - primitive array
+```
