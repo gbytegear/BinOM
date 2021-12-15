@@ -1,23 +1,21 @@
 # <a href="https://gbytegear.github.io/BinOM/"><img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">BinOM</a>
 
-## Definitions
-
-**BinOM**(*Binary Object Model*) - serializtion / deserializtion data format implemnted as C++ library
+**BinOM**(*Binary Object Model*) - library for working with a hierarchical data format for general purposes.
 
 ### BinOM Data Types
-* Primitive type class:
+* **Primitive** type class:
   * **byte** - 8 bit variable
   * **word** - 16 bit variable
   * **dword** - 32 bit variable
   * **qword** - 64 bit variable
-* Buffer Array type class:
+* **Buffer Array** type class:
   * **byte array** - array of 8 bit values (*Can be interpreted as UTF-8 string*)
   * **word array** - array of 16 bit values (*Can be interpreted as UTF-16 string*)
   * **dword array** - array of 32 bit values
   * **qword array** - array of 64 bit values
-* Array type class:
+* **Array** type class:
   * **array** - heterogeneous array
-* Object type class:
+* **Object** type class:
   * **object** - heterogeneous "key-value" container
 
 ### Supported compliers and arhictectures:
@@ -58,18 +56,18 @@ $ g++ -Ipath/to/lbinom/includes -Lpath/to/libbinom/ -lbinom -lstdc++fs <your sou
 
 
 ### BinOM C++ Classes
-* binom::Variable - container for storing and processing BinOM data in RAM
-  * binom::Primitive - container for primitive data types
-  * binom::BufferArray - container for buffer array data types
-  * binom::Array - container for array data type
-  * binom::Object - container for object data type
-  * binom::NodeVisitor - interface for traversing the hierarchical BinOM structure
-* binom::SerializedStorage - container for storing static BinOM data in File
-* binom::DynamicStorage - container for storing and processing dynamic BinOM data in File
-  * binom::FileNodeVisitor - interface for traversing the hierarchical BinOM structure
-* binom::Path - path to BinOM node
-* binom::Query - query for conditionally searching data in a BinOM node
-* binom::lexer - BSDL parsing interface
+* `binom::Variable` - container for storing and processing BinOM data in RAM
+  * `binom::Primitive` - container for primitive data types
+  * `binom::BufferArray` - container for buffer array data types
+  * `binom::Array` - container for array data type
+  * `binom::Object` - container for object data type
+  * `binom::NodeVisitor` - interface for traversing the hierarchical BinOM structure
+* `binom::SerializedStorage` - container for storing static BinOM data in File
+* `binom::DynamicStorage` - container for storing and processing dynamic BinOM data in File
+  * `binom::FileNodeVisitor` - interface for traversing the hierarchical BinOM structure
+* `binom::Path` - path to BinOM node
+* `binom::Query` - query for conditionally searching data in a BinOM node
+* `binom::lexer` - BSDL parsing interface
 
 ### Library usage example
 
