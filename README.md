@@ -67,7 +67,7 @@ $ g++ -Ipath/to/lbinom/includes -Lpath/to/libbinom/ -lbinom -lstdc++fs <your sou
   * `binom::FileNodeVisitor` - interface for traversing the hierarchical BinOM structure
 * `binom::Path` - path to BinOM node
 * `binom::Query` - query for conditionally searching data in a BinOM node
-* `binom::lexer` - BSDL parsing interface
+* `binom::lexer` - BSDL to `binom::Variable` translator interface (More details in the [BSDL section](#binom-struct-description-language-bsdl))
 
 ### Library usage example
 
@@ -202,6 +202,12 @@ Example:
 ### BinOM Toolkit (binomtk)
 
 BinOM Toolkit - a set of tools for working with BinOM data.
+#### Build:
+In directory with source code of this project execute command:
+```bash
+$ make tk
+```
+
 #### Commands:
 * **cat** - print BinOM-files content
 ```
