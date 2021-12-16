@@ -2,21 +2,91 @@
 
 **BinOM**(*Binary Object Model*) - library for working with a hierarchical data format for general purposes.
 
+**WARNING:** This project is at the testing stage, you should not use it in production!
+
 ### BinOM Data Types
-* **Primitive** type class:
-  * **byte** - 8 bit variable
-  * **word** - 16 bit variable
-  * **dword** - 32 bit variable
-  * **qword** - 64 bit variable
-* **Buffer Array** type class:
-  * **byte array** - array of 8 bit values (*Can be interpreted as UTF-8 string*)
-  * **word array** - array of 16 bit values (*Can be interpreted as UTF-16 string*)
-  * **dword array** - array of 32 bit values
-  * **qword array** - array of 64 bit values
-* **Array** type class:
-  * **array** - heterogeneous array
-* **Object** type class:
-  * **object** - heterogeneous "key-value" container
+
+<table>
+ <tr>
+  <th>Type</th><th>Definition</th><th>Value</th>
+ </tr>
+ <tr>
+  <th colspan="3">Primitive type class</th>
+ </tr>
+ <tr>
+  <th>byte</th>
+  <td>8 bit variable</td>
+  <td>Unsigned: 0..255;<br>
+   Signed: -128..127;
+  </td>
+ </tr>
+ <tr>
+  <th>word</th>
+  <td>16 bit variable</td>
+  <td>
+   Unsigned: 0..65535;<br>
+   Signed:-32768..32767;
+  </td>
+ </tr>
+ <tr>
+  <th>dword</th>
+  <td>32 bit variable</td>
+  <td>
+   Unsigned: 0..4294967295;<br>
+   Signed: -2147483648..2147483647;<br>
+   Float: +/-3.4E-38..3.4E+38
+  </td>
+ </tr>
+ <tr>
+  <th>qword</th>
+  <td>64 bit variable</td>
+  <td>
+   Unsigned: 0..18446744073709551615;<br>
+   Signed: -9223372036854775808..9223372036854775807;<br>
+   Float: +/-1.7E-308..1.7E+308
+  </td>
+ </tr>
+ <tr>
+  <th colspan="3">Buffer Array type class</th>
+ </tr>
+ <tr>
+  <th>byte array</th>
+  <td>Array of 8 bit values</td>
+  <td>Array of bytes</td>
+ </tr>
+ <tr>
+  <th>word array</th>
+  <td>Array of 16 bit values</td>
+  <td>Array of words</td>
+ </tr>
+ <tr>
+  <th>dword array</th>
+  <td>Array of 32 bit values</td>
+  <td>Array of dwords</td>
+ </tr>
+ <tr>
+  <th>qword array</th>
+  <td>Array of 64 bit values</td>
+  <td>Array of qwords</td>
+ </tr>
+ <tr>
+  <th colspan="3">Array type class</th>
+ </tr>
+ <tr>
+  <th>array</th>
+  <td>Heterogeneous array</td>
+  <td>Array of any BinOM types</td>
+ </tr>
+ <tr>
+  <th colspan="3">Object type class</th>
+ </tr>
+ <tr>
+  <th>object</th>
+  <td>Heterogeneous "key-value" container</td>
+  <td>Map with BuffeArray type key and any BinOM type value</td>
+ </tr>
+ 
+</table>
 
 ### Build library
 
@@ -63,7 +133,7 @@ Be careful and report bugs when you encounter problems. When reporting a build e
   * `binom::NodeVisitor` - interface for traversing the hierarchical BinOM structure
 * `binom::SerializedStorage` - container for storing static BinOM data in File
 * `binom::DynamicStorage` - container for storing and processing dynamic BinOM data in File
-  * `binom::FileNodeVisitor` - interface for traversing the hierarchical BinOM structure
+  * `binom::FileNodeVisitor` - interface for traversing the hierarchical BinOM structure (thread-safe)
 * `binom::Path` - path to BinOM node
 * `binom::Query` - query for conditionally searching data in a BinOM node
 * `binom::lexer` - BSDL to `binom::Variable` translator interface (More details in the [BSDL section](#binom-struct-description-language-bsdl))
