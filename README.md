@@ -18,15 +18,6 @@
 * **Object** type class:
   * **object** - heterogeneous "key-value" container
 
-### Supported compliers and arhictectures:
-* Windows
-  * MinGw32
-  * MinGw64
-* Linux
-  * GCC x32
-  * GCC x64
-  * GCC ARM
-
 ### Build library
 
 For build BinOM library from source code from this repository, required GCC compile and Make utilite, or MinGw for windows:
@@ -53,6 +44,14 @@ Link library with your project:
 ```
 $ g++ -Ipath/to/lbinom/includes -Lpath/to/libbinom/ -lbinom -lstdc++fs <your sources>
 ```
+#### Supported compliers and arhictectures:
+There are plans to test this project on all the latest compiler releases, but the following are currently supported: 
+* Windows MinGw (x32, x64)
+* Linux GCC (x32, x64, aarch64)
+* Linux Clang (aarch64)
+
+The code of this project can be compiled on other compilers that support *C++17* and *std::filesystems*, but the project has not been tested using them.
+Be careful and report bugs when you encounter problems. When reporting a build error, please add the name and version of the compiler and the output to the console with errors to the message. Please make sure your compiler supports *C++17* and *std::filesystems* when reporting a bug. 
 
 
 ### BinOM C++ Classes
@@ -68,6 +67,8 @@ $ g++ -Ipath/to/lbinom/includes -Lpath/to/libbinom/ -lbinom -lstdc++fs <your sou
 * `binom::Path` - path to BinOM node
 * `binom::Query` - query for conditionally searching data in a BinOM node
 * `binom::lexer` - BSDL to `binom::Variable` translator interface (More details in the [BSDL section](#binom-struct-description-language-bsdl))
+
+Documentation describing all classes and functions is expected soon.
 
 ### Library usage example
 
