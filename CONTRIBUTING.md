@@ -68,7 +68,7 @@ while(/*condition*/) {
   /*expressions*/
 }
 
-for(/*definitions*/;/*condition*/;/*counter change*/) {
+for(/*counter definition*/;/*condition*/;/*counter change*/) {
   /*expressions*/
 }
 
@@ -82,7 +82,7 @@ if(/*condition*/) /*expression*/
 
 while(/*condition*/) /*expression*/
 
-for(/*definitions*/;/*condition*/;/*counter change*/) /*expression*/
+for(/*counter definition*/;/*condition*/;/*counter change*/) /*expression*/
 ```
 If the expression is too long to fit on the same line with the statement, it is allowed to fit the expression on a new line.
 ```cpp
@@ -97,5 +97,5 @@ for(/*definitions*/;/*condition*/;/*counter change*/)
 ```
 In functions and methods with short expressions in statement brackets, it is allowed to place expressions and a closing parenthesis on the same line on which the function or method was declared.
 ```cpp
-void doSomething() { /*expressions*/ }
+void doSomething() { /*expression*/ }
 ```
