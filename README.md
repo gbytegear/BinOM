@@ -52,17 +52,17 @@
  <tr>
   <th>byte array</th>
   <td>Array of 8 bit values</td>
-  <td>Array of bytes</td>
+  <td>Array of bytes<br>(can interpret as ASCII/UTF-8 string)</td>
  </tr>
  <tr>
   <th>word array</th>
   <td>Array of 16 bit values</td>
-  <td>Array of words</td>
+  <td>Array of words<br>(can interpret as UTF-16 string)</td>
  </tr>
  <tr>
   <th>dword array</th>
   <td>Array of 32 bit values</td>
-  <td>Array of dwords</td>
+  <td>Array of dwords<br>(can interpret as UTF-32 string)</td>
  </tr>
  <tr>
   <th>qword array</th>
