@@ -23,10 +23,11 @@ public:
   inline FileNodeVisitor getNodeByPath(Path path) {return getRoot()(std::move(path));}
 
   inline operator FileNodeVisitor () {return fmm;}
+  inline operator Variable() {return getRoot();}
   inline FileNodeVisitor operator*() {return fmm;}
   inline FileNodeVisitor operator[](Path path) {return getNodeByPath(std::move(path));}
-  inline FileNodeVisitor operator[](virtual_index node_index) {return getNodeByNodeIndex(node_index);}
-  inline FileNodeVisitor operator()(virtual_index node_index, real_index element_index = 0xFFFFFFFFFFFFFFFF) {return getNodeByNodeIndex(node_index, element_index);}
+  inline FileNodeVisitor operator[](ui64 index) {return getRoot()(index);}
+  inline FileNodeVisitor operator[](BufferArray name) {return getRoot()(std::move(name));}
 };
 
 }

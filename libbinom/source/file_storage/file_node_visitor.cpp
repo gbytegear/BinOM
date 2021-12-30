@@ -6,9 +6,9 @@
 using namespace binom;
 
 Variable FileNodeVisitor::buildVariable(virtual_index node_index) const {
-  RWGuard rwg = fmm.getRWGuard(node_index);
+  RWGuard rwg = fmm->getRWGuard(node_index);
   ScopedRWGuard lk(rwg, LockType::shared_lock);
-  NodeDescriptor descriptor = fmm.getNodeDescriptor(node_index);
+  NodeDescriptor descriptor = fmm->getNodeDescriptor(node_index);
   switch (toTypeClass(descriptor.type)) {
     case binom::VarTypeClass::primitive: return buildPrimitive(node_index, &descriptor, &lk);
     case binom::VarTypeClass::buffer_array: return buildBufferArray(node_index, &descriptor, &lk);
@@ -21,8 +21,8 @@ Variable FileNodeVisitor::buildVariable(virtual_index node_index) const {
 
 Primitive FileNodeVisitor::buildPrimitive(virtual_index node_index, const NodeDescriptor* _descriptor, FileNodeVisitor::ScopedRWGuard* lk) const {
   std::unique_ptr<RWGuard> rwg_ptr;
-  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm.getRWGuard(node_index))), LockType::shared_lock);
-  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
+  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm->getRWGuard(node_index))), LockType::shared_lock);
+  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm->getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::primitive)
     throw Exception(ErrCode::binom_invalid_type);
   return Primitive(toValueType(descriptor.type), &descriptor.index);
@@ -30,11 +30,11 @@ Primitive FileNodeVisitor::buildPrimitive(virtual_index node_index, const NodeDe
 
 BufferArray FileNodeVisitor::buildBufferArray(virtual_index node_index, const NodeDescriptor* _descriptor, FileNodeVisitor::ScopedRWGuard* lk) const {
   std::unique_ptr<RWGuard> rwg_ptr;
-  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm.getRWGuard(node_index))), LockType::shared_lock);
-  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
+  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm->getRWGuard(node_index))), LockType::shared_lock);
+  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm->getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::buffer_array)
     throw Exception(ErrCode::binom_invalid_type);
-  ByteArray data = fmm.getNodeData(descriptor);
+  ByteArray data = fmm->getNodeData(descriptor);
   data.pushFront<ui64>(data.length() / toSize(toValueType(descriptor.type)));
   data.pushFront(descriptor.type);
   void* variable = data.unfree();
@@ -43,11 +43,11 @@ BufferArray FileNodeVisitor::buildBufferArray(virtual_index node_index, const No
 
 Array FileNodeVisitor::buildArray(virtual_index node_index, const NodeDescriptor* _descriptor, FileNodeVisitor::ScopedRWGuard* lk) const {
   std::unique_ptr<RWGuard> rwg_ptr;
-  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm.getRWGuard(node_index))), LockType::shared_lock);
-  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
+  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm->getRWGuard(node_index))), LockType::shared_lock);
+  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm->getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::array)
     throw Exception(ErrCode::binom_invalid_type);
-  ByteArray data = fmm.getNodeData(descriptor);
+  ByteArray data = fmm->getNodeData(descriptor);
   {
     void** array_it = data.begin<void*>();
     for(auto it = data.begin<virtual_index>(), end = data.end<virtual_index>(); it != end; (++it, ++array_it))
@@ -62,15 +62,15 @@ Array FileNodeVisitor::buildArray(virtual_index node_index, const NodeDescriptor
 
 Object FileNodeVisitor::buildObject(virtual_index node_index, const NodeDescriptor* _descriptor, FileNodeVisitor::ScopedRWGuard* lk) const {
   std::unique_ptr<RWGuard> rwg_ptr;
-  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm.getRWGuard(node_index))), LockType::shared_lock);
-  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm.getNodeDescriptor(node_index);
+  ScopedRWGuard cur_lk(lk? *lk : *(rwg_ptr = std::make_unique<RWGuard>(fmm->getRWGuard(node_index))), LockType::shared_lock);
+  NodeDescriptor descriptor = _descriptor? *_descriptor : fmm->getNodeDescriptor(node_index);
   if(toTypeClass(descriptor.type) != VarTypeClass::object)
     throw Exception(ErrCode::binom_invalid_type);
   if(descriptor.isNoData())
     return Object();
 
 //  ObjectElementFinder finder(fmm.getNodeData(descriptor), node_index);
-  ObjectElementFinder finder(fmm, node_index, cur_lk.getRWGuard());
+  ObjectElementFinder finder(*fmm, node_index, cur_lk.getRWGuard());
   ByteArray data(9 + finder.getElementCount()*sizeof(void*)*2);
   data.get<VarType>(0) = VarType::object; // Set type
   data.get<ui64>(0, 1) = finder.getElementCount(); // Set length
@@ -97,26 +97,26 @@ virtual_index FileNodeVisitor::createVariable(Variable variable) {
 }
 
 virtual_index FileNodeVisitor::createPrimitive(Primitive primitive) {
-  return fmm.createNode(primitive.getType(), ByteArray(primitive.getDataPtr(), toSize(primitive.getValType())));
+  return fmm->createNode(primitive.getType(), ByteArray(primitive.getDataPtr(), toSize(primitive.getValType())));
 }
 
 virtual_index FileNodeVisitor::createBufferArray(BufferArray buffer_array) {
-  return fmm.createNode(buffer_array.getType(), buffer_array.toByteArray());
+  return fmm->createNode(buffer_array.getType(), buffer_array.toByteArray());
 }
 
 virtual_index FileNodeVisitor::createArray(Array array) {
-  if(array.isEmpty()) return fmm.createNode(VarType::array, ByteArray());
+  if(array.isEmpty()) return fmm->createNode(VarType::array, ByteArray());
   ByteArray data(array.getMemberCount()*sizeof(virtual_index));
   virtual_index* it = data.begin<virtual_index>();
   for(Variable& variable : array) {
     *it = createVariable(std::move(variable));
     ++it;
   }
-  return fmm.createNode(VarType::array, std::move(data));
+  return fmm->createNode(VarType::array, std::move(data));
 }
 
 virtual_index FileNodeVisitor::createObject(Object object) {
-  if(object.isEmpty()) return fmm.createNode(VarType::object, ByteArray());
+  if(object.isEmpty()) return fmm->createNode(VarType::object, ByteArray());
   ByteArray
       name_length_block,
       name_block,
@@ -141,7 +141,7 @@ virtual_index FileNodeVisitor::createObject(Object object) {
     name_block.length(),
     index_block.length<virtual_index>()
   };
-  return fmm.createNode(VarType::object,
+  return fmm->createNode(VarType::object,
                         ByteArray{
                           ByteArray(&descriptor, sizeof (ObjectDescriptor)),
                           std::move(name_length_block),
@@ -152,13 +152,13 @@ virtual_index FileNodeVisitor::createObject(Object object) {
 
 ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
   std::unique_ptr<RWGuard> rwg_ptr;
-  ScopedRWGuard cur_lk((node_index == this->node_index)? current_rwg : *(rwg_ptr = std::make_unique<RWGuard>(fmm.getRWGuard(node_index))), LockType::shared_lock);
-  NodeDescriptor descriptor = fmm.getNodeDescriptor(node_index);
+  ScopedRWGuard cur_lk((node_index == this->node_index)? current_rwg : *(rwg_ptr = std::make_unique<RWGuard>(fmm->getRWGuard(node_index))), LockType::shared_lock);
+  NodeDescriptor descriptor = fmm->getNodeDescriptor(node_index);
   switch (toTypeClass(descriptor.type)) {
     case binom::VarTypeClass::primitive:
     case binom::VarTypeClass::buffer_array: return ByteArray();
     case binom::VarTypeClass::array: {
-      ByteArray indexes = fmm.getNodeData(descriptor);
+      ByteArray indexes = fmm->getNodeData(descriptor);
       ByteArray add_indexes;
       for(virtual_index* index_it = indexes.begin<virtual_index>(),
                        * index_end = indexes.end<virtual_index>();
@@ -168,8 +168,8 @@ ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
       return indexes;
     }
     case binom::VarTypeClass::object: {
-      ObjectDescriptor object_descriptor = fmm.getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).first<ObjectDescriptor>();
-      ByteArray indexes = fmm.getNodeDataPart(descriptor,
+      ObjectDescriptor object_descriptor = fmm->getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).first<ObjectDescriptor>();
+      ByteArray indexes = fmm->getNodeDataPart(descriptor,
                                               sizeof (ObjectDescriptor) +
                                               object_descriptor.length_element_count*sizeof (ObjectNameLength) +
                                               object_descriptor.name_block_size,
@@ -189,6 +189,7 @@ ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
 }
 
 VarType FileNodeVisitor::getType() const {
+  if(isNull()) return VarType::invalid_type;
   auto lk = getScopedRWGuard(LockType::shared_lock);
   NodeDescriptor descriptor = getDescriptor();
   if(toTypeClass(descriptor.type) == VarTypeClass::buffer_array && isValueRef())
@@ -197,6 +198,7 @@ VarType FileNodeVisitor::getType() const {
 }
 
 ui64 FileNodeVisitor::getElementCount() const {
+  if(isNull()) return 0;
   auto lk = getScopedRWGuard(LockType::shared_lock);
 
   NodeDescriptor descriptor = getDescriptor();
@@ -210,21 +212,23 @@ ui64 FileNodeVisitor::getElementCount() const {
     case binom::VarTypeClass::array: return descriptor.size / sizeof (virtual_index);
     case binom::VarTypeClass::object: {
       if(!descriptor.size) return 0;
-      ObjectDescriptor obj_desriptor = fmm.getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
+      ObjectDescriptor obj_desriptor = fmm->getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
       return obj_desriptor.index_count;
     }
   }
 }
 
 std::optional<BufferArray> FileNodeVisitor::getName() {
+  if(isNull()) return std::optional<BufferArray>();
   auto lk = getScopedRWGuard(LockType::shared_lock);
   if(name_pos.isNull())
     return std::optional<BufferArray>();
-  ByteArray data = fmm.getNodeDataPart(name_pos.parent_node_index, name_pos.name_pos, name_pos.length * toSize(name_pos.char_type));
+  ByteArray data = fmm->getNodeDataPart(name_pos.parent_node_index, name_pos.name_pos, name_pos.length * toSize(name_pos.char_type));
   return BufferArray(name_pos.char_type, data.begin(), name_pos.length);
 }
 
 FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
+  if(isNull()) return *this;
   auto lk = getScopedRWGuard(LockType::shared_lock);
 
   name_pos.setNull();
@@ -250,15 +254,16 @@ FileNodeVisitor& FileNodeVisitor::stepInside(ui64 index) {
         setNull();
         break;
       }
-      node_index = fmm.getNodeDataPart(descriptor, index * sizeof (virtual_index), sizeof(virtual_index)).first<virtual_index>();
+      node_index = fmm->getNodeDataPart(descriptor, index * sizeof (virtual_index), sizeof(virtual_index)).first<virtual_index>();
     break;
   }
 
-  current_rwg = fmm.getRWGuard(node_index);
+  current_rwg = fmm->getRWGuard(node_index);
   return *this;
 }
 
 FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
+  if(isNull()) return *this;
   auto lk = getScopedRWGuard(LockType::shared_lock);
 
   // Validation
@@ -269,20 +274,20 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
   }
   elif(!descriptor.size) {
     setNull();
-    current_rwg = fmm.getRWGuard(node_index);
+    current_rwg = fmm->getRWGuard(node_index);
     return *this;
   }
 
   ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
   if(!finder.findElement(std::move(name))){
     setNull();
-    current_rwg = fmm.getRWGuard(node_index);
+    current_rwg = fmm->getRWGuard(node_index);
     return *this;
   }
 
   node_index = finder.getNodeIndex();
   name_pos = finder.getNamePosition();
-  current_rwg = fmm.getRWGuard(node_index);
+  current_rwg = fmm->getRWGuard(node_index);
   return *this;
 }
 
@@ -300,8 +305,8 @@ Variable FileNodeVisitor::getVariable() const {
   if(isNull()) return nullptr;
   if(isValueRef()) {
     ScopedRWGuard lk(current_rwg, LockType::shared_lock);
-    NodeDescriptor descriptor = fmm.getNodeDescriptor(node_index);
-    ByteArray data = fmm.getNodeDataPart(descriptor,
+    NodeDescriptor descriptor = fmm->getNodeDescriptor(node_index);
+    ByteArray data = fmm->getNodeDataPart(descriptor,
                                          index*toSize(toValueType(descriptor.type)),
                                          toSize(toValueType(descriptor.type)));
     data.pushFront(toVarType(toValueType(descriptor.type)));
@@ -311,6 +316,7 @@ Variable FileNodeVisitor::getVariable() const {
 }
 
 bool FileNodeVisitor::contains(ui64 index) {
+  if(isNull()) return false;
   auto lk = getScopedRWGuard(LockType::shared_lock);
   switch (getTypeClass()) {
     case binom::VarTypeClass::primitive: return false;
@@ -322,6 +328,7 @@ bool FileNodeVisitor::contains(ui64 index) {
 }
 
 bool FileNodeVisitor::contains(BufferArray name) {
+  if(isNull()) return false;
   auto lk = getScopedRWGuard(LockType::shared_lock);
   NodeDescriptor descriptor = getDescriptor();
   if(descriptor.type != VarType::object)
@@ -333,6 +340,7 @@ bool FileNodeVisitor::contains(BufferArray name) {
 }
 
 bool FileNodeVisitor::contains(Path path) {
+  if(isNull()) return false;
   FileNodeVisitor node(*this);
   for(const Path::PathNode& path_node : path)
     if(node.isNull()) return false;
@@ -344,6 +352,7 @@ bool FileNodeVisitor::contains(Path path) {
 }
 
 void FileNodeVisitor::setVariable(Variable var) {
+  throwIfNull();
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   ByteArray data;
 
@@ -369,7 +378,7 @@ void FileNodeVisitor::setVariable(Variable var) {
       break;
       default: throw Exception(ErrCode::binom_invalid_type);
     }
-    fmm.updateNodeDataPart(node_index, index * toSize(toValueType(descriptor.type)), std::move(data), &descriptor);
+    fmm->updateNodeDataPart(node_index, index * toSize(toValueType(descriptor.type)), std::move(data), &descriptor);
     return;
   }
 
@@ -430,26 +439,28 @@ void FileNodeVisitor::setVariable(Variable var) {
   for(virtual_index* index_it = indexes.begin<virtual_index>(),
                    * index_end = indexes.end<virtual_index>();
       index_it != index_end; ++index_it)
-    fmm.removeNode(*index_it);
+    fmm->removeNode(*index_it);
 
   // Update node
-  fmm.updateNode(node_index, var.type(), std::move(data));
+  fmm->updateNode(node_index, var.type(), std::move(data));
 }
 
-void FileNodeVisitor::setVariable(ui64 index, Variable var) {return contains(index)? getChild(index).setVariable(std::move(var)) : insert(index, std::move(var));}
-void FileNodeVisitor::setVariable(BufferArray name, Variable var) {return contains(name)? getChild(std::move(name)).setVariable(std::move(var)) : insert(std::move(name), std::move(var));}
-void FileNodeVisitor::setVariable(Path path, Variable var) {return getChild(std::move(path)).setVariable(std::move(var));}
+void FileNodeVisitor::setVariable(ui64 index, Variable var) {throwIfNull(); return contains(index)? getChild(index).setVariable(std::move(var)) : insert(index, std::move(var));}
+void FileNodeVisitor::setVariable(BufferArray name, Variable var) {throwIfNull(); return contains(name)? getChild(std::move(name)).setVariable(std::move(var)) : insert(std::move(name), std::move(var));}
+void FileNodeVisitor::setVariable(Path path, Variable var) {throwIfNull(); return getChild(std::move(path)).setVariable(std::move(var));}
 
 void FileNodeVisitor::pushBack(Variable var) {
-  ScopedRWGuard lk(current_rwg, LockType::unique_lock);
+  throwIfNull();
   insert(getElementCount(), std::move(var));
 }
 
 void FileNodeVisitor::pushFront(Variable var) {
+  throwIfNull();
   insert(0, std::move(var));
 }
 
 void FileNodeVisitor::insert(ui64 index, Variable var) {
+  throwIfNull();
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   NodeDescriptor descriptor = getDescriptor();
 
@@ -464,19 +475,19 @@ void FileNodeVisitor::insert(ui64 index, Variable var) {
           switch (toValueType(descriptor.type)) {
             case binom::ValType::byte: {
               ui8 value = var.getValue();
-              fmm.insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
+              fmm->insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
             } return;
             case binom::ValType::word: {
               ui16 value = var.getValue();
-              fmm.insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
+              fmm->insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
             } return;
             case binom::ValType::dword: {
               ui32 value = var.getValue();
-              fmm.insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
+              fmm->insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
             } return;
             case binom::ValType::qword: {
               ui64 value = var.getValue();
-              fmm.insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
+              fmm->insertNodeDataPart(node_index, {{index*sizeof(value), ByteArray(&value, sizeof (value))}}, &descriptor);
             } return;
             case binom::ValType::invalid_type:
             return;
@@ -487,13 +498,13 @@ void FileNodeVisitor::insert(ui64 index, Variable var) {
           BufferArray data(toValueType(descriptor.type));
           for(ValueRef val_ref : var.toBufferArray())
             data.pushBack(val_ref);
-          fmm.insertNodeDataPart(node_index, {{index*toSize(toValueType(descriptor.type)), data.toByteArray()}}, &descriptor);
+          fmm->insertNodeDataPart(node_index, {{index*toSize(toValueType(descriptor.type)), data.toByteArray()}}, &descriptor);
         } return;
       }
 
     case binom::VarTypeClass::array: {
       virtual_index new_node_index = createVariable(std::move(var));
-      fmm.insertNodeDataPart(node_index,
+      fmm->insertNodeDataPart(node_index,
                              {{sizeof (virtual_index) * index, ByteArray(&new_node_index, sizeof (virtual_index))}},
                              &descriptor);
     } break;
@@ -501,6 +512,7 @@ void FileNodeVisitor::insert(ui64 index, Variable var) {
 }
 
 void FileNodeVisitor::insert(BufferArray name, Variable var) {
+  throwIfNull();
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   NodeDescriptor descriptor = getDescriptor();
   if(descriptor.type != VarType::object)
@@ -518,7 +530,7 @@ void FileNodeVisitor::insert(BufferArray name, Variable var) {
     };
     memcpy(&data.get(sizeof (ObjectDescriptor) + sizeof (ObjectNameLength)), name.getDataPointer(), name_block_size);
     data.get<virtual_index>(0, sizeof (ObjectDescriptor) + sizeof (ObjectNameLength) + name_block_size) = createVariable(var);
-    fmm.updateNode(node_index, data, &descriptor);
+    fmm->updateNode(node_index, data, &descriptor);
     return;
   }
 
@@ -527,6 +539,7 @@ void FileNodeVisitor::insert(BufferArray name, Variable var) {
 }
 
 void FileNodeVisitor::remove(ui64 index, ui64 count) {
+  throwIfNull();
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   NodeDescriptor descriptor = getDescriptor();
   switch (toTypeClass(descriptor.type)) {
@@ -535,27 +548,28 @@ void FileNodeVisitor::remove(ui64 index, ui64 count) {
       if(!descriptor.size) throw Exception(ErrCode::binom_out_of_range);
       if(index + count > descriptor.size/toSize(toValueType(descriptor.type)))
          throw Exception(ErrCode::binom_out_of_range);
-      fmm.removeNodeDataParts(node_index, {{index*toSize(toValueType(descriptor.type)), count*toSize(toValueType(descriptor.type))}}, &descriptor);
+      fmm->removeNodeDataParts(node_index, {{index*toSize(toValueType(descriptor.type)), count*toSize(toValueType(descriptor.type))}}, &descriptor);
     return;
     case binom::VarTypeClass::array:
       if(!descriptor.size) throw Exception(ErrCode::binom_out_of_range);
-      ByteArray indexes = fmm.getNodeDataPart(node_index, index * sizeof (virtual_index), count * sizeof (virtual_index));
+      ByteArray indexes = fmm->getNodeDataPart(node_index, index * sizeof (virtual_index), count * sizeof (virtual_index));
       ByteArray add_indexes;
       for(virtual_index* index_it = indexes.begin<virtual_index>(),
                        * index_end = indexes.end<virtual_index>();
           index_it != index_end; ++index_it)
         add_indexes += getContainedNodeIndexes(*index_it);
       indexes += std::move(add_indexes);
-      fmm.removeNodeDataParts(node_index, {{index * sizeof (virtual_index), count * sizeof (virtual_index)}}, &descriptor);
+      fmm->removeNodeDataParts(node_index, {{index * sizeof (virtual_index), count * sizeof (virtual_index)}}, &descriptor);
       for(virtual_index* index_it = indexes.begin<virtual_index>(),
                        * index_end = indexes.end<virtual_index>();
           index_it != index_end; ++index_it)
-        fmm.removeNode(*index_it);
+        fmm->removeNode(*index_it);
     return;
   }
 }
 
 void FileNodeVisitor::remove(BufferArray name) {
+  throwIfNull();
   ScopedRWGuard lk(current_rwg, LockType::unique_lock);
   if(getElementCount()) {
     ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
@@ -564,6 +578,7 @@ void FileNodeVisitor::remove(BufferArray name) {
 }
 
 void FileNodeVisitor::remove(Path path) {
+  throwIfNull();
   if(Path::iterator it = ++path.begin(), rm_it = path.begin();it == path.end())
       switch (rm_it->type()) {
       case binom::PathNodeType::index: remove(rm_it->index()); return;
@@ -592,6 +607,7 @@ bool FileNodeVisitor::test(Query query, ui64 index) noexcept {
 }
 
 NodeVector FileNodeVisitor::findSet(Query query, NodeVector node_vector) {
+  if(isNull()) return node_vector;
   if(!isIterable()) return node_vector;
   for(auto it = begin(), _end = end(); it != _end; ++it) {
     auto node = *it;
@@ -602,36 +618,40 @@ NodeVector FileNodeVisitor::findSet(Query query, NodeVector node_vector) {
 }
 
 FileNodeVisitor FileNodeVisitor::find(Query query) {
-  if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
+  if(isNull()) return FileNodeVisitor();
+  if(!isIterable()) return FileNodeVisitor(*fmm, nullptr);
   for(auto it = begin(), _end = end(); it != _end; ++it) {
     auto node = *it;
     if(node.test(query, it.index))
       return node;
   }
-  return FileNodeVisitor(fmm, nullptr);
+  return FileNodeVisitor(*fmm, nullptr);
 }
 
 FileNodeVisitor FileNodeVisitor::findFrom(ui64 index, Query query) {
-  if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
+  if(isNull()) return FileNodeVisitor();
+  if(!isIterable()) return FileNodeVisitor(*fmm, nullptr);
   for(auto it = beginFrom(index), _end = end(); it != _end; ++it) {
     auto node = *it;
     if(node.test(query, it.index))
       return node;
   }
-  return FileNodeVisitor(fmm, nullptr);
+  return FileNodeVisitor(*fmm, nullptr);
 }
 
 FileNodeVisitor FileNodeVisitor::findFrom(BufferArray name, Query query) {
-  if(!isIterable()) return FileNodeVisitor(fmm, nullptr);
+  if(isNull()) return FileNodeVisitor();
+  if(!isIterable()) return FileNodeVisitor(*fmm, nullptr);
   for(auto it = beginFrom(name), _end = end(); it != _end; ++it) {
     auto node = *it;
     if(node.test(query, it.index))
       return node;
   }
-  return FileNodeVisitor(fmm, nullptr);
+  return FileNodeVisitor(*fmm, nullptr);
 }
 
 NodeVector FileNodeVisitor::findSetFrom(ui64 index, Query query, NodeVector node_vector) {
+  if(isNull()) return node_vector;
   if(!isIterable()) return node_vector;
   for(auto it = beginFrom(index), _end = end(); it != _end; ++it) {
     auto node = *it;
@@ -642,6 +662,7 @@ NodeVector FileNodeVisitor::findSetFrom(ui64 index, Query query, NodeVector node
 }
 
 NodeVector FileNodeVisitor::findSetFrom(BufferArray name, Query query, NodeVector node_vector) {
+  if(isNull()) return node_vector;
   if(!isIterable()) return node_vector;
   for(auto it = beginFrom(name), _end = end(); it != _end; ++it) {
     auto node = *it;
@@ -658,6 +679,7 @@ binom::FileNodeVisitor::operator Variable() {return getVariable();}
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(ui64 index) {return NodeIterator(*this, index);}
 
 FileNodeVisitor::NodeIterator FileNodeVisitor::beginFrom(BufferArray name) {
+  throwIfNull();
   if(getType() != VarType::object)
     return NodeIterator(*this, true);
   if(ObjectElementFinder finder(static_cast<FileNodeVisitor&>(*this)); finder.findElement(std::move(name)))

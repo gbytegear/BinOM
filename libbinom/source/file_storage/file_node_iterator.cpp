@@ -16,7 +16,7 @@ FileNodeVisitor::NodeIterator::NodeIterator(FileNodeVisitor& node_visitor, bool 
     case binom::VarTypeClass::object:
       if(!node_visitor.getElementCount()) return;
       obj_descriptor = node_visitor.fmm
-                       .getNodeDataPart( node_visitor.node_index, 0, sizeof(ObjectDescriptor) )
+                       ->getNodeDataPart( node_visitor.node_index, 0, sizeof(ObjectDescriptor) )
                        .get<ObjectDescriptor>(0);
       if(is_end) {
         index = obj_descriptor.index_count;
@@ -25,7 +25,7 @@ FileNodeVisitor::NodeIterator::NodeIterator(FileNodeVisitor& node_visitor, bool 
         name_block_descriptor = ObjectNameLength{};
       } else {
         name_block_descriptor = node_visitor.fmm
-                                .getNodeDataPart( node_visitor.node_index, sizeof(ObjectDescriptor), sizeof(ObjectNameLength) )
+                                ->getNodeDataPart( node_visitor.node_index, sizeof(ObjectDescriptor), sizeof(ObjectNameLength) )
                                 .get<ObjectNameLength>(0);
       }
     break;
@@ -112,7 +112,7 @@ binom::FileNodeVisitor::NodeIterator& binom::FileNodeVisitor::NodeIterator::oper
         name_shift -= name_block_descriptor.name_length*toSize(name_block_descriptor.char_type);
       } else {
         --name_block_index;
-        name_block_descriptor = node_visitor.fmm.getNodeDataPart(
+        name_block_descriptor = node_visitor.fmm->getNodeDataPart(
                                   node_visitor.node_index,
                                   sizeof (ObjectDescriptor) +
                                   sizeof (ObjectNameLength)*name_block_index,
@@ -148,7 +148,7 @@ binom::FileNodeVisitor::NodeIterator& FileNodeVisitor::NodeIterator::operator++(
         } else {
           name_index = 0;
           ++name_block_index;
-          name_block_descriptor = node_visitor.fmm.getNodeDataPart(
+          name_block_descriptor = node_visitor.fmm->getNodeDataPart(
                                     node_visitor.node_index,
                                     sizeof (ObjectDescriptor) +
                                     sizeof (ObjectNameLength)*name_block_index,
@@ -174,25 +174,25 @@ bool FileNodeVisitor::NodeIterator::operator!=(binom::FileNodeVisitor::NodeItera
 }
 
 FileNodeVisitor FileNodeVisitor::NodeIterator::operator*() {
-  if(isEnd()) return FileNodeVisitor(node_visitor.fmm, nullptr);
+  if(isEnd()) return FileNodeVisitor(*node_visitor.fmm, nullptr);
   switch (toTypeClass(container_type)) {
     case binom::VarTypeClass::primitive: return node_visitor;
     case binom::VarTypeClass::buffer_array:
-    return FileNodeVisitor(node_visitor.fmm,
+    return FileNodeVisitor(*node_visitor.fmm,
                            node_visitor.node_index,
                            index);
     case binom::VarTypeClass::array:
     return FileNodeVisitor(
-          node_visitor.fmm,
-          node_visitor.fmm.getNodeDataPart(
+          *node_visitor.fmm,
+          node_visitor.fmm->getNodeDataPart(
             node_visitor.node_index,
             sizeof (virtual_index)*index,
             sizeof (virtual_index))
           .get<virtual_index>(0) );
     case binom::VarTypeClass::object:
     return FileNodeVisitor(
-          node_visitor.fmm,
-          node_visitor.fmm.getNodeDataPart(
+          *node_visitor.fmm,
+          node_visitor.fmm->getNodeDataPart(
             node_visitor.node_index,
             sizeof (ObjectDescriptor) +
             sizeof (ObjectNameLength)*obj_descriptor.length_element_count +
@@ -209,7 +209,7 @@ FileNodeVisitor FileNodeVisitor::NodeIterator::operator*() {
             name_shift
           });
     case binom::VarTypeClass::invalid_type:
-    return FileNodeVisitor(node_visitor.fmm, nullptr);
+    return FileNodeVisitor(*node_visitor.fmm, nullptr);
   }
 }
 

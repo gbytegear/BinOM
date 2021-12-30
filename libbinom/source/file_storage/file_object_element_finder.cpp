@@ -13,7 +13,7 @@ ObjectNameLength FileNodeVisitor::ObjectElementFinder::getNameBlockDescriptor(ui
 }
 
 FileNodeVisitor::ObjectElementFinder::ObjectElementFinder(FileNodeVisitor& node_visitor)
-  : fmm(node_visitor.fmm),
+  : fmm(*node_visitor.fmm),
     node_index(node_visitor.node_index),
     rw_gurad(node_visitor.current_rwg),
     pos{getObjectDescriptor(), getNameBlockDescriptor(0), 0, 0, 0} {}

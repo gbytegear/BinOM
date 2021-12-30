@@ -37,7 +37,7 @@ private:
   };
 
 
-  FileMemoryManager& fmm;
+  FileMemoryManager* fmm = nullptr;
   virtual_index node_index = 0;
   real_index index = null_index;
   NamePosition name_pos;
@@ -64,13 +64,13 @@ private:
   NodeDescriptor getDescriptor() const {
     if(node_index == null_index) return NodeDescriptor::null();
     auto lk = getScopedRWGuard(LockType::shared_lock);
-    return fmm.getNodeDescriptor(node_index);
+    return fmm->getNodeDescriptor(node_index);
   }
 
   NodeFullInfo getFullNodeInfo() {
     if(node_index == null_index) return {null_index, NodeDescriptor::null(), ByteArray()};
     auto lk = getScopedRWGuard(LockType::shared_lock);
-    return fmm.getFullNodeInfo(node_index);
+    return fmm->getFullNodeInfo(node_index);
   }
 
   FileNodeVisitor& setNull() {
@@ -79,15 +79,17 @@ private:
     return *this;
   }
 
+  inline void throwIfNull() const {if(isNull()) throw Exception(ErrCode::binom_invalid_type, "Try to interact with null!");}
+
   bool test(Query query, ui64 index) noexcept;
 
   FileNodeVisitor(FileMemoryManager& fmm, decltype (nullptr))
-    : fmm(fmm), node_index(null_index), index(null_index) {}
+    : fmm(&fmm), node_index(null_index), index(null_index) {}
 
   FileNodeVisitor(FileMemoryManager& fmm,
            virtual_index node_index = 0,
            real_index index = null_index)
-    : fmm(fmm),
+    : fmm(&fmm),
       node_index(node_index),
       index(index),
       current_rwg(fmm.getRWGuard(node_index))
@@ -96,7 +98,7 @@ private:
   FileNodeVisitor(FileMemoryManager& fmm,
            virtual_index node_index,
            NamePosition name_pos)
-    : fmm(fmm),
+    : fmm(&fmm),
       node_index(node_index),
       index(null_index),
       name_pos(name_pos),
@@ -110,20 +112,22 @@ public:
       node_index(other.node_index),
       index(other.index),
       name_pos(other.name_pos),
-      current_rwg(fmm.getRWGuard(node_index))
+      current_rwg(fmm->getRWGuard(node_index))
   {}
 
-  ScopedRWGuard getScopedRWGuard(LockType lock_type = LockType::unlocked) const {return ScopedRWGuard(current_rwg, lock_type);}
+  FileNodeVisitor() = default;
+
+  ScopedRWGuard getScopedRWGuard(LockType lock_type = LockType::unlocked) const {throwIfNull(); return ScopedRWGuard(current_rwg, lock_type);}
 
   inline FileNodeVisitor& operator=(FileNodeVisitor& other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(other);}
-  inline FileNodeVisitor& operator=(virtual_index node_index) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(fmm, node_index);}
+  inline FileNodeVisitor& operator=(virtual_index node_index) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(*fmm, node_index);}
 
   VarType getType() const override;
-  VisitorType getVisitorType() const override {return VisitorType::file_storage_visitor;}
-  inline virtual_index getNodeIndex() const {return node_index;}
+  VisitorType getVisitorType() const override {throwIfNull(); return VisitorType::file_storage_visitor;}
+  inline virtual_index getNodeIndex() const {throwIfNull(); return node_index;}
 
-  inline bool isNull() const override {return node_index == null_index;}
-  inline bool isValueRef() const override {return index != null_index;}
+  inline bool isNull() const override {return !fmm || node_index == null_index;}
+  inline bool isValueRef() const override {throwIfNull(); return index != null_index;}
   ui64 getElementCount() const override;
   std::optional<BufferArray> getName();
 
@@ -132,9 +136,9 @@ public:
   FileNodeVisitor& stepInside(Path path) override;
 
   Variable getVariable() const;
-  inline Variable getVariable(ui64 index) const {return getChild(index).getVariable();}
-  inline Variable getVariable(BufferArray name) const {return getChild(name).getVariable();}
-  inline Variable getVariable(Path path) const {return getChild(path).getVariable();}
+  inline Variable getVariable(ui64 index) const {throwIfNull(); return getChild(index).getVariable();}
+  inline Variable getVariable(BufferArray name) const {throwIfNull(); return getChild(name).getVariable();}
+  inline Variable getVariable(Path path) const {throwIfNull(); return getChild(path).getVariable();}
 
   bool contains(ui64 index) override;
   bool contains(BufferArray name) override;
@@ -155,9 +159,9 @@ public:
   void remove(BufferArray name) override;
   void remove(Path path) override;
 
-  inline FileNodeVisitor getChild(ui64 index) const {return FileNodeVisitor(*this)(index);}
-  inline FileNodeVisitor getChild(BufferArray name) const {return FileNodeVisitor(*this)(name);}
-  inline FileNodeVisitor getChild(Path path) const {return FileNodeVisitor(*this)(path);}
+  inline FileNodeVisitor getChild(ui64 index) const {throwIfNull(); return FileNodeVisitor(*this)(index);}
+  inline FileNodeVisitor getChild(BufferArray name) const {throwIfNull(); return FileNodeVisitor(*this)(name);}
+  inline FileNodeVisitor getChild(Path path) const {throwIfNull(); return FileNodeVisitor(*this)(path);}
 
   NodeVector findSet(Query query, NodeVector node_vector = NodeVector());
   FileNodeVisitor find(Query query);
@@ -168,13 +172,13 @@ public:
 
   FileNodeVisitor& operator=(FileNodeVisitor other);
 
-  FileNodeVisitor& operator()(ui64 index) override {return stepInside(index);}
-  FileNodeVisitor& operator()(BufferArray name) override {return stepInside(name);}
-  FileNodeVisitor& operator()(Path path) override {return stepInside(path);}
+  FileNodeVisitor& operator()(ui64 index) override {throwIfNull(); return stepInside(index);}
+  FileNodeVisitor& operator()(BufferArray name) override {throwIfNull(); return stepInside(name);}
+  FileNodeVisitor& operator()(Path path) override {throwIfNull(); return stepInside(path);}
 
-  inline FileNodeVisitor operator[](ui64 index) const {return getChild(index);}
-  inline FileNodeVisitor operator[](BufferArray name) const {return getChild(name);}
-  inline FileNodeVisitor operator[](Path path) const {return getChild(path);}
+  inline FileNodeVisitor operator[](ui64 index) const {throwIfNull(); return getChild(index);}
+  inline FileNodeVisitor operator[](BufferArray name) const {throwIfNull(); return getChild(name);}
+  inline FileNodeVisitor operator[](Path path) const {throwIfNull(); return getChild(path);}
 
   operator Variable() override;
 

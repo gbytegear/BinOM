@@ -6,6 +6,14 @@
 
 using namespace binom;
 
+class PerfomanceTest {
+  clock_t start_time;
+  const char* msg;
+public:
+  PerfomanceTest(const char* msg) : start_time(clock()), msg(msg) {}
+  ~PerfomanceTest() {std::clog << msg << double( clock() - start_time ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;}
+};
+
 binom::DynamicStorage storage("mthr_test.db",
                               varr{
                                 vobj{
@@ -73,9 +81,10 @@ void reader() {
 
 void file_storage_multithreading_test() {
   std::clog << "Start multithreading test\n";
+  PerfomanceTest pt("End multithreading test: ");
   srand(time(nullptr));
   std::list<std::thread> threads;
-  for(int i = 0; i < 20; ++i) {
+  for(int i = 0; i < 5000; ++i) {
     threads.emplace_back(reader);
     threads.emplace_back(writer);
   }

@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/libbinom/include/utils/node_visitor_base.h \
     $$PWD/libbinom/include/utils/var_mem_mngr.h \
     $$PWD/libbinom/include/binom.h \
+    $$PWD/libbinom/include/variables/serialized_storage.h \
     $$PWD/libbinom/include/variables/variable.h \
     $$PWD/libbinom/include/variables/primitive.h \
     $$PWD/libbinom/include/variables/buffer_array.h \
@@ -35,9 +36,9 @@ SOURCES += \
     $$PWD/libbinom/source/file_storage/file_object_element_finder.cpp \
     $$PWD/libbinom/source/lexer.cpp \
     $$PWD/libbinom/source/utils/node_visitor_base.cpp \
-    $$PWD/libbinom/source/utils/TestExpressionFrame.cpp \
     $$PWD/libbinom/source/file_storage/file_node_visitor.cpp \
-    $$PWD/libbinom/source/binom.cpp \
+    $$PWD/libbinom/source/utils/test_expression_frame.cpp \
+    $$PWD/libbinom/source/variables/serialized_storage.cpp \
     $$PWD/libbinom/source/variables/variable.cpp \
     $$PWD/libbinom/source/variables/primitive.cpp \
     $$PWD/libbinom/source/variables/buffer_array.cpp \
