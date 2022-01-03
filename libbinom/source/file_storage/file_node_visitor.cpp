@@ -158,6 +158,7 @@ ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
     case binom::VarTypeClass::primitive:
     case binom::VarTypeClass::buffer_array: return ByteArray();
     case binom::VarTypeClass::array: {
+      if(descriptor.isEmpty()) return ByteArray();
       ByteArray indexes = fmm->getNodeData(descriptor);
       ByteArray add_indexes;
       for(virtual_index* index_it = indexes.begin<virtual_index>(),
@@ -168,6 +169,7 @@ ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
       return indexes;
     }
     case binom::VarTypeClass::object: {
+      if(descriptor.isEmpty()) return ByteArray();
       ObjectDescriptor object_descriptor = fmm->getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).first<ObjectDescriptor>();
       ByteArray indexes = fmm->getNodeDataPart(descriptor,
                                               sizeof (ObjectDescriptor) +
@@ -211,7 +213,7 @@ ui64 FileNodeVisitor::getElementCount() const {
       return descriptor.size / toSize(toValueType(descriptor.type));
     case binom::VarTypeClass::array: return descriptor.size / sizeof (virtual_index);
     case binom::VarTypeClass::object: {
-      if(!descriptor.size) return 0;
+      if(descriptor.isEmpty()) return 0;
       ObjectDescriptor obj_desriptor = fmm->getNodeDataPart(descriptor, 0, sizeof (ObjectDescriptor)).get<ObjectDescriptor>(0);
       return obj_desriptor.index_count;
     }

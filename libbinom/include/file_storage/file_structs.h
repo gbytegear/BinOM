@@ -279,10 +279,11 @@ struct NodeDescriptor {
   block_size size = 0;
 
   static inline NodeDescriptor null() {return {VarType::invalid_type, 0xFFFFFFFFFFFFFFFF, 0};}
-  bool isNull() {return type == VarType::invalid_type && index == 0xFFFFFFFFFFFFFFFF && !size;}
-  bool isFree() {return type == VarType::end && !index && !size;}
-  bool isNoData() {return !index && !size;}
-  VMemoryBlock toVMemoryBlock() {return {index, size};}
+  bool isNull() const {return type == VarType::invalid_type && index == 0xFFFFFFFFFFFFFFFF && !size;}
+  bool isFree() const {return type == VarType::end && !index && !size;}
+  bool isNoData() const {return !index && !size;}
+  bool isEmpty() const {return !size;}
+  VMemoryBlock toVMemoryBlock() const {return {index, size};}
 };
 
 struct ObjectNameLength {
@@ -312,7 +313,7 @@ struct DBHeader {
   real_index first_heap_page_index = 0;
   NodeDescriptor root_node;
 
-  VersionDifference checkFileVersion() {
+  VersionDifference checkFileVersion() const {
     if(memcmp(version.file_type, current.file_type, sizeof(current.file_type)))
       return VersionDifference::file_type;
     if(version.major != current.major)
