@@ -34,6 +34,7 @@ private:
     real_index name_pos = 0;
     void setNull() {char_type = ValType::invalid_type;}
     bool isNull() {return char_type == ValType::invalid_type;}
+    operator bool () {return !isNull();}
   };
 
 
@@ -60,24 +61,9 @@ private:
   virtual_index createObject(Object object);
 
   ByteArray getContainedNodeIndexes(virtual_index node_index);
-
-  NodeDescriptor getDescriptor() const {
-    if(node_index == null_index) return NodeDescriptor::null();
-    auto lk = getScopedRWGuard(LockType::shared_lock);
-    return fmm->getNodeDescriptor(node_index);
-  }
-
-  NodeFullInfo getFullNodeInfo() {
-    if(node_index == null_index) return {null_index, NodeDescriptor::null(), ByteArray()};
-    auto lk = getScopedRWGuard(LockType::shared_lock);
-    return fmm->getFullNodeInfo(node_index);
-  }
-
-  FileNodeVisitor& setNull() {
-    node_index = null_index;
-    index = null_index;
-    return *this;
-  }
+  NodeDescriptor getDescriptor() const;
+  NodeFullInfo getFullNodeInfo();
+  FileNodeVisitor& setNull();
 
   inline void throwIfNull() const {if(isNull()) throw Exception(ErrCode::binom_invalid_type, "Try to interact with null!");}
 
@@ -119,8 +105,7 @@ public:
 
   ScopedRWGuard getScopedRWGuard(LockType lock_type = LockType::unlocked) const {throwIfNull(); return ScopedRWGuard(current_rwg, lock_type);}
 
-  inline FileNodeVisitor& operator=(FileNodeVisitor& other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(other);}
-  inline FileNodeVisitor& operator=(virtual_index node_index) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(*fmm, node_index);}
+  inline FileNodeVisitor& operator=(FileNodeVisitor other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(std::move(other));}
 
   VarType getType() const override;
   VisitorType getVisitorType() const override {throwIfNull(); return VisitorType::file_storage_visitor;}
@@ -169,8 +154,6 @@ public:
   FileNodeVisitor findFrom(BufferArray name, Query query);
   NodeVector findSetFrom(ui64 index, Query query, NodeVector node_vector = NodeVector());
   NodeVector findSetFrom(BufferArray name, Query query, NodeVector node_vector = NodeVector());
-
-  FileNodeVisitor& operator=(FileNodeVisitor other);
 
   FileNodeVisitor& operator()(ui64 index) override {throwIfNull(); return stepInside(index);}
   FileNodeVisitor& operator()(BufferArray name) override {throwIfNull(); return stepInside(name);}

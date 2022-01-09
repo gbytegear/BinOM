@@ -190,6 +190,25 @@ ByteArray FileNodeVisitor::getContainedNodeIndexes(virtual_index node_index) {
   }
 }
 
+NodeDescriptor FileNodeVisitor::getDescriptor() const {
+  if(node_index == null_index) return NodeDescriptor::null();
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  return fmm->getNodeDescriptor(node_index);
+}
+
+NodeFullInfo FileNodeVisitor::getFullNodeInfo() {
+  if(node_index == null_index) return {null_index, NodeDescriptor::null(), ByteArray()};
+  auto lk = getScopedRWGuard(LockType::shared_lock);
+  return fmm->getFullNodeInfo(node_index);
+}
+
+FileNodeVisitor& FileNodeVisitor::setNull() {
+  fmm = nullptr;
+  node_index = null_index;
+  index = null_index;
+  return *this;
+}
+
 VarType FileNodeVisitor::getType() const {
   if(isNull()) return VarType::invalid_type;
   auto lk = getScopedRWGuard(LockType::shared_lock);
@@ -673,8 +692,6 @@ NodeVector FileNodeVisitor::findSetFrom(BufferArray name, Query query, NodeVecto
   }
   return node_vector;
 }
-
-FileNodeVisitor& FileNodeVisitor::operator=(FileNodeVisitor other) {this->~FileNodeVisitor(); return *new(this) FileNodeVisitor(std::move(other));}
 
 binom::FileNodeVisitor::operator Variable() {return getVariable();}
 
