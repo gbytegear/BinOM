@@ -98,7 +98,9 @@ public:
       node_index(other.node_index),
       index(other.index),
       name_pos(other.name_pos),
-      current_rwg(fmm->getRWGuard(node_index))
+      current_rwg(fmm
+                  ? fmm->getRWGuard(node_index)
+                  : RWGuard())
   {}
 
   FileNodeVisitor() = default;
