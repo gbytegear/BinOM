@@ -206,6 +206,8 @@ FileNodeVisitor& FileNodeVisitor::setNull() {
   fmm = nullptr;
   node_index = null_index;
   index = null_index;
+  new(&name_pos) NamePosition;
+  current_rwg = RWGuard();
   return *this;
 }
 
@@ -295,14 +297,12 @@ FileNodeVisitor& FileNodeVisitor::stepInside(BufferArray name) {
   }
   elif(!descriptor.size) {
     setNull();
-    current_rwg = fmm->getRWGuard(node_index);
     return *this;
   }
 
   ObjectElementFinder finder(const_cast<FileNodeVisitor&>(*this));
   if(!finder.findElement(std::move(name))){
     setNull();
-    current_rwg = fmm->getRWGuard(node_index);
     return *this;
   }
 

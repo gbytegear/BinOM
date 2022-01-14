@@ -39,7 +39,7 @@ private:
 
 
   FileMemoryManager* fmm = nullptr;
-  virtual_index node_index = 0;
+  virtual_index node_index = null_index;
   real_index index = null_index;
   NamePosition name_pos;
   mutable RWGuard current_rwg;
