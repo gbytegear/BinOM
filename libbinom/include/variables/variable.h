@@ -219,6 +219,19 @@ struct NamedVariable {
   }
 };
 
+class ObjectField {
+  BufferArray name;
+public:
+  ObjectField(BufferArray&& name) : name(std::move(name)) {}
+  ObjectField(BufferArray& name) : name(name) {}
+  NamedVariable operator=(Variable&& variable) {
+    return {std::move(name), std::move(variable)};
+  }
+  NamedVariable operator=(Variable& variable) {
+    return {std::move(name), variable};
+  }
+};
+
 struct OutputManip {
 
   static inline bool print_type = false;

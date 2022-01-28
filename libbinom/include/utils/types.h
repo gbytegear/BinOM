@@ -311,6 +311,8 @@ namespace binom {
   class ValueRef;
   //! Pair of name(BufferArray) and Variable stored in Object
   struct NamedVariable;
+  //! Object field initializer
+  class ObjectField;
 
   // Iterators
   //! BufferArray iterator
@@ -330,6 +332,7 @@ namespace binom {
   class FileNodeVisitor;
 
   namespace literals {
+
   typedef std::initializer_list<const ui8> ui8arr;
   typedef std::initializer_list<const i8> i8arr;
   typedef std::initializer_list<const ui16> ui16arr;
@@ -340,6 +343,8 @@ namespace binom {
   typedef std::initializer_list<const i64> i64arr;
   typedef std::initializer_list<const Variable> varr;
   typedef std::initializer_list<const NamedVariable> vobj;
+  typedef ObjectField fld;
+
   }
   using namespace literals;
 }

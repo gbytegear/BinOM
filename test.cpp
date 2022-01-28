@@ -2,7 +2,7 @@
 #include "libbinom/include/lexer.h"
 #include <fstream>
 
-#include "tests/multithreading_test.h"
+//#include "tests/multithreading_test.h"
 
 
 int main() {
@@ -10,13 +10,16 @@ int main() {
   // BinOM project namespace (all magic here)
   using namespace binom;
 
-  file_storage_multithreading_test();
-
-//  DynamicStorage ds("test", vobj{
-//                      {"test", 0xff_ui8}
-//                    }, true);
-//  ds.getRoot().insert(u"second_test", 0xff_ui8);
-//  std::clog << ds.getRoot() << '\n';
+  DynamicStorage ds("test", vobj{
+                      fld("test") = 0xff_ui8,
+                      fld("test_2") = 0x00_ui8,
+                      fld("array") = varr{
+                        "hello",
+                        "world"
+                      },
+                    }, true);
+  ds.getRoot().insert(u"second_test", 0xff_ui8);
+  std::clog << ds.getRoot() << '\n';
 
 //  BufferArray a = "Hello, World";
 //  BufferArray b = ui32arr{/*0x6c6c6548, 0x57202c6f, */0x646c726f};
@@ -83,7 +86,5 @@ int main() {
   std::clog << "===============================================\n"
                "|                  Test complete              |\n"
                "===============================================\n";
-
-
 
 }
