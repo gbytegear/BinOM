@@ -16,7 +16,7 @@ int main() {
                       fld("array") = varr{
                         "hello",
                         "world"
-                      },
+                      }
                     }, true);
   ds.getRoot().insert(u"second_test", 0xff_ui8);
   std::clog << ds.getRoot() << '\n';

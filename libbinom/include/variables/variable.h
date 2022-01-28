@@ -222,10 +222,8 @@ struct NamedVariable {
 class ObjectField {
   BufferArray name;
 public:
-  ObjectField(BufferArray name) : name(std::move(name)) {}
-  NamedVariable operator=(Variable variable) {
-    return {std::move(name), std::move(variable)};
-  }
+  explicit ObjectField(BufferArray name) : name(std::move(name)) {}
+  NamedVariable operator=(Variable var) {return {std::move(name), std::move(var)};}
 };
 
 struct OutputManip {
