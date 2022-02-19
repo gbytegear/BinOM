@@ -10,9 +10,11 @@ namespace binom {
 using namespace type_alias;
 using namespace memctrl;
 
-enum class LinkType : bool {
-  hard_link = true,
-  soft_link = false
+enum class LinkType : ui8 {
+  soft_link = 0x00,
+  hard_link = 0x01,
+
+  invalid_link = 0xFF
 };
 
 enum class VarType : ui8 {
@@ -233,6 +235,30 @@ inline VarNumberType getNumberType(VarType type) noexcept {
     default: return VarNumberType::invalid_type;
   }
 }
+
+inline VarNumberType getNumberType(ValType type) noexcept {
+  switch (type) {
+    case ValType::boolean:
+    case ValType::ui8:
+    case ValType::ui16:
+    case ValType::ui32:
+    case ValType::ui64:
+    return VarNumberType::unsigned_integer;
+
+    case ValType::si8:
+    case ValType::si16:
+    case ValType::si32:
+    case ValType::si64:
+    return VarNumberType::signed_integer;
+
+    case ValType::f32:
+    case ValType::f64:
+    return VarNumberType::float_point;
+
+    default: return VarNumberType::invalid_type;
+  }
+}
+
 
 inline VarSortType getSortType(VarType type) noexcept {
   switch (type) {

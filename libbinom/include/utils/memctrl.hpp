@@ -506,60 +506,59 @@ public:
 
 };
 
+//template<>
+//BufferController* BufferController::pushBack<BufferController>(const BufferController& value) noexcept {
+//  pushBack(value, static_cast<Error*>(nullptr));
+//  return this;
+//}
 
-template<>
-BufferController* BufferController::pushBack<BufferController>(const BufferController& value) noexcept {
-  pushBack(value, static_cast<Error*>(nullptr));
-  return this;
-}
+//template<>
+//BufferController* BufferController::pushBack(BufferController&& value) noexcept {
+//  pushBack(std::move(value), static_cast<Error*>(nullptr));
+//  return this;
+//}
 
-template<>
-BufferController* BufferController::pushBack(BufferController&& value) noexcept {
-  pushBack(std::move(value), static_cast<Error*>(nullptr));
-  return this;
-}
+//template<>
+//BufferController* BufferController::insert(size_t index, size_t shift, const BufferController& value, Error* err) noexcept {
+//  insert(index + shift, value.data, value.size, err);
+//  return this;
+//}
 
-template<>
-BufferController* BufferController::insert(size_t index, size_t shift, const BufferController& value, Error* err) noexcept {
-  insert(index + shift, value.data, value.size, err);
-  return this;
-}
+//template<>
+//BufferController* BufferController::insert(size_t index, size_t shift, BufferController&& value, Error* err) noexcept {
+//  insert(index + shift, value.data, value.size, err);
+//  return this;
+//}
 
-template<>
-BufferController* BufferController::insert(size_t index, size_t shift, BufferController&& value, Error* err) noexcept {
-  insert(index + shift, value.data, value.size, err);
-  return this;
-}
+//template<>
+//BufferController* BufferController::pushFront(const BufferController& value) noexcept {
+//  pushFront(value, static_cast<Error*>(nullptr));
+//  return this;
+//}
 
-template<>
-BufferController* BufferController::pushFront(const BufferController& value) noexcept {
-  pushFront(value, static_cast<Error*>(nullptr));
-  return this;
-}
+//template<>
+//BufferController* BufferController::pushFront(BufferController&& value) noexcept {
+//  pushFront(std::move(value), static_cast<Error*>(nullptr));
+//  return this;
+//}
 
-template<>
-BufferController* BufferController::pushFront(BufferController&& value) noexcept {
-  pushFront(std::move(value), static_cast<Error*>(nullptr));
-  return this;
-}
+//template<>
+//const BufferController* BufferController::pushBack(const BufferController&& value) noexcept {
+//  pushBack(std::move(value), static_cast<Error*>(nullptr));
+//  return this;
+//}
 
-template<>
-const BufferController* BufferController::pushBack(const BufferController&& value) noexcept {
-  pushBack(std::move(value), static_cast<Error*>(nullptr));
-  return this;
-}
+//template<>
+//const BufferController* BufferController::insert(size_t index, size_t shift, const BufferController&& value, Error* err) noexcept {
+//  insert(index + shift, value.data, value.size, err);
+//  return this;
+//}
 
-template<>
-const BufferController* BufferController::insert(size_t index, size_t shift, const BufferController&& value, Error* err) noexcept {
-  insert(index + shift, value.data, value.size, err);
-  return this;
-}
-
-template<>
-const BufferController* BufferController::pushFront(const BufferController&& value) noexcept {
-  pushFront(std::move(value), static_cast<Error*>(nullptr));
-  return this;
-}
+//template<>
+//const BufferController* BufferController::pushFront(const BufferController&& value) noexcept {
+//  pushFront(std::move(value), static_cast<Error*>(nullptr));
+//  return this;
+//}
 
 
 template<typename T>

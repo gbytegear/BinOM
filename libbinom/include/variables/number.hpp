@@ -1,14 +1,14 @@
 #ifndef NUMBER_HPP
 #define NUMBER_HPP
 
-#include "../utils/node_manager.hpp"
+#include "../utils/resource_controll.hpp"
 
 namespace binom {
 
 class Number {
-  using NodeIndex = priv::NodeDescriptorIndex;
+  using Link = priv::Link;
+  Link node_link;
 
-  NodeIndex node_index;
 };
 
 }

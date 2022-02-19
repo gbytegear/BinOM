@@ -2,6 +2,7 @@
 #define GENERIC_VALUE_HPP
 
 #include "../utils/types.hpp"
+#include <utility>
 
 namespace binom {
 
@@ -23,22 +24,22 @@ class GenericValue {
       f32 f32_val;
       f64 f64_val;
       Data(bool bool_val) : bool_val(bool_val) {}
-      Data(ui8 ui8_val) : ui8_val(ui8_val) {}
+      Data(ui8 ui8_val)   : ui8_val(ui8_val) {}
       Data(ui16 ui16_val) : ui16_val(ui16_val) {}
       Data(ui32 ui32_val) : ui32_val(ui32_val) {}
       Data(ui64 ui64_val) : ui64_val(ui64_val) {}
-      Data(i8 i8_val) : i8_val(i8_val) {}
-      Data(i16 i16_val) : i16_val(i16_val) {}
-      Data(i32 i32_val) : i32_val(i32_val) {}
-      Data(i64 i64_val) : i64_val(i64_val) {}
-      Data(f32 f32_val) : f32_val(f32_val) {}
-      Data(f64 f64_val) : f64_val(f64_val) {}
+      Data(i8 i8_val)     : i8_val(i8_val) {}
+      Data(i16 i16_val)   : i16_val(i16_val) {}
+      Data(i32 i32_val)   : i32_val(i32_val) {}
+      Data(i64 i64_val)   : i64_val(i64_val) {}
+      Data(f32 f32_val)   : f32_val(f32_val) {}
+      Data(f64 f64_val)   : f64_val(f64_val) {}
     } data = false;
   friend class GenericValueIterator;
   friend class Number;
   friend class BufferArray;
 public:
-  GenericValue() noexcept = default;
+  GenericValue() noexcept {};
   GenericValue(bool value) noexcept : value_type(ValType::boolean), data(value) {}
   GenericValue(ui8 value) noexcept : value_type(ValType::ui8), data(value) {}
   GenericValue(i8 value) noexcept : value_type(ValType::si8), data(value) {}
@@ -54,12 +55,8 @@ public:
   GenericValue(GenericValue&& other) : value_type(other.value_type), data(other.data.ui64_val) {}
 
   inline ValType getType() const noexcept {return value_type;}
-
-  inline operator ValType () const noexcept {return value_type;}
-
+  inline VarNumberType getNumberType() const noexcept {return binom::getNumberType(value_type);}
   inline VarBitWidth getBitWidth() const noexcept {return binom::getBitWidth(value_type);}
-
-  inline operator VarBitWidth () const noexcept {return binom::getBitWidth(value_type);}
 
   inline operator bool () const noexcept {
     switch (value_type) {
@@ -259,31 +256,1104 @@ public:
     }
   }
 
-  bool operator==(const GenericValue& other) const noexcept {
-    if(value_type != other.value_type) return false;
-    switch (getBitWidth()) {
-      case binom::VarBitWidth::byte: return data.ui8_val == other.data.ui8_val;
-      case binom::VarBitWidth::word: return data.ui16_val == other.data.ui16_val;
-      case binom::VarBitWidth::dword: return data.ui32_val == other.data.ui32_val;
-      case binom::VarBitWidth::qword: return data.ui64_val == other.data.ui64_val;
-      case binom::VarBitWidth::invalid_type: return data.ui64_val == other.data.ui64_val;
+  bool operator==(GenericValue other) const noexcept {
+    switch (getNumberType()) {
+      case binom::VarNumberType::unsigned_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return ui64(*this) == ui64(other);
+          case binom::VarNumberType::signed_integer: return i64(other) >= 0 ? ui64(*this) == ui64(other) : false;
+          case binom::VarNumberType::float_point: return ui64(*this) == f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::signed_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) == ui64(other) : false;
+          case binom::VarNumberType::signed_integer: return i64(*this) == i64(other);
+          case binom::VarNumberType::float_point: return i64(*this) == f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::float_point:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return f64(*this) == ui64(other);
+          case binom::VarNumberType::signed_integer: return f64(*this) == ui64(other);
+          case binom::VarNumberType::float_point: return f64(*this) == f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      default:
+      case binom::VarNumberType::invalid_type: return false;
     }
   }
 
-  bool operator!=(GenericValue other) const noexcept {
-    if(value_type != other.value_type) return true;
-    switch (getBitWidth()) {
-      case binom::VarBitWidth::byte: return data.ui8_val != other.data.ui8_val;
-      case binom::VarBitWidth::word: return data.ui16_val != other.data.ui16_val;
-      case binom::VarBitWidth::dword: return data.ui32_val != other.data.ui32_val;
-      case binom::VarBitWidth::qword: return data.ui64_val != other.data.ui64_val;
-      case binom::VarBitWidth::invalid_type: return data.ui64_val != other.data.ui64_val;
+  bool operator!=(GenericValue other) const noexcept {return !(*this == other);}
+
+  bool operator>(GenericValue other) const noexcept {
+    switch (getNumberType()) {
+      case binom::VarNumberType::unsigned_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return ui64(*this) > ui64(other);
+          case binom::VarNumberType::signed_integer: return i64(other) >= 0 ? ui64(*this) > ui64(other) : true;
+          case binom::VarNumberType::float_point: return ui64(*this) > f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::signed_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) > ui64(other) : false;
+          case binom::VarNumberType::signed_integer: return i64(*this) > i64(other);
+          case binom::VarNumberType::float_point: return i64(*this) > f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::float_point:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return f64(*this) > ui64(other);
+          case binom::VarNumberType::signed_integer: return f64(*this) > ui64(other);
+          case binom::VarNumberType::float_point: return f64(*this) > f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      default:
+      case binom::VarNumberType::invalid_type: return false;
     }
   }
 
-  GenericValue& operator=(const GenericValue&& other) noexcept {
-    value_type = other.value_type;
-    data.ui64_val = other.data.ui64_val;
+  bool operator>=(GenericValue other) const noexcept {
+    switch (getNumberType()) {
+      case binom::VarNumberType::unsigned_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return ui64(*this) >= ui64(other);
+          case binom::VarNumberType::signed_integer: return i64(other) >= 0 ? ui64(*this) >= ui64(other) : true;
+          case binom::VarNumberType::float_point: return ui64(*this) >= f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::signed_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) >= ui64(other) : false;
+          case binom::VarNumberType::signed_integer: return i64(*this) >= i64(other);
+          case binom::VarNumberType::float_point: return i64(*this) >= f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::float_point:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return f64(*this) >= ui64(other);
+          case binom::VarNumberType::signed_integer: return f64(*this) >= ui64(other);
+          case binom::VarNumberType::float_point: return f64(*this) >= f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      default:
+      case binom::VarNumberType::invalid_type: return false;
+    }
+  }
+
+  bool operator<(GenericValue other) const noexcept {
+    switch (getNumberType()) {
+      case binom::VarNumberType::unsigned_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return ui64(*this) < ui64(other);
+          case binom::VarNumberType::signed_integer: return i64(other) >= 0 ? ui64(*this) < ui64(other) : false;
+          case binom::VarNumberType::float_point: return ui64(*this) < f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::signed_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) < ui64(other) : true;
+          case binom::VarNumberType::signed_integer: return i64(*this) < i64(other);
+          case binom::VarNumberType::float_point: return i64(*this) < f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::float_point:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return f64(*this) < ui64(other);
+          case binom::VarNumberType::signed_integer: return f64(*this) < ui64(other);
+          case binom::VarNumberType::float_point: return f64(*this) < f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      default:
+      case binom::VarNumberType::invalid_type: return false;
+    }
+  }
+
+  bool operator<=(GenericValue other) const noexcept {
+    switch (getNumberType()) {
+      case binom::VarNumberType::unsigned_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return ui64(*this) <= ui64(other);
+          case binom::VarNumberType::signed_integer: return i64(other) >= 0 ? ui64(*this) <= ui64(other) : false;
+          case binom::VarNumberType::float_point: return ui64(*this) <= f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::signed_integer:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) <= ui64(other) : true;
+          case binom::VarNumberType::signed_integer: return i64(*this) <= i64(other);
+          case binom::VarNumberType::float_point: return i64(*this) <= f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      case binom::VarNumberType::float_point:
+        switch (other.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer: return f64(*this) <= ui64(other);
+          case binom::VarNumberType::signed_integer: return f64(*this) <= ui64(other);
+          case binom::VarNumberType::float_point: return f64(*this) <= f64(other);
+          default:
+          case binom::VarNumberType::invalid_type: return false;
+        }
+      default:
+      case binom::VarNumberType::invalid_type: return false;
+    }
+  }
+
+  GenericValue& operator=(bool value) noexcept  {return *new(this) GenericValue(value);}
+  GenericValue& operator=(ui8 value) noexcept   {return *new(this) GenericValue(value);}
+  GenericValue& operator=(i8 value) noexcept    {return *new(this) GenericValue(value);}
+  GenericValue& operator=(ui16 value) noexcept  {return *new(this) GenericValue(value);}
+  GenericValue& operator=(i16 value) noexcept   {return *new(this) GenericValue(value);}
+  GenericValue& operator=(ui32 value) noexcept  {return *new(this) GenericValue(value);}
+  GenericValue& operator=(i32 value) noexcept   {return *new(this) GenericValue(value);}
+  GenericValue& operator=(f32 value) noexcept   {return *new(this) GenericValue(value);}
+  GenericValue& operator=(ui64 value) noexcept  {return *new(this) GenericValue(value);}
+  GenericValue& operator=(i64 value) noexcept   {return *new(this) GenericValue(value);}
+  GenericValue& operator=(f64 value) noexcept   {return *new(this) GenericValue(value);}
+  GenericValue& operator=(const GenericValue& value) noexcept {return *new(this) GenericValue(value);}
+  GenericValue& operator=(GenericValue&& value) noexcept      {return *new(this) GenericValue(value);}
+
+  GenericValue& operator+=(GenericValue value) noexcept {
+    switch (getType()) {
+      case binom::ValType::boolean:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.bool_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.bool_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.bool_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui8_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui8_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui8_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i8_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i8_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i8_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui16_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui16_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui16_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i16_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i16_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i16_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui32_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui32_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui32_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i32_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i32_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i32_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f32_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f32_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f32_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui64_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui64_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui64_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i64_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i64_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i64_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f64_val += ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f64_val += i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f64_val += f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      default:
+      case binom::ValType::invalid_type:
+      break;
+
+    }
+    return *this;
+  }
+
+  GenericValue& operator-=(GenericValue value) noexcept {
+    switch (getType()) {
+      case binom::ValType::boolean:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.bool_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.bool_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.bool_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui8_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui8_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui8_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i8_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i8_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i8_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui16_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui16_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui16_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i16_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i16_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i16_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui32_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui32_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui32_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i32_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i32_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i32_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f32_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f32_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f32_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui64_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui64_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui64_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i64_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i64_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i64_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f64_val -= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f64_val -= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f64_val -= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      default:
+      case binom::ValType::invalid_type:
+      break;
+
+    }
+    return *this;
+  }
+
+  GenericValue& operator*=(GenericValue value) noexcept {
+    switch (getType()) {
+      case binom::ValType::boolean:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.bool_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.bool_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.bool_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui8_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui8_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui8_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i8_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i8_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i8_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui16_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui16_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui16_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i16_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i16_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i16_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui32_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui32_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui32_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i32_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i32_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i32_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f32_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f32_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f32_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui64_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui64_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui64_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i64_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i64_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i64_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f64_val *= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f64_val *= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f64_val *= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      default:
+      case binom::ValType::invalid_type:
+      break;
+
+    }
+    return *this;
+  }
+
+  GenericValue& operator/=(GenericValue value) noexcept {
+    switch (getType()) {
+      case binom::ValType::boolean:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.bool_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.bool_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.bool_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui8_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui8_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui8_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i8_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i8_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i8_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui16_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui16_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui16_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i16_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i16_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i16_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui32_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui32_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui32_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i32_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i32_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i32_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f32_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f32_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f32_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui64_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui64_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui64_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i64_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i64_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i64_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f64_val /= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f64_val /= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f64_val /= f64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      default:
+      case binom::ValType::invalid_type:
+      break;
+
+    }
+    return *this;
+  }
+
+  GenericValue& operator%=(GenericValue value) noexcept {
+    switch (getType()) {
+      case binom::ValType::boolean:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.bool_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.bool_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.bool_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui8_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui8_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui8_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si8:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i8_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i8_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i8_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui16_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui16_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui16_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si16:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i16_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i16_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i16_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui32_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui32_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui32_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i32_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i32_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i32_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f32:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f32_val = i64(*this) % ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f32_val = i64(*this) % i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f32_val = i64(*this) % i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::ui64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.ui64_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.ui64_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.ui64_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::si64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.i64_val %= ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.i64_val %= i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.i64_val %= i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      case binom::ValType::f64:
+        switch (value.getNumberType()) {
+          case binom::VarNumberType::unsigned_integer:
+            data.f64_val = i64(*this) % ui64(value);
+          break;
+          case binom::VarNumberType::signed_integer:
+            data.f64_val = i64(*this) % i64(value);
+          break;
+          case binom::VarNumberType::float_point:
+            data.f64_val = i64(*this) % i64(value);
+          break;
+          default:
+          case binom::VarNumberType::invalid_type:
+          break;
+        }
+      break;
+      default:
+      case binom::ValType::invalid_type:
+      break;
+
+    }
     return *this;
   }
 
