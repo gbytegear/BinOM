@@ -1,4 +1,4 @@
-#include "libbinom/include/utils/resource_controll.hpp"
+#include "libbinom/include/utils/resource_controll.hxx"
 
 using namespace binom;
 using namespace binom::priv;
