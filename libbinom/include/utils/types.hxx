@@ -105,6 +105,7 @@ inline VarTypeClass getTypeClass(VarType type) noexcept {
     case VarType::null:
     return VarTypeClass::null;
 
+    case VarType::boolean:
     case VarType::ui8:
     case VarType::si8:
     case VarType::ui16:
@@ -147,6 +148,7 @@ inline VarTypeClass getTypeClass(VarType type) noexcept {
 
 inline VarBitWidth getBitWidth(VarType type) noexcept {
   switch (type) {
+    case VarType::boolean:
     case VarType::ui8:
     case VarType::si8:
     case VarType::ui8_array:
@@ -181,6 +183,7 @@ inline VarBitWidth getBitWidth(VarType type) noexcept {
 
 inline VarBitWidth getBitWidth(ValType type) noexcept {
   switch (type) {
+    case ValType::boolean:
     case ValType::ui8:
     case ValType::si8:
     return VarBitWidth::byte;
@@ -206,6 +209,7 @@ inline VarBitWidth getBitWidth(ValType type) noexcept {
 
 inline VarNumberType getNumberType(VarType type) noexcept {
   switch (type) {
+    case VarType::boolean:
     case VarType::ui8_array:
     case VarType::ui8:
     case VarType::ui16_array:

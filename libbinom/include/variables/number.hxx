@@ -8,7 +8,6 @@ namespace binom {
 class Number {
   using Link = priv::Link;
   Link node_link;
-
 };
 
 }
