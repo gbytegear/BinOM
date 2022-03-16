@@ -1348,6 +1348,44 @@ GenericValue& GenericValue::operator%=(GenericValue value) noexcept {
   return *this;
 }
 
+GenericValue& GenericValue::operator++() noexcept {
+  switch (value_type) {
+    case binom::ValType::boolean:
+    case binom::ValType::ui8: ++data.ui8_val; break;
+    case binom::ValType::si8: ++data.i8_val; break;
+    case binom::ValType::ui16: ++data.ui16_val; break;
+    case binom::ValType::si16: ++data.i16_val; break;
+    case binom::ValType::ui32: ++data.ui32_val; break;
+    case binom::ValType::si32: ++data.i32_val; break;
+    case binom::ValType::f32: ++data.f32_val; break;
+    case binom::ValType::ui64: ++data.ui64_val; break;
+    case binom::ValType::si64: ++data.i64_val; break;
+    case binom::ValType::f64: ++data.f64_val; break;
+    case binom::ValType::invalid_type:
+    default: ++data.ui64_val; break;
+  }
+  return *this;
+}
+
+GenericValue& GenericValue::operator--() noexcept {
+  switch (value_type) {
+    case binom::ValType::boolean:
+    case binom::ValType::ui8: --data.ui8_val; break;
+    case binom::ValType::si8: --data.i8_val; break;
+    case binom::ValType::ui16: --data.ui16_val; break;
+    case binom::ValType::si16: --data.i16_val; break;
+    case binom::ValType::ui32: --data.ui32_val; break;
+    case binom::ValType::si32: --data.i32_val; break;
+    case binom::ValType::f32: --data.f32_val; break;
+    case binom::ValType::ui64: --data.ui64_val; break;
+    case binom::ValType::si64: --data.i64_val; break;
+    case binom::ValType::f64: --data.f64_val; break;
+    case binom::ValType::invalid_type:
+    default: --data.ui64_val; break;
+  }
+  return *this;
+}
+
 GenericValue GenericValue::operator+(GenericValue value) const noexcept {return GenericValue(*this) += value;}
 
 GenericValue GenericValue::operator-(GenericValue value) const noexcept {return GenericValue(*this) -= value;}
@@ -1357,3 +1395,43 @@ GenericValue GenericValue::operator*(GenericValue value) const noexcept {return 
 GenericValue GenericValue::operator/(GenericValue value) const noexcept {return GenericValue(*this) /= value;}
 
 GenericValue GenericValue::operator%(GenericValue value) const noexcept {return GenericValue(*this) %= value;}
+
+GenericValue GenericValue::operator++(int) noexcept {
+  GenericValue tmp(*this);
+  switch (value_type) {
+    case binom::ValType::boolean:
+    case binom::ValType::ui8: ++data.ui8_val; break;
+    case binom::ValType::si8: ++data.i8_val; break;
+    case binom::ValType::ui16: ++data.ui16_val; break;
+    case binom::ValType::si16: ++data.i16_val; break;
+    case binom::ValType::ui32: ++data.ui32_val; break;
+    case binom::ValType::si32: ++data.i32_val; break;
+    case binom::ValType::f32: ++data.f32_val; break;
+    case binom::ValType::ui64: ++data.ui64_val; break;
+    case binom::ValType::si64: ++data.i64_val; break;
+    case binom::ValType::f64: ++data.f64_val; break;
+    case binom::ValType::invalid_type:
+    default: ++data.ui64_val; break;
+  }
+  return tmp;
+}
+
+GenericValue GenericValue::operator--(int) noexcept {
+  GenericValue tmp(*this);
+  switch (value_type) {
+    case binom::ValType::boolean:
+    case binom::ValType::ui8: --data.ui8_val; break;
+    case binom::ValType::si8: --data.i8_val; break;
+    case binom::ValType::ui16: --data.ui16_val; break;
+    case binom::ValType::si16: --data.i16_val; break;
+    case binom::ValType::ui32: --data.ui32_val; break;
+    case binom::ValType::si32: --data.i32_val; break;
+    case binom::ValType::f32: --data.f32_val; break;
+    case binom::ValType::ui64: --data.ui64_val; break;
+    case binom::ValType::si64: --data.i64_val; break;
+    case binom::ValType::f64: --data.f64_val; break;
+    case binom::ValType::invalid_type:
+    default: --data.ui64_val; break;
+  }
+  return tmp;
+}

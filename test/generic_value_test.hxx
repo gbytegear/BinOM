@@ -8,7 +8,7 @@ using namespace binom;
 
 void testGenericValue() {
   SEPARATOR
-  TEST_ANOUNCE(GenericValue test)
+  TEST_ANNOUNCE(GenericValue test)
   GRP_PUSH
   {
   LOG("Types & min max value ranges")
@@ -57,15 +57,17 @@ void testGenericValue() {
 
   GRP_PUSH
   {
-    LOG("Compare")
-    GenericValue f, s;
-    PRINT_RUN(f = 1_ui8; s = 1_ui8;)
-    TEST(f.getType() == ValType::ui8 && s.getType() == ValType::ui8)
-    TEST(f == s);
-    PRINT_RUN(f = 0_ui8; s = 0_ui16;)
-    TEST(f.getType() == ValType::ui8 && s.getType() == ValType::ui16);
-    TEST(f == s);
+    TEST_ANNOUNCE(GenericValue Operators)
+    GenericValue f, s, a;
+    PRINT_RUN(f = 127_ui8; s = 512_ui16; a = f + s;)
+    TEST(f.getType() == ValType::ui8 && s.getType() == ValType::ui16)
+    LOG("a type = " << ui16(a.getType()))
+    LOG("a value = " << ui16(a))
+    PRINT_RUN(a = s + f;)
+    LOG("a type = " << ui16(a.getType()))
+    LOG("a value = " << ui16(a))
   }
+  GRP_POP
 }
 
 #endif

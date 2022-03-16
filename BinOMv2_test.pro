@@ -1,5 +1,7 @@
 TEMPLATE = app
-CONFIG += console
+CONFIG += console c++17
+CONFIG -= app_bundle
+CONFIG -= qt
 TARGET = binom_v2_test
 
 SOURCES += test/test.cxx \
@@ -16,6 +18,7 @@ HEADERS += \
     libbinom/include/utils/types.hxx \
     libbinom/include/variables/generic_value.hxx \
     libbinom/include/variables/number.hxx \
+    libbinom/include/variables/variable_interface.hxx \
     test/all_test.hxx \
     test/generic_value_test.hxx \
     test/resource_controll_test.hxx \

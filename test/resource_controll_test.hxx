@@ -10,7 +10,7 @@ using namespace binom::priv;
 
 void testResourceControll() {
   SEPARATOR
-  TEST_ANOUNCE(Resorce controll test)
+  TEST_ANNOUNCE(Resorce controll test)
   PRINT_RUN(Link* hl_1_ptr = new Link(Resource{.type = VarType::ui64, .data = ui64(256)});)
   GRP(
     LOG("Test hard links")
@@ -18,14 +18,28 @@ void testResourceControll() {
       LOG("Created shared resource with first hard link")
       TEST(hl_1_ptr->getHardLinkCount() == 1)
       PRINT_RUN({ /* Create 3 hardlinks */)
-        PRINT_RUN(Link hl_1(*hl_1_ptr, LinkType::hard_link);)
-        PRINT_RUN(Link hl_2(hl_1, LinkType::hard_link);)
-        PRINT_RUN(Link hl_3(hl_2, LinkType::hard_link);)
-        LOG("Created 3 hardlinks")
-        TEST(hl_1_ptr->getHardLinkCount() == 4)
+      PRINT_RUN(Link hl_1(*hl_1_ptr, LinkType::hard_link);)
+      PRINT_RUN(Link hl_2(hl_1, LinkType::hard_link);)
+      PRINT_RUN(Link hl_3(hl_2, LinkType::hard_link);)
+      LOG("Created 3 hardlinks")
+      TEST(hl_1_ptr->getHardLinkCount() == 4)
       PRINT_RUN(} /* Destroy 3 hardlinks */)
       LOG("Destroy 3 hardlinks")
       TEST(hl_1_ptr->getHardLinkCount() == 1)
+    )
+
+    LOG("Test recursive locking")
+    GRP(
+      PRINT_RUN({)
+      LOG("Recursive unique locking")
+      PRINT_RUN(auto ulk_1 = hl_1_ptr->tryLockUnique();)
+      PRINT_RUN(auto ulk_2 = hl_1_ptr->tryLockUnique();)
+      PRINT_RUN(auto ulk_3 = hl_1_ptr->tryLockUnique();)
+      LOG("Recursive shared locking")
+      PRINT_RUN(auto slk_1 = hl_1_ptr->tryLockShared();)
+      PRINT_RUN(auto slk_2 = hl_1_ptr->tryLockShared();)
+      PRINT_RUN(auto slk_3 = hl_1_ptr->tryLockShared();)
+      PRINT_RUN(})
     )
 
     LOG("Test soft links")

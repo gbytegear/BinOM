@@ -3,10 +3,42 @@
 
 #include "types.hxx"
 #include <shared_mutex>
+#include <thread>
 #include <atomic>
 #include <optional>
 
 namespace binom::priv {
+
+class shared_recursive_mutex: public std::shared_mutex {
+public:
+    void lock(void) {
+        std::thread::id this_id = std::this_thread::get_id();
+        if(owner == this_id) {
+            // recursive locking
+            count++;
+        } else {
+            // normal locking
+            shared_mutex::lock();
+            owner = this_id;
+            count = 1;
+        }
+    }
+    void unlock(void) {
+        if(count > 1) {
+            // recursive unlocking
+            count--;
+        } else {
+            // normal unlocking
+            owner = std::thread::id();
+            count = 0;
+            shared_mutex::unlock();
+        }
+    }
+
+private:
+    std::atomic<std::thread::id> owner;
+    int count;
+};
 
 struct Resource {
   union Data {
@@ -49,8 +81,8 @@ struct ResourceBase {
   virtual Link linkWeak() noexcept = 0;
   virtual void unlink() noexcept = 0;
   virtual ui64 getHardLinkCount() const noexcept = 0;
-  virtual std::optional<std::shared_lock<std::shared_mutex>> tryLockShared() const noexcept = 0;
-  virtual std::optional<std::unique_lock<std::shared_mutex>> tryLockUnique() const noexcept = 0;
+  virtual std::optional<std::shared_lock<shared_recursive_mutex>> tryLockShared() const noexcept = 0;
+  virtual std::optional<std::unique_lock<shared_recursive_mutex>> tryLockUnique() const noexcept = 0;
   virtual Resource* getResource() const noexcept = 0;
   virtual LinkType getType() const noexcept = 0;
 };
@@ -72,8 +104,8 @@ public:
   virtual void unlink() noexcept override;
   virtual Link linkWeak() noexcept override;
   virtual ui64 getHardLinkCount() const noexcept override;
-  virtual std::optional<std::shared_lock<std::shared_mutex>> tryLockShared() const noexcept override;
-  virtual std::optional<std::unique_lock<std::shared_mutex>> tryLockUnique() const noexcept override;
+  virtual std::optional<std::shared_lock<shared_recursive_mutex>> tryLockShared() const noexcept override;
+  virtual std::optional<std::unique_lock<shared_recursive_mutex>> tryLockUnique() const noexcept override;
   virtual Resource* getResource() const noexcept override;
   virtual LinkType getType() const noexcept override;
 
@@ -81,23 +113,23 @@ public:
 };
 
 class SharedResource : public ResourceBase {
-  std::shared_ptr<std::shared_mutex> resource_mutex;
+  std::shared_ptr<shared_recursive_mutex> resource_mutex;
   Resource resource;
   std::atomic<ui64> hard_link_counter = 1;
   WeakResourceLink* weak_first = nullptr;
   WeakResourceLink* weak_last = nullptr;
   friend class WeakResourceLink;
 public:
-  SharedResource() noexcept : resource_mutex(new std::shared_mutex()) {}
-  SharedResource(Resource resource) noexcept : resource_mutex(new std::shared_mutex()), resource(resource) {}
+  SharedResource() noexcept : resource_mutex(new shared_recursive_mutex()) {}
+  SharedResource(Resource resource) noexcept : resource_mutex(new shared_recursive_mutex()), resource(resource) {}
 
   virtual ~SharedResource() noexcept override;
   virtual Link linkHard() noexcept override;
   virtual void unlink() noexcept override;
   virtual Link linkWeak() noexcept override;
   virtual ui64 getHardLinkCount() const noexcept override;
-  virtual std::optional<std::shared_lock<std::shared_mutex>> tryLockShared() const noexcept override;
-  virtual std::optional<std::unique_lock<std::shared_mutex>> tryLockUnique() const noexcept override;
+  virtual std::optional<std::shared_lock<shared_recursive_mutex>> tryLockShared() const noexcept override;
+  virtual std::optional<std::unique_lock<shared_recursive_mutex>> tryLockUnique() const noexcept override;
   virtual Resource* getResource() const noexcept override;
   virtual LinkType getType() const noexcept override;
 
@@ -106,9 +138,10 @@ public:
 class Link {
   friend class SharedResource;
   friend class WeakResourceLink;
-  ResourceBase* resource_pointer;
+  ResourceBase* resource_pointer = nullptr;
   Link(ResourceBase* resource_pointer) noexcept : resource_pointer(resource_pointer) {}
 public:
+  Link() = default;
   Link(Resource resource) : resource_pointer(new SharedResource(resource)) {}
   Link(Link&& other) : resource_pointer(other.resource_pointer) {other.resource_pointer = nullptr;}
   Link(Link& other, LinkType type)
@@ -120,7 +153,17 @@ public:
              )
            : std::move(other)) {}
 
-  ~Link() {if(resource_pointer) resource_pointer->unlink();}
+  ~Link() {if(resource_pointer) resource_pointer->unlink(); resource_pointer = nullptr;}
+
+  void changeLink(const Link& link, LinkType type = LinkType::invalid_link) noexcept {
+    this->~Link();
+    if(link.resource_pointer)
+      switch (type) {
+      case binom::LinkType::soft_link: new(this) Link(link.resource_pointer->linkWeak()); return;
+      case binom::LinkType::hard_link: new(this) Link(link.resource_pointer->linkHard()); return;
+      case binom::LinkType::invalid_link: return;
+      }
+  }
 
   Resource* operator*() const noexcept {
     if(!resource_pointer) return nullptr;
@@ -130,6 +173,14 @@ public:
   LinkType getLinkType() const noexcept {
     if(!resource_pointer) return LinkType::invalid_link;
     return resource_pointer->getType();
+  }
+
+  VarType getResourceType() const noexcept {
+    auto lock = tryLockShared();
+    if(!lock) return VarType::null;
+    Resource* res = **this;
+    if(!res) return VarType::null;
+    return res->type;
   }
 
   bool isResourceLinked() const noexcept {
@@ -147,12 +198,13 @@ public:
     return resource_pointer->getHardLinkCount();
   }
 
-  std::optional<std::shared_lock<std::shared_mutex>> tryLockShared() const noexcept {
-    if(!resource_pointer) return std::optional<std::shared_lock<std::shared_mutex>>();
+  std::optional<std::shared_lock<shared_recursive_mutex>> tryLockShared() const noexcept {
+    if(!resource_pointer) return std::optional<std::shared_lock<shared_recursive_mutex>>();
     return resource_pointer->tryLockShared();
   }
-  std::optional<std::unique_lock<std::shared_mutex>> tryLockUnique() const noexcept {
-    if(!resource_pointer) return std::optional<std::unique_lock<std::shared_mutex>>();
+
+  std::optional<std::unique_lock<shared_recursive_mutex>> tryLockUnique() const noexcept {
+    if(!resource_pointer) return std::optional<std::unique_lock<shared_recursive_mutex>>();
     return resource_pointer->tryLockUnique();
   }
 

@@ -8,7 +8,7 @@ using namespace binom;
 
 void testTypesConversions() {
   SEPARATOR
-  TEST_ANOUNCE(Test types conversions)
+  TEST_ANNOUNCE(Test types conversions)
   GRP(
     LOG("Variable type to variable type class")
     GRP(

@@ -39,16 +39,16 @@ ui64 WeakResourceLink::getHardLinkCount() const noexcept {
   return resource->hard_link_counter;
 }
 
-std::optional<std::shared_lock<std::shared_mutex> > WeakResourceLink::tryLockShared() const noexcept {
+std::optional<std::shared_lock<shared_recursive_mutex>> WeakResourceLink::tryLockShared() const noexcept {
   if(resource) if(resource->resource_mutex)
-    return std::shared_lock<std::shared_mutex>(*resource->resource_mutex);
-  return std::optional<std::shared_lock<std::shared_mutex>>();
+    return std::shared_lock<shared_recursive_mutex>(*resource->resource_mutex);
+  return std::optional<std::shared_lock<shared_recursive_mutex>>();
 }
 
-std::optional<std::unique_lock<std::shared_mutex> > WeakResourceLink::tryLockUnique() const noexcept {
+std::optional<std::unique_lock<shared_recursive_mutex>> WeakResourceLink::tryLockUnique() const noexcept {
   if(resource) if(resource->resource_mutex)
-    return std::unique_lock<std::shared_mutex>(*resource->resource_mutex);
-  return std::optional<std::unique_lock<std::shared_mutex>>();
+    return std::unique_lock<shared_recursive_mutex>(*resource->resource_mutex);
+  return std::optional<std::unique_lock<shared_recursive_mutex>>();
 }
 
 Resource* WeakResourceLink::getResource() const noexcept {
@@ -90,16 +90,16 @@ Link SharedResource::linkWeak() noexcept {
 
 ui64 SharedResource::getHardLinkCount() const noexcept {return hard_link_counter;}
 
-std::optional<std::shared_lock<std::shared_mutex> > SharedResource::tryLockShared() const noexcept {
+std::optional<std::shared_lock<shared_recursive_mutex>> SharedResource::tryLockShared() const noexcept {
   if(resource_mutex)
-    return std::shared_lock<std::shared_mutex>(*resource_mutex);
-  return std::optional<std::shared_lock<std::shared_mutex>>();
+    return std::shared_lock<shared_recursive_mutex>(*resource_mutex);
+  return std::optional<std::shared_lock<shared_recursive_mutex>>();
 }
 
-std::optional<std::unique_lock<std::shared_mutex> > SharedResource::tryLockUnique() const noexcept {
+std::optional<std::unique_lock<shared_recursive_mutex>> SharedResource::tryLockUnique() const noexcept {
   if(resource_mutex)
-    return std::unique_lock<std::shared_mutex>(*resource_mutex);
-  return std::optional<std::unique_lock<std::shared_mutex>>();
+    return std::unique_lock<shared_recursive_mutex>(*resource_mutex);
+  return std::optional<std::unique_lock<shared_recursive_mutex>>();
 }
 
 Resource* SharedResource::getResource() const noexcept {

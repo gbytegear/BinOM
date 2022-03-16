@@ -292,51 +292,91 @@ inline VarSortType getSortType(VarType type) noexcept {
 
 inline ValType getValueType(VarType type) noexcept {
   switch (type) {
-    case binom::VarType::boolean:
+    case VarType::boolean:
     return ValType::boolean;
 
-    case binom::VarType::ui8:
-    case binom::VarType::ui8_array:
+    case VarType::ui8:
+    case VarType::ui8_array:
     return ValType::ui8;
 
-    case binom::VarType::si8:
-    case binom::VarType::si8_array:
+    case VarType::si8:
+    case VarType::si8_array:
     return ValType::si8;
 
-    case binom::VarType::ui16:
-    case binom::VarType::ui16_array:
+    case VarType::ui16:
+    case VarType::ui16_array:
     return ValType::ui16;
 
-    case binom::VarType::si16:
-    case binom::VarType::si16_array:
+    case VarType::si16:
+    case VarType::si16_array:
     return ValType::si16;
 
-    case binom::VarType::ui32:
-    case binom::VarType::ui32_array:
+    case VarType::ui32:
+    case VarType::ui32_array:
     return ValType::ui32;
 
-    case binom::VarType::si32:
-    case binom::VarType::si32_array:
+    case VarType::si32:
+    case VarType::si32_array:
     return ValType::si32;
 
-    case binom::VarType::f32:
-    case binom::VarType::f32_array:
+    case VarType::f32:
+    case VarType::f32_array:
     return ValType::f32;
 
-    case binom::VarType::ui64:
-    case binom::VarType::ui64_array:
+    case VarType::ui64:
+    case VarType::ui64_array:
     return ValType::ui64;
 
-    case binom::VarType::si64:
-    case binom::VarType::si64_array:
+    case VarType::si64:
+    case VarType::si64_array:
     return ValType::si64;
 
-    case binom::VarType::f64:
-    case binom::VarType::f64_array:
+    case VarType::f64:
+    case VarType::f64_array:
     return ValType::f64;
 
     default:
     return ValType::invalid_type;
+  }
+}
+
+inline VarType getVarType(ValType type) {
+  switch (type) {
+  case ValType::boolean:
+  return VarType::boolean;
+
+  case ValType::ui8:
+  return VarType::ui8;
+
+  case ValType::si8:
+  return VarType::si8;
+
+  case ValType::ui16:
+  return VarType::ui16;
+
+  case ValType::si16:
+  return VarType::si16;
+
+  case ValType::ui32:
+  return VarType::ui32;
+
+  case ValType::si32:
+  return VarType::si32;
+
+  case ValType::f32:
+  return VarType::f32;
+
+  case ValType::ui64:
+  return VarType::ui64;
+
+  case ValType::si64:
+  return VarType::si64;
+
+  case ValType::f64:
+  return VarType::f64;
+
+  default:
+  return VarType::invalid_type;
   }
 }
 

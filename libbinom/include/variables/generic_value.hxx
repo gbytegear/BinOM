@@ -34,7 +34,7 @@ class GenericValue {
       Data(i64 i64_val)   : i64_val(i64_val) {}
       Data(f32 f32_val)   : f32_val(f32_val) {}
       Data(f64 f64_val)   : f64_val(f64_val) {}
-    } data = false;
+  } data = false;
   friend class GenericValueIterator;
   friend class Number;
   friend class BufferArray;
@@ -77,6 +77,83 @@ public:
   bool operator<(GenericValue other) const noexcept;
   bool operator<=(GenericValue other) const noexcept;
 
+  inline bool operator==(bool value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(bool value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(bool value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(bool value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(bool value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(bool value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(ui8 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(ui8 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(ui8 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(ui8 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(ui8 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(ui8 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(i8 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(i8 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(i8 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(i8 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(i8 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(i8 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(ui16 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(ui16 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(ui16 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(ui16 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(ui16 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(ui16 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(i16 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(i16 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(i16 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(i16 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(i16 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(i16 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(ui32 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(ui32 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(ui32 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(ui32 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(ui32 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(ui32 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(i32 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(i32 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(i32 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(i32 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(i32 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(i32 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(f32 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(f32 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(f32 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(f32 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(f32 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(f32 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(ui64 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(ui64 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(ui64 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(ui64 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(ui64 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(ui64 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(i64 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(i64 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(i64 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(i64 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(i64 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(i64 value) const noexcept {return *this <= GenericValue(value);}
+
+  inline bool operator==(f64 value) const noexcept {return *this == GenericValue(value);}
+  inline bool operator!=(f64 value) const noexcept {return *this != GenericValue(value);}
+  inline bool operator>(f64 value) const noexcept {return *this > GenericValue(value);}
+  inline bool operator>=(f64 value) const noexcept {return *this >= GenericValue(value);}
+  inline bool operator<(f64 value) const noexcept {return *this < GenericValue(value);}
+  inline bool operator<=(f64 value) const noexcept {return *this <= GenericValue(value);}
+
   GenericValue& operator=(bool value) noexcept;
   GenericValue& operator=(ui8 value) noexcept;
   GenericValue& operator=(i8 value) noexcept;
@@ -96,12 +173,17 @@ public:
   GenericValue& operator*=(GenericValue value) noexcept;
   GenericValue& operator/=(GenericValue value) noexcept;
   GenericValue& operator%=(GenericValue value) noexcept;
+  GenericValue& operator++() noexcept;
+  GenericValue& operator--() noexcept;
 
   GenericValue operator+(GenericValue value) const noexcept;
   GenericValue operator-(GenericValue value) const noexcept;
   GenericValue operator*(GenericValue value) const noexcept;
   GenericValue operator/(GenericValue value) const noexcept;
   GenericValue operator%(GenericValue value) const noexcept;
+  GenericValue operator++(int) noexcept;
+  GenericValue operator--(int) noexcept;
+
 
 };
 
