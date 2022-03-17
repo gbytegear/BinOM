@@ -35,6 +35,8 @@ void testResourceControll() {
       PRINT_RUN(auto ulk_1 = hl_1_ptr->tryLockUnique();)
       PRINT_RUN(auto ulk_2 = hl_1_ptr->tryLockUnique();)
       PRINT_RUN(auto ulk_3 = hl_1_ptr->tryLockUnique();)
+      PRINT_RUN(})
+      PRINT_RUN({)
       LOG("Recursive shared locking")
       PRINT_RUN(auto slk_1 = hl_1_ptr->tryLockShared();)
       PRINT_RUN(auto slk_2 = hl_1_ptr->tryLockShared();)
