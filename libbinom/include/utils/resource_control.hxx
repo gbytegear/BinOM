@@ -148,9 +148,27 @@ enum class ResourceLinkType : char {
 
 struct SharedResource {
   const ResourceLinkType type_info[2] = {ResourceLinkType::hard_link, ResourceLinkType::weak_link};
+  ResourceData resource_date;
   std::atomic_uint64_t hard_link_counter = 1;
   std::atomic_uint64_t soft_link_counter = 0;
-  ResourceData resource_date;
+};
+
+class SharedResourceLinkTraget {
+  const ResourceLinkType link_type;
+
+  SharedResource& getResource() const noexcept {
+    switch (link_type) {
+    case binom::priv::ResourceLinkType::hard_link:
+    return *reinterpret_cast<SharedResource*>(const_cast<SharedResourceLinkTraget*>(this));
+    case binom::priv::ResourceLinkType::weak_link:
+    return *reinterpret_cast<SharedResource*>(const_cast<SharedResourceLinkTraget*>(this) - 1);
+    }
+  }
+
+public:
+  ResourceLinkType getLinkType() const noexcept {return link_type;}
+
+
 };
 
 }
