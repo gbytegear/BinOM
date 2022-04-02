@@ -2,8 +2,8 @@
 #define TESTER_HPP
 
 #include <iostream>
-
-size_t log_depth = 0;
+#include <iomanip>
+#include <thread>
 
 #ifndef __FUNCTION_NAME__
     #ifdef WIN32   //WINDOWS
@@ -94,10 +94,12 @@ size_t log_depth = 0;
 
 
 #ifdef TEST_FULL_INFO
-#define INFO << "(@path: " __FILE__ ":" << __LINE__ << " @func: " << __FUNCTION_NAME__ << ") "
+#define INFO << "(@path: " __FILE__ ":" << __LINE__ << " @func: " << __FUNCTION_NAME__ << " @thread: #" << std::hex << std::this_thread::get_id() << std::dec << ") "
 #else
 #define INFO
 #endif
+
+thread_local size_t log_depth = 0;
 
 #define GRP_PUSH ++log_depth;
 #define GRP_POP std::cout << std::string(log_depth - 1, '|') << "+---\n"; --log_depth;

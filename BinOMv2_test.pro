@@ -3,6 +3,7 @@ CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG -= qt
 TARGET = binom_v2_test
+LIBS += -lpthread
 
 SOURCES += test/test.cxx \
     libbinom/source/variables/generic_value.cxx
@@ -18,5 +19,6 @@ HEADERS += \
     libbinom/include/variables/generic_value.hxx \
     test/all_test.hxx \
     test/generic_value_test.hxx \
+    test/recursive_shared_mutex_test.hxx \
     test/types_test.hxx \
     test/tester.hxx

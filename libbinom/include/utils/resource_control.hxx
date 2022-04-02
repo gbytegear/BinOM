@@ -4,6 +4,7 @@
 #include "types.hxx"
 #include <shared_mutex>
 #include <atomic>
+#include <map>
 
 namespace binom::priv {
 
@@ -24,30 +25,62 @@ enum class MtxLockType : ui8 {
  */
 class SMRecursiveWrapper {
 
-  ui64 shared_lock_counter = 0;
-  ui64 unique_lock_counter = 0;
+  struct Counters {
+    ui64 wrapper_count = 1;
+    ui64 shared_lock_counter = 0;
+    ui64 unique_lock_counter = 0;
+  };
+
+  static inline thread_local std::map<std::shared_mutex*, Counters> counter_storage;
+
+  Counters& counters;
   std::shared_mutex* mtx;
+
+  static Counters& createCountersRef(std::shared_mutex* mtx) {
+    auto it = counter_storage.find(mtx);
+    if(it == counter_storage.cend())
+      return counter_storage.emplace(mtx, Counters{}).first->second;
+    ++it->second.wrapper_count;
+    return it->second;
+  }
+
+  static void deleteCounterRef(std::shared_mutex* mtx) {
+    auto it = counter_storage.find(mtx);
+    if(it != counter_storage.cend())
+      if(!--it->second.wrapper_count)
+        counter_storage.erase(it);
+  }
 
 public:
 
-  SMRecursiveWrapper(std::shared_mutex* mtx) noexcept : mtx(mtx) {}
-  SMRecursiveWrapper(std::shared_mutex* mtx, MtxLockType lock_type) noexcept : mtx(mtx) {
+  SMRecursiveWrapper(std::shared_mutex* mtx, MtxLockType lock_type = MtxLockType::unlocked) noexcept : counters(createCountersRef(mtx)), mtx(mtx) {
+    if(!mtx) std::terminate();
     switch (lock_type) {
     case binom::priv::MtxLockType::unlocked: return;
     case binom::priv::MtxLockType::shared_locked:
      mtx->lock_shared();
-     ++shared_lock_counter;
+     ++counters.shared_lock_counter;
     return;
     case binom::priv::MtxLockType::unique_locked:
       mtx->lock();
-      ++unique_lock_counter;
+      ++counters.unique_lock_counter;
     return;
     }
   }
 
+  ~SMRecursiveWrapper() { deleteCounterRef(mtx); }
+
+  static ui64 getWrappedMutexCount() noexcept {return counter_storage.size();}
+
+  ui64 getUniqueLockCount() const noexcept {return counters.unique_lock_counter;}
+
+  ui64 getSheredLockCount() const noexcept {return counters.shared_lock_counter;}
+
+  ui64 getThisMutexWrapperCount() const noexcept {return counters.wrapper_count;}
+
   MtxLockType getLockType() const noexcept {
-    if(unique_lock_counter) return MtxLockType::unique_locked;
-    if(shared_lock_counter) return MtxLockType::shared_locked;
+    if(counters.unique_lock_counter) return MtxLockType::unique_locked;
+    if(counters.shared_lock_counter) return MtxLockType::shared_locked;
     return MtxLockType::unlocked;
   }
 
@@ -55,15 +88,15 @@ public:
     switch (getLockType()) {
     case binom::priv::MtxLockType::unlocked:
       mtx->lock();
-      ++unique_lock_counter;
+      ++counters.unique_lock_counter;
     return;
     case binom::priv::MtxLockType::shared_locked:
       mtx->unlock_shared();
       mtx->lock();
-      ++unique_lock_counter;
+      ++counters.unique_lock_counter;
     return;
     case binom::priv::MtxLockType::unique_locked:
-      ++unique_lock_counter;
+      ++counters.unique_lock_counter;
     return;
     }
   }
@@ -72,13 +105,13 @@ public:
     switch (getLockType()) {
     case binom::priv::MtxLockType::unlocked:
       mtx->lock_shared();
-      ++shared_lock_counter;
+      ++counters.shared_lock_counter;
     return;
     case binom::priv::MtxLockType::shared_locked:
-      ++shared_lock_counter;
+      ++counters.shared_lock_counter;
     return;
     case binom::priv::MtxLockType::unique_locked:
-      ++shared_lock_counter;
+      ++counters.shared_lock_counter;
     return;
     }
   }
@@ -88,7 +121,15 @@ public:
     case binom::priv::MtxLockType::unlocked:
     case binom::priv::MtxLockType::shared_locked: return;
     case binom::priv::MtxLockType::unique_locked:
-      if(!--unique_lock_counter) mtx->unlock();
+      if(!--counters.unique_lock_counter) {
+        if(counters.shared_lock_counter) {
+
+          // "A prior unlock() operation on the same mutex synchronizes-with (as defined in std::memory_order) this operation."
+          // - (C) [https://en.cppreference.com/w/cpp/thread/shared_mutex/lock_shared] 3.04.2022
+
+          mtx->unlock(); mtx->lock_shared();
+        } else mtx->unlock();
+      }
     return;
     }
   }
@@ -97,10 +138,10 @@ public:
     switch (getLockType()) {
     case binom::priv::MtxLockType::unlocked: return;
     case binom::priv::MtxLockType::shared_locked:
-      if(!--shared_lock_counter) mtx->unlock_shared();
+      if(!--counters.shared_lock_counter) mtx->unlock_shared();
     return;
     case binom::priv::MtxLockType::unique_locked:
-      if(shared_lock_counter) --shared_lock_counter;
+      if(counters.shared_lock_counter) --counters.shared_lock_counter;
     return;
     }
   }
@@ -151,12 +192,13 @@ struct SharedResource {
   ResourceData resource_date;
   std::atomic_uint64_t hard_link_counter = 1;
   std::atomic_uint64_t soft_link_counter = 0;
+  std::shared_mutex mtx;
 };
 
 class SharedResourceLinkTraget {
   const ResourceLinkType link_type;
 
-  SharedResource& getResource() const noexcept {
+  SharedResource& getSharedResource() const noexcept {
     switch (link_type) {
     case binom::priv::ResourceLinkType::hard_link:
     return *reinterpret_cast<SharedResource*>(const_cast<SharedResourceLinkTraget*>(this));
@@ -169,6 +211,11 @@ public:
   ResourceLinkType getLinkType() const noexcept {return link_type;}
 
 
+};
+
+
+class Link {
+  SharedResourceLinkTraget* shared_resource;
 };
 
 }

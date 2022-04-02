@@ -3,6 +3,6 @@
 
 int main() {
   testTypesConversions();
-  testResourceControll();
   testGenericValue();
+  testRecursiveSharedMutex();
 }
