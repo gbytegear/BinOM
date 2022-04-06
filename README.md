@@ -1,4 +1,4 @@
-# <a href="https://gbytegear.github.io/BinOM/"><img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">BinOM</a>
+# <a href="https://gbytegear.github.io/BinOM/"><img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">BinOM Prototype</a>
 
 **BinOM**(*Binary Object Model*) - library for working with a hierarchical data format for general purposes.
 
