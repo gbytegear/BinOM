@@ -1,23 +1,13 @@
-# <a href="https://gbytegear.github.io/BinOM/"><img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">Strict-typed binary object model (STBinOM)</a>
+# <a href="https://gbytegear.github.io/BinOM/"><img src="https://gbytegear.github.io/BinOM/src/img/BinOM.ico" height="40">BinOM</a>
 
-STBinOM - more strict-typed version of binary object model.
+**BinOM**(*Binary Object Model*) - library for working with a hierarchical data format for general purposes.
 
 ## Basic goals:
 * Development of a generic data format for building structures of any complexity
 * Ensuring the most optimal read and data processing speed
 * Development of tools for the most convenient work with data
 
-## STBinOM types
-All STBinOM types are based on types from C++ and STL, due to which they inherit from these tools a commonality that allows them to build structures of any complexity.
-The numeric type class "Primitive" has been renamed to "Number" which, unlike the previous one, separates numeric types by the presence of a sign or a floating point.
-The "object" type has been renamed to "map", which, unlike its predecessor, can have a different sorting type.
-
-### Container types:
-* Number - container for numeric data types;
-* BufferArray - сontainer for the same type of numeric values;
-* Array - array of similar numeric values;
-* Map - container of sorted keys associated with values.
-
+## BinOM Types info
 ### Number value widths:
 * byte - 8 bit width;
 * word - 16 bit width;
@@ -26,47 +16,10 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
 
 ### Number value types:
 * ui - unsigned integer;
-* i - signed integer;
+* si - signed integer;
 * f - float.
 
-### Type hierarchy:
-* null
-* Number
-  * byte width
-    * ui8
-    * i8
-  * word width
-    * ui16
-    * i16
-  * dword width
-    * ui32
-    * i32
-    * f32
-  * qword width
-    * ui64
-    * i64
-    * f64
-* BufferArray
-  * byte width
-    * ui8 array
-    * i8 array
-  * word width
-    * ui16 array
-    * i16 array
-  * dword width
-    * ui32 array
-    * i32 array
-    * f32 array
-  * qword width
-    * ui64 array
-    * i64 array
-    * f64 array
-* Array
-* Map
-  * less map
-  * greater map
-
-### Types list:
+## Types table:
 <table>
   <tr>
     <th>Code</th><th>Type</th><th>Definition</th><th>Value</th>
@@ -91,7 +44,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x04</th>
-    <th>i8</th>
+    <th>si8</th>
     <td>8 bit signed integer</td>
     <td>-128..127</td>
   </tr>
@@ -103,7 +56,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x06</th>
-    <th>i16</th>
+    <th>si16</th>
     <td>16 bit signed integer</td>
     <td>-32768..32767</td>
   </tr>
@@ -115,7 +68,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x08</th>
-    <th>i32</th>
+    <th>si32</th>
     <td>32 bit signed integer</td>
     <td>-2147483648..2147483647</td>
   </tr>
@@ -133,7 +86,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x0B</th>
-    <th>i64</th>
+    <th>si64</th>
     <td>64 bit signed integer</td>
     <td>-9223372036854775808..9223372036854775807</td>
   </tr>
@@ -151,7 +104,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x0E</th>
-    <th>i8 array</th>
+    <th>si8 array</th>
     <td>Array of 8 bit signed integer</td>
     <td></td>
   </tr>
@@ -163,7 +116,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x10</th>
-    <th>i16 array</th>
+    <th>si16 array</th>
     <td>Array of 16 bit signed integer</td>
     <td></td>
   </tr>
@@ -175,7 +128,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x12</th>
-    <th>i32 array</th>
+    <th>si32 array</th>
     <td>Array of 32 bit signed integer</td>
     <td></td>
   </tr>
@@ -193,7 +146,7 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
   </tr>
   <tr>
     <th>0x15</th>
-    <th>i64 array</th>
+    <th>si64 array</th>
     <td>Array of 64 bit signed integer</td>
     <td></td>
   </tr>
@@ -222,3 +175,9 @@ The "object" type has been renamed to "map", which, unlike its predecessor, can 
     <td></td>
   </tr>
 </table>
+
+### C++ Container types:
+* `binom::Number` - container for numeric data types;
+* `binom::BufferArray` - сontainer for the same type of numeric values;
+* `binom::Array` - heterogeneous array;
+* `binom::Map` - sorted associative container that contains key-value pairs with unique keys.
