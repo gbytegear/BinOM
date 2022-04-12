@@ -5,13 +5,20 @@
 #include <shared_mutex>
 #include <atomic>
 #include <map>
+#include <set>
 
 namespace binom::priv {
 
 enum class MtxLockType : ui8 {
-  unlocked = 0x00,
+  unlocked =      0x00,
   shared_locked = 0x01,
   unique_locked = 0x02
+};
+
+struct Counters {
+  ui64 wrapper_count = 1;
+  ui64 shared_lock_counter = 0;
+  ui64 unique_lock_counter = 0;
 };
 
 /**
@@ -23,80 +30,78 @@ enum class MtxLockType : ui8 {
  * unlock() unique_lock => unlock/shared_lock;
  * unlockShared() shared_lock => unlock;
  */
-class SMRecursiveWrapper {
-
-  struct Counters {
-    ui64 wrapper_count = 1;
-    ui64 shared_lock_counter = 0;
-    ui64 unique_lock_counter = 0;
-  };
-
+class SharedRecursiveMutexWrapper {
   static inline thread_local std::map<std::shared_mutex*, Counters> counter_storage;
+  std::map<std::shared_mutex*, Counters>::iterator mtx_data;
 
-  Counters& counters;
-  std::shared_mutex* mtx;
-
-  static Counters& createCountersRef(std::shared_mutex* mtx) {
+  static std::map<std::shared_mutex*, Counters>::iterator createCountersRef(std::shared_mutex* mtx) noexcept {
+    if(!mtx) return counter_storage.end();
     auto it = counter_storage.find(mtx);
     if(it == counter_storage.cend())
-      return counter_storage.emplace(mtx, Counters{}).first->second;
+      return counter_storage.emplace(mtx, Counters{}).first;
     ++it->second.wrapper_count;
-    return it->second;
+    return it;
   }
 
-  static void deleteCounterRef(std::shared_mutex* mtx) {
-    auto it = counter_storage.find(mtx);
-    if(it != counter_storage.cend())
-      if(!--it->second.wrapper_count)
-        counter_storage.erase(it);
-  }
+  static void deleteCounterRef(std::map<std::shared_mutex*, Counters>::iterator it) noexcept {counter_storage.erase(it);}
+
+  friend class RSMLocker;
 
 public:
 
-  SMRecursiveWrapper(std::shared_mutex* mtx, MtxLockType lock_type = MtxLockType::unlocked) noexcept : counters(createCountersRef(mtx)), mtx(mtx) {
+  SharedRecursiveMutexWrapper(
+      std::shared_mutex* mtx,
+      MtxLockType lock_type = MtxLockType::unlocked) noexcept
+    : mtx_data(createCountersRef(mtx)) {
     if(!mtx) std::terminate();
     switch (lock_type) {
     case binom::priv::MtxLockType::unlocked: return;
     case binom::priv::MtxLockType::shared_locked:
      mtx->lock_shared();
-     ++counters.shared_lock_counter;
+     ++mtx_data->second.shared_lock_counter;
     return;
     case binom::priv::MtxLockType::unique_locked:
       mtx->lock();
-      ++counters.unique_lock_counter;
+      ++mtx_data->second.unique_lock_counter;
     return;
     }
   }
 
-  ~SMRecursiveWrapper() { deleteCounterRef(mtx); }
+  SharedRecursiveMutexWrapper(const SharedRecursiveMutexWrapper& other) noexcept
+    : SharedRecursiveMutexWrapper(other.mtx_data->first) {}
+
+  SharedRecursiveMutexWrapper(SharedRecursiveMutexWrapper&& other) noexcept
+    : mtx_data(other.mtx_data) { other.mtx_data = counter_storage.end(); }
+
+  ~SharedRecursiveMutexWrapper() { deleteCounterRef(mtx_data); }
 
   static ui64 getWrappedMutexCount() noexcept {return counter_storage.size();}
 
-  ui64 getUniqueLockCount() const noexcept {return counters.unique_lock_counter;}
+  ui64 getUniqueLockCount() const noexcept {return mtx_data->second.unique_lock_counter;}
 
-  ui64 getSheredLockCount() const noexcept {return counters.shared_lock_counter;}
+  ui64 getSheredLockCount() const noexcept {return mtx_data->second.shared_lock_counter;}
 
-  ui64 getThisMutexWrapperCount() const noexcept {return counters.wrapper_count;}
+  ui64 getThisMutexWrapperCount() const noexcept {return mtx_data->second.wrapper_count;}
 
   MtxLockType getLockType() const noexcept {
-    if(counters.unique_lock_counter) return MtxLockType::unique_locked;
-    if(counters.shared_lock_counter) return MtxLockType::shared_locked;
+    if(mtx_data->second.unique_lock_counter) return MtxLockType::unique_locked;
+    if(mtx_data->second.shared_lock_counter) return MtxLockType::shared_locked;
     return MtxLockType::unlocked;
   }
 
   void lock() noexcept {
     switch (getLockType()) {
     case binom::priv::MtxLockType::unlocked:
-      mtx->lock();
-      ++counters.unique_lock_counter;
+      mtx_data->first->lock();
+      ++mtx_data->second.unique_lock_counter;
     return;
     case binom::priv::MtxLockType::shared_locked:
-      mtx->unlock_shared();
-      mtx->lock();
-      ++counters.unique_lock_counter;
+      mtx_data->first->unlock_shared();
+      mtx_data->first->lock();
+      ++mtx_data->second.unique_lock_counter;
     return;
     case binom::priv::MtxLockType::unique_locked:
-      ++counters.unique_lock_counter;
+      ++mtx_data->second.unique_lock_counter;
     return;
     }
   }
@@ -104,14 +109,14 @@ public:
   void lockShared() noexcept {
     switch (getLockType()) {
     case binom::priv::MtxLockType::unlocked:
-      mtx->lock_shared();
-      ++counters.shared_lock_counter;
+      mtx_data->first->lock_shared();
+      ++mtx_data->second.shared_lock_counter;
     return;
     case binom::priv::MtxLockType::shared_locked:
-      ++counters.shared_lock_counter;
+      ++mtx_data->second.shared_lock_counter;
     return;
     case binom::priv::MtxLockType::unique_locked:
-      ++counters.shared_lock_counter;
+      ++mtx_data->second.shared_lock_counter;
     return;
     }
   }
@@ -121,14 +126,14 @@ public:
     case binom::priv::MtxLockType::unlocked:
     case binom::priv::MtxLockType::shared_locked: return;
     case binom::priv::MtxLockType::unique_locked:
-      if(!--counters.unique_lock_counter) {
-        if(counters.shared_lock_counter) {
+      if(!--mtx_data->second.unique_lock_counter) {
+        if(mtx_data->second.shared_lock_counter) {
 
           // "A prior unlock() operation on the same mutex synchronizes-with (as defined in std::memory_order) this operation."
           // - (C) [https://en.cppreference.com/w/cpp/thread/shared_mutex/lock_shared] 3.04.2022
+          mtx_data->first->unlock(); mtx_data->first->lock_shared();
 
-          mtx->unlock(); mtx->lock_shared();
-        } else mtx->unlock();
+        } else mtx_data->first->unlock();
       }
     return;
     }
@@ -138,14 +143,40 @@ public:
     switch (getLockType()) {
     case binom::priv::MtxLockType::unlocked: return;
     case binom::priv::MtxLockType::shared_locked:
-      if(!--counters.shared_lock_counter) mtx->unlock_shared();
+      if(!--mtx_data->second.shared_lock_counter) mtx_data->first->unlock_shared();
     return;
     case binom::priv::MtxLockType::unique_locked:
-      if(counters.shared_lock_counter) --counters.shared_lock_counter;
+      if(mtx_data->second.shared_lock_counter) --mtx_data->second.shared_lock_counter;
     return;
     }
   }
+
 };
+
+
+class RSMLocker {
+  MtxLockType lock_type;
+  SharedRecursiveMutexWrapper& rsmw;
+public:
+  RSMLocker(SharedRecursiveMutexWrapper& rsmw, MtxLockType lock_type) noexcept
+    : lock_type(lock_type), rsmw(rsmw) {
+    switch (lock_type) {
+    case binom::priv::MtxLockType::unlocked: return;
+    case binom::priv::MtxLockType::shared_locked: rsmw.lockShared(); return;
+    case binom::priv::MtxLockType::unique_locked: rsmw.lock(); return;
+    }
+  }
+
+  ~RSMLocker() {
+    switch (lock_type) {
+    case binom::priv::MtxLockType::unlocked: return;
+    case binom::priv::MtxLockType::shared_locked: rsmw.unlockShared(); return;
+    case binom::priv::MtxLockType::unique_locked: rsmw.unlock(); return;
+    }
+  }
+
+};
+
 
 struct ResourceData {
   union Data {
@@ -162,7 +193,7 @@ struct ResourceData {
     f32   f32_val;
     f64   f64_val;
 
-    template<typename T> T* as() const noexcept { return reinterpret_cast<T*>(pointer);}
+    template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
 
     Data() = default;
     Data(void* pointer) : pointer(pointer)    {}
@@ -187,35 +218,103 @@ enum class ResourceLinkType : char {
   weak_link = 'w'
 };
 
-struct SharedResource {
-  const ResourceLinkType type_info[2] = {ResourceLinkType::hard_link, ResourceLinkType::weak_link};
-  ResourceData resource_date;
-  std::atomic_uint64_t hard_link_counter = 1;
-  std::atomic_uint64_t soft_link_counter = 0;
-  std::shared_mutex mtx;
-};
+struct SharedResource;
 
-class SharedResourceLinkTraget {
+class LinkTraget {
   const ResourceLinkType link_type;
+  LinkTraget() = delete;
+public:
+
+  ResourceLinkType getLinkType() const noexcept { return link_type; }
 
   SharedResource& getSharedResource() const noexcept {
     switch (link_type) {
     case binom::priv::ResourceLinkType::hard_link:
-    return *reinterpret_cast<SharedResource*>(const_cast<SharedResourceLinkTraget*>(this));
+    return *reinterpret_cast<SharedResource*>(const_cast<LinkTraget*>(this));
     case binom::priv::ResourceLinkType::weak_link:
-    return *reinterpret_cast<SharedResource*>(const_cast<SharedResourceLinkTraget*>(this) - 1);
+    return *reinterpret_cast<SharedResource*>(reinterpret_cast<byte*>(const_cast<LinkTraget*>(this)) - 1);
     }
   }
 
-public:
-  ResourceLinkType getLinkType() const noexcept {return link_type;}
-
+  void destoryLink() noexcept;
 
 };
 
+struct SharedResource {
+  const ResourceLinkType type_info[2] = {ResourceLinkType::hard_link, ResourceLinkType::weak_link};
+  ResourceData resource_data;
+  std::atomic_uint64_t hard_link_counter = 1;
+  std::atomic_uint64_t soft_link_counter = 0;
+  std::shared_mutex mtx;
+
+  static LinkTraget* createNewResource(ResourceData resource_data) {
+    SharedResource* new_shared_resource = new SharedResource{.resource_data = resource_data};
+    return reinterpret_cast<LinkTraget*>(const_cast<ResourceLinkType*>(new_shared_resource->type_info));
+  }
+
+  LinkTraget* createHardLink() noexcept {
+    ++hard_link_counter;
+    return reinterpret_cast<LinkTraget*>(const_cast<ResourceLinkType*>(type_info));
+  }
+
+  LinkTraget* createSoftLink() noexcept {
+    ++soft_link_counter;
+    return reinterpret_cast<LinkTraget*>(const_cast<ResourceLinkType*>(type_info + 1));
+  }
+
+};
+
+inline void LinkTraget::destoryLink() noexcept {
+  switch (link_type) {
+  case binom::priv::ResourceLinkType::hard_link:{
+    SharedResource& res = *reinterpret_cast<SharedResource*>(const_cast<LinkTraget*>(this));
+    if(!--res.hard_link_counter && !res.soft_link_counter) {
+      // TODO: Destroy resource
+      delete &res;
+    } else {
+      // TODO: Destroy resource
+    }
+  }
+  break;
+  case binom::priv::ResourceLinkType::weak_link:{
+    SharedResource& res = *reinterpret_cast<SharedResource*>(reinterpret_cast<byte*>(const_cast<LinkTraget*>(this)) - 1);
+    if(--res.soft_link_counter && !res.soft_link_counter) {
+      // TODO: Destroy resource
+      delete &res;
+    } else {
+      // TODO: Destroy resource
+    }
+  }
+  break;
+  }
+}
+
 
 class Link {
-  SharedResourceLinkTraget* shared_resource;
+  LinkTraget* link_target;
+
+  Link(LinkTraget* link_target) : link_target(link_target) {}
+
+public:
+  Link(ResourceData resource_data) noexcept : link_target(SharedResource::createNewResource(resource_data)) {}
+  Link(Link&& other) noexcept : link_target(other.link_target) {}
+  Link(const Link&) noexcept = delete;
+
+  ResourceData& getData() const noexcept {return link_target->getSharedResource().resource_data;}
+
+  SharedRecursiveMutexWrapper getMutex() const noexcept {return &link_target->getSharedResource().mtx;}
+
+  LinkType getLinkType() const noexcept {
+    switch (link_target->getLinkType()) {
+    case binom::priv::ResourceLinkType::hard_link: return LinkType::hard_link;
+    case binom::priv::ResourceLinkType::weak_link: return LinkType::soft_link;
+    }
+  }
+
+  Link createHardLink() noexcept {return link_target->getSharedResource().createHardLink();}
+
+  Link createSoftLink() noexcept {return link_target->getSharedResource().createSoftLink();}
+
 };
 
 }

@@ -3,6 +3,10 @@
 
 #include <cstdint>
 
+#define elif else if
+#define forever while(1)
+#define ever (;;)
+
 namespace type_alias {
 
 typedef uint8_t ui8;
