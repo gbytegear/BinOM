@@ -1,5 +1,5 @@
-#ifndef BIT_MAP64_HPP
-#define BIT_MAP64_HPP
+#ifndef BIT_MAP64_HXX
+#define BIT_MAP64_HXX
 
 #include "type_aliases.hxx"
 #include <array>
@@ -296,4 +296,4 @@ inline BitIterator BitMap64::iteratorAt(ui8 index) const noexcept {return BitIte
 }
 
 
-#endif // BIT_MAP64_HPP
+#endif // BIT_MAP64_HXX

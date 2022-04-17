@@ -1,5 +1,5 @@
-#ifndef ERR_H
-#define ERR_H
+#ifndef ERR_HXX
+#define ERR_HXX
 
 #include "type_aliases.hxx"
 
@@ -79,4 +79,4 @@ inline const char* Error::what() const noexcept {
 
 }
 
-#endif // ERR_H
+#endif // ERR_HXX

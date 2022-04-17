@@ -1,5 +1,5 @@
-#ifndef GENERIC_VALUE_HPP
-#define GENERIC_VALUE_HPP
+#ifndef GENERIC_VALUE_HXX
+#define GENERIC_VALUE_HXX
 
 #include "../utils/types.hxx"
 #include <utility>
@@ -183,8 +183,6 @@ public:
   GenericValue operator%(GenericValue value) const noexcept;
   GenericValue operator++(int) noexcept;
   GenericValue operator--(int) noexcept;
-
-
 };
 
 class GenericValueRef {
@@ -227,4 +225,4 @@ class GenericValueIterator {
 
 }
 
-#endif // GENERIC_VALUE_HPP
+#endif // GENERIC_VALUE_HXX

@@ -1,5 +1,5 @@
-#ifndef TREE_HPP
-#define TREE_HPP
+#ifndef AVL_TREE_HXX
+#define AVL_TREE_HXX
 
 #include "type_aliases.hxx"
 
@@ -70,4 +70,4 @@ public:
 
 
 
-#endif // TREE_HPP
+#endif // AVL_TREE_HXX

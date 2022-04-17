@@ -14,7 +14,7 @@ void testRecursiveSharedMutexJob() {
   TEST_ANNOUNCE(Thread started)
   shared_mtx.unlock();
 
-  PRINT_RUN(SMRecursiveWrapper wrapper_1(&shared_mtx, MtxLockType::shared_locked);)
+  PRINT_RUN(SharedRecursiveMutexWrapper wrapper_1(&shared_mtx, MtxLockType::shared_locked);)
   LOG("Thread #" << std::this_thread::get_id() << " owns first shared lock")
   LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
   LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())

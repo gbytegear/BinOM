@@ -1,5 +1,5 @@
-#ifndef MEMCTRL_HPP
-#define MEMCTRL_HPP
+#ifndef MEMCTRL_HXX
+#define MEMCTRL_HXX
 
 #include <new>
 #include <memory>
@@ -629,4 +629,4 @@ public:
 
 }
 
-#endif // MEMCTRL_HPP
+#endif // MEMCTRL_HXX

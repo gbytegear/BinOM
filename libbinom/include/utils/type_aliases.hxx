@@ -1,5 +1,5 @@
-#ifndef TYPE_ALIASES_HPP
-#define TYPE_ALIASES_HPP
+#ifndef TYPE_ALIASES_HXX
+#define TYPE_ALIASES_HXX
 
 #include <cstdint>
 
@@ -64,4 +64,4 @@ constexpr ui64 operator""_gb(ull_t val) {return val*1073741824;}
 
 }
 
-#endif // TYPE_ALIASES_HPP
+#endif // TYPE_ALIASES_HXX
