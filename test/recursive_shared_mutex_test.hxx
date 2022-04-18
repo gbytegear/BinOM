@@ -1,48 +1,23 @@
 #ifndef RECURSIVE_SHARED_MUTEX_TEST_HXX
 #define RECURSIVE_SHARED_MUTEX_TEST_HXX
 
-#include "libbinom/include/utils/resource_control.hxx"
+#include "libbinom/include/utils/shared_recursive_mutex_wrapper.hxx"
 #include "test/tester.hxx"
 #include <thread>
 
 std::shared_mutex shared_mtx;
 
-void testRecursiveSharedMutexJob() {
-  using namespace binom::priv;
+binom::priv::SharedRecursiveLock reader(binom::priv::SharedRecursiveLock* outer_lock = nullptr) {
+  binom::priv::SharedRecursiveLock lock = outer_lock
+      ? std::move(*outer_lock)
+      : binom::priv::SharedRecursiveLock(&shared_mtx, binom::priv::MtxLockType::shared_locked);
+  static thread_local int recursion_depth = 0;
 
-  shared_mtx.lock();
-  TEST_ANNOUNCE(Thread started)
-  shared_mtx.unlock();
-
-  PRINT_RUN(SharedRecursiveMutexWrapper wrapper_1(&shared_mtx, MtxLockType::shared_locked);)
-  LOG("Thread #" << std::this_thread::get_id() << " owns first shared lock")
-  LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
-  LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())
-  PRINT_RUN(wrapper_1.lockShared();)
-  LOG("Thread #" << std::this_thread::get_id() << " owns second shared lock")
-  LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
-  LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())
-  PRINT_RUN(wrapper_1.lock();)
-  LOG("Thread #" << std::this_thread::get_id() << " owns first unique lock")
-  LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
-  LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())
-  PRINT_RUN(wrapper_1.unlock();)
-  LOG("Thread #" << std::this_thread::get_id() << " release first unique lock")
-  LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
-  LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())
-  PRINT_RUN(wrapper_1.unlockShared();)
-  LOG("Thread #" << std::this_thread::get_id() << " release second shared lock")
-  LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
-  LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())
-  PRINT_RUN(wrapper_1.unlockShared();)
-  LOG("Thread #" << std::this_thread::get_id() << " release first shared lock")
-  LOG("Shared locks count: " << wrapper_1.getSheredLockCount())
-  LOG("Unique locks count: " << wrapper_1.getUniqueLockCount())
 }
 
 void testRecursiveSharedMutex() {
-  std::thread thr_1(testRecursiveSharedMutexJob);
-  std::thread thr_2(testRecursiveSharedMutexJob);
+  std::thread thr_1(reader);
+  std::thread thr_2(reader);
   thr_1.join();
   thr_2.join();
 }

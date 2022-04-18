@@ -17,37 +17,38 @@ enum class LinkType : ui8 {
   invalid_link = 0xFF
 };
 
+/// BinOM Variable type codes
 enum class VarType : ui8 {
-  null                    = 0x01,
-  boolean                 = 0x02,
-  ui8                     = 0x03,
-  si8                     = 0x04,
-  ui16                    = 0x05,
-  si16                    = 0x06,
-  ui32                    = 0x07,
-  si32                    = 0x08,
-  f32                     = 0x09,
-  ui64                    = 0x0A,
-  si64                    = 0x0B,
-  f64                     = 0x0C,
-  bit_array               = 0x0D,
-  ui8_array               = 0x0E,
-  si8_array               = 0x0F,
-  ui16_array              = 0x10,
-  si16_array              = 0x11,
-  ui32_array              = 0x12,
-  si32_array              = 0x13,
-  f32_array               = 0x14,
-  ui64_array              = 0x15,
-  si64_array              = 0x16,
-  f64_array               = 0x17,
-  array                   = 0x18,
-  list                    = 0x19,
-  less_map                = 0x1A,
-  greater_map             = 0x1B,
+  null                    = 0x01, ///< NULL
+  boolean                 = 0x02, ///< Boolean value
+  ui8                     = 0x03, ///< Unsigned 8-bit integer number
+  si8                     = 0x04, ///< Signed 8-bit integer number
+  ui16                    = 0x05, ///< Unsigned 16-bit integer number
+  si16                    = 0x06, ///< Signed 16-bit integer number
+  ui32                    = 0x07, ///< Unsigned 32-bit integer number
+  si32                    = 0x08, ///< Signed 32-bit integer number
+  f32                     = 0x09, ///< 32-bit number with floating point
+  ui64                    = 0x0A, ///< Unsigned 64-bit integer number
+  si64                    = 0x0B, ///< Signed 64-bit integer number
+  f64                     = 0x0C, ///< 64-bit number with floating point
+  bit_array               = 0x0D, ///< Array of boolean values
+  ui8_array               = 0x0E, ///< Array of unsigned 8-bit integer numbers
+  si8_array               = 0x0F, ///< Array of signed 8-bit integer numbers
+  ui16_array              = 0x10, ///< Array of unsigned 16-bit integer numbers
+  si16_array              = 0x11, ///< Array of signed 16-bit integer numbers
+  ui32_array              = 0x12, ///< Array of unsigned 32-bit integer numbers
+  si32_array              = 0x13, ///< Array of signed 32-bit integer numbers
+  f32_array               = 0x14, ///< Array of 32-bit numbers with floating point
+  ui64_array              = 0x15, ///< Array of unsigned 64-bit integer numbers
+  si64_array              = 0x16, ///< Array of signed 64-bit integer numbers
+  f64_array               = 0x17, ///< Array of 64-bit numbers with floating point
+  array                   = 0x18, ///< Heterogeneous array
+  list                    = 0x19, ///< Heterogeneous list
+  less_map                = 0x1A, ///< Associative heterogeneous container with key-sorted by descending
+  greater_map             = 0x1B, ///< Associative heterogeneous container with key-sorted by ascending
 
-  separator               = 0x00,
-  invalid_type            = 0xFF
+  separator               = 0x00, ///< End code
+  invalid_type            = 0xFF ///< Invalid type code
 };
 
 enum class VarTypeClass : ui8 {

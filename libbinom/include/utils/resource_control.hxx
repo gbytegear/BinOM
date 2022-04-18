@@ -4,10 +4,12 @@
 #include "shared_recursive_mutex_wrapper.hxx"
 #include <atomic>
 
+// NOTE: Remove soft link mechanic
 
 namespace binom::priv {
 
 struct ResourceData {
+
   union Data {
     void* pointer = nullptr;
 
@@ -51,6 +53,7 @@ struct ResourceData {
     Data(f32 f32_val)   : f32_val(f32_val)    {}
     Data(f64 f64_val)   : f64_val(f64_val)    {}
   };
+
   VarType type = VarType::null;
   Data data;
 };
