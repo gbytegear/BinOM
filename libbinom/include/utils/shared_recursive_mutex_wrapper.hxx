@@ -21,8 +21,6 @@ struct Counters {
   ui64 unique_lock_counter = 0;
 };
 
-static inline thread_local std::map<std::shared_mutex*, Counters> counter_storage;
-
 /**
  * @brief SMRecursiveWrapper - std::shared_mutex wrapper for recusive locking
  *
@@ -33,8 +31,8 @@ static inline thread_local std::map<std::shared_mutex*, Counters> counter_storag
  * unlockShared() shared_lock => unlock;
  */
 class SharedRecursiveMutexWrapper {
-
-  std::map<std::shared_mutex*, Counters>::iterator mtx_data;
+  static inline thread_local std::map<std::shared_mutex*, Counters> counter_storage;
+  std::map<std::shared_mutex*, Counters>::iterator mtx_data = counter_storage.end();
 
   static std::map<std::shared_mutex*, Counters>::iterator createCountersRef(std::shared_mutex* mtx) noexcept {
     if(!mtx) return counter_storage.end();
@@ -47,10 +45,13 @@ class SharedRecursiveMutexWrapper {
 
   static void deleteCounterRef(std::map<std::shared_mutex*, Counters>::iterator it) noexcept {
     if(it != counter_storage.cend()) {
-      if(it->second.unique_lock_counter) it->first->unlock();
-      if(it->second.shared_lock_counter) it->first->unlock_shared();
-      counter_storage.erase(it);
+      if(!--it->second.wrapper_count) {
+        if(it->second.unique_lock_counter) it->first->unlock();
+        if(it->second.shared_lock_counter) it->first->unlock_shared();
+        counter_storage.erase(it);
+      }
     }
+    it = counter_storage.end();
   }
 
   friend class RSMLocker;
@@ -92,7 +93,7 @@ public:
 
   SharedRecursiveMutexWrapper(SharedRecursiveLock&& lock, MtxLockType lock_type = MtxLockType::unlocked);
 
-  ~SharedRecursiveMutexWrapper() { deleteCounterRef(mtx_data); }
+  ~SharedRecursiveMutexWrapper() { deleteCounterRef(mtx_data); mtx_data = counter_storage.end(); }
 
   static ui64 getWrappedMutexCount() noexcept {return counter_storage.size();}
 

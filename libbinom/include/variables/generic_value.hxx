@@ -1,191 +1,60 @@
 #ifndef GENERIC_VALUE_HXX
 #define GENERIC_VALUE_HXX
 
-#include "../utils/types.hxx"
-#include <utility>
+#include "../utils/arithmetic.hxx"
 
 namespace binom {
 
 class GenericValueIterator;
 class GenericValueRef;
 
-class GenericValue {
-  ValType value_type = ValType::invalid_type;
-  union Data {
-      bool bool_val;
-      ui8 ui8_val;
-      ui16 ui16_val;
-      ui32 ui32_val;
-      ui64 ui64_val;
-      i8 i8_val;
-      i16 i16_val;
-      i32 i32_val;
-      i64 i64_val;
-      f32 f32_val;
-      f64 f64_val;
-      Data(bool bool_val) : bool_val(bool_val) {}
-      Data(ui8 ui8_val)   : ui8_val(ui8_val) {}
-      Data(ui16 ui16_val) : ui16_val(ui16_val) {}
-      Data(ui32 ui32_val) : ui32_val(ui32_val) {}
-      Data(ui64 ui64_val) : ui64_val(ui64_val) {}
-      Data(i8 i8_val)     : i8_val(i8_val) {}
-      Data(i16 i16_val)   : i16_val(i16_val) {}
-      Data(i32 i32_val)   : i32_val(i32_val) {}
-      Data(i64 i64_val)   : i64_val(i64_val) {}
-      Data(f32 f32_val)   : f32_val(f32_val) {}
-      Data(f64 f64_val)   : f64_val(f64_val) {}
-  } data = false;
-  friend class GenericValueIterator;
-  friend class Number;
-  friend class BufferArray;
+class GenericValue : public arithmetic::ExtendedArithmeticTypeBase<GenericValue> {
+  friend class ArithmeticTypeBase<GenericValue>;
+  ValType type;
+  arithmetic::ArithmeticData data;
+
+  arithmetic::ArithmeticData& getArithmeticDataImpl() const {return const_cast<arithmetic::ArithmeticData&>(data);}
+  ValType getTypeImpl() const {return type;}
+  void setArithmeticDataImpl(ValType type, arithmetic::ArithmeticData data) {
+    this->data = data;
+    this->type = type;
+  }
+
 public:
-  GenericValue() noexcept;;
-  GenericValue(bool value) noexcept;
-  GenericValue(ui8 value) noexcept;
-  GenericValue(i8 value) noexcept;
-  GenericValue(ui16 value) noexcept;
-  GenericValue(i16 value) noexcept;
-  GenericValue(ui32 value) noexcept;
-  GenericValue(i32 value) noexcept;
-  GenericValue(f32 value) noexcept;
-  GenericValue(ui64 value) noexcept;
-  GenericValue(i64 value) noexcept;
-  GenericValue(f64 value) noexcept;
-  GenericValue(const GenericValue& other);
-  GenericValue(GenericValue&& other);
+  GenericValue() noexcept {}
+  GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {}
+  GenericValue(ui8 value) noexcept : type(ValType::ui8), data{.ui8_val = value} {}
+  GenericValue(i8 value) noexcept : type(ValType::si8), data{.i8_val = value} {}
+  GenericValue(ui16 value) noexcept : type(ValType::ui16), data{.ui16_val = value} {}
+  GenericValue(i16 value) noexcept : type(ValType::si16), data{.i16_val = value} {}
+  GenericValue(ui32 value) noexcept : type(ValType::ui32), data{.ui32_val = value} {}
+  GenericValue(i32 value) noexcept : type(ValType::si32), data{.i32_val = value} {}
+  GenericValue(f32 value) noexcept : type(ValType::f32), data{.f32_val = value} {}
+  GenericValue(ui64 value) noexcept : type(ValType::ui64), data{.ui64_val = value} {}
+  GenericValue(i64 value) noexcept : type(ValType::si64), data{.i64_val = value} {}
+  GenericValue(f64 value) noexcept : type(ValType::f64), data{.f64_val = value} {}
+  GenericValue(const GenericValue& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
+  GenericValue(GenericValue&& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
 
-  ValType getType() const noexcept;
-  VarNumberType getNumberType() const noexcept;
-  VarBitWidth getBitWidth() const noexcept;
+  GenericValue& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(i8 value) noexcept   {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(ui16 value) noexcept {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(i16 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(ui32 value) noexcept {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(i32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(f32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(ui64 value) noexcept {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(i64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(f64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(const GenericValue& value) noexcept {return ArithmeticTypeBase::operator=(value);}
+  GenericValue& operator=(GenericValue&& value) noexcept      {return ArithmeticTypeBase::operator=(std::move(value));}
 
-  operator bool () const noexcept;
-  operator ui8 () const noexcept;
-  operator i8 () const noexcept;
-  operator ui16 () const noexcept;
-  operator i16 () const noexcept;
-  operator ui32 () const noexcept;
-  operator i32 () const noexcept;
-  operator f32 () const noexcept;
-  operator ui64 () const noexcept;
-  operator i64 () const noexcept;
-  operator f64 () const noexcept;
-
-  bool operator==(GenericValue other) const noexcept;
-  bool operator!=(GenericValue other) const noexcept;
-  bool operator>(GenericValue other) const noexcept;
-  bool operator>=(GenericValue other) const noexcept;
-  bool operator<(GenericValue other) const noexcept;
-  bool operator<=(GenericValue other) const noexcept;
-
-  inline bool operator==(bool value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(bool value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(bool value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(bool value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(bool value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(bool value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(ui8 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(ui8 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(ui8 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(ui8 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(ui8 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(ui8 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(i8 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(i8 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(i8 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(i8 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(i8 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(i8 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(ui16 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(ui16 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(ui16 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(ui16 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(ui16 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(ui16 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(i16 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(i16 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(i16 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(i16 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(i16 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(i16 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(ui32 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(ui32 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(ui32 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(ui32 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(ui32 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(ui32 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(i32 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(i32 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(i32 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(i32 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(i32 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(i32 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(f32 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(f32 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(f32 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(f32 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(f32 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(f32 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(ui64 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(ui64 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(ui64 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(ui64 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(ui64 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(ui64 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(i64 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(i64 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(i64 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(i64 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(i64 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(i64 value) const noexcept {return *this <= GenericValue(value);}
-
-  inline bool operator==(f64 value) const noexcept {return *this == GenericValue(value);}
-  inline bool operator!=(f64 value) const noexcept {return *this != GenericValue(value);}
-  inline bool operator>(f64 value) const noexcept {return *this > GenericValue(value);}
-  inline bool operator>=(f64 value) const noexcept {return *this >= GenericValue(value);}
-  inline bool operator<(f64 value) const noexcept {return *this < GenericValue(value);}
-  inline bool operator<=(f64 value) const noexcept {return *this <= GenericValue(value);}
-
-  GenericValue& operator=(bool value) noexcept;
-  GenericValue& operator=(ui8 value) noexcept;
-  GenericValue& operator=(i8 value) noexcept;
-  GenericValue& operator=(ui16 value) noexcept;
-  GenericValue& operator=(i16 value) noexcept;
-  GenericValue& operator=(ui32 value) noexcept;
-  GenericValue& operator=(i32 value) noexcept;
-  GenericValue& operator=(f32 value) noexcept;
-  GenericValue& operator=(ui64 value) noexcept;
-  GenericValue& operator=(i64 value) noexcept;
-  GenericValue& operator=(f64 value) noexcept;
-  GenericValue& operator=(const GenericValue& value) noexcept;
-  GenericValue& operator=(GenericValue&& value) noexcept;
-
-  GenericValue& operator+=(GenericValue value) noexcept;
-  GenericValue& operator-=(GenericValue value) noexcept;
-  GenericValue& operator*=(GenericValue value) noexcept;
-  GenericValue& operator/=(GenericValue value) noexcept;
-  GenericValue& operator%=(GenericValue value) noexcept;
-  GenericValue& operator++() noexcept;
-  GenericValue& operator--() noexcept;
-
-  GenericValue operator+(GenericValue value) const noexcept;
-  GenericValue operator-(GenericValue value) const noexcept;
-  GenericValue operator*(GenericValue value) const noexcept;
-  GenericValue operator/(GenericValue value) const noexcept;
-  GenericValue operator%(GenericValue value) const noexcept;
-  GenericValue operator++(int) noexcept;
-  GenericValue operator--(int) noexcept;
 };
 
-class GenericValueRef {
+class GenericValueRef : public arithmetic::ArithmeticTypeBase<GenericValueRef> {
+  friend class arithmetic::ArithmeticTypeBase<GenericValueRef>;
+
   ValType value_type;
   union pointer {
       void* ptr;
@@ -200,11 +69,19 @@ class GenericValueRef {
       i64* i64_ptr;
       f32* f32_ptr;
       f64* f64_ptr;
+      arithmetic::ArithmeticData* num_data_ptr;
       pointer(void* ptr) : ptr(ptr) {}
     } ptr;
+
+
+  arithmetic::ArithmeticData& getArithmeticDataImpl() const noexcept {return *ptr.num_data_ptr;}
+  ValType getTypeImpl() const noexcept {return value_type;}
+
+
   friend class GenericValueIterator;
   friend class Number;
   friend class BufferArray;
+
   GenericValueRef(ValType value_type, void* ptr)
     : value_type(value_type), ptr(ptr) {}
   GenericValueRef(VarType variable_type, void* ptr)
@@ -221,7 +98,6 @@ public:
 class GenericValueIterator {
 
 };
-
 
 }
 

@@ -4,9 +4,9 @@
 #include "shared_recursive_mutex_wrapper.hxx"
 #include <atomic>
 
-// NOTE: Remove soft link mechanic
-
 namespace binom::priv {
+
+typedef std::optional<SharedRecursiveLock> OptionalSharedRecursiveLock;
 
 struct ResourceData {
 
@@ -38,128 +38,47 @@ struct ResourceData {
     f64*   f64_ptr;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
-
-    Data() = default;
-    Data(void* pointer) : pointer(pointer)    {}
-    Data(bool bool_val) : bool_val(bool_val)  {}
-    Data(ui8 ui8_val)   : ui8_val(ui8_val)    {}
-    Data(ui16 ui16_val) : ui16_val(ui16_val)  {}
-    Data(ui32 ui32_val) : ui32_val(ui32_val)  {}
-    Data(ui64 ui64_val) : ui64_val(ui64_val)  {}
-    Data(i8 i8_val)     : i8_val(i8_val)      {}
-    Data(i16 i16_val)   : i16_val(i16_val)    {}
-    Data(i32 i32_val)   : i32_val(i32_val)    {}
-    Data(i64 i64_val)   : i64_val(i64_val)    {}
-    Data(f32 f32_val)   : f32_val(f32_val)    {}
-    Data(f64 f64_val)   : f64_val(f64_val)    {}
   };
 
   VarType type = VarType::null;
   Data data;
 };
 
-enum class ResourceLinkType : char {
-  hard_link = 'h',
-  weak_link = 'w'
-};
 
-struct SharedResource;
-
-class LinkTraget {
-  const ResourceLinkType link_type;
-  LinkTraget() = delete;
-public:
-
-  ResourceLinkType getLinkType() const noexcept { return link_type; }
-
-  SharedResource& getSharedResource() const noexcept {
-    switch (link_type) {
-    case binom::priv::ResourceLinkType::hard_link:
-    return *reinterpret_cast<SharedResource*>(const_cast<LinkTraget*>(this));
-    case binom::priv::ResourceLinkType::weak_link:
-    return *reinterpret_cast<SharedResource*>(reinterpret_cast<byte*>(const_cast<LinkTraget*>(this)) - 1);
-    }
-  }
-
-  void destoryLink() noexcept;
-
-};
 
 struct SharedResource {
-  const ResourceLinkType type_info[2] = {ResourceLinkType::hard_link, ResourceLinkType::weak_link};
   ResourceData resource_data;
-  std::atomic_uint64_t hard_link_counter = 1;
-  std::atomic_uint64_t soft_link_counter = 0;
+  std::atomic_uint64_t link_counter = 1;
   std::shared_mutex mtx;
 
-  static LinkTraget* createNewResource(ResourceData resource_data) {
-    SharedResource* new_shared_resource = new SharedResource{.resource_data = resource_data};
-    return reinterpret_cast<LinkTraget*>(const_cast<ResourceLinkType*>(new_shared_resource->type_info));
-  }
-
-  LinkTraget* createHardLink() noexcept {
-    ++hard_link_counter;
-    return reinterpret_cast<LinkTraget*>(const_cast<ResourceLinkType*>(type_info));
-  }
-
-  LinkTraget* createSoftLink() noexcept {
-    ++soft_link_counter;
-    return reinterpret_cast<LinkTraget*>(const_cast<ResourceLinkType*>(type_info + 1));
-  }
-
+  bool isExist() noexcept {return link_counter;}
 };
 
-inline void LinkTraget::destoryLink() noexcept {
-  switch (link_type) {
-  case binom::priv::ResourceLinkType::hard_link:{
-    SharedResource& res = *reinterpret_cast<SharedResource*>(const_cast<LinkTraget*>(this));
-    if(!--res.hard_link_counter && !res.soft_link_counter) {
-      // TODO: Destroy resource
-      delete &res;
-    } else {
-      // TODO: Destroy resource
-    }
-  }
-  break;
-  case binom::priv::ResourceLinkType::weak_link:{
-    SharedResource& res = *reinterpret_cast<SharedResource*>(reinterpret_cast<byte*>(const_cast<LinkTraget*>(this)) - 1);
-    if(--res.soft_link_counter && !res.soft_link_counter) {
-      // TODO: Destroy resource
-      delete &res;
-    } else {
-      // TODO: Destroy resource
-    }
-  }
-  break;
-  }
-}
-
-
 class Link {
-  LinkTraget* link_target;
-
-  Link(LinkTraget* link_target) : link_target(link_target) {}
+  SharedResource* resource = nullptr;
 
 public:
-  Link(ResourceData resource_data) noexcept : link_target(SharedResource::createNewResource(resource_data)) {}
-  Link(Link&& other) noexcept : link_target(other.link_target) {}
-  Link(const Link&) noexcept = delete;
-
-  ResourceData& getData() const noexcept {return link_target->getSharedResource().resource_data;}
-
-  SharedRecursiveMutexWrapper getMutex() const noexcept {return &link_target->getSharedResource().mtx;}
-
-  LinkType getLinkType() const noexcept {
-    switch (link_target->getLinkType()) {
-    case binom::priv::ResourceLinkType::hard_link: return LinkType::hard_link;
-    case binom::priv::ResourceLinkType::weak_link: return LinkType::soft_link;
-    }
+  Link(ResourceData resource_data) noexcept : resource(new SharedResource{.resource_data = resource_data}) {}
+  Link(Link&& other) noexcept : resource(other.resource) {}
+  Link(const Link& other) noexcept {
+    if(!other.resource) return;
+    SharedRecursiveLock lock(&other.resource->mtx, MtxLockType::unique_locked);
+    if(!other.resource->isExist()) {
+      ++other.resource->link_counter;
+      resource = other.resource;
+    } else return;
   }
 
-  Link createHardLink() noexcept {return link_target->getSharedResource().createHardLink();}
+  OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept {
+    if(!resource) return OptionalSharedRecursiveLock();
+    else return SharedRecursiveLock(&resource->mtx, lock_type);
+  }
 
-  Link createSoftLink() noexcept {return link_target->getSharedResource().createSoftLink();}
-
+  ResourceData* operator*() const noexcept {
+    auto lk = getLock(MtxLockType::shared_locked);
+    if(lk) return &resource->resource_data;
+    else return nullptr;
+  }
 };
 
 }

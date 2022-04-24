@@ -59,13 +59,16 @@ void testGenericValue() {
   {
     TEST_ANNOUNCE(GenericValue Operators)
     GenericValue f, s, a;
-    PRINT_RUN(f = 127_ui8; s = 512_ui16; a = f + s;)
+    PRINT_RUN(f = 127_ui8; s = 512_ui16; a = f - s;)
     TEST(f.getType() == ValType::ui8 && s.getType() == ValType::ui16)
+
+    PRINT_RUN(a += s;)
     LOG("a type = " << ui16(a.getType()))
     LOG("a value = " << ui16(a))
     PRINT_RUN(a = s + f;)
     LOG("a type = " << ui16(a.getType()))
     LOG("a value = " << ui16(a))
+    PRINT_RUN(a = s - f;)
   }
   GRP_POP
 }

@@ -3,6 +3,8 @@
 
 int main() {
   testTypesConversions();
+  std::cout.flush();
   testGenericValue();
+  std::cout.flush();
   testRecursiveSharedMutex();
 }
