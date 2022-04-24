@@ -6,8 +6,6 @@
 
 namespace binom::priv {
 
-typedef std::optional<SharedRecursiveLock> OptionalSharedRecursiveLock;
-
 struct ResourceData {
 
   union Data {

@@ -203,27 +203,15 @@ public:
     : SharedRecursiveMutexWrapper(mtx, lock_type), lock_type(lock_type) {}
 
   SharedRecursiveLock(const SharedRecursiveMutexWrapper& other, MtxLockType lock_type = MtxLockType::unlocked)
-    : SharedRecursiveMutexWrapper(other),
-      lock_type(lock_type) {
-    switch (lock_type) {
-    case MtxLockType::unlocked: return;
-    case MtxLockType::shared_locked: lockShared(); return;
-    case MtxLockType::unique_locked: lock(); return;
-    }
-  }
+    : SharedRecursiveMutexWrapper(other, lock_type),
+      lock_type(lock_type) {}
 
   SharedRecursiveLock(SharedRecursiveMutexWrapper&& other, MtxLockType lock_type = MtxLockType::unlocked)
-    : SharedRecursiveMutexWrapper(std::move(other)),
-      lock_type(lock_type) {
-    switch (lock_type) {
-    case MtxLockType::unlocked: return;
-    case MtxLockType::shared_locked: lockShared(); return;
-    case MtxLockType::unique_locked: lock(); return;
-    }
-  }
+    : SharedRecursiveMutexWrapper(std::move(other), lock_type),
+      lock_type(lock_type) {}
 
   SharedRecursiveLock(const SharedRecursiveLock& other, MtxLockType lock_type = MtxLockType::unlocked)
-    : SharedRecursiveMutexWrapper(other),
+    : SharedRecursiveMutexWrapper(other, lock_type),
       lock_type(lock_type) {}
 
   SharedRecursiveLock(SharedRecursiveLock&& other)
@@ -246,6 +234,16 @@ inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(const SharedRecu
 
 inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(SharedRecursiveLock&& lock, MtxLockType lock_type)
   : SharedRecursiveMutexWrapper(dynamic_cast<SharedRecursiveMutexWrapper&&>(lock), lock_type) {}
+
+typedef std::optional<SharedRecursiveLock> OptionalSharedRecursiveLock;
+
+class OptionalLockPlaceholder {
+public:
+  OptionalLockPlaceholder([[maybe_unused]] std::shared_mutex* mtx, [[maybe_unused]] MtxLockType lock_type) {}
+  OptionalLockPlaceholder([[maybe_unused]] const OptionalLockPlaceholder& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
+  OptionalLockPlaceholder([[maybe_unused]] OptionalLockPlaceholder&& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
+  operator bool() const {return true;}
+};
 
 }
 

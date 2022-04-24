@@ -2,7 +2,7 @@
 #define NUMBER_HXX
 
 #include "../utils/resource_control.hxx"
-#include "../utils/arithmetic.hxx"
+#include "../utils/generic_arithmetic.hxx"
 
 namespace binom {
 

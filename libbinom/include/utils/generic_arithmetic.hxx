@@ -1,7 +1,43 @@
-#ifndef ARITHMETIC_H
-#define ARITHMETIC_H
+// Some JavaScript in my C++
 
-#include "../utils/types.hxx"
+/* # Instructions for inheriting arithmetic logic from the base classes of this header file
+
+ * To implementation for driven class of ExtendedArithmeticTypeBase or ArithmeticTypeBase:
+ArithmeticData& getArithmeticDataImpl() const; - get union with number data
+void setArithmeticDataImpl(ValType type, ArithmeticData data); - set union with number data
+ValType getTypeImpl() const; - get number type
+
+ * Boilerplate for moving assignment operators to a child class (change ArithmeticTypeDriven to name of driven class):
+ArithmeticTypeDriven& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(i8 value) noexcept   {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(ui16 value) noexcept {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(i16 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(ui32 value) noexcept {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(i32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(f32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(ui64 value) noexcept {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(i64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(f64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(const ArithmeticTypeDriven& value) noexcept {return ArithmeticTypeBase::operator=(value);}
+ArithmeticTypeDriven& operator=(ArithmeticTypeDriven&& value) noexcept      {return ArithmeticTypeBase::operator=(std::move(value));}
+
+ * Optional thread-safety mechanic(disabled by default):
+Template argument LockType used for implemt thread safety:
+  For example can be set std::optinal<std::variant<std::unique_lock<std::shared_mutex>, std::shared_lock<std::shared_mutex>>>
+  LockType getLockImpl(priv::MtxLockType lock_type) const noexcept; - overload in driven class for change mechanic of getting optional mutex lock
+Template argument LockCheck - to check if the lock is received or not:
+  Can be set invokable type with overloaded operator: bool operator()(LockType& lock) noexcept;
+
+ * ExtendedArithmeticTypeBase - can be used if the child class has a copy constructor from the same type class:
+
+*/
+
+#ifndef GENERIC_ARITHMETIC_H
+#define GENERIC_ARITHMETIC_H
+
+#include "types.hxx"
+#include "shared_recursive_mutex_wrapper.hxx"
 
 namespace binom::arithmetic {
 
@@ -19,45 +55,34 @@ union ArithmeticData {
     f64 f64_val;
 };
 
-template <typename ArithmeticTypeDriven>
+template <typename OptionalLock>
+struct OptionalLockCheck {bool operator()(OptionalLock& lock) const noexcept {return lock;}};
+
+template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
 class ExtendedArithmeticTypeBase;
-
-/* To implementation for driven
-ArithmeticData& getArithmeticDataImpl() const;
-void setArithmeticDataImpl(ValType type, ArithmeticData data);
-ValType getTypeImpl() const;
- */
-
-/* Boilerplate (change ArithmeticTypeDriven to name of driven class)
-ArithmeticTypeDriven& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(i8 value) noexcept   {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(ui16 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(i16 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(ui32 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(i32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(f32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(ui64 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(i64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(f64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(const ArithmeticTypeDriven& value) noexcept {return ArithmeticTypeBase::operator=(value);}
-ArithmeticTypeDriven& operator=(ArithmeticTypeDriven&& value) noexcept      {return ArithmeticTypeBase::operator=(std::move(value));}
-*/
-
 
 /**
  * @brief The ArithmeticTypeBase class
  */
-template <typename ArithmeticTypeDriven>
+template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
 class ArithmeticTypeBase {
 
   inline ArithmeticData& getArithmeticData() const {return reinterpret_cast<const ArithmeticTypeDriven*>(this)->getArithmeticDataImpl();}
-  inline void setArithmeticData(ValType type, ArithmeticData data) {return reinterpret_cast<ArithmeticTypeDriven*>(this)->setArithmeticDataImpl(type, data);}
+
+  inline void setArithmeticData(ValType type, ArithmeticData data) {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return;
+    return reinterpret_cast<ArithmeticTypeDriven*>(this)->setArithmeticDataImpl(type, data);
+  }
+
   inline ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
   inline const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
+  LockType getLockImpl(priv::MtxLockType lock_type) const noexcept {return LockType(nullptr, lock_type);}
 
   template <typename T>
   inline bool equalWithUnsigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) == value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) == value : false;
@@ -68,6 +93,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool notEqualWithUnsigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) != value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) != value : true;
@@ -78,6 +105,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool highterThenUnsigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) > value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) > value : false;
@@ -88,6 +117,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool highterOrEqualThenUnsigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) >= value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) >= value : false;
@@ -98,6 +129,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool lowerThenUnsigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) < value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) < value : true;
@@ -108,6 +141,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool lowerOrEqualThenUnsigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) <= value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) <= value : true;
@@ -118,6 +153,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool equalWithSigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return ui64(*this) == value;
     case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) == value : false;
@@ -128,6 +165,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool notEqualWithSigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) != value : true;
     case binom::VarNumberType::signed_integer: return i64(*this) != value;
@@ -138,6 +177,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool highterThenSigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) > value : true;
     case binom::VarNumberType::signed_integer: return i64(*this) > value;
@@ -148,6 +189,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool highterOrEqualThenSigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) >= value : true;
     case binom::VarNumberType::signed_integer: return i64(*this) >= value;
@@ -158,6 +201,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool lowerThenSigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) < value : false;
     case binom::VarNumberType::signed_integer: return i64(*this) < value;
@@ -168,6 +213,8 @@ class ArithmeticTypeBase {
 
   template <typename T>
   inline bool lowerOrEqualThenSigned(T value) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
     case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) <= value : false;
     case binom::VarNumberType::signed_integer: return i64(*this) <= value;
@@ -178,11 +225,28 @@ class ArithmeticTypeBase {
 
 public:
 
-  ValType getType() const noexcept {return reinterpret_cast<const ArithmeticTypeDriven*>(this)->getTypeImpl();}
-  VarNumberType getNumberType() const noexcept {return binom::getNumberType(getType());}
-  VarBitWidth getBitWidth() const noexcept {return getBitWidth(getType());}
+  ValType getType() const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return ValType::invalid_type;
+    return reinterpret_cast<const ArithmeticTypeDriven*>(this)->getTypeImpl();
+  }
+
+  VarNumberType getNumberType() const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return VarNumberType::invalid_type;
+    return binom::getNumberType(getType());
+  }
+  VarBitWidth getBitWidth() const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return VarBitWidth::invalid_type;
+    return getBitWidth(getType());
+  }
+
+  LockType getLock(priv::MtxLockType lock_type) const noexcept {return downcast().getLockImpl(lock_type);}
 
   operator bool () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8:
@@ -201,6 +265,8 @@ public:
   }
 
   operator ui8 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean: return getArithmeticData().ui8_val;
       case binom::ValType::ui8: return getArithmeticData().i8_val;
@@ -219,6 +285,8 @@ public:
   }
 
   operator i8 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean: return getArithmeticData().i8_val;
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -237,6 +305,8 @@ public:
   }
 
   operator ui16 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean: return getArithmeticData().ui8_val;
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -255,6 +325,8 @@ public:
   }
 
   operator i16 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -273,6 +345,8 @@ public:
   }
 
   operator ui32 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean: return getArithmeticData().ui8_val;
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -291,6 +365,8 @@ public:
   }
 
   operator i32 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -309,6 +385,8 @@ public:
   }
 
   operator f32 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -327,6 +405,8 @@ public:
   }
 
   operator ui64 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean: return getArithmeticData().ui8_val;
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -345,6 +425,8 @@ public:
   }
 
   operator i64 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -363,6 +445,8 @@ public:
   }
 
   operator f64 () const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return 0;
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: return getArithmeticData().ui8_val;
@@ -382,6 +466,8 @@ public:
 
   bool operator==(ArithmeticTypeDriven&& other) const noexcept {return *this == other;}
   bool operator==(const ArithmeticTypeDriven& other) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (other.getNumberType()) {
@@ -417,6 +503,8 @@ public:
 
   bool operator>(ArithmeticTypeDriven&& other) const noexcept {return *this > other;}
   bool operator>(const ArithmeticTypeDriven& other) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (other.getNumberType()) {
@@ -449,6 +537,8 @@ public:
 
   bool operator>=(ArithmeticTypeDriven&& other) const noexcept {return *this >= other;}
   bool operator>=(const ArithmeticTypeDriven& other) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (other.getNumberType()) {
@@ -481,6 +571,8 @@ public:
 
   bool operator<(ArithmeticTypeDriven&& other) const noexcept {return *this < other;}
   bool operator<(const ArithmeticTypeDriven& other) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (other.getNumberType()) {
@@ -513,6 +605,8 @@ public:
 
   bool operator<=(ArithmeticTypeDriven&& other) const noexcept {return *this <= other;}
   bool operator<=(const ArithmeticTypeDriven& other) const noexcept {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
     switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (other.getNumberType()) {
@@ -637,6 +731,8 @@ public:
 
   ArithmeticTypeDriven& operator+=(ArithmeticTypeDriven&& value) noexcept {return *this += value;}
   ArithmeticTypeDriven& operator+=(const ArithmeticTypeDriven& value) noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
         switch (value.getNumberType()) {
@@ -824,6 +920,8 @@ public:
 
   ArithmeticTypeDriven& operator-=(ArithmeticTypeDriven&& value) noexcept {return *this -= value;}
   ArithmeticTypeDriven& operator-=(const ArithmeticTypeDriven& value) noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
         switch (value.getNumberType()) {
@@ -1011,6 +1109,8 @@ public:
 
   ArithmeticTypeDriven& operator*=(ArithmeticTypeDriven&& value) noexcept {return *this *= value;}
   ArithmeticTypeDriven& operator*=(const ArithmeticTypeDriven& value) noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
         switch (value.getNumberType()) {
@@ -1198,6 +1298,8 @@ public:
 
   ArithmeticTypeDriven& operator/=(ArithmeticTypeDriven&& value) noexcept {return *this /= value;}
   ArithmeticTypeDriven& operator/=(const ArithmeticTypeDriven& value) noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
         switch (value.getNumberType()) {
@@ -1385,6 +1487,8 @@ public:
 
   ArithmeticTypeDriven& operator%=(ArithmeticTypeDriven&& value) noexcept {return *this %= value;}
   ArithmeticTypeDriven& operator%=(const ArithmeticTypeDriven& value) noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
         switch (value.getNumberType()) {
@@ -1571,6 +1675,8 @@ public:
   }
 
   ArithmeticTypeDriven& operator++() noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: ++getArithmeticData().ui8_val; break;
@@ -1590,6 +1696,8 @@ public:
   }
 
   ArithmeticTypeDriven& operator--() noexcept {
+    auto lk = getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
     switch (getType()) {
       case binom::ValType::boolean:
       case binom::ValType::ui8: --getArithmeticData().ui8_val; break;
@@ -1610,23 +1718,53 @@ public:
 };
 
 
-template <typename ArithmeticTypeDriven>
-class ExtendedArithmeticTypeBase : public ArithmeticTypeBase<ArithmeticTypeDriven> {
-  friend class ArithmeticTypeBase<ArithmeticTypeDriven>;
-
+template <typename ArithmeticTypeDriven, typename LockType, typename LockCheck>
+class ExtendedArithmeticTypeBase : public ArithmeticTypeBase<ArithmeticTypeDriven, LockType, LockCheck> {
+  typedef ArithmeticTypeBase<ArithmeticTypeDriven, LockType, LockCheck> CurrentBase;
+  friend class ArithmeticTypeBase<ArithmeticTypeDriven, LockType, LockCheck>;
   inline ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
   inline const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
 
 public:
-  ArithmeticTypeDriven operator+(ArithmeticTypeDriven value) const noexcept {return ArithmeticTypeDriven(downcast()) += std::move(value);}
-  ArithmeticTypeDriven operator-(ArithmeticTypeDriven value) const noexcept {return ArithmeticTypeDriven(downcast()) -= std::move(value);}
-  ArithmeticTypeDriven operator*(ArithmeticTypeDriven value) const noexcept {return ArithmeticTypeDriven(downcast()) *= std::move(value);}
-  ArithmeticTypeDriven operator/(ArithmeticTypeDriven value) const noexcept {return ArithmeticTypeDriven(downcast()) /= std::move(value);}
-  ArithmeticTypeDriven operator%(ArithmeticTypeDriven value) const noexcept {return ArithmeticTypeDriven(downcast()) %= std::move(value);}
-  ArithmeticTypeDriven operator++(int) noexcept {return ArithmeticTypeDriven(downcast()) += 1;}
-  ArithmeticTypeDriven operator--(int) noexcept {return ArithmeticTypeDriven(downcast()) -= 1;}
+
+  ArithmeticTypeDriven operator+(ArithmeticTypeDriven value) const noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) += std::move(value);
+  }
+
+  ArithmeticTypeDriven operator-(ArithmeticTypeDriven value) const noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) -= std::move(value);
+  }
+  ArithmeticTypeDriven operator*(ArithmeticTypeDriven value) const noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) *= std::move(value);
+  }
+  ArithmeticTypeDriven operator/(ArithmeticTypeDriven value) const noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) /= std::move(value);
+  }
+  ArithmeticTypeDriven operator%(ArithmeticTypeDriven value) const noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) %= std::move(value);
+  }
+  ArithmeticTypeDriven operator++(int) noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) += 1;
+  }
+  ArithmeticTypeDriven operator--(int) noexcept {
+    auto lk = CurrentBase::getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    return ArithmeticTypeDriven(downcast()) -= 1;
+  }
 };
 
 }
 
-#endif // ARITHMETIC_H
+#endif // GENERIC_ARITHMETIC_H

@@ -1,7 +1,7 @@
 #ifndef GENERIC_VALUE_HXX
 #define GENERIC_VALUE_HXX
 
-#include "../utils/arithmetic.hxx"
+#include "../utils/generic_arithmetic.hxx"
 
 namespace binom {
 
