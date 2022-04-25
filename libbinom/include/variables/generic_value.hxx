@@ -14,10 +14,16 @@ class GenericValue : public arithmetic::ExtendedArithmeticTypeBase<GenericValue>
   arithmetic::ArithmeticData data;
 
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return const_cast<arithmetic::ArithmeticData&>(data);}
+
   ValType getTypeImpl() const {return type;}
+
   void setArithmeticDataImpl(ValType type, arithmetic::ArithmeticData data) {
     this->data = data;
     this->type = type;
+  }
+
+  void castValueImpl(ValType new_type) noexcept {
+    type = new_type;
   }
 
 public:
@@ -35,6 +41,8 @@ public:
   GenericValue(f64 value) noexcept : type(ValType::f64), data{.f64_val = value} {}
   GenericValue(const GenericValue& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
   GenericValue(GenericValue&& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
+
+  GenericValue& castValue(ValType new_type) noexcept {type = new_type; return *this;}
 
   GenericValue& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
   GenericValue& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}

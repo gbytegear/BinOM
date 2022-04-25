@@ -7,6 +7,7 @@
 using namespace binom;
 
 void testTypesConversions() {
+  RAIIPerfomanceTest test_perf("Type conversion test: ");
   SEPARATOR
   TEST_ANNOUNCE(Test types conversions)
   GRP(

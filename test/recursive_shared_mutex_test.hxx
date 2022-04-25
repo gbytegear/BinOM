@@ -2,7 +2,7 @@
 #define RECURSIVE_SHARED_MUTEX_TEST_HXX
 
 #include "libbinom/include/utils/shared_recursive_mutex_wrapper.hxx"
-//#include "test/tester.hxx" // can't trace multithreaded programm
+#include "test/tester.hxx"
 #include <thread>
 
 std::shared_mutex shared_mtx;
@@ -28,6 +28,7 @@ void reader() {
 
 
 void testRecursiveSharedMutex() {
+  RAIIPerfomanceTest test_perf("Recursive shared mutex test: ");
   shared_mtx.lock();
   std::thread thr_1(reader);
   std::thread thr_2(reader);

@@ -7,6 +7,7 @@
 using namespace binom;
 
 void testGenericValue() {
+  RAIIPerfomanceTest test_perf("Generic value test: ");
   SEPARATOR
   TEST_ANNOUNCE(GenericValue test)
   GRP_PUSH
@@ -58,17 +59,41 @@ void testGenericValue() {
   GRP_PUSH
   {
     TEST_ANNOUNCE(GenericValue Operators)
-    GenericValue f, s, a;
-    PRINT_RUN(f = 127_ui8; s = 512_ui16; a = f - s;)
-    TEST(f.getType() == ValType::ui8 && s.getType() == ValType::ui16)
-
-    PRINT_RUN(a += s;)
-    LOG("a type = " << ui16(a.getType()))
-    LOG("a value = " << ui16(a))
-    PRINT_RUN(a = s + f;)
-    LOG("a type = " << ui16(a.getType()))
-    LOG("a value = " << ui16(a))
-    PRINT_RUN(a = s - f;)
+        PRINT_RUN(GenericValue a = 20_ui64;);
+        PRINT_RUN(GenericValue b = 40_ui64;);
+        LOG("a = " << ui64(a))
+        LOG("b = " << ui64(b))
+        PRINT_RUN(a += b;)
+        LOG("a = " << ui64(a))
+        PRINT_RUN(a -= b;)
+        LOG("a = " << ui64(a))
+        PRINT_RUN(a *= b;)
+        LOG("a = " << ui64(a))
+        PRINT_RUN(a /= b;)
+        LOG("a = " << ui64(a))
+        PRINT_RUN(b %= a;)
+        LOG("b = " << ui64(b))
+        PRINT_RUN(b = 12;)
+        PRINT_RUN(GenericValue c = a + b;)
+        LOG("c = " << ui64(c))
+        PRINT_RUN(a.castValue(ValType::f32) = 1.5);
+        LOG("a = " << f32(a));
+        LOG("b = " << ui64(b))
+        PRINT_RUN(a += b;)
+        LOG("a = " << f32(a))
+        PRINT_RUN(a -= b;)
+        LOG("a = " << f32(a))
+        PRINT_RUN(a *= b;)
+        LOG("a = " << f32(a))
+        PRINT_RUN(a /= b;)
+        LOG("a = " << f32(a))
+        PRINT_RUN(b %= a;)
+        LOG("b = " << ui64(b))
+        PRINT_RUN(b = 12;)
+        PRINT_RUN(c = a + b;)
+        LOG("c = " << f64(c))
+        PRINT_RUN(c = b + a;)
+        LOG("c = " << f64(c))
   }
   GRP_POP
 }

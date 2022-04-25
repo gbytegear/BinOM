@@ -223,6 +223,27 @@ class ArithmeticTypeBase {
     }
   }
 
+  template<typename T>
+  inline T castArithmeticData() const {
+    auto lk = getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return false;
+    switch (getType()) {
+      case binom::ValType::boolean:
+      case binom::ValType::ui8:
+      case binom::ValType::si8: return static_cast<T>(getArithmeticData().bool_val);
+      case binom::ValType::ui16: return static_cast<T>(getArithmeticData().ui16_val);
+      case binom::ValType::si16: return static_cast<T>(getArithmeticData().i16_val);
+      case binom::ValType::ui32: return static_cast<T>(getArithmeticData().ui32_val);
+      case binom::ValType::si32: return static_cast<T>(getArithmeticData().i32_val);
+      case binom::ValType::f32: return static_cast<T>(getArithmeticData().f32_val);
+      case binom::ValType::ui64: return static_cast<T>(getArithmeticData().ui64_val);
+      case binom::ValType::si64: return static_cast<T>(getArithmeticData().i64_val);
+      case binom::ValType::f64: return static_cast<T>(getArithmeticData().f64_val);
+      case binom::ValType::invalid_type:
+      default: return false;
+    }
+  }
+
 public:
 
   ValType getType() const noexcept {
@@ -244,225 +265,17 @@ public:
 
   LockType getLock(priv::MtxLockType lock_type) const noexcept {return downcast().getLockImpl(lock_type);}
 
-  operator bool () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return false;
-    switch (getType()) {
-      case binom::ValType::boolean:
-      case binom::ValType::ui8:
-      case binom::ValType::si8: return getArithmeticData().bool_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return false;
-    }
-  }
-
-  operator ui8 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean: return getArithmeticData().ui8_val;
-      case binom::ValType::ui8: return getArithmeticData().i8_val;
-      case binom::ValType::si8: return getArithmeticData().ui8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator i8 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean: return getArithmeticData().i8_val;
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator ui16 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean: return getArithmeticData().ui8_val;
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator i16 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean:
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator ui32 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean: return getArithmeticData().ui8_val;
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator i32 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean:
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator f32 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean:
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator ui64 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean: return getArithmeticData().ui8_val;
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator i64 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean:
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
-
-  operator f64 () const noexcept {
-    auto lk = getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return 0;
-    switch (getType()) {
-      case binom::ValType::boolean:
-      case binom::ValType::ui8: return getArithmeticData().ui8_val;
-      case binom::ValType::si8: return getArithmeticData().i8_val;
-      case binom::ValType::ui16: return getArithmeticData().ui16_val;
-      case binom::ValType::si16: return getArithmeticData().i16_val;
-      case binom::ValType::ui32: return getArithmeticData().ui32_val;
-      case binom::ValType::si32: return getArithmeticData().i32_val;
-      case binom::ValType::f32: return getArithmeticData().f32_val;
-      case binom::ValType::ui64: return getArithmeticData().ui64_val;
-      case binom::ValType::si64: return getArithmeticData().i64_val;
-      case binom::ValType::f64: return getArithmeticData().f64_val;
-      case binom::ValType::invalid_type:
-      default: return getArithmeticData().ui64_val;
-    }
-  }
+  operator bool () const noexcept {return castArithmeticData<bool>();}
+  operator ui8 () const noexcept  {return castArithmeticData<ui8>();}
+  operator i8 () const noexcept   {return castArithmeticData<i8>();}
+  operator ui16 () const noexcept {return castArithmeticData<ui16>();}
+  operator i16 () const noexcept  {return castArithmeticData<i16>();}
+  operator ui32 () const noexcept {return castArithmeticData<ui32>();}
+  operator i32 () const noexcept  {return castArithmeticData<i32>();}
+  operator f32 () const noexcept  {return castArithmeticData<f32>();}
+  operator ui64 () const noexcept {return castArithmeticData<ui64>();}
+  operator i64 () const noexcept  {return castArithmeticData<i64>();}
+  operator f64 () const noexcept  {return castArithmeticData<f64>();}
 
   bool operator==(ArithmeticTypeDriven&& other) const noexcept {return *this == other;}
   bool operator==(const ArithmeticTypeDriven& other) const noexcept {
