@@ -8,23 +8,20 @@ namespace binom {
 class GenericValueIterator;
 class GenericValueRef;
 
-class GenericValue : public arithmetic::ExtendedArithmeticTypeBase<GenericValue> {
-  friend class ArithmeticTypeBase<GenericValue>;
+class GenericValue :
+    public arithmetic::CopyableArithmeticTypeBase<GenericValue>,
+    public arithmetic::CastableArithmeticTypeBase<GenericValue> {
+
   ValType type;
   arithmetic::ArithmeticData data;
 
+  // ArithmeticTypeBase & CopyableArithmeticTypeBase Implementation
+  friend class ArithmeticTypeBase<GenericValue>;
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return const_cast<arithmetic::ArithmeticData&>(data);}
-
   ValType getTypeImpl() const {return type;}
-
-  void setArithmeticDataImpl(ValType type, arithmetic::ArithmeticData data) {
-    this->data = data;
-    this->type = type;
-  }
-
-  void castValueImpl(ValType new_type) noexcept {
-    type = new_type;
-  }
+  // CastableArithmeticTypeBase implementation
+  friend class CastableArithmeticTypeBase<GenericValue>;
+  void setTypeImpl(ValType new_type) noexcept {type = new_type;}
 
 public:
   GenericValue() noexcept {}
@@ -41,8 +38,6 @@ public:
   GenericValue(f64 value) noexcept : type(ValType::f64), data{.f64_val = value} {}
   GenericValue(const GenericValue& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
   GenericValue(GenericValue&& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
-
-  GenericValue& castValue(ValType new_type) noexcept {type = new_type; return *this;}
 
   GenericValue& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
   GenericValue& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
@@ -96,9 +91,9 @@ class GenericValueRef : public arithmetic::ArithmeticTypeBase<GenericValueRef> {
     : value_type(getValueType(variable_type)), ptr(ptr) {}
 public:
   GenericValueRef(const GenericValueRef& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}
-  GenericValueRef(const GenericValueRef&& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}
+  GenericValueRef(GenericValueRef&& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}
   GenericValueRef(const GenericValueIterator& it);
-  GenericValueRef(const GenericValueIterator&& it);
+  GenericValueRef(GenericValueIterator&& it);
 
 
 };
