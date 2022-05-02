@@ -41,6 +41,7 @@ Template argument LockCheck - to check if the lock is received or not:
 
 #include "types.hxx"
 #include "shared_recursive_mutex_wrapper.hxx"
+#include <cmath>
 
 namespace binom::arithmetic {
 
@@ -1492,7 +1493,7 @@ public:
             getArithmeticData().bool_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().bool_val %= i64(value);
+            getArithmeticData().bool_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1508,7 +1509,7 @@ public:
             getArithmeticData().ui8_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().ui8_val %= i64(value);
+            getArithmeticData().ui8_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1524,7 +1525,7 @@ public:
             getArithmeticData().i8_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().i8_val %= i64(value);
+            getArithmeticData().i8_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1540,7 +1541,7 @@ public:
             getArithmeticData().ui16_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().ui16_val %= i64(value);
+            getArithmeticData().ui16_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1556,7 +1557,7 @@ public:
             getArithmeticData().i16_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().i16_val %= i64(value);
+            getArithmeticData().i16_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1572,7 +1573,7 @@ public:
             getArithmeticData().ui32_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().ui32_val %= i64(value);
+            getArithmeticData().ui32_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1588,7 +1589,7 @@ public:
             getArithmeticData().i32_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().i32_val %= i64(value);
+            getArithmeticData().i32_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1604,7 +1605,7 @@ public:
             getArithmeticData().f32_val = i64(*this) % i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().f32_val = i64(*this) % i64(value);
+            getArithmeticData().f32_val = i64(std::round(f64(*this))) % i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1620,7 +1621,7 @@ public:
             getArithmeticData().ui64_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().ui64_val %= i64(value);
+            getArithmeticData().ui64_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1636,7 +1637,7 @@ public:
             getArithmeticData().i64_val %= i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().i64_val %= i64(value);
+            getArithmeticData().i64_val %= i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:
@@ -1652,7 +1653,7 @@ public:
             getArithmeticData().f64_val = i64(*this) % i64(value);
           break;
           case binom::VarNumberType::float_point:
-            getArithmeticData().f64_val = i64(*this) % i64(value);
+            getArithmeticData().f64_val = i64(std::round(f64(*this))) % i64(std::round(f64(value)));
           break;
           default:
           case binom::VarNumberType::invalid_type:

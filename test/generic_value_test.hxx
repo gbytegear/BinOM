@@ -76,7 +76,7 @@ void testGenericValue() {
         PRINT_RUN(b = 12;)
         PRINT_RUN(GenericValue c = a + b;)
         LOG("c = " << ui64(c))
-        PRINT_RUN(a.castTo(ValType::f32) = 1.5);
+        PRINT_RUN(a.castTo(ValType::f32) = 0.5);
         LOG("a = " << f32(a));
         LOG("b = " << ui64(b))
         PRINT_RUN(a += b;)
