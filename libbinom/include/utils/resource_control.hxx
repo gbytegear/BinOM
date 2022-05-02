@@ -42,8 +42,6 @@ struct ResourceData {
   Data data;
 };
 
-
-
 struct SharedResource {
   ResourceData resource_data;
   std::atomic_uint64_t link_counter = 1;
@@ -77,6 +75,13 @@ public:
     if(lk) return &resource->resource_data;
     else return nullptr;
   }
+
+  VarType getType() const noexcept {
+    auto lk = getLock(MtxLockType::shared_locked);
+    if(lk) return resource->resource_data.type;
+    else return VarType::invalid_type;
+  }
+
 };
 
 }

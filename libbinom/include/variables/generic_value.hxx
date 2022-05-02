@@ -9,23 +9,27 @@ class GenericValueIterator;
 class GenericValueRef;
 
 class GenericValue :
+    public arithmetic::ArithmeticTypeBase<GenericValue>,
     public arithmetic::CopyableArithmeticTypeBase<GenericValue>,
-    public arithmetic::CastableArithmeticTypeBase<GenericValue> {
+    public arithmetic::CastableArithmeticTypeBase<GenericValue>,
+    public arithmetic::ArithmeticImplPlaceholders<GenericValue> {
+  USE_ARITHMETIC
+  USE_ARITHMETIC_CAST
 
   ValType type;
   arithmetic::ArithmeticData data;
 
   // ArithmeticTypeBase & CopyableArithmeticTypeBase Implementation
-  friend class ArithmeticTypeBase<GenericValue>;
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return const_cast<arithmetic::ArithmeticData&>(data);}
-  ValType getTypeImpl() const {return type;}
+  ValType getValTypeImpl() const {return type;}
+
   // CastableArithmeticTypeBase implementation
-  friend class CastableArithmeticTypeBase<GenericValue>;
+  void reallocateImpl([[maybe_unused]] ValType type) noexcept {}
   void setTypeImpl(ValType new_type) noexcept {type = new_type;}
 
 public:
   GenericValue() noexcept {}
-  GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {}
+  GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {getLock(priv::MtxLockType::shared_locked);}
   GenericValue(ui8 value) noexcept : type(ValType::ui8), data{.ui8_val = value} {}
   GenericValue(i8 value) noexcept : type(ValType::si8), data{.i8_val = value} {}
   GenericValue(ui16 value) noexcept : type(ValType::ui16), data{.ui16_val = value} {}
@@ -78,7 +82,7 @@ class GenericValueRef : public arithmetic::ArithmeticTypeBase<GenericValueRef> {
 
 
   arithmetic::ArithmeticData& getArithmeticDataImpl() const noexcept {return *ptr.num_data_ptr;}
-  ValType getTypeImpl() const noexcept {return value_type;}
+  ValType getValTypeImpl() const noexcept {return value_type;}
 
 
   friend class GenericValueIterator;
@@ -88,7 +92,7 @@ class GenericValueRef : public arithmetic::ArithmeticTypeBase<GenericValueRef> {
   GenericValueRef(ValType value_type, void* ptr)
     : value_type(value_type), ptr(ptr) {}
   GenericValueRef(VarType variable_type, void* ptr)
-    : value_type(getValueType(variable_type)), ptr(ptr) {}
+    : value_type(toValueType(variable_type)), ptr(ptr) {}
 public:
   GenericValueRef(const GenericValueRef& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}
   GenericValueRef(GenericValueRef&& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}

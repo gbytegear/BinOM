@@ -104,7 +104,7 @@ enum class ValType : ui8 {
 };
 
 
-inline VarTypeClass getTypeClass(VarType type) noexcept {
+inline VarTypeClass toTypeClass(VarType type) noexcept {
   switch (type) {
   case VarType::null:
   return VarTypeClass::null;
@@ -154,7 +154,7 @@ inline VarTypeClass getTypeClass(VarType type) noexcept {
 }
 
 
-inline VarBitWidth getBitWidth(VarType type) noexcept {
+inline VarBitWidth toBitWidth(VarType type) noexcept {
   switch (type) {
   case VarType::boolean:
   case VarType::ui8:
@@ -189,7 +189,7 @@ inline VarBitWidth getBitWidth(VarType type) noexcept {
   }
 }
 
-inline VarBitWidth getBitWidth(ValType type) noexcept {
+inline VarBitWidth toBitWidth(ValType type) noexcept {
   switch (type) {
   case ValType::boolean:
   case ValType::ui8:
@@ -215,7 +215,7 @@ inline VarBitWidth getBitWidth(ValType type) noexcept {
 }
 
 
-inline VarNumberType getNumberType(VarType type) noexcept {
+inline VarNumberType toNumberType(VarType type) noexcept {
   switch (type) {
   case VarType::bit_array:
   case VarType::boolean:
@@ -249,7 +249,7 @@ inline VarNumberType getNumberType(VarType type) noexcept {
   }
 }
 
-inline VarNumberType getNumberType(ValType type) noexcept {
+inline VarNumberType toNumberType(ValType type) noexcept {
   switch (type) {
   case ValType::boolean:
   case ValType::ui8:
@@ -273,7 +273,7 @@ inline VarNumberType getNumberType(ValType type) noexcept {
 }
 
 
-inline VarSortType getSortType(VarType type) noexcept {
+inline VarSortType toSortType(VarType type) noexcept {
   switch (type) {
   case VarType::ui8_array:
   case VarType::si8_array:
@@ -300,7 +300,7 @@ inline VarSortType getSortType(VarType type) noexcept {
   }
 }
 
-inline ValType getValueType(VarType type) noexcept {
+inline ValType toValueType(VarType type) noexcept {
   switch (type) {
   case VarType::boolean:
   return ValType::boolean;
@@ -350,7 +350,7 @@ inline ValType getValueType(VarType type) noexcept {
   }
 }
 
-inline VarType getVarType(ValType type) {
+inline VarType toVarType(ValType type) {
   switch (type) {
   case ValType::boolean:
   return VarType::boolean;
@@ -391,25 +391,25 @@ inline VarType getVarType(ValType type) {
 }
 
 
-inline bool operator==(VarTypeClass type_class, VarType type) noexcept {return type_class == getTypeClass(type);}
-inline bool operator==(VarType type, VarTypeClass type_class) noexcept {return getTypeClass(type) == type_class;}
-inline bool operator!=(VarTypeClass type_class, VarType type) noexcept {return type_class != getTypeClass(type);}
-inline bool operator!=(VarType type, VarTypeClass type_class) noexcept {return getTypeClass(type) != type_class;}
+inline bool operator==(VarTypeClass type_class, VarType type) noexcept {return type_class == toTypeClass(type);}
+inline bool operator==(VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) == type_class;}
+inline bool operator!=(VarTypeClass type_class, VarType type) noexcept {return type_class != toTypeClass(type);}
+inline bool operator!=(VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) != type_class;}
 
-inline bool operator==(VarBitWidth bit_width, VarType type) noexcept {return bit_width == getBitWidth(type);}
-inline bool operator==(VarType type, VarBitWidth bit_width) noexcept {return getBitWidth(type) == bit_width;}
-inline bool operator!=(VarBitWidth bit_width, VarType type) noexcept {return bit_width != getBitWidth(type);}
-inline bool operator!=(VarType type, VarBitWidth bit_width) noexcept {return getBitWidth(type) != bit_width;}
+inline bool operator==(VarBitWidth bit_width, VarType type) noexcept {return bit_width == toBitWidth(type);}
+inline bool operator==(VarType type, VarBitWidth bit_width) noexcept {return toBitWidth(type) == bit_width;}
+inline bool operator!=(VarBitWidth bit_width, VarType type) noexcept {return bit_width != toBitWidth(type);}
+inline bool operator!=(VarType type, VarBitWidth bit_width) noexcept {return toBitWidth(type) != bit_width;}
 
-inline bool operator==(VarNumberType number_type, VarType type) noexcept {return number_type == getNumberType(type);}
-inline bool operator==(VarType type, VarNumberType number_type) noexcept {return getNumberType(type) == number_type;}
-inline bool operator!=(VarNumberType number_type, VarType type) noexcept {return number_type != getNumberType(type);}
-inline bool operator!=(VarType type, VarNumberType number_type) noexcept {return getNumberType(type) != number_type;}
+inline bool operator==(VarNumberType number_type, VarType type) noexcept {return number_type == toNumberType(type);}
+inline bool operator==(VarType type, VarNumberType number_type) noexcept {return toNumberType(type) == number_type;}
+inline bool operator!=(VarNumberType number_type, VarType type) noexcept {return number_type != toNumberType(type);}
+inline bool operator!=(VarType type, VarNumberType number_type) noexcept {return toNumberType(type) != number_type;}
 
-inline bool operator==(VarSortType sort_type, VarType type) noexcept {return sort_type == getSortType(type);}
-inline bool operator==(VarType type, VarSortType sort_type) noexcept {return getSortType(type) == sort_type;}
-inline bool operator!=(VarSortType sort_type, VarType type) noexcept {return sort_type != getSortType(type);}
-inline bool operator!=(VarType type, VarSortType sort_type) noexcept {return getSortType(type) != sort_type;}
+inline bool operator==(VarSortType sort_type, VarType type) noexcept {return sort_type == toSortType(type);}
+inline bool operator==(VarType type, VarSortType sort_type) noexcept {return toSortType(type) == sort_type;}
+inline bool operator!=(VarSortType sort_type, VarType type) noexcept {return sort_type != toSortType(type);}
+inline bool operator!=(VarType type, VarSortType sort_type) noexcept {return toSortType(type) != sort_type;}
 
 
 class Variable;

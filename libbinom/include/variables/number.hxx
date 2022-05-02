@@ -1,13 +1,16 @@
 #ifndef NUMBER_HXX
 #define NUMBER_HXX
 
-#include "../utils/resource_control.hxx"
+#include "vaiable_base.hxx"
 #include "generic_value.hxx"
 
 namespace binom {
 
-class Number {
-  priv::Link res_link;
+class Number :
+    public arithmetic::ArithmeticTypeBase<Number, priv::OptionalSharedRecursiveLock>,
+    public arithmetic::CopyableArithmeticTypeBase<Number, priv::OptionalSharedRecursiveLock>,
+    public priv::VariableBase<Number> {
+
 public:
   Number(VarType type) noexcept;
   Number(bool value) noexcept;
@@ -22,13 +25,6 @@ public:
   Number(f64 value) noexcept;
 
   ~Number();
-
-  VarType getType() const noexcept;
-  VarBitWidth getBitWidth() const noexcept;
-  VarNumberType getNumberType() const noexcept;
-
-  ui8 getMemebrSize() const noexcept;
-
 
 };
 

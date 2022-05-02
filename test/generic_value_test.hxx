@@ -27,29 +27,29 @@ void testGenericValue() {
     GRP_PUSH
       LOG("_ui8_min: " << int(_ui8_min) << " _ui8_max: " << int(_ui8_max))
       LOG("_i8_min: " << int(_i8_min) << " _i8_max: " << int(_i8_max))
-      TEST(_ui8_min.getType() == _ui8_max.getType() && _ui8_max.getType() == ValType::ui8)
-      TEST(_i8_min.getType() == _i8_max.getType() && _i8_max.getType() == ValType::si8)
+      TEST(_ui8_min.getValType() == _ui8_max.getValType() && _ui8_max.getValType() == ValType::ui8)
+      TEST(_i8_min.getValType() == _i8_max.getValType() && _i8_max.getValType() == ValType::si8)
     GRP_POP
 
     GRP_PUSH
       LOG("_ui16_min: " << ui16(_ui16_min) << " _ui16_max: " << ui16(_ui16_max))
       LOG("_i16_min: " << i16(_i16_min) << " _i16_max: " << i16(_i16_max))
-      TEST(_ui16_min.getType() == _ui16_max.getType() && _ui16_max.getType() == ValType::ui16)
-      TEST(_i16_min.getType() == _i16_max.getType() && _i16_max.getType() == ValType::si16)
+      TEST(_ui16_min.getValType() == _ui16_max.getValType() && _ui16_max.getValType() == ValType::ui16)
+      TEST(_i16_min.getValType() == _i16_max.getValType() && _i16_max.getValType() == ValType::si16)
     GRP_POP
 
     GRP_PUSH
       LOG("_ui32_min: " << ui32(_ui32_min) << " _ui32_min: " << ui32(_ui32_max))
       LOG("_i32_min: " << i32(_i32_min) << " _i32_min: " << i32(_i32_min))
-      TEST(_ui32_min.getType() == _ui32_max.getType() && _ui32_max.getType() == ValType::ui32)
-      TEST(_i32_min.getType() == _i32_max.getType() && _i32_max.getType() == ValType::si32)
+      TEST(_ui32_min.getValType() == _ui32_max.getValType() && _ui32_max.getValType() == ValType::ui32)
+      TEST(_i32_min.getValType() == _i32_max.getValType() && _i32_max.getValType() == ValType::si32)
     GRP_POP
 
     GRP_PUSH
       LOG("_ui64_min: " << ui64(_ui64_min) << " _ui64_max: " << ui64(_ui64_max))
       LOG("_i64_min: " << i64(_i64_min) << " _i64_max: " << i64(_i64_max))
-      TEST(_ui64_min.getType() == _ui64_max.getType() && _ui64_max.getType() == ValType::ui64)
-      TEST(_i64_min.getType() == _i64_max.getType() && _i64_max.getType() == ValType::si64)
+      TEST(_ui64_min.getValType() == _ui64_max.getValType() && _ui64_max.getValType() == ValType::ui64)
+      TEST(_i64_min.getValType() == _i64_max.getValType() && _i64_max.getValType() == ValType::si64)
     GRP_POP
 
   GRP_POP
