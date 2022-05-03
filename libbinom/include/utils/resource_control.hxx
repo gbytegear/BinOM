@@ -48,6 +48,8 @@ struct SharedResource {
   std::shared_mutex mtx;
 
   bool isExist() noexcept {return link_counter;}
+
+  ~SharedResource();
 };
 
 class Link {
@@ -55,30 +57,48 @@ class Link {
 
 public:
   Link(ResourceData resource_data) noexcept : resource(new SharedResource{.resource_data = resource_data}) {}
+
   Link(Link&& other) noexcept : resource(other.resource) {}
+
   Link(const Link& other) noexcept {
     if(!other.resource) return;
-    SharedRecursiveLock lock(&other.resource->mtx, MtxLockType::unique_locked);
-    if(!other.resource->isExist()) {
+    if(auto lk = other.getLock(MtxLockType::shared_locked); lk) {
       ++other.resource->link_counter;
       resource = other.resource;
     } else return;
   }
 
+  ~Link() {
+    if(resource) {
+      if(!--resource->link_counter) {
+        resource->mtx.lock();
+        resource->mtx.unlock();
+        delete resource;
+      }
+    }
+  }
+
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept {
     if(!resource) return OptionalSharedRecursiveLock();
-    else return SharedRecursiveLock(&resource->mtx, lock_type);
+    if(!resource->isExist()) return OptionalSharedRecursiveLock();
+    return OptionalSharedRecursiveLock(SharedRecursiveLock(&resource->mtx, lock_type));
   }
 
   ResourceData* operator*() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(lk) return &resource->resource_data;
+    if(auto lk = getLock(MtxLockType::shared_locked); lk)
+      return &resource->resource_data;
+    else return nullptr;
+  }
+
+  ResourceData* operator->() const noexcept {
+    if(auto lk = getLock(MtxLockType::shared_locked); lk)
+      return &resource->resource_data;
     else return nullptr;
   }
 
   VarType getType() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(lk) return resource->resource_data.type;
+    if(auto lk = getLock(MtxLockType::shared_locked); lk)
+      return resource->resource_data.type;
     else return VarType::invalid_type;
   }
 

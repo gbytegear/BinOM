@@ -221,7 +221,7 @@ public:
   }
 
   ~SharedRecursiveLock() {
-    switch (getLockType()) {
+    switch (lock_type) {
     case MtxLockType::unlocked: return;
     case MtxLockType::shared_locked: unlockShared(); return;
     case MtxLockType::unique_locked: unlock(); return;
@@ -235,16 +235,22 @@ inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(const SharedRecu
 inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(SharedRecursiveLock&& lock, MtxLockType lock_type)
   : SharedRecursiveMutexWrapper(dynamic_cast<SharedRecursiveMutexWrapper&&>(lock), lock_type) {}
 
-typedef std::optional<SharedRecursiveLock> OptionalSharedRecursiveLock;
+
 
 class OptionalLockPlaceholder {
 public:
   OptionalLockPlaceholder([[maybe_unused]] std::shared_mutex* mtx, [[maybe_unused]] MtxLockType lock_type) {}
   OptionalLockPlaceholder([[maybe_unused]] const OptionalLockPlaceholder& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
   OptionalLockPlaceholder([[maybe_unused]] OptionalLockPlaceholder&& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
-  operator bool() const {return true;}
+  constexpr operator bool() const noexcept {return true;}
+  constexpr bool has_value() const noexcept {return true;}
 };
 
+}
+
+namespace binom {
+using priv::MtxLockType;
+typedef std::optional<priv::SharedRecursiveLock> OptionalSharedRecursiveLock;
 }
 
 #endif // SHARED_RECURSIVE_MUTEX_WRAPPER_HXX

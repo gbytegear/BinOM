@@ -1,30 +1,36 @@
 #ifndef NUMBER_HXX
 #define NUMBER_HXX
 
-#include "vaiable_base.hxx"
+#include "variable.hxx"
 #include "generic_value.hxx"
 
 namespace binom {
 
 class Number :
-    public arithmetic::ArithmeticTypeBase<Number, priv::OptionalSharedRecursiveLock>,
-    public arithmetic::CopyableArithmeticTypeBase<Number, priv::OptionalSharedRecursiveLock>,
-    public priv::VariableBase<Number> {
+    public arithmetic::ArithmeticTypeBase<Number, OptionalSharedRecursiveLock>,
+    public arithmetic::CopyableArithmeticTypeBase<Number, OptionalSharedRecursiveLock>,
+    public arithmetic::CastableArithmeticTypeBase<Number, OptionalSharedRecursiveLock>,
+    public Variable {
+  USE_ARITHMETIC
+  USE_ARITHMETIC_CAST
+  using Variable::getLock;
+  using Variable::getValType;
+
+  arithmetic::ArithmeticData& getArithmeticDataImpl() const {return *reinterpret_cast<arithmetic::ArithmeticData*>(&resource_link->data);}
+  ValType getValTypeImpl() const {return getValType();}
 
 public:
-  Number(VarType type) noexcept;
-  Number(bool value) noexcept;
-  Number(ui8 value) noexcept;
-  Number(i8 value) noexcept;
-  Number(ui16 value) noexcept;
-  Number(i16 value) noexcept;
-  Number(ui32 value) noexcept;
-  Number(i32 value) noexcept;
-  Number(f32 value) noexcept;
-  Number(ui64 value) noexcept;
-  Number(f64 value) noexcept;
-
-  ~Number();
+  Number(bool value) noexcept :   Variable(value) {}
+  Number(ui8 value) noexcept :    Variable(value) {}
+  Number(i8 value) noexcept :     Variable(value) {}
+  Number(ui16 value) noexcept :   Variable(value) {}
+  Number(i16 value) noexcept :    Variable(value) {}
+  Number(ui32 value) noexcept :   Variable(value) {}
+  Number(i32 value) noexcept :    Variable(value) {}
+  Number(f32 value) noexcept :    Variable(value) {}
+  Number(ui64 value) noexcept :   Variable(value) {}
+  Number(i64 value) noexcept :    Variable(value) {}
+  Number(f64 value) noexcept :    Variable(value) {}
 
 };
 

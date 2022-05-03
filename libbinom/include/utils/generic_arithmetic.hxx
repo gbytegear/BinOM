@@ -61,7 +61,7 @@ union ArithmeticData {
 };
 
 template <typename OptionalLock>
-struct OptionalLockCheck {bool operator()(OptionalLock& lock) const noexcept {return lock;}};
+struct OptionalLockCheck {bool operator()(OptionalLock& lock) const noexcept {return lock.has_value();}};
 
 template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
 class ArithmeticBaseMechanics : public CRTP<ArithmeticTypeDriven> {
