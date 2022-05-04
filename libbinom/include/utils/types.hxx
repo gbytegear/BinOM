@@ -48,7 +48,7 @@ enum class VarType : ui8 {
   greater_map             = 0x1B, ///< Associative heterogeneous container with key-sorted by ascending
 
   separator               = 0x00, ///< End code
-  invalid_type            = 0xFF ///< Invalid type code
+  invalid_type            = 0xFF  ///< Invalid type code
 };
 
 enum class VarTypeClass : ui8 {

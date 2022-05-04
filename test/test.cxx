@@ -9,5 +9,7 @@ int main() {
   std::cout.flush();
   testGenericValue();
   std::cout.flush();
+  testNumber();
+  std::cout.flush();
   testRecursiveSharedMutex();
 }

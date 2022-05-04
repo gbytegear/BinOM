@@ -41,7 +41,6 @@ Template argument LockCheck - to check if the lock is received or not:
 
 #include "types.hxx"
 #include "shared_recursive_mutex_wrapper.hxx"
-#include "crtp.hxx"
 #include <cmath>
 
 namespace binom::arithmetic {
@@ -63,32 +62,6 @@ union ArithmeticData {
 template <typename OptionalLock>
 struct OptionalLockCheck {bool operator()(OptionalLock& lock) const noexcept {return lock.has_value();}};
 
-template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
-class ArithmeticBaseMechanics : public CRTP<ArithmeticTypeDriven> {
-protected:
-  using CRTP<ArithmeticTypeDriven>::downcast;
-  inline ArithmeticData& getArithmeticData() const {return downcast().getArithmeticDataImpl();}
-public:
-  LockType getLock(priv::MtxLockType lock_type) const noexcept {return downcast().getLockImpl(lock_type);}
-
-  ValType getValType() const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return ValType::invalid_type;
-    return downcast().getValTypeImpl();
-  }
-
-  VarNumberType getNumberType() const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return VarNumberType::invalid_type;
-    return binom::toNumberType(getValType());
-  }
-  VarBitWidth getBitWidth() const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
-    if(!LockCheck()(lk)) return VarBitWidth::invalid_type;
-    return getBitWidth(getValType());
-  }
-};
-
 template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder>
 class ArithmeticImplPlaceholders {
 protected:
@@ -101,16 +74,12 @@ protected:
 
 
 template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
-class ArithmeticTypeBase : public ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck> {
-private:
-  using ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck>::downcast;
-  using ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck>::getArithmeticData;
-public:
-  using ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck>::getValType;
-  using ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck>::getNumberType;
-  using ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck>::getBitWidth;
-  using ArithmeticBaseMechanics<ArithmeticTypeDriven, LockType, LockCheck>::getLock;
-private:
+class ArithmeticTypeBase {
+
+  ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
+  const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
+
+  inline ArithmeticData& getArithmeticData() const {return downcast().getArithmeticDataImpl();}
 
 
   inline void setArithmeticData(ValType type, ArithmeticData data) {
@@ -465,6 +434,26 @@ private:
 
 public:
 
+  LockType getLock(priv::MtxLockType lock_type) const noexcept {return downcast().getLockImpl(lock_type);}
+
+  ValType getValType() const noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return ValType::invalid_type;
+    return downcast().getValTypeImpl();
+  }
+
+  VarNumberType getNumberType() const noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return VarNumberType::invalid_type;
+    return binom::toNumberType(getValType());
+  }
+
+  VarBitWidth getBitWidth() const noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
+    if(!LockCheck()(lk)) return VarBitWidth::invalid_type;
+    return getBitWidth(getValType());
+  }
+
   operator bool () const noexcept {return castArithmeticData<bool>();}
   operator ui8 () const noexcept  {return castArithmeticData<ui8>();}
   operator i8 () const noexcept   {return castArithmeticData<i8>();}
@@ -728,6 +717,8 @@ public:
   inline bool operator<(f64 value) const noexcept  {return lowerThenSigned(value);}
   inline bool operator<=(f64 value) const noexcept  {return lowerOrEqualThenSigned(value);}
 
+  ArithmeticTypeDriven& operator=(const ArithmeticTypeDriven& value) noexcept { setArithmeticData(dynamic_cast<const ArithmeticTypeBase&>(value).getValType(), dynamic_cast<const ArithmeticTypeBase&>(value).getArithmeticData()); return downcast(); }
+  ArithmeticTypeDriven& operator=(ArithmeticTypeDriven&& value) noexcept      { setArithmeticData(dynamic_cast<ArithmeticTypeBase&>(value).getValType(), dynamic_cast<ArithmeticTypeBase&>(value).getArithmeticData()); return downcast(); }
   ArithmeticTypeDriven& operator=(bool value) noexcept { setArithmeticData(ValType::boolean,  ArithmeticData{.bool_val =  value}); return downcast(); }
   ArithmeticTypeDriven& operator=(ui8 value) noexcept  { setArithmeticData(ValType::ui8,      ArithmeticData{.ui8_val =   value}); return downcast(); }
   ArithmeticTypeDriven& operator=(i8 value) noexcept   { setArithmeticData(ValType::si8,      ArithmeticData{.i8_val =    value}); return downcast(); }
@@ -739,8 +730,6 @@ public:
   ArithmeticTypeDriven& operator=(ui64 value) noexcept { setArithmeticData(ValType::ui64,     ArithmeticData{.ui64_val =  value}); return downcast(); }
   ArithmeticTypeDriven& operator=(i64 value) noexcept  { setArithmeticData(ValType::si64,     ArithmeticData{.i64_val =   value}); return downcast(); }
   ArithmeticTypeDriven& operator=(f64 value) noexcept  { setArithmeticData(ValType::f64,      ArithmeticData{.f64_val =   value}); return downcast(); }
-  ArithmeticTypeDriven& operator=(const ArithmeticTypeDriven& value) noexcept { setArithmeticData(dynamic_cast<const ArithmeticTypeBase&>(value).getValType(), dynamic_cast<const ArithmeticTypeBase&>(value).getArithmeticData()); return downcast(); }
-  ArithmeticTypeDriven& operator=(ArithmeticTypeDriven&& value) noexcept      { setArithmeticData(dynamic_cast<ArithmeticTypeBase&>(value).getValType(), dynamic_cast<ArithmeticTypeBase&>(value).getArithmeticData()); return downcast(); }
 
   ArithmeticTypeDriven& operator+=(ArithmeticTypeDriven&& value) noexcept {return *this += value;}
   ArithmeticTypeDriven& operator+=(const ArithmeticTypeDriven& value) noexcept {
@@ -931,6 +920,19 @@ public:
     return downcast();
   }
 
+// TODO:
+//  ArithmeticTypeDriven& operator+=(bool value) noexcept {}
+//  ArithmeticTypeDriven& operator+=(ui8 value) noexcept  {}
+//  ArithmeticTypeDriven& operator+=(i8 value) noexcept   {}
+//  ArithmeticTypeDriven& operator+=(ui16 value) noexcept {}
+//  ArithmeticTypeDriven& operator+=(i16 value) noexcept  {}
+//  ArithmeticTypeDriven& operator+=(ui32 value) noexcept {}
+//  ArithmeticTypeDriven& operator+=(i32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator+=(f32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator+=(ui64 value) noexcept {}
+//  ArithmeticTypeDriven& operator+=(i64 value) noexcept  {}
+//  ArithmeticTypeDriven& operator+=(f64 value) noexcept  {}
+
   ArithmeticTypeDriven& operator-=(ArithmeticTypeDriven&& value) noexcept {return *this -= value;}
   ArithmeticTypeDriven& operator-=(const ArithmeticTypeDriven& value) noexcept {
     auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
@@ -1119,6 +1121,19 @@ public:
     }
     return downcast();
   }
+
+// TODO:
+//  ArithmeticTypeDriven& operator-=(bool value) noexcept {}
+//  ArithmeticTypeDriven& operator-=(ui8 value) noexcept  {}
+//  ArithmeticTypeDriven& operator-=(i8 value) noexcept   {}
+//  ArithmeticTypeDriven& operator-=(ui16 value) noexcept {}
+//  ArithmeticTypeDriven& operator-=(i16 value) noexcept  {}
+//  ArithmeticTypeDriven& operator-=(ui32 value) noexcept {}
+//  ArithmeticTypeDriven& operator-=(i32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator-=(f32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator-=(ui64 value) noexcept {}
+//  ArithmeticTypeDriven& operator-=(i64 value) noexcept  {}
+//  ArithmeticTypeDriven& operator-=(f64 value) noexcept  {}
 
   ArithmeticTypeDriven& operator*=(ArithmeticTypeDriven&& value) noexcept {return *this *= value;}
   ArithmeticTypeDriven& operator*=(const ArithmeticTypeDriven& value) noexcept {
@@ -1309,6 +1324,19 @@ public:
     return downcast();
   }
 
+// TODO:
+//  ArithmeticTypeDriven& operator*=(bool value) noexcept {}
+//  ArithmeticTypeDriven& operator*=(ui8 value) noexcept  {}
+//  ArithmeticTypeDriven& operator*=(i8 value) noexcept   {}
+//  ArithmeticTypeDriven& operator*=(ui16 value) noexcept {}
+//  ArithmeticTypeDriven& operator*=(i16 value) noexcept  {}
+//  ArithmeticTypeDriven& operator*=(ui32 value) noexcept {}
+//  ArithmeticTypeDriven& operator*=(i32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator*=(f32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator*=(ui64 value) noexcept {}
+//  ArithmeticTypeDriven& operator*=(i64 value) noexcept  {}
+//  ArithmeticTypeDriven& operator*=(f64 value) noexcept  {}
+
   ArithmeticTypeDriven& operator/=(ArithmeticTypeDriven&& value) noexcept {return *this /= value;}
   ArithmeticTypeDriven& operator/=(const ArithmeticTypeDriven& value) noexcept {
     auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
@@ -1497,6 +1525,19 @@ public:
     }
     return downcast();
   }
+
+// TODO:
+//  ArithmeticTypeDriven& operator/=(bool value) noexcept {}
+//  ArithmeticTypeDriven& operator/=(ui8 value) noexcept  {}
+//  ArithmeticTypeDriven& operator/=(i8 value) noexcept   {}
+//  ArithmeticTypeDriven& operator/=(ui16 value) noexcept {}
+//  ArithmeticTypeDriven& operator/=(i16 value) noexcept  {}
+//  ArithmeticTypeDriven& operator/=(ui32 value) noexcept {}
+//  ArithmeticTypeDriven& operator/=(i32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator/=(f32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator/=(ui64 value) noexcept {}
+//  ArithmeticTypeDriven& operator/=(i64 value) noexcept  {}
+//  ArithmeticTypeDriven& operator/=(f64 value) noexcept  {}
 
   ArithmeticTypeDriven& operator%=(ArithmeticTypeDriven&& value) noexcept {return *this %= value;}
   ArithmeticTypeDriven& operator%=(const ArithmeticTypeDriven& value) noexcept {
@@ -1687,6 +1728,19 @@ public:
     return downcast();
   }
 
+// TODO:
+//  ArithmeticTypeDriven& operator%=(bool value) noexcept {}
+//  ArithmeticTypeDriven& operator%=(ui8 value) noexcept  {}
+//  ArithmeticTypeDriven& operator%=(i8 value) noexcept   {}
+//  ArithmeticTypeDriven& operator%=(ui16 value) noexcept {}
+//  ArithmeticTypeDriven& operator%=(i16 value) noexcept  {}
+//  ArithmeticTypeDriven& operator%=(ui32 value) noexcept {}
+//  ArithmeticTypeDriven& operator%=(i32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator%=(f32 value) noexcept  {}
+//  ArithmeticTypeDriven& operator%=(ui64 value) noexcept {}
+//  ArithmeticTypeDriven& operator%=(i64 value) noexcept  {}
+//  ArithmeticTypeDriven& operator%=(f64 value) noexcept  {}
+
   ArithmeticTypeDriven& operator++() noexcept {
     auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
     if(!LockCheck()(lk)) return downcast();
@@ -1728,13 +1782,16 @@ public:
     }
     return downcast();
   }
+
+// TODO: Maybe overloading bitwise operations...
 };
 
 
 template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
-class CopyableArithmeticTypeBase : public CRTP<ArithmeticTypeDriven> {
-protected:
-  using CRTP<ArithmeticTypeDriven>::downcast;
+class CopyableArithmeticTypeBase {
+  ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
+  const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
+
 public:
 
   ArithmeticTypeDriven operator+(ArithmeticTypeDriven value) const noexcept {
@@ -1781,11 +1838,15 @@ public:
 };
 
 template <typename ArithmeticTypeDriven, typename LockType = priv::OptionalLockPlaceholder, typename LockCheck = OptionalLockCheck<LockType>>
-class CastableArithmeticTypeBase : public CRTP<ArithmeticTypeDriven> {
-  using CRTP<ArithmeticTypeDriven>::downcast;
+class CastableArithmeticTypeBase {
+
+  ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
+  const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
+
   inline void setType(ValType type) noexcept {downcast().setTypeImpl(type);}
   inline void reallocate(ValType type) noexcept {downcast().reallocateImpl(type);}
   inline ArithmeticData& getArithmeticData() noexcept {return downcast().getArithmeticDataImpl();}
+
 protected:
   void reallocateImpl([[maybe_unused]] ValType type) noexcept {}
   void setTypeImpl([[maybe_unused]] ValType type) noexcept {}
@@ -1988,11 +2049,9 @@ public:
     return downcast();
   }
 
-
 };
 
 #define USE_ARITHMETIC \
-  friend class ArithmeticBaseMechanics; \
   friend class ArithmeticTypeBase;
 
 #define USE_ARITHMETIC_CAST \

@@ -46,17 +46,17 @@ public:
   BufferController() noexcept = default;
 
   BufferController(size_t size) noexcept
-    : data(new uint8_t[getNearestPow2(size)]),
+    : data(new byte[getNearestPow2(size)]),
       size(size),
       capacity(getNearestPow2(size)) {}
 
   BufferController(void* buffer, size_t size) noexcept
-    : data(new uint8_t[getNearestPow2(size)]),
+    : data(new byte[getNearestPow2(size)]),
       size(size),
       capacity(getNearestPow2(size)) {memcpy(data, buffer, size);}
 
-  BufferController(BufferController& other) noexcept
-    : data(new uint8_t[other.size]),
+  BufferController(const BufferController& other) noexcept
+    : data(new byte[other.size]),
       size(other.size),
       capacity(getNearestPow2(other.capacity)) {}
 
@@ -173,7 +173,7 @@ public:
 
   iterator pushBack(const void* data, size_t size, Error* err = nullptr) noexcept {
     if(!data) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return end();
     }
     auto data_it = addSizeToBack(size);
@@ -183,7 +183,7 @@ public:
 
   iterator insert(size_t to, const void* data, size_t size, Error* err = nullptr) noexcept {
     if(!data) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return end();
     }
     if(to > size) {
@@ -197,7 +197,7 @@ public:
 
   iterator pushFront(const void* data, size_t size, Error* err = nullptr) noexcept {
     if(!data) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return end();
     }
     auto data_it = addSizeToFront(size);
@@ -327,7 +327,7 @@ public:
 
   byte& first(Error* err = nullptr) const noexcept {
     if(!size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return get(0);
     }
     return get(0);
@@ -336,7 +336,7 @@ public:
   template<typename T>
   T& first(Error* err = nullptr) const noexcept {
     if(!size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return get<T>(0,0);
     }
     return get<T>(0,0);
@@ -344,7 +344,7 @@ public:
 
   byte& last(Error* err = nullptr) const noexcept {
     if(!size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return get(0);
     }
     return get(size - 1);
@@ -353,7 +353,7 @@ public:
   template<typename T>
   T& last(Error* err = nullptr) const noexcept {
     if(!size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return get<T>(0,0);
     }
     return get<T>(getCount<T>() - 1, 0);
@@ -361,7 +361,7 @@ public:
 
   BufferController takeBack(size_t size, Error* err) noexcept {
     if(!this->size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return BufferController();
     }
     if(size > this->size) {
@@ -376,7 +376,7 @@ public:
 
   BufferController takeFront(size_t size, Error* err) noexcept {
     if(!this->size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return BufferController();
     }
     if(size > this->size) {
@@ -391,7 +391,7 @@ public:
 
   BufferController takeFrom(size_t at, size_t size, Error* err) noexcept {
     if(!this->size) {
-      if(err) *err = ErrorType::null_ponter;
+      if(err) *err = ErrorType::null_ponter_dereference;
       return BufferController();
     }
     if(at + size > this->size) {
