@@ -2,6 +2,7 @@
 #define GENERIC_VALUE_HXX
 
 #include "../utils/generic_arithmetic.hxx"
+#include "../utils/resource_control.hxx"
 
 namespace binom {
 
@@ -27,10 +28,12 @@ class GenericValue :
   void reallocateImpl([[maybe_unused]] ValType type) noexcept {}
   void setTypeImpl(ValType new_type) noexcept {type = new_type;}
 
-
+  friend class Variable;
   friend class Number;
   friend class GenericValueRef;
   GenericValue(ValType type, arithmetic::ArithmeticData data) : type(type), data(data) {}
+
+  priv::ResourceData toResourceData() const noexcept {return {toVarType(type), reinterpret_cast<const priv::ResourceData::Data&>(data)};}
 
 public:
   GenericValue() noexcept {}

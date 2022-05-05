@@ -2,7 +2,6 @@
 #define NUMBER_HXX
 
 #include "variable.hxx"
-#include "generic_value.hxx"
 
 namespace binom {
 
@@ -41,6 +40,9 @@ public:
 
   Number(const Number& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
   Number(Number&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
+
+  Number(const GenericValue& value) noexcept : Variable(value) {}
+  Number(GenericValue&& value) noexcept : Variable(std::move(value)) {}
 
   Number& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
   Number& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}

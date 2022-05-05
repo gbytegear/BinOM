@@ -41,6 +41,7 @@ Template argument LockCheck - to check if the lock is received or not:
 
 #include "types.hxx"
 #include "shared_recursive_mutex_wrapper.hxx"
+#include "generic_arithmetic_experemental.hxx"
 #include <cmath>
 
 namespace binom::arithmetic {
@@ -67,9 +68,6 @@ class ArithmeticImplPlaceholders {
 protected:
   LockType getLockImpl(priv::MtxLockType lock_type) const noexcept {return LockType(nullptr, lock_type);}
 };
-
-
-
 
 
 
@@ -430,6 +428,28 @@ class ArithmeticTypeBase {
       case binom::ValType::invalid_type:
       default: return false;
     }
+  }
+
+  template<typename T>
+  inline ArithmeticTypeDriven& addAndAssign(T value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val += value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val += value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val += value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val += value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val += value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val += value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val += value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val += value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val += value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val += value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val += value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
   }
 
 public:
@@ -920,18 +940,17 @@ public:
     return downcast();
   }
 
-// TODO:
-//  ArithmeticTypeDriven& operator+=(bool value) noexcept {}
-//  ArithmeticTypeDriven& operator+=(ui8 value) noexcept  {}
-//  ArithmeticTypeDriven& operator+=(i8 value) noexcept   {}
-//  ArithmeticTypeDriven& operator+=(ui16 value) noexcept {}
-//  ArithmeticTypeDriven& operator+=(i16 value) noexcept  {}
-//  ArithmeticTypeDriven& operator+=(ui32 value) noexcept {}
-//  ArithmeticTypeDriven& operator+=(i32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator+=(f32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator+=(ui64 value) noexcept {}
-//  ArithmeticTypeDriven& operator+=(i64 value) noexcept  {}
-//  ArithmeticTypeDriven& operator+=(f64 value) noexcept  {}
+  ArithmeticTypeDriven& operator+=(bool value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(ui8 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(i8 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(ui16 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(i16 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(ui32 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(i32 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(f32 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(ui64 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(i64 value) noexcept {return addAndAssign(value);}
+  ArithmeticTypeDriven& operator+=(f64 value) noexcept {return addAndAssign(value);}
 
   ArithmeticTypeDriven& operator-=(ArithmeticTypeDriven&& value) noexcept {return *this -= value;}
   ArithmeticTypeDriven& operator-=(const ArithmeticTypeDriven& value) noexcept {
@@ -1122,18 +1141,236 @@ public:
     return downcast();
   }
 
-// TODO:
-//  ArithmeticTypeDriven& operator-=(bool value) noexcept {}
-//  ArithmeticTypeDriven& operator-=(ui8 value) noexcept  {}
-//  ArithmeticTypeDriven& operator-=(i8 value) noexcept   {}
-//  ArithmeticTypeDriven& operator-=(ui16 value) noexcept {}
-//  ArithmeticTypeDriven& operator-=(i16 value) noexcept  {}
-//  ArithmeticTypeDriven& operator-=(ui32 value) noexcept {}
-//  ArithmeticTypeDriven& operator-=(i32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator-=(f32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator-=(ui64 value) noexcept {}
-//  ArithmeticTypeDriven& operator-=(i64 value) noexcept  {}
-//  ArithmeticTypeDriven& operator-=(f64 value) noexcept  {}
+  ArithmeticTypeDriven& operator-=(bool value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(ui8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(i8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(ui16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(i16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(ui32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(i32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(f32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(ui64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(i64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator-=(f64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val -= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val -= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val -= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val -= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val -= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val -= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val -= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val -= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val -= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val -= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val -= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
 
   ArithmeticTypeDriven& operator*=(ArithmeticTypeDriven&& value) noexcept {return *this *= value;}
   ArithmeticTypeDriven& operator*=(const ArithmeticTypeDriven& value) noexcept {
@@ -1324,18 +1561,236 @@ public:
     return downcast();
   }
 
-// TODO:
-//  ArithmeticTypeDriven& operator*=(bool value) noexcept {}
-//  ArithmeticTypeDriven& operator*=(ui8 value) noexcept  {}
-//  ArithmeticTypeDriven& operator*=(i8 value) noexcept   {}
-//  ArithmeticTypeDriven& operator*=(ui16 value) noexcept {}
-//  ArithmeticTypeDriven& operator*=(i16 value) noexcept  {}
-//  ArithmeticTypeDriven& operator*=(ui32 value) noexcept {}
-//  ArithmeticTypeDriven& operator*=(i32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator*=(f32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator*=(ui64 value) noexcept {}
-//  ArithmeticTypeDriven& operator*=(i64 value) noexcept  {}
-//  ArithmeticTypeDriven& operator*=(f64 value) noexcept  {}
+  ArithmeticTypeDriven& operator*=(bool value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(ui8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(i8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(ui16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(i16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(ui32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(i32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(f32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(ui64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(i64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator*=(f64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val *= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val *= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val *= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val *= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val *= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val *= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val *= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val *= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val *= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val *= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val *= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
 
   ArithmeticTypeDriven& operator/=(ArithmeticTypeDriven&& value) noexcept {return *this /= value;}
   ArithmeticTypeDriven& operator/=(const ArithmeticTypeDriven& value) noexcept {
@@ -1526,18 +1981,236 @@ public:
     return downcast();
   }
 
-// TODO:
-//  ArithmeticTypeDriven& operator/=(bool value) noexcept {}
-//  ArithmeticTypeDriven& operator/=(ui8 value) noexcept  {}
-//  ArithmeticTypeDriven& operator/=(i8 value) noexcept   {}
-//  ArithmeticTypeDriven& operator/=(ui16 value) noexcept {}
-//  ArithmeticTypeDriven& operator/=(i16 value) noexcept  {}
-//  ArithmeticTypeDriven& operator/=(ui32 value) noexcept {}
-//  ArithmeticTypeDriven& operator/=(i32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator/=(f32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator/=(ui64 value) noexcept {}
-//  ArithmeticTypeDriven& operator/=(i64 value) noexcept  {}
-//  ArithmeticTypeDriven& operator/=(f64 value) noexcept  {}
+  ArithmeticTypeDriven& operator/=(bool value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(ui8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(i8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(ui16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(i16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(ui32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(i32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(f32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(ui64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(i64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator/=(f64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val /= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val /= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val /= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val /= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val /= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val /= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val /= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val /= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val /= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val /= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val /= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
 
   ArithmeticTypeDriven& operator%=(ArithmeticTypeDriven&& value) noexcept {return *this %= value;}
   ArithmeticTypeDriven& operator%=(const ArithmeticTypeDriven& value) noexcept {
@@ -1728,18 +2401,236 @@ public:
     return downcast();
   }
 
-// TODO:
-//  ArithmeticTypeDriven& operator%=(bool value) noexcept {}
-//  ArithmeticTypeDriven& operator%=(ui8 value) noexcept  {}
-//  ArithmeticTypeDriven& operator%=(i8 value) noexcept   {}
-//  ArithmeticTypeDriven& operator%=(ui16 value) noexcept {}
-//  ArithmeticTypeDriven& operator%=(i16 value) noexcept  {}
-//  ArithmeticTypeDriven& operator%=(ui32 value) noexcept {}
-//  ArithmeticTypeDriven& operator%=(i32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator%=(f32 value) noexcept  {}
-//  ArithmeticTypeDriven& operator%=(ui64 value) noexcept {}
-//  ArithmeticTypeDriven& operator%=(i64 value) noexcept  {}
-//  ArithmeticTypeDriven& operator%=(f64 value) noexcept  {}
+  ArithmeticTypeDriven& operator%=(bool value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(ui8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(i8 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(ui16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(i16 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(ui32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(i32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(f32 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(ui64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(i64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
+
+  ArithmeticTypeDriven& operator%=(f64 value) noexcept {
+    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    if(!LockCheck()(lk)) return downcast();
+    switch (getValType()) {
+    case binom::ValType::boolean: getArithmeticData().bool_val %= value; break;
+    case binom::ValType::ui8: getArithmeticData().ui8_val %= value; break;
+    case binom::ValType::si8: getArithmeticData().i8_val %= value; break;
+    case binom::ValType::ui16: getArithmeticData().ui16_val %= value; break;
+    case binom::ValType::si16: getArithmeticData().i16_val %= value; break;
+    case binom::ValType::ui32: getArithmeticData().ui32_val %= value; break;
+    case binom::ValType::si32: getArithmeticData().i32_val %= value; break;
+    case binom::ValType::f32: getArithmeticData().f32_val %= value; break;
+    case binom::ValType::ui64: getArithmeticData().ui64_val %= value; break;
+    case binom::ValType::si64: getArithmeticData().i64_val %= value; break;
+    case binom::ValType::f64: getArithmeticData().f64_val %= value; break;
+    case binom::ValType::invalid_type:
+    break;
+    }
+    return downcast();
+  }
 
   ArithmeticTypeDriven& operator++() noexcept {
     auto lk = downcast().getLock(priv::MtxLockType::unique_locked);

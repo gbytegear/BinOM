@@ -12,4 +12,12 @@ int main() {
   testNumber();
   std::cout.flush();
   testRecursiveSharedMutex();
+
+//  Number a = 12;
+//  int b = a;
+
+//  Number a = 12, c = 16;
+//  GenericValue b = a;
+//  a += b;
+//  a += c;
 }

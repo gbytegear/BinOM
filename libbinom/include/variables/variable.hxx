@@ -2,6 +2,7 @@
 #define VARIABLE_H
 
 #include "../utils/resource_control.hxx"
+#include "generic_value.hxx"
 
 namespace binom {
 
@@ -31,6 +32,8 @@ public:
   Variable(ui64 value) noexcept : Variable(priv::ResourceData{VarType::ui64, {.ui64_val = value}}) {}
   Variable(i64 value) noexcept : Variable(priv::ResourceData{VarType::si64, {.i64_val = value}}) {}
   Variable(f64 value) noexcept : Variable(priv::ResourceData{VarType::f64, {.f64_val = value}}) {}
+  Variable(const GenericValue& value) noexcept : Variable(value.toResourceData()) {}
+  Variable(GenericValue&& value) noexcept : Variable(value.toResourceData()) {}
 
   Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
   Variable(const Variable& other) noexcept : resource_link(cloneResource(other.resource_link)) {}
