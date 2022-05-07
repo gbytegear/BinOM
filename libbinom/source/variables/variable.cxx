@@ -17,6 +17,7 @@ void Variable::destroyResorce(priv::ResourceData res_data) {
   break;
   case binom::VarTypeClass::map: // TODO
   break;
+  default:
   case binom::VarTypeClass::invalid_type:
   break;
 
@@ -35,6 +36,7 @@ Link Variable::cloneResource(priv::Link resource_link) noexcept {
   break;
   case binom::VarTypeClass::map: // TODO
   break;
+  default:
   case binom::VarTypeClass::invalid_type:
   break;
   }

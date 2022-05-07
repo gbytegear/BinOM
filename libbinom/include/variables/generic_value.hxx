@@ -16,6 +16,7 @@ class GenericValue :
     public arithmetic::ArithmeticImplPlaceholders<GenericValue> {
   USE_ARITHMETIC
   USE_ARITHMETIC_CAST
+  USE_COPYABLE_ARITHMETIC
 
   ValType type;
   arithmetic::ArithmeticData data;
@@ -23,6 +24,8 @@ class GenericValue :
   // ArithmeticTypeBase & CopyableArithmeticTypeBase Implementation
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return const_cast<arithmetic::ArithmeticData&>(data);}
   ValType getValTypeImpl() const {return type;}
+  priv::OptionalLockPlaceholder getLock(priv::MtxLockType lock_type) const noexcept {return priv::OptionalLockPlaceholder(nullptr, lock_type);}
+  bool checkLock(const priv::OptionalLockPlaceholder&) const noexcept {return true;}
 
   // CastableArithmeticTypeBase implementation
   void reallocateImpl([[maybe_unused]] ValType type) noexcept {}
@@ -36,6 +39,7 @@ class GenericValue :
   priv::ResourceData toResourceData() const noexcept {return {toVarType(type), reinterpret_cast<const priv::ResourceData::Data&>(data)};}
 
 public:
+  using arithmetic::ArithmeticTypeBase<GenericValue>::operator=;
   GenericValue() noexcept {}
   GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {getLock(priv::MtxLockType::shared_locked);}
   GenericValue(ui8 value) noexcept : type(ValType::ui8), data{.ui8_val = value} {}
@@ -50,27 +54,10 @@ public:
   GenericValue(f64 value) noexcept : type(ValType::f64), data{.f64_val = value} {}
   GenericValue(const GenericValue& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
   GenericValue(GenericValue&& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
-
-  GenericValue& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(i8 value) noexcept   {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(ui16 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(i16 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(ui32 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(i32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(f32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(ui64 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(i64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(f64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(const GenericValue& value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValue& operator=(GenericValue&& value) noexcept      {return ArithmeticTypeBase::operator=(std::move(value));}
-
-  operator Number();
-
 };
 
 class GenericValueRef :
-    public arithmetic::ArithmeticTypeBase<GenericValueRef, OptionalSharedRecursiveLock> {
+    public arithmetic::ArithmeticTypeBase<GenericValueRef> {
   USE_ARITHMETIC
 
   Variable* owner;
@@ -94,7 +81,7 @@ class GenericValueRef :
 
   arithmetic::ArithmeticData& getArithmeticDataImpl() const noexcept {return *ptr.num_data_ptr;}
   ValType getValTypeImpl() const noexcept {return value_type;}
-  OptionalSharedRecursiveLock getLockImpl(MtxLockType lock_type) const noexcept;
+  static bool checkLock(const OptionalSharedRecursiveLock& lock) noexcept;
 
   friend class GenericValueIterator;
   friend class Number;
@@ -103,25 +90,13 @@ class GenericValueRef :
   GenericValueRef(ValType value_type, void* ptr, Variable* owner)
     : owner(owner) ,value_type(value_type), ptr(ptr) {}
 public:
-  using arithmetic::ArithmeticTypeBase<GenericValueRef, OptionalSharedRecursiveLock>::operator+=;
+  using arithmetic::ArithmeticTypeBase<GenericValueRef>::operator=;
   GenericValueRef(const GenericValueRef& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}
   GenericValueRef(GenericValueRef&& other) : value_type(other.value_type), ptr(other.ptr.ptr) {}
   GenericValueRef(const GenericValueIterator& it);
   GenericValueRef(GenericValueIterator&& it);
 
-  GenericValueRef& operator=(bool value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(ui8 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(i8 value) noexcept   {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(ui16 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(i16 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(ui32 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(i32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(f32 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(ui64 value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(i64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(f64 value) noexcept  {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(const GenericValueRef& value) noexcept {return ArithmeticTypeBase::operator=(value);}
-  GenericValueRef& operator=(GenericValueRef&& value) noexcept      {return ArithmeticTypeBase::operator=(std::move(value));}
+  OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
   operator GenericValue() {
     if(auto lk = getLock(MtxLockType::shared_locked); lk)

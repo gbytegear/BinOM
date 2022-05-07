@@ -15,7 +15,6 @@ HEADERS += \
     libbinom/include/utils/bit_map64.hxx \
     libbinom/include/utils/err.hxx \
     libbinom/include/utils/generic_arithmetic.hxx \
-    libbinom/include/utils/generic_arithmetic_experemental.hxx \
     libbinom/include/utils/memctrl.hxx \
     libbinom/include/utils/resource_control.hxx \
     libbinom/include/utils/shared_recursive_mutex_wrapper.hxx \

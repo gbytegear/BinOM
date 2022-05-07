@@ -3,6 +3,8 @@
 
 #include "libbinom/include/variables/number.hxx"
 
+#include <vector>
+
 int main() {
   RAIIPerfomanceTest test_perf("Test perfomance: ");
   testTypesConversions();
@@ -16,8 +18,8 @@ int main() {
 //  Number a = 12;
 //  int b = a;
 
-//  Number a = 12, c = 16;
-//  GenericValue b = a;
-//  a += b;
-//  a += c;
+  Number a = 12, c = 16;
+  GenericValue b = a;
+  a += b;
+  a += c;
 }
