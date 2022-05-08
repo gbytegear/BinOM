@@ -3,6 +3,7 @@
 
 #include "memctrl.hxx"
 #include <initializer_list>
+#include "heritable_initializer_list.hxx"
 
 /// Binary Object Model
 namespace binom {
@@ -420,10 +421,15 @@ class Array;
 class Map;
 class MultiMap;
 
-struct MapLiteral;
-struct MultiMapLiteral;
-
 namespace literals {
+namespace priv {
+
+struct ArrayLiteral : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct ListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct LessMapLiteral;
+struct GreaterMapLiteral;
+
+}
 
 typedef std::initializer_list<const bool>       bitarr;
 typedef std::initializer_list<const ui8>        ui8arr;
@@ -434,8 +440,10 @@ typedef std::initializer_list<const ui32>       ui32arr;
 typedef std::initializer_list<const i32>        i32arr;
 typedef std::initializer_list<const ui64>       ui64arr;
 typedef std::initializer_list<const i64>        i64arr;
-typedef std::initializer_list<const Variable>   varr;
-typedef MapLiteral                              map;
+typedef priv::ArrayLiteral                      arr;
+typedef priv::ListLiteral                       list;
+typedef priv::LessMapLiteral                    lmap;
+typedef priv::GreaterMapLiteral                 gmap;
 
 }
 

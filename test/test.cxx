@@ -1,12 +1,13 @@
-//#define TEST_FULL_INFO
+#define TEST_FULL_INFO
 #include "test/all_test.hxx"
 
 #include "libbinom/include/variables/number.hxx"
 
 #include <vector>
+#include <initializer_list>
+#include <array>
 
 int main() {
-  RAIIPerfomanceTest test_perf("Test perfomance: ");
   testTypesConversions();
   std::cout.flush();
   testGenericValue();
@@ -15,11 +16,15 @@ int main() {
   std::cout.flush();
   testRecursiveSharedMutex();
 
-//  Number a = 12;
-//  int b = a;
+//  std::clog << "Number a = 12, c = Number::createRefVariable(a);\n";
+//  std::clog << "a = " << int(a) << '\n';
+//  std::clog << "c = " << int(a) << '\n';
+//  c++;
+//  std::clog << "c++;\n";
+//  std::clog << "a = " << int(a) << '\n';
+//  std::clog << "c = " << int(a) << '\n';
 
-  Number a = 12, c = 16;
-  GenericValue b = a;
-  a += b;
-  a += c;
+//  GenericValue b = a;
+//  a += b;
+//  a += c;
 }

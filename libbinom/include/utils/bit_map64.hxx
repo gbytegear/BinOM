@@ -235,7 +235,7 @@ public:
   std::array<ui8, 8> values8() const noexcept {return data.number_8;}
 
   inline operator ui64() const noexcept {return data.number_64;}
-  inline BitMap64& operator=(ui64 value) noexcept {data.number_64 = value; return *this;}
+  inline BitMap64& operator=(ui64 value) noexcept {data.number_64 = value; return self;}
 
 
   BitIterator begin() const noexcept;
@@ -261,22 +261,22 @@ public:
   inline bool set(bool value) noexcept {return map->set(bit_index, value);}
   inline bool operator = (bool value) noexcept {return map->set(bit_index, value);}
 
-  BitIterator& operator*() {return *this;}
+  BitIterator& operator*() {return self;}
 
-  BitIterator& operator++() {if(bit_index < 64)++bit_index;return *this;}
-  BitIterator operator++(int) {BitIterator prev(*this);if(bit_index < 64)++bit_index;return prev;}
+  BitIterator& operator++() {if(bit_index < 64)++bit_index;return self;}
+  BitIterator operator++(int) {BitIterator prev(self);if(bit_index < 64)++bit_index;return prev;}
 
-  BitIterator& operator--() {if(bit_index > 0)--bit_index;return *this;}
-  BitIterator operator--(int) {BitIterator next(*this);if(bit_index > 0)--bit_index;return next;}
+  BitIterator& operator--() {if(bit_index > 0)--bit_index;return self;}
+  BitIterator operator--(int) {BitIterator next(self);if(bit_index > 0)--bit_index;return next;}
 
-  BitIterator& operator+=(ui8 add) {if((bit_index += add) > 64) bit_index = 64;return *this;}
-  BitIterator& operator-=(ui8 sub) {if((bit_index -= sub) > 64) bit_index = 0;return *this;}
+  BitIterator& operator+=(ui8 add) {if((bit_index += add) > 64) bit_index = 64;return self;}
+  BitIterator& operator-=(ui8 sub) {if((bit_index -= sub) > 64) bit_index = 0;return self;}
 
-  BitIterator operator+(ui8 add) {return BitIterator(*this) += add;}
-  BitIterator operator-(ui8 sub) {return BitIterator(*this) -= sub;}
+  BitIterator operator+(ui8 add) {return BitIterator(self) += add;}
+  BitIterator operator-(ui8 sub) {return BitIterator(self) -= sub;}
 
-  BitIterator& operator=(BitIterator other) {map = other.map; bit_index = other.bit_index; return *this;}
-  BitIterator& operator=(BitMap64* map) {this->map = map; bit_index = 0; return *this;}
+  BitIterator& operator=(BitIterator other) {map = other.map; bit_index = other.bit_index; return self;}
+  BitIterator& operator=(BitMap64* map) {this->map = map; bit_index = 0; return self;}
 
   bool operator==(BitIterator other) const noexcept {return map == other.map && bit_index == other.bit_index;}
   bool operator!=(BitIterator other) const noexcept {return map != other.map || bit_index != other.bit_index;}

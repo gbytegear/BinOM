@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#define self (*this)
 #define elif else if
 #define forever while(1)
 #define ever (;;)

@@ -49,6 +49,7 @@ struct SharedResource {
 
   bool isExist() noexcept {return link_counter;}
 
+  SharedResource(ResourceData resource_data) : resource_data(resource_data) {}
   ~SharedResource();
 };
 
@@ -56,9 +57,9 @@ class Link {
   SharedResource* resource = nullptr;
 
 public:
-  Link(ResourceData resource_data) noexcept : resource(new SharedResource{.resource_data = resource_data}) {}
+  Link(ResourceData resource_data) noexcept : resource(new SharedResource(resource_data)) {}
 
-  Link(Link&& other) noexcept : resource(other.resource) {}
+  Link(Link&& other) noexcept : resource(other.resource) {other.resource = nullptr;}
 
   Link(const Link& other) noexcept {
     if(!other.resource) return;
@@ -75,6 +76,7 @@ public:
         resource->mtx.unlock();
         delete resource;
       }
+      resource = nullptr;
     }
   }
 

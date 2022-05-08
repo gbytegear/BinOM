@@ -1,4 +1,5 @@
 #include "libbinom/include/variables/variable.hxx"
+#include "libbinom/include/variables/number.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -40,4 +41,28 @@ Link Variable::cloneResource(priv::Link resource_link) noexcept {
   case binom::VarTypeClass::invalid_type:
   break;
   }
+}
+
+size_t Variable::getElementCount() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return 0;
+  switch (getTypeClass()) {
+  case binom::VarTypeClass::null: return 0;
+  case binom::VarTypeClass::number: return 1;
+  case binom::VarTypeClass::buffer_array:
+  break;
+  case binom::VarTypeClass::array:
+  break;
+  case binom::VarTypeClass::list:
+  break;
+  case binom::VarTypeClass::map:
+  break;
+  case binom::VarTypeClass::invalid_type:
+  break;
+  }
+  return -1;
+}
+
+Variable::operator Number&() {
+  return reinterpret_cast<Number&>(self);
 }

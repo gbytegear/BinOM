@@ -90,9 +90,7 @@ void testGenericValue() {
         PRINT_RUN(b %= a;)
         LOG("b = " << ui64(b))
         PRINT_RUN(b = 12;)
-        PRINT_RUN(c = a + b;)
-        LOG("c = " << f64(c))
-        PRINT_RUN(c = b + a;)
+        PRINT_RUN(c.castTo(ValType::f64) = a + b;)
         LOG("c = " << f64(c))
   }
   GRP_POP

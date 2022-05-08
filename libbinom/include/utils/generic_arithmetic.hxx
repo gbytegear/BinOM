@@ -16,6 +16,12 @@ struct remove_cvref : std::remove_cv<std::remove_reference_t<T>> {};
 template <class T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
+template <class T, class U>
+struct is_base_of : std::is_base_of<remove_cvref_t<T>, remove_cvref_t<U>> {};
+
+template <class T, class U>
+inline constexpr bool is_base_of_v = is_base_of<T, U>::value;
+
 template <template<typename T> class CRTP_Base, class CRTP_Driven>
 struct is_crtp_base_of : std::is_base_of<CRTP_Base<remove_cvref_t<CRTP_Driven>>, remove_cvref_t<CRTP_Driven>> {};
 
@@ -96,8 +102,8 @@ union ArithmeticData {
     f64 f64_val;
 };
 
-template <typename ArithmeticTypeDriven>
-class CopyableArithmeticTypeBase;
+
+class EnableCopyableArithmetic {};
 
 
 template <typename ArithmeticTypeDriven>
@@ -129,7 +135,7 @@ public:
 
   template<typename T>
   operator T() const noexcept {
-    static_assert (std::is_arithmetic_v<T> || (is_crtp_base_of_v<CopyableArithmeticTypeBase, T> && is_crtp_base_of_v<ArithmeticTypeBase, T>));
+    static_assert (std::is_arithmetic_v<T> || (is_base_of_v<EnableCopyableArithmetic, T> && is_crtp_base_of_v<ArithmeticTypeBase, T>));
     if constexpr (std::is_arithmetic<T>::value) {
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -148,21 +154,21 @@ public:
       case binom::ValType::invalid_type:
       default: return false;
       }
-    } else if constexpr(is_crtp_base_of_v<CopyableArithmeticTypeBase, T> && is_crtp_base_of_v<ArithmeticTypeBase, T>) {
+    } else if constexpr(is_base_of_v<EnableCopyableArithmetic, T> && is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getValType()) {
-      case binom::ValType::boolean: return bool(*this);
-      case binom::ValType::ui8: return ui8(*this);
-      case binom::ValType::si8: return i8(*this);
-      case binom::ValType::ui16: return ui16(*this);
-      case binom::ValType::si16: return i16(*this);
-      case binom::ValType::ui32: return ui32(*this);
-      case binom::ValType::si32: return i32(*this);
-      case binom::ValType::f32: return f32(*this);
-      case binom::ValType::ui64: return ui64(*this);
-      case binom::ValType::si64: return i64(*this);
-      case binom::ValType::f64: return f64(*this);
+      case binom::ValType::boolean: return bool(self);
+      case binom::ValType::ui8: return ui8(self);
+      case binom::ValType::si8: return i8(self);
+      case binom::ValType::ui16: return ui16(self);
+      case binom::ValType::si16: return i16(self);
+      case binom::ValType::ui32: return ui32(self);
+      case binom::ValType::si32: return i32(self);
+      case binom::ValType::f32: return f32(self);
+      case binom::ValType::ui64: return ui64(self);
+      case binom::ValType::si64: return i64(self);
+      case binom::ValType::f64: return f64(self);
       case binom::ValType::invalid_type:
       default: return 0;
       }
@@ -178,25 +184,25 @@ public:
       switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return ui64(*this) == ui64(value);
-        case binom::VarNumberType::signed_integer: return i64(value) >= 0 ? ui64(*this) == ui64(value) : false;
-        case binom::VarNumberType::float_point: return f64(value) >= 0 ? ui64(*this) == f64(value) : false;
+        case binom::VarNumberType::unsigned_integer: return ui64(self) == ui64(value);
+        case binom::VarNumberType::signed_integer: return i64(value) >= 0 ? ui64(self) == ui64(value) : false;
+        case binom::VarNumberType::float_point: return f64(value) >= 0 ? ui64(self) == f64(value) : false;
         default:
         case binom::VarNumberType::invalid_type: default: return false;
         }
       case binom::VarNumberType::signed_integer:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) == ui64(value) : false;
-        case binom::VarNumberType::signed_integer: return i64(*this) == i64(value);
-        case binom::VarNumberType::float_point: return i64(*this) == f64(value);
+        case binom::VarNumberType::unsigned_integer: return i64(self) >= 0 ? ui64(self) == ui64(value) : false;
+        case binom::VarNumberType::signed_integer: return i64(self) == i64(value);
+        case binom::VarNumberType::float_point: return i64(self) == f64(value);
         default:
         case binom::VarNumberType::invalid_type: default: return false;
         }
       case binom::VarNumberType::float_point:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return f64(*this) >= 0 ? ui64(*this) == f64(value) : false;
-        case binom::VarNumberType::signed_integer: return f64(*this) == ui64(value);
-        case binom::VarNumberType::float_point: return f64(*this) == f64(value);
+        case binom::VarNumberType::unsigned_integer: return f64(self) >= 0 ? ui64(self) == f64(value) : false;
+        case binom::VarNumberType::signed_integer: return f64(self) == ui64(value);
+        case binom::VarNumberType::float_point: return f64(self) == f64(value);
         default:
         case binom::VarNumberType::invalid_type: default: return false;
         }
@@ -207,25 +213,25 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getNumberType()) {
-      case binom::VarNumberType::unsigned_integer: return ui64(*this) == value;
-      case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) == value : false;
-      case binom::VarNumberType::float_point: return f64(*this) >= 0 ? f64(*this) > value : false;
+      case binom::VarNumberType::unsigned_integer: return ui64(self) == value;
+      case binom::VarNumberType::signed_integer: return i64(self) >= 0 ? ui64(self) == value : false;
+      case binom::VarNumberType::float_point: return f64(self) >= 0 ? f64(self) > value : false;
       case binom::VarNumberType::invalid_type: default: return false;
       }
     } else if constexpr (is_signed_without_cvref_v<T>) {
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getNumberType()) {
-      case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) == value : false;
-      case binom::VarNumberType::signed_integer: return i64(*this) == value;
-      case binom::VarNumberType::float_point: return f64(*this) == value;
+      case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(self) == value : false;
+      case binom::VarNumberType::signed_integer: return i64(self) == value;
+      case binom::VarNumberType::float_point: return f64(self) == value;
       case binom::VarNumberType::invalid_type: return false;
       }
     }
   }
 
   template<typename T>
-  bool operator!=(T&& value) const {return !(*this == value);}
+  bool operator!=(T&& value) const {return !(self == value);}
 
   template<typename T>
   bool operator>(T&& value) const {
@@ -236,25 +242,25 @@ public:
       switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return ui64(*this) > ui64(value);
-        case binom::VarNumberType::signed_integer: return i64(value) >= 0 ? ui64(*this) > ui64(value) : false;
-        case binom::VarNumberType::float_point: return f64(value) >= 0 ? ui64(*this) > f64(value) : false;
+        case binom::VarNumberType::unsigned_integer: return ui64(self) > ui64(value);
+        case binom::VarNumberType::signed_integer: return i64(value) >= 0 ? ui64(self) > ui64(value) : false;
+        case binom::VarNumberType::float_point: return f64(value) >= 0 ? ui64(self) > f64(value) : false;
         default:
         case binom::VarNumberType::invalid_type: return false;
         }
       case binom::VarNumberType::signed_integer:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) > ui64(value) : false;
-        case binom::VarNumberType::signed_integer: return i64(*this) > i64(value);
-        case binom::VarNumberType::float_point: return i64(*this) > f64(value);
+        case binom::VarNumberType::unsigned_integer: return i64(self) >= 0 ? ui64(self) > ui64(value) : false;
+        case binom::VarNumberType::signed_integer: return i64(self) > i64(value);
+        case binom::VarNumberType::float_point: return i64(self) > f64(value);
         default:
         case binom::VarNumberType::invalid_type: return false;
         }
       case binom::VarNumberType::float_point:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return f64(*this) >= 0 ? ui64(*this) > f64(value) : false;
-        case binom::VarNumberType::signed_integer: return f64(*this) > ui64(value);
-        case binom::VarNumberType::float_point: return f64(*this) > f64(value);
+        case binom::VarNumberType::unsigned_integer: return f64(self) >= 0 ? ui64(self) > f64(value) : false;
+        case binom::VarNumberType::signed_integer: return f64(self) > ui64(value);
+        case binom::VarNumberType::float_point: return f64(self) > f64(value);
         default:
         case binom::VarNumberType::invalid_type: return false;
         }
@@ -265,18 +271,18 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getNumberType()) {
-      case binom::VarNumberType::unsigned_integer: return ui64(*this) > value;
-      case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) > value : false;
-      case binom::VarNumberType::float_point: return f64(*this) >= 0 ? f64(*this) > value : false;
+      case binom::VarNumberType::unsigned_integer: return ui64(self) > value;
+      case binom::VarNumberType::signed_integer: return i64(self) >= 0 ? ui64(self) > value : false;
+      case binom::VarNumberType::float_point: return f64(self) >= 0 ? f64(self) > value : false;
       case binom::VarNumberType::invalid_type:default: return false;
       }
     } else if constexpr (is_signed_without_cvref_v<T>) {
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getNumberType()) {
-      case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) > value : false;
-      case binom::VarNumberType::signed_integer: return ui64(*this) > value;
-      case binom::VarNumberType::float_point: return f64(*this) > value;
+      case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(self) > value : false;
+      case binom::VarNumberType::signed_integer: return ui64(self) > value;
+      case binom::VarNumberType::float_point: return f64(self) > value;
       case binom::VarNumberType::invalid_type:default: return false;
       }
     }
@@ -291,25 +297,25 @@ public:
       switch (getNumberType()) {
       case binom::VarNumberType::unsigned_integer:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return ui64(*this) >= ui64(value);
-        case binom::VarNumberType::signed_integer: return i64(value) >= 0 ? ui64(*this) >= ui64(value) : false;
-        case binom::VarNumberType::float_point: return f64(value) >= 0 ? ui64(*this) >= f64(value) : false;
+        case binom::VarNumberType::unsigned_integer: return ui64(self) >= ui64(value);
+        case binom::VarNumberType::signed_integer: return i64(value) >= 0 ? ui64(self) >= ui64(value) : false;
+        case binom::VarNumberType::float_point: return f64(value) >= 0 ? ui64(self) >= f64(value) : false;
         default:
         case binom::VarNumberType::invalid_type: return false;
         }
       case binom::VarNumberType::signed_integer:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return i64(*this) >= 0 ? ui64(*this) >= ui64(value) : false;
-        case binom::VarNumberType::signed_integer: return i64(*this) >= i64(value);
-        case binom::VarNumberType::float_point: return i64(*this) >= f64(value);
+        case binom::VarNumberType::unsigned_integer: return i64(self) >= 0 ? ui64(self) >= ui64(value) : false;
+        case binom::VarNumberType::signed_integer: return i64(self) >= i64(value);
+        case binom::VarNumberType::float_point: return i64(self) >= f64(value);
         default:
         case binom::VarNumberType::invalid_type: return false;
         }
       case binom::VarNumberType::float_point:
         switch (value.getNumberType()) {
-        case binom::VarNumberType::unsigned_integer: return f64(*this) >= 0 ? ui64(*this) >= f64(value) : false;
-        case binom::VarNumberType::signed_integer: return f64(*this) >= ui64(value);
-        case binom::VarNumberType::float_point: return f64(*this) >= f64(value);
+        case binom::VarNumberType::unsigned_integer: return f64(self) >= 0 ? ui64(self) >= f64(value) : false;
+        case binom::VarNumberType::signed_integer: return f64(self) >= ui64(value);
+        case binom::VarNumberType::float_point: return f64(self) >= f64(value);
         default:
         case binom::VarNumberType::invalid_type: return false;
         }
@@ -320,28 +326,28 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getNumberType()) {
-      case binom::VarNumberType::unsigned_integer: return ui64(*this) >= value;
-      case binom::VarNumberType::signed_integer: return i64(*this) >= 0 ? ui64(*this) >= value : false;
-      case binom::VarNumberType::float_point: return f64(*this) >= 0 ? f64(*this) >= value : false;
+      case binom::VarNumberType::unsigned_integer: return ui64(self) >= value;
+      case binom::VarNumberType::signed_integer: return i64(self) >= 0 ? ui64(self) >= value : false;
+      case binom::VarNumberType::float_point: return f64(self) >= 0 ? f64(self) >= value : false;
       case binom::VarNumberType::invalid_type:default: return false;
       }
     } else if constexpr (is_signed_without_cvref_v<T>) {
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getNumberType()) {
-      case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(*this) >= value : false;
-      case binom::VarNumberType::signed_integer: return ui64(*this) >= value;
-      case binom::VarNumberType::float_point: return f64(*this) >= value;
+      case binom::VarNumberType::unsigned_integer: return value >= 0 ? ui64(self) >= value : false;
+      case binom::VarNumberType::signed_integer: return ui64(self) >= value;
+      case binom::VarNumberType::float_point: return f64(self) >= value;
       case binom::VarNumberType::invalid_type:default: return false;
       }
     }
   }
 
   template<typename T>
-  bool operator<(T&& value) const {return !(*this >= value);}
+  bool operator<(T&& value) const {return !(self >= value);}
 
   template<typename T>
-  bool operator<=(T&& value) const {return !(*this > value);}
+  bool operator<=(T&& value) const {return !(self > value);}
 
   template<typename T>
   ArithmeticTypeDriven& operator=(T&& value) noexcept {
@@ -350,17 +356,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this = bool(value);
-      case binom::ValType::ui8: return      *this = ui8(value);
-      case binom::ValType::si8: return      *this = i8(value);
-      case binom::ValType::ui16: return     *this = ui16(value);
-      case binom::ValType::si16: return     *this = i16(value);
-      case binom::ValType::ui32: return     *this = ui32(value);
-      case binom::ValType::si32: return     *this = i32(value);
-      case binom::ValType::f32: return      *this = f32(value);
-      case binom::ValType::ui64: return     *this = ui64(value);
-      case binom::ValType::si64: return     *this = i64(value);
-      case binom::ValType::f64: return      *this = f64(value);
+      case binom::ValType::boolean: return  self = bool(value);
+      case binom::ValType::ui8: return      self = ui8(value);
+      case binom::ValType::si8: return      self = i8(value);
+      case binom::ValType::ui16: return     self = ui16(value);
+      case binom::ValType::si16: return     self = i16(value);
+      case binom::ValType::ui32: return     self = ui32(value);
+      case binom::ValType::si32: return     self = i32(value);
+      case binom::ValType::f32: return      self = f32(value);
+      case binom::ValType::ui64: return     self = ui64(value);
+      case binom::ValType::si64: return     self = i64(value);
+      case binom::ValType::f64: return      self = f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -414,17 +420,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this += bool(value);
-      case binom::ValType::ui8: return      *this += ui8(value);
-      case binom::ValType::si8: return      *this += i8(value);
-      case binom::ValType::ui16: return     *this += ui16(value);
-      case binom::ValType::si16: return     *this += i16(value);
-      case binom::ValType::ui32: return     *this += ui32(value);
-      case binom::ValType::si32: return     *this += i32(value);
-      case binom::ValType::f32: return      *this += f32(value);
-      case binom::ValType::ui64: return     *this += ui64(value);
-      case binom::ValType::si64: return     *this += i64(value);
-      case binom::ValType::f64: return      *this += f64(value);
+      case binom::ValType::boolean: return  self += bool(value);
+      case binom::ValType::ui8: return      self += ui8(value);
+      case binom::ValType::si8: return      self += i8(value);
+      case binom::ValType::ui16: return     self += ui16(value);
+      case binom::ValType::si16: return     self += i16(value);
+      case binom::ValType::ui32: return     self += ui32(value);
+      case binom::ValType::si32: return     self += i32(value);
+      case binom::ValType::f32: return      self += f32(value);
+      case binom::ValType::ui64: return     self += ui64(value);
+      case binom::ValType::si64: return     self += i64(value);
+      case binom::ValType::f64: return      self += f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -455,17 +461,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this -= bool(value);
-      case binom::ValType::ui8: return      *this -= ui8(value);
-      case binom::ValType::si8: return      *this -= i8(value);
-      case binom::ValType::ui16: return     *this -= ui16(value);
-      case binom::ValType::si16: return     *this -= i16(value);
-      case binom::ValType::ui32: return     *this -= ui32(value);
-      case binom::ValType::si32: return     *this -= i32(value);
-      case binom::ValType::f32: return      *this -= f32(value);
-      case binom::ValType::ui64: return     *this -= ui64(value);
-      case binom::ValType::si64: return     *this -= i64(value);
-      case binom::ValType::f64: return      *this -= f64(value);
+      case binom::ValType::boolean: return  self -= bool(value);
+      case binom::ValType::ui8: return      self -= ui8(value);
+      case binom::ValType::si8: return      self -= i8(value);
+      case binom::ValType::ui16: return     self -= ui16(value);
+      case binom::ValType::si16: return     self -= i16(value);
+      case binom::ValType::ui32: return     self -= ui32(value);
+      case binom::ValType::si32: return     self -= i32(value);
+      case binom::ValType::f32: return      self -= f32(value);
+      case binom::ValType::ui64: return     self -= ui64(value);
+      case binom::ValType::si64: return     self -= i64(value);
+      case binom::ValType::f64: return      self -= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -496,17 +502,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this *= bool(value);
-      case binom::ValType::ui8: return      *this *= ui8(value);
-      case binom::ValType::si8: return      *this *= i8(value);
-      case binom::ValType::ui16: return     *this *= ui16(value);
-      case binom::ValType::si16: return     *this *= i16(value);
-      case binom::ValType::ui32: return     *this *= ui32(value);
-      case binom::ValType::si32: return     *this *= i32(value);
-      case binom::ValType::f32: return      *this *= f32(value);
-      case binom::ValType::ui64: return     *this *= ui64(value);
-      case binom::ValType::si64: return     *this *= i64(value);
-      case binom::ValType::f64: return      *this *= f64(value);
+      case binom::ValType::boolean: return  self *= bool(value);
+      case binom::ValType::ui8: return      self *= ui8(value);
+      case binom::ValType::si8: return      self *= i8(value);
+      case binom::ValType::ui16: return     self *= ui16(value);
+      case binom::ValType::si16: return     self *= i16(value);
+      case binom::ValType::ui32: return     self *= ui32(value);
+      case binom::ValType::si32: return     self *= i32(value);
+      case binom::ValType::f32: return      self *= f32(value);
+      case binom::ValType::ui64: return     self *= ui64(value);
+      case binom::ValType::si64: return     self *= i64(value);
+      case binom::ValType::f64: return      self *= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -537,17 +543,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this /= bool(value);
-      case binom::ValType::ui8: return      *this /= ui8(value);
-      case binom::ValType::si8: return      *this /= i8(value);
-      case binom::ValType::ui16: return     *this /= ui16(value);
-      case binom::ValType::si16: return     *this /= i16(value);
-      case binom::ValType::ui32: return     *this /= ui32(value);
-      case binom::ValType::si32: return     *this /= i32(value);
-      case binom::ValType::f32: return      *this /= f32(value);
-      case binom::ValType::ui64: return     *this /= ui64(value);
-      case binom::ValType::si64: return     *this /= i64(value);
-      case binom::ValType::f64: return      *this /= f64(value);
+      case binom::ValType::boolean: return  self /= bool(value);
+      case binom::ValType::ui8: return      self /= ui8(value);
+      case binom::ValType::si8: return      self /= i8(value);
+      case binom::ValType::ui16: return     self /= ui16(value);
+      case binom::ValType::si16: return     self /= i16(value);
+      case binom::ValType::ui32: return     self /= ui32(value);
+      case binom::ValType::si32: return     self /= i32(value);
+      case binom::ValType::f32: return      self /= f32(value);
+      case binom::ValType::ui64: return     self /= ui64(value);
+      case binom::ValType::si64: return     self /= i64(value);
+      case binom::ValType::f64: return      self /= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -578,17 +584,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this %= bool(value);
-      case binom::ValType::ui8: return      *this %= ui8(value);
-      case binom::ValType::si8: return      *this %= i8(value);
-      case binom::ValType::ui16: return     *this %= ui16(value);
-      case binom::ValType::si16: return     *this %= i16(value);
-      case binom::ValType::ui32: return     *this %= ui32(value);
-      case binom::ValType::si32: return     *this %= i32(value);
-      case binom::ValType::f32: return      *this %= f32(value);
-      case binom::ValType::ui64: return     *this %= ui64(value);
-      case binom::ValType::si64: return     *this %= i64(value);
-      case binom::ValType::f64: return      *this %= f64(value);
+      case binom::ValType::boolean: return  self %= bool(value);
+      case binom::ValType::ui8: return      self %= ui8(value);
+      case binom::ValType::si8: return      self %= i8(value);
+      case binom::ValType::ui16: return     self %= ui16(value);
+      case binom::ValType::si16: return     self %= i16(value);
+      case binom::ValType::ui32: return     self %= ui32(value);
+      case binom::ValType::si32: return     self %= i32(value);
+      case binom::ValType::f32: return      self %= f32(value);
+      case binom::ValType::ui64: return     self %= ui64(value);
+      case binom::ValType::si64: return     self %= i64(value);
+      case binom::ValType::f64: return      self %= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_integral_without_cvref_v<T>) {
@@ -635,17 +641,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this &= bool(value);
-      case binom::ValType::ui8: return      *this &= ui8(value);
-      case binom::ValType::si8: return      *this &= i8(value);
-      case binom::ValType::ui16: return     *this &= ui16(value);
-      case binom::ValType::si16: return     *this &= i16(value);
-      case binom::ValType::ui32: return     *this &= ui32(value);
-      case binom::ValType::si32: return     *this &= i32(value);
-      case binom::ValType::f32: return      *this &= f32(value);
-      case binom::ValType::ui64: return     *this &= ui64(value);
-      case binom::ValType::si64: return     *this &= i64(value);
-      case binom::ValType::f64: return      *this &= f64(value);
+      case binom::ValType::boolean: return  self &= bool(value);
+      case binom::ValType::ui8: return      self &= ui8(value);
+      case binom::ValType::si8: return      self &= i8(value);
+      case binom::ValType::ui16: return     self &= ui16(value);
+      case binom::ValType::si16: return     self &= i16(value);
+      case binom::ValType::ui32: return     self &= ui32(value);
+      case binom::ValType::si32: return     self &= i32(value);
+      case binom::ValType::f32: return      self &= f32(value);
+      case binom::ValType::ui64: return     self &= ui64(value);
+      case binom::ValType::si64: return     self &= i64(value);
+      case binom::ValType::f64: return      self &= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -676,17 +682,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this |= bool(value);
-      case binom::ValType::ui8: return      *this |= ui8(value);
-      case binom::ValType::si8: return      *this |= i8(value);
-      case binom::ValType::ui16: return     *this |= ui16(value);
-      case binom::ValType::si16: return     *this |= i16(value);
-      case binom::ValType::ui32: return     *this |= ui32(value);
-      case binom::ValType::si32: return     *this |= i32(value);
-      case binom::ValType::f32: return      *this |= f32(value);
-      case binom::ValType::ui64: return     *this |= ui64(value);
-      case binom::ValType::si64: return     *this |= i64(value);
-      case binom::ValType::f64: return      *this |= f64(value);
+      case binom::ValType::boolean: return  self |= bool(value);
+      case binom::ValType::ui8: return      self |= ui8(value);
+      case binom::ValType::si8: return      self |= i8(value);
+      case binom::ValType::ui16: return     self |= ui16(value);
+      case binom::ValType::si16: return     self |= i16(value);
+      case binom::ValType::ui32: return     self |= ui32(value);
+      case binom::ValType::si32: return     self |= i32(value);
+      case binom::ValType::f32: return      self |= f32(value);
+      case binom::ValType::ui64: return     self |= ui64(value);
+      case binom::ValType::si64: return     self |= i64(value);
+      case binom::ValType::f64: return      self |= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -717,17 +723,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this ^= bool(value);
-      case binom::ValType::ui8: return      *this ^= ui8(value);
-      case binom::ValType::si8: return      *this ^= i8(value);
-      case binom::ValType::ui16: return     *this ^= ui16(value);
-      case binom::ValType::si16: return     *this ^= i16(value);
-      case binom::ValType::ui32: return     *this ^= ui32(value);
-      case binom::ValType::si32: return     *this ^= i32(value);
-      case binom::ValType::f32: return      *this ^= f32(value);
-      case binom::ValType::ui64: return     *this ^= ui64(value);
-      case binom::ValType::si64: return     *this ^= i64(value);
-      case binom::ValType::f64: return      *this ^= f64(value);
+      case binom::ValType::boolean: return  self ^= bool(value);
+      case binom::ValType::ui8: return      self ^= ui8(value);
+      case binom::ValType::si8: return      self ^= i8(value);
+      case binom::ValType::ui16: return     self ^= ui16(value);
+      case binom::ValType::si16: return     self ^= i16(value);
+      case binom::ValType::ui32: return     self ^= ui32(value);
+      case binom::ValType::si32: return     self ^= i32(value);
+      case binom::ValType::f32: return      self ^= f32(value);
+      case binom::ValType::ui64: return     self ^= ui64(value);
+      case binom::ValType::si64: return     self ^= i64(value);
+      case binom::ValType::f64: return      self ^= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -758,17 +764,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this <<= bool(value);
-      case binom::ValType::ui8: return      *this <<= ui8(value);
-      case binom::ValType::si8: return      *this <<= i8(value);
-      case binom::ValType::ui16: return     *this <<= ui16(value);
-      case binom::ValType::si16: return     *this <<= i16(value);
-      case binom::ValType::ui32: return     *this <<= ui32(value);
-      case binom::ValType::si32: return     *this <<= i32(value);
-      case binom::ValType::f32: return      *this <<= f32(value);
-      case binom::ValType::ui64: return     *this <<= ui64(value);
-      case binom::ValType::si64: return     *this <<= i64(value);
-      case binom::ValType::f64: return      *this <<= f64(value);
+      case binom::ValType::boolean: return  self <<= bool(value);
+      case binom::ValType::ui8: return      self <<= ui8(value);
+      case binom::ValType::si8: return      self <<= i8(value);
+      case binom::ValType::ui16: return     self <<= ui16(value);
+      case binom::ValType::si16: return     self <<= i16(value);
+      case binom::ValType::ui32: return     self <<= ui32(value);
+      case binom::ValType::si32: return     self <<= i32(value);
+      case binom::ValType::f32: return      self <<= f32(value);
+      case binom::ValType::ui64: return     self <<= ui64(value);
+      case binom::ValType::si64: return     self <<= i64(value);
+      case binom::ValType::f64: return      self <<= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -799,17 +805,17 @@ public:
       auto lk = downcast().getLock(priv::MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (value.getValType()) {
-      case binom::ValType::boolean: return  *this >>= bool(value);
-      case binom::ValType::ui8: return      *this >>= ui8(value);
-      case binom::ValType::si8: return      *this >>= i8(value);
-      case binom::ValType::ui16: return     *this >>= ui16(value);
-      case binom::ValType::si16: return     *this >>= i16(value);
-      case binom::ValType::ui32: return     *this >>= ui32(value);
-      case binom::ValType::si32: return     *this >>= i32(value);
-      case binom::ValType::f32: return      *this >>= f32(value);
-      case binom::ValType::ui64: return     *this >>= ui64(value);
-      case binom::ValType::si64: return     *this >>= i64(value);
-      case binom::ValType::f64: return      *this >>= f64(value);
+      case binom::ValType::boolean: return  self >>= bool(value);
+      case binom::ValType::ui8: return      self >>= ui8(value);
+      case binom::ValType::si8: return      self >>= i8(value);
+      case binom::ValType::ui16: return     self >>= ui16(value);
+      case binom::ValType::si16: return     self >>= i16(value);
+      case binom::ValType::ui32: return     self >>= ui32(value);
+      case binom::ValType::si32: return     self >>= i32(value);
+      case binom::ValType::f32: return      self >>= f32(value);
+      case binom::ValType::ui64: return     self >>= ui64(value);
+      case binom::ValType::si64: return     self >>= i64(value);
+      case binom::ValType::f64: return      self >>= f64(value);
       case binom::ValType::invalid_type:default: return downcast();
        }
     } else if constexpr(is_arithmetic_without_cvref_v<T>) {
@@ -874,62 +880,168 @@ public:
     }
     return downcast();
   }
-};
 
+  ArithmeticTypeDriven operator++(int) const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ++ArithmeticTypeDriven(downcast());
+    }
+  }
 
-template <typename ArithmeticTypeDriven>
-class CopyableArithmeticTypeBase {
-  ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
-  const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
-
-public:
+  ArithmeticTypeDriven operator--(int) const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return --ArithmeticTypeDriven(downcast());
+    }
+  }
 
   template<typename T>
   ArithmeticTypeDriven operator+(T&& value) const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return ArithmeticTypeDriven(downcast()) += std::move(value);
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) += value;
+    }
   }
 
   template<typename T>
   ArithmeticTypeDriven operator-(T&& value) const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return ArithmeticTypeDriven(downcast()) -= std::move(value);
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) -= value;
+    }
   }
 
   template<typename T>
   ArithmeticTypeDriven operator*(T&& value) const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return ArithmeticTypeDriven(downcast()) *= std::move(value);
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) *= value;
+    }
   }
 
   template<typename T>
   ArithmeticTypeDriven operator/(T&& value) const noexcept {
     auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return ArithmeticTypeDriven(downcast()) /= std::move(value);
+    if(!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+    return ArithmeticTypeDriven(downcast()) /= value;
   }
 
   template<typename T>
   ArithmeticTypeDriven operator%(T&& value) const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return ArithmeticTypeDriven(downcast()) %= std::move(value);
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) %= value;
+    }
   }
 
-  ArithmeticTypeDriven operator++(int) const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return ++ArithmeticTypeDriven(downcast());
+  template<typename T>
+  ArithmeticTypeDriven operator|(T&& value) const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) |= value;
+    }
   }
 
-  ArithmeticTypeDriven operator--(int) const noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
-    if(!downcast().checkLock(lk)) return downcast();
-    return --ArithmeticTypeDriven(downcast());
+  template<typename T>
+  ArithmeticTypeDriven operator^(T&& value) const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) ^= value;
+    }
   }
+
+  template<typename T>
+  ArithmeticTypeDriven operator<<(T&& value) const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) <<= value;
+    }
+  }
+
+  template<typename T>
+  ArithmeticTypeDriven operator>>(T&& value) const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else return ArithmeticTypeDriven(downcast()) >>= value;
+    }
+  }
+
+  template<typename T>
+  ArithmeticTypeDriven operator~() const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else switch (ArithmeticTypeBase tmp(downcast()); getValType()) {
+      case binom::ValType::boolean: return ArithmeticTypeDriven(~bool(downcast()));
+      case binom::ValType::ui8: return ArithmeticTypeDriven(~ui8(downcast()));
+      case binom::ValType::si8: return ArithmeticTypeDriven(~i8(downcast()));
+      case binom::ValType::ui16: return ArithmeticTypeDriven(~ui16(downcast()));
+      case binom::ValType::si16: return ArithmeticTypeDriven(~i16(downcast()));
+      case binom::ValType::ui32: return ArithmeticTypeDriven(~ui32(downcast()));
+      case binom::ValType::si32: return ArithmeticTypeDriven(~i32(downcast()));
+      case binom::ValType::f32: return ArithmeticTypeDriven(f32(~i32(downcast())));
+      case binom::ValType::ui64: return ArithmeticTypeDriven(~ui64(downcast()));
+      case binom::ValType::si64: return ArithmeticTypeDriven(~i64(downcast()));
+      case binom::ValType::f64: return ArithmeticTypeDriven(f64(~i64(downcast())));
+      case binom::ValType::invalid_type: return ArithmeticTypeDriven(downcast());
+      }
+    }
+  }
+
+  template<typename T>
+  ArithmeticTypeDriven operator-() const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else switch (ArithmeticTypeBase tmp(downcast()); getValType()) {
+      case binom::ValType::boolean: return ArithmeticTypeDriven(bool(-bool(downcast())));
+      case binom::ValType::ui8: return ArithmeticTypeDriven(i16(-ui8(downcast())));
+      case binom::ValType::si8: return ArithmeticTypeDriven(i8(-i8(downcast())));
+      case binom::ValType::ui16: return ArithmeticTypeDriven(i32(-ui16(downcast())));
+      case binom::ValType::si16: return ArithmeticTypeDriven(i16(-i16(downcast())));
+      case binom::ValType::ui32: return ArithmeticTypeDriven(i64(-ui32(downcast())));
+      case binom::ValType::si32: return ArithmeticTypeDriven(i32(-i32(downcast())));
+      case binom::ValType::f32: return ArithmeticTypeDriven(f32(-f32(downcast())));
+      case binom::ValType::ui64: return ArithmeticTypeDriven(i64(-ui64(downcast())));
+      case binom::ValType::si64: return ArithmeticTypeDriven(i64(-i64(downcast())));
+      case binom::ValType::f64: return ArithmeticTypeDriven(f64(-f64(downcast())));
+      case binom::ValType::invalid_type: return ArithmeticTypeDriven(downcast());
+      }
+    }
+  }
+
+  template<typename T>
+  ArithmeticTypeDriven operator+() const noexcept {
+    static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
+    if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
+      if(auto lk = downcast().getLock(priv::MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
+      else switch (ArithmeticTypeBase tmp(downcast()); getValType()) {
+      case binom::ValType::boolean: return ArithmeticTypeDriven(bool(+bool(downcast())));
+      case binom::ValType::ui8: return ArithmeticTypeDriven(ui8(+ui8(downcast())));
+      case binom::ValType::si8: return ArithmeticTypeDriven(i8(+i8(downcast())));
+      case binom::ValType::ui16: return ArithmeticTypeDriven(ui16(+ui16(downcast())));
+      case binom::ValType::si16: return ArithmeticTypeDriven(i16(+i16(downcast())));
+      case binom::ValType::ui32: return ArithmeticTypeDriven(ui32(+ui32(downcast())));
+      case binom::ValType::si32: return ArithmeticTypeDriven(i32(+i32(downcast())));
+      case binom::ValType::f32: return ArithmeticTypeDriven(f32(+f32(downcast())));
+      case binom::ValType::ui64: return ArithmeticTypeDriven(ui64(+ui64(downcast())));
+      case binom::ValType::si64: return ArithmeticTypeDriven(i64(+i64(downcast())));
+      case binom::ValType::f64: return ArithmeticTypeDriven(f64(+f64(downcast())));
+      case binom::ValType::invalid_type: return ArithmeticTypeDriven(downcast());
+      }
+    }
+  }
+
 };
 
 template <typename ArithmeticTypeDriven>

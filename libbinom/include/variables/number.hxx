@@ -7,7 +7,7 @@ namespace binom {
 
 class Number :
     public arithmetic::ArithmeticTypeBase<Number>,
-    public arithmetic::CopyableArithmeticTypeBase<Number>,
+    arithmetic::EnableCopyableArithmetic,
     public arithmetic::CastableArithmeticTypeBase<Number>,
     public Variable {
   USE_ARITHMETIC
@@ -22,6 +22,9 @@ class Number :
   void setTypeImpl(ValType new_type) noexcept {
     resource_link->type = toVarType(new_type);
   }
+
+  friend class Variable;
+  Number(priv::Link&& link) : Variable(std::move(link)) {}
 
 public:
   using Variable::getLock;
