@@ -12,12 +12,11 @@ class GenericValueRef;
 
 class GenericValue :
     public arithmetic::ArithmeticTypeBase<GenericValue>,
-    arithmetic::EnableCopyableArithmetic,
     public arithmetic::CastableArithmeticTypeBase<GenericValue>,
-    public arithmetic::ArithmeticImplPlaceholders<GenericValue> {
+    arithmetic::EnableCopyableArithmetic,
+    arithmetic::ArithmeticMthrImplPlaceholders {
   USE_ARITHMETIC
   USE_ARITHMETIC_CAST
-  USE_COPYABLE_ARITHMETIC
 
   ValType type;
   arithmetic::ArithmeticData data;
@@ -25,8 +24,6 @@ class GenericValue :
   // ArithmeticTypeBase & CopyableArithmeticTypeBase Implementation
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return const_cast<arithmetic::ArithmeticData&>(data);}
   ValType getValTypeImpl() const {return type;}
-  priv::OptionalLockPlaceholder getLock(priv::MtxLockType lock_type) const noexcept {return priv::OptionalLockPlaceholder(nullptr, lock_type);}
-  bool checkLock(const priv::OptionalLockPlaceholder&) const noexcept {return true;}
 
   // CastableArithmeticTypeBase implementation
   void reallocateImpl([[maybe_unused]] ValType type) noexcept {}

@@ -123,9 +123,13 @@ struct Bits {
   Iterator getItearatorAt(ui8 index) const noexcept {return Iterator(this, index);}
 };
 
-typedef Bits::Iterator BitIterator;
-typedef Bits::ReverseIterator ReverseBitIterator;
-typedef Bits::Value BitValue;
+}
+
+namespace binom {
+
+typedef priv::Bits::Iterator BitIterator;
+typedef priv::Bits::ReverseIterator ReverseBitIterator;
+typedef priv::Bits::Value BitValue;
 
 }
 

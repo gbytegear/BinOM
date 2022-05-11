@@ -3,11 +3,14 @@
 
 #include <cstdint>
 
-#define self (*this)
-#define elif else if
-#define forever while(1)
-#define ever (;;)
+// A little bit of what I'm used to
 
+#define self (*this)      // T* -> T&
+#define elif else if      // if(condition) {...} elif(condition) {...} else {...}
+#define forever while(1)  // forever {... if(condition) break; ...}
+#define ever (;;)         // for ever {... if(condition) break; ...}
+
+//! Shorter and clearer data type aliases
 namespace type_alias {
 
 typedef uint8_t ui8;

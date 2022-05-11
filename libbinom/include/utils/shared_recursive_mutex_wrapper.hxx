@@ -195,12 +195,16 @@ public:
 
 };
 
+
+/**
+ * @brief SharedRecursiveLock - RAII std::shared_mutex wrapper for recusive locking
+ */
 class SharedRecursiveLock : private SharedRecursiveMutexWrapper {
   MtxLockType lock_type;
   friend class SharedRecursiveMutexWrapper;
 public:
-  SharedRecursiveLock(std::shared_mutex* mtx, MtxLockType lock_type)
-    : SharedRecursiveMutexWrapper(mtx, lock_type), lock_type(lock_type) {}
+  SharedRecursiveLock(const std::shared_mutex* mtx, MtxLockType lock_type)
+    : SharedRecursiveMutexWrapper(const_cast<std::shared_mutex*>(mtx), lock_type), lock_type(lock_type) {}
 
   SharedRecursiveLock(const SharedRecursiveMutexWrapper& other, MtxLockType lock_type = MtxLockType::unlocked)
     : SharedRecursiveMutexWrapper(other, lock_type),
@@ -236,7 +240,7 @@ inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(SharedRecursiveL
   : SharedRecursiveMutexWrapper(dynamic_cast<SharedRecursiveMutexWrapper&&>(lock), lock_type) {}
 
 
-
+/// Use it in case we DON'T need multithreading
 class OptionalLockPlaceholder {
 public:
   OptionalLockPlaceholder([[maybe_unused]] std::shared_mutex* mtx, [[maybe_unused]] MtxLockType lock_type) {}

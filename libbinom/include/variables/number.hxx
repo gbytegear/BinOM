@@ -11,7 +11,6 @@ class Number :
     public arithmetic::CastableArithmeticTypeBase<Number>,
     public Variable {
   USE_ARITHMETIC
-  USE_COPYABLE_ARITHMETIC
   USE_ARITHMETIC_CAST
 
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return *reinterpret_cast<arithmetic::ArithmeticData*>(&resource_link->data);}
