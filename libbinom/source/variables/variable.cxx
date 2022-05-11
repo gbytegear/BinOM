@@ -1,5 +1,6 @@
 #include "libbinom/include/variables/variable.hxx"
 #include "libbinom/include/variables/number.hxx"
+#include "libbinom/include/variables/bit_array.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -10,6 +11,7 @@ void Variable::destroyResorce(priv::ResourceData res_data) {
   switch (toTypeClass(res_data.type)) {
   case binom::VarTypeClass::null:
   case binom::VarTypeClass::number: return;
+  case binom::VarTypeClass::bit_array: delete res_data.data.bit_array_header;
   case binom::VarTypeClass::buffer_array: // TODO
   break;
   case binom::VarTypeClass::array: // TODO
@@ -28,9 +30,13 @@ void Variable::destroyResorce(priv::ResourceData res_data) {
 Link Variable::cloneResource(priv::Link resource_link) noexcept {
   switch (toTypeClass(resource_link.getType())) {
   case binom::VarTypeClass::null:
-  case binom::VarTypeClass::number: return **resource_link;
+  case binom::VarTypeClass::number:
+  return **resource_link;
+
+  case binom::VarTypeClass::bit_array:
+  return ResourceData{VarType::bit_array, {.bit_array_header = BitArrayHeader::copy(resource_link->data.bit_array_header)}};
+
   case binom::VarTypeClass::buffer_array: // TODO
-  break;
   case binom::VarTypeClass::array: // TODO
   break;
   case binom::VarTypeClass::list: // TODO
@@ -64,5 +70,21 @@ size_t Variable::getElementCount() const noexcept {
 }
 
 Variable::operator Number&() {
-  return reinterpret_cast<Number&>(self);
+  if(getTypeClass() == VarTypeClass::number) return reinterpret_cast<Number&>(self);
+  throw Error(ErrorType::binom_invalid_type);
+}
+
+Variable::operator BitArray&() {
+  if(getTypeClass() == VarTypeClass::bit_array) return reinterpret_cast<BitArray&>(self);
+  throw Error(ErrorType::binom_invalid_type);
+}
+
+Variable::operator BufferArray&() {
+  if(getTypeClass() == VarTypeClass::buffer_array) return reinterpret_cast<BufferArray&>(self);
+  throw Error(ErrorType::binom_invalid_type);
+}
+
+Variable::operator Array&() {
+  if(getTypeClass() == VarTypeClass::array) return reinterpret_cast<Array&>(self);
+  throw Error(ErrorType::binom_invalid_type);
 }

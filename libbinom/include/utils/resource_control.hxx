@@ -2,6 +2,7 @@
 #define RESOURCE_CONTROL_HXX
 
 #include "shared_recursive_mutex_wrapper.hxx"
+#include "variable_memory.hxx"
 #include <atomic>
 
 namespace binom::priv {
@@ -23,17 +24,7 @@ struct ResourceData {
     f32   f32_val;
     f64   f64_val;
 
-    bool*  bool_ptr;
-    ui8*   ui8_ptr;
-    ui16*  ui16_ptr;
-    ui32*  ui32_ptr;
-    ui64*  ui64_ptr;
-    i8*    i8_ptr;
-    i16*   i16_ptr;
-    i32*   i32_ptr;
-    i64*   i64_ptr;
-    f32*   f32_ptr;
-    f64*   f64_ptr;
+    BitArrayHeader* bit_array_header;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };

@@ -7,12 +7,14 @@ LIBS += -lpthread
 QMAKE_CXXFLAGS += -Wextra
 
 SOURCES += test/test.cxx \
+    libbinom/source/variables/bit_array.cxx \
     libbinom/source/variables/number.cxx \
     libbinom/source/variables/variable.cxx
 
 HEADERS += \
     libbinom/include/utils/avl_tree.hxx \
     libbinom/include/utils/bit_map64.hxx \
+    libbinom/include/utils/bits.hxx \
     libbinom/include/utils/err.hxx \
     libbinom/include/utils/generic_arithmetic.hxx \
     libbinom/include/utils/heritable_initializer_list.hxx \
@@ -21,11 +23,15 @@ HEADERS += \
     libbinom/include/utils/shared_recursive_mutex_wrapper.hxx \
     libbinom/include/utils/type_aliases.hxx \
     libbinom/include/utils/types.hxx \
+    libbinom/include/utils/util_functions.hxx \
+    libbinom/include/utils/variable_memory.hxx \
+    libbinom/include/variables/bit_array.hxx \
     libbinom/include/variables/buffer_array.hxx \
     libbinom/include/variables/generic_value.hxx \
     libbinom/include/variables/number.hxx \
     libbinom/include/variables/variable.hxx \
     test/all_test.hxx \
+    test/bits_test.hxx \
     test/generic_value_test.hxx \
     test/number_test.hxx \
     test/recursive_shared_mutex_test.hxx \

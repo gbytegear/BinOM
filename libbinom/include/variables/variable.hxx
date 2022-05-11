@@ -38,6 +38,10 @@ public:
   Variable(const GenericValue& value) noexcept : Variable(value.toResourceData()) {}
   Variable(GenericValue&& value) noexcept : Variable(value.toResourceData()) {}
 
+  Variable(const literals::bitarr bit_array)
+    : Variable(priv::ResourceData{VarType::bit_array, {.bit_array_header = priv::BitArrayHeader::create(bit_array)}}) {}
+
+
   Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
   Variable(const Variable& other) noexcept : resource_link(cloneResource(other.resource_link)) {}
   static Variable createRefVariable(const Variable& other) noexcept {return priv::Link(other.resource_link);}
@@ -96,7 +100,8 @@ public:
     if(!lk) return 0;
     switch (getTypeClass()) {
     case binom::VarTypeClass::null: return 0;
-    case binom::VarTypeClass::number:
+    case binom::VarTypeClass::number: return ui8(getBitWidth());
+    case binom::VarTypeClass::bit_array: return 1;
     case binom::VarTypeClass::buffer_array: return ui8(getBitWidth());
     case binom::VarTypeClass::array:
     case binom::VarTypeClass::list: return sizeof (priv::Link);
@@ -106,6 +111,9 @@ public:
   }
 
   operator Number& ();
+  operator BitArray& ();
+  operator BufferArray& ();
+  operator Array& ();
 
 };
 

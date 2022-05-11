@@ -55,10 +55,11 @@ enum class VarType : ui8 {
 enum class VarTypeClass : ui8 {
   null                    = 0x01,
   number                  = 0x02,
-  buffer_array            = 0x03,
-  array                   = 0x04,
-  list                    = 0x05,
-  map                     = 0x06,
+  bit_array               = 0x03,
+  buffer_array            = 0x04,
+  array                   = 0x05,
+  list                    = 0x06,
+  map                     = 0x07,
 
   invalid_type            = int(VarType::invalid_type)
 };
@@ -124,6 +125,7 @@ inline VarTypeClass toTypeClass(VarType type) noexcept {
   return VarTypeClass::number;
 
   case VarType::bit_array:
+  return VarTypeClass::bit_array;
   case VarType::ui8_array:
   case VarType::si8_array:
   case VarType::ui16_array:
@@ -416,10 +418,11 @@ inline bool operator!=(VarType type, VarSortType sort_type) noexcept {return toS
 class Variable;
 
 class Number;
+class BitArray;
 class BufferArray;
 class Array;
+class List;
 class Map;
-class MultiMap;
 
 namespace literals {
 namespace priv {
