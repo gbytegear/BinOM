@@ -10,55 +10,42 @@ std::shared_mutex shared_mtx;
 
 void subwriter();
 
+bool is_valid_data = true;
+
 void subreader() {
+  GRP_PUSH
   binom::priv::SharedRecursiveLock lock(&shared_mtx, binom::priv::MtxLockType::shared_locked);
   static thread_local int recursion_depth = 0;
 
-  std::cout << "0+===RRRRRRRRRRRRRRR===+0\n"
-            << "1|rrrrrrrrrrrrrrrrrrrrr|1\n"
-            << "2|rrrrrrrrrrrrrrrrrrrrr|2\n"
-            << "3|rrrrrrrrrrrrrrrrrrrrr|3\n"
-            << "4|rrrrrrrrrrrrrrrrrrrrr|4\n"
-            << "5|rrrrrrrrrrrrrrrrrrrrr|5\n"
-            << "6|rrrrrrrrrrrrrrrrrrrrr|6\n"
-            << "7|rrrrrrrrrrrrrrrrrrrrr|7\n"
-            << "8|rrrrrrrrrrrrrrrrrrrrr|8\n"
-            << "9+===RRRRRRRRRRRRRRR===+9\n";
+  TEST(is_valid_data);
 
-  if (++recursion_depth <= 5) subreader();
+  if (++recursion_depth <= 20) subreader();
   else subwriter();
+
+  TEST(is_valid_data);
+  GRP_POP
 }
 
 void subwriter() {
+  GRP_PUSH
   binom::priv::SharedRecursiveLock lock(&shared_mtx, binom::priv::MtxLockType::unique_locked);
   static thread_local int recursion_depth = 0;
 
-  std::cout << "0+===WWWWWWWWWWWWWWW===+0\n"
-            << "1|wwwwwwwwwwwwwwwwwwwww|1\n"
-            << "2|wwwwwwwwwwwwwwwwwwwww|2\n"
-            << "3|wwwwwwwwwwwwwwwwwwwww|3\n"
-            << "4|wwwwwwwwwwwwwwwwwwwww|4\n"
-            << "5|wwwwwwwwwwwwwwwwwwwww|5\n"
-            << "6|wwwwwwwwwwwwwwwwwwwww|6\n"
-            << "7|wwwwwwwwwwwwwwwwwwwww|7\n"
-            << "8|wwwwwwwwwwwwwwwwwwwww|8\n"
-            << "9+===WWWWWWWWWWWWWWW===+9\n";
+  PRINT_RUN(is_valid_data = false);
 
-  if (++recursion_depth <= 5) subwriter();
+  if (++recursion_depth <= 10) subwriter();
+
+  PRINT_RUN(is_valid_data = true);
+  GRP_POP
 }
-
-void reader() {
-  subreader();
-}
-
 
 void testRecursiveSharedMutex() {
   RAIIPerfomanceTest test_perf("Recursive shared mutex test: ");
-  shared_mtx.lock();
   TEST_ANNOUNCE(RecursiveSharedMutex test);
+  shared_mtx.lock();
   std::list<std::thread> threads;
   for(unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
-    threads.emplace_back(reader);
+    threads.emplace_back(subreader);
   shared_mtx.unlock();
   for(auto& thread : threads) thread.join();
 }

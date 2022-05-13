@@ -11,19 +11,13 @@ void Variable::destroyResorce(priv::ResourceData res_data) {
   switch (toTypeClass(res_data.type)) {
   case binom::VarTypeClass::null:
   case binom::VarTypeClass::number: return;
-  case binom::VarTypeClass::bit_array: delete res_data.data.bit_array_header;
-  case binom::VarTypeClass::buffer_array: // TODO
-  break;
-  case binom::VarTypeClass::array: // TODO
-  break;
-  case binom::VarTypeClass::list: // TODO
-  break;
-  case binom::VarTypeClass::map: // TODO
-  break;
-  default:
-  case binom::VarTypeClass::invalid_type:
-  break;
-
+  case binom::VarTypeClass::bit_array: delete res_data.data.bit_array_header; return;
+  case binom::VarTypeClass::buffer_array: return; // TODO
+  case binom::VarTypeClass::array: return; // TODO
+  case binom::VarTypeClass::list: return; // TODO
+  case binom::VarTypeClass::map: return; // TODO
+  case binom::VarTypeClass::invalid_type: default:
+  return;
   }
 }
 
@@ -38,15 +32,13 @@ Link Variable::cloneResource(priv::Link resource_link) noexcept {
 
   case binom::VarTypeClass::buffer_array: // TODO
   case binom::VarTypeClass::array: // TODO
-  break;
   case binom::VarTypeClass::list: // TODO
-  break;
   case binom::VarTypeClass::map: // TODO
-  break;
   default:
   case binom::VarTypeClass::invalid_type:
   break;
   }
+  return ResourceData{VarType::null, {}};
 }
 
 size_t Variable::getElementCount() const noexcept {
@@ -55,6 +47,7 @@ size_t Variable::getElementCount() const noexcept {
   switch (getTypeClass()) {
   case binom::VarTypeClass::null: return 0;
   case binom::VarTypeClass::number: return 1;
+  case binom::VarTypeClass::bit_array: return BitArray(const_cast<Variable&>(self)).getSize();
   case binom::VarTypeClass::buffer_array:
   break;
   case binom::VarTypeClass::array:

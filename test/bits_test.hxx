@@ -12,8 +12,8 @@ void testBits() {
   TEST_ANNOUNCE(Test Bits & Bits value);
   GRP(
     PRINT_RUN(Bits bits;);
-    PRINT_RUN(Bits::Value bit_first = bits[0];);
-    PRINT_RUN(Bits::Value bit_last = bits[7];);
+    PRINT_RUN(Bits::ValueRef bit_first = bits[0];);
+    PRINT_RUN(Bits::ValueRef bit_last = bits[7];);
 
     LOG("bit_first: " << bit_first << "; bit_last: " << bit_last);
     LOG("bit_first == bit_last: " << (bit_first == bit_last));
@@ -25,6 +25,7 @@ void testBits() {
     LOG("bit_first == bit_last: " << (bit_first == bit_last));
   );
   std::pair<size_t, size_t> test_cases[] = {
+    {11, 15},
     {7, 12},
     {2, 5},
     {9, 20},
