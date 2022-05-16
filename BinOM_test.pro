@@ -16,6 +16,8 @@ HEADERS += \
     libbinom/include/utils/bit_map64.hxx \
     libbinom/include/utils/bits.hxx \
     libbinom/include/utils/err.hxx \
+    libbinom/include/utils/extended_cxx.hxx \
+    libbinom/include/utils/extended_type_traits.hxx \
     libbinom/include/utils/generic_arithmetic.hxx \
     libbinom/include/utils/heritable_initializer_list.hxx \
     libbinom/include/utils/memctrl.hxx \

@@ -2,13 +2,7 @@
 #define TYPE_ALIASES_HXX
 
 #include <cstdint>
-
-// A little bit of what I'm used to
-
-#define self (*this)      // T* -> T&
-#define elif else if      // if(condition) {...} elif(condition) {...} else {...}
-#define forever while(1)  // forever {... if(condition) break; ...}
-#define ever (;;)         // for ever {... if(condition) break; ...}
+#include "extended_cxx.hxx"
 
 //! Shorter and clearer data type aliases
 namespace type_alias {

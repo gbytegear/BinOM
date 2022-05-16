@@ -4,12 +4,14 @@
 #include "types.hxx"
 #include "util_functions.hxx"
 #include "bits.hxx"
+#include "extended_type_traits.hxx"
 #include <iterator>
 #include <cmath>
 #include <new>
 
 
 namespace binom::priv {
+using namespace extended_type_traits;
 
 class BitArrayHeader {
   ui64 bit_size = 0;
@@ -29,11 +31,11 @@ class BitArrayHeader {
 
 public:
   static BitArrayHeader* create(const literals::bitarr& bit_array_data) {
-    return new(new byte[ sizeof(BitArrayHeader) + calculateCapacity(bit_array_data.size()) ]) BitArrayHeader(bit_array_data);
+    return new(new byte[ calculateCapacity(bit_array_data.size()) ]) BitArrayHeader(bit_array_data);
   }
 
   static BitArrayHeader* copy(const BitArrayHeader* other) {
-    return new(new byte[ sizeof(BitArrayHeader) + other->capacity ]) BitArrayHeader(*other);
+    return new(new byte[ other->capacity ]) BitArrayHeader(*other);
   }
 
   static inline constexpr size_t calculateByteSize(size_t bit_count) noexcept {
@@ -75,6 +77,7 @@ public:
     priv::BitArrayHeader::increaseSize(header, count);
     ui8* data = header->getDataAs<ui8>();
 
+    // TODO: Rewrite this
     if(shift_start_byte < old_byte_size - 1) {
       utilfunc::doLeftShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
       if((8 - shift_start_bit_in_byte) > (8 - shift_end_bit_in_byte)) {
@@ -83,6 +86,10 @@ public:
       } else {
         data[shift_end_byte] |= data[shift_start_byte] >> (8 - count % 8);
       }
+    } else {
+      data[shift_start_byte] =
+          (data[shift_start_byte] & (0xFF >> (8 - at))) |
+          ((data[shift_end_byte] << count) & (0xFF << (at + count)));
     }
 
     return header->getData()[shift_start_byte].getItearatorAt(shift_start_bit_in_byte);
@@ -186,6 +193,54 @@ public:
   BitReverseIterator rend() const noexcept {return getData()->rend();}
 };
 
+
+class BufferArrayHeader {
+  size_t size = 0;
+  size_t capacity = utilfunc::getNearestPow2(sizeof(BufferArrayHeader));
+
+  BufferArrayHeader(const literals::ui8arr& value_list)
+    : size(value_list.size()), capacity(calculateCapacity(size)) {std::memcpy(getData(), value_list.begin(), size);}
+
+  template<typename T>
+  BufferArrayHeader(const std::initializer_list<T>& value_list)
+    : size(value_list.size() * sizeof(T)), capacity(calculateCapacity(size)) {
+    static_assert (std::is_arithmetic_v<T>, "T isn't arithmetic type:"
+                                            " as argument requires const std::initializer_list<T>&"
+                                            " where assertion std::is_arithmetic<T>::value is true");
+    std::memcpy(getData(), value_list.begin(), size);
+  }
+
+  BufferArrayHeader(const BufferArrayHeader& other)
+    : size(other.size), capacity(other.capacity) {
+    memcpy(getData(), other.getData(), size);
+  }
+
+  static inline constexpr size_t calculateCapacity(size_t size) noexcept {
+    return utilfunc::getNearestPow2(sizeof(BufferArrayHeader) + size);
+  }
+
+public:
+  template<typename T>
+  static BufferArrayHeader* create(const std::initializer_list<T>& value_list) {
+    return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ]) BufferArrayHeader(value_list);
+  }
+
+  static BufferArrayHeader* copy(const BufferArrayHeader* other) {
+    return new(new byte[ sizeof(BufferArrayHeader) + other->capacity ]) BufferArrayHeader(*other);
+  }
+
+  void* getData() { return reinterpret_cast<void*>(this + 1); }
+  const void* getData() const { return reinterpret_cast<const void*>(this + 1); }
+
+  template<typename T>
+  T* getDataAs() const {return reinterpret_cast<T*>(this + 1);}
+
+  inline size_t getSize() const noexcept {return size;}
+  inline size_t getCapacity() const noexcept {return capacity;}
+
+  inline void operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
+
+};
 
 }
 
