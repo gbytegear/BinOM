@@ -5,7 +5,10 @@
 #include <climits>
 #include <algorithm>
 
-namespace utilfunc {
+#include "type_aliases.hxx"
+
+namespace util_functions {
+using namespace type_alias;
 
 template <typename T>
 void doLeftShift(T* arr, size_t size, size_t shift) noexcept {
@@ -60,6 +63,11 @@ constexpr size_t getNearestPow2(size_t num) noexcept {
   //  *reinterpret_cast<double*>(&num) = num;
   //  return 1 << (((*(reinterpret_cast<uint32_t*>(&num) + 1) & 0x7FF00000) >> 20) - 1022);
 }
+
+static inline byte set0From(byte value, ui8 from) noexcept {return value & (0xFF >> (8 - from));}
+static inline byte set1From(byte value, ui8 from) noexcept {return value | (0xFF << from);}
+static inline byte set0Before(byte value, ui8 before) noexcept {return value & (0xFF << before);}
+static inline byte set1Before(byte value, ui8 before) noexcept {return value | (0xFF >> (8 - before));}
 
 }
 

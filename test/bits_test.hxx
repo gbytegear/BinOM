@@ -9,8 +9,9 @@
 
 void printBist(const binom::BitArray& bit_array) {
   LOG("Print bits:");
+  size_t counter = 0;
   for(auto bit : bit_array)
-    LOG(bit);
+    LOG(counter++ << " - " << bit);
 }
 
 void testBits() {
@@ -42,6 +43,16 @@ void testBits() {
     PRINT_RUN(test.pushFront({1,0,1}));
     printBist(test);
     PRINT_RUN(test.insert(3, {0,1,0}));
+    printBist(test);
+    PRINT_RUN(test.insert(3, {1,0,0,1,1,0,0,1,1,0,0,1,1,0}));
+    printBist(test);
+    PRINT_RUN(test.remove(3, 14));
+    printBist(test);
+    PRINT_RUN(test.remove(3, 3));
+    printBist(test);
+    PRINT_RUN(test.popFront(3));
+    printBist(test);
+    PRINT_RUN(test.popBack(3));
     printBist(test);
   );
 

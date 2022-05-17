@@ -68,48 +68,64 @@ public:
   }
 
   static BitIterator insertBits(priv::BitArrayHeader*& header, size_t at, size_t count) {
+    using namespace util_functions;
     const size_t shift_start_byte = at / 8;
-    const size_t shift_start_bit_in_byte = at % 8;
     const size_t shift_end_byte = (at + count) / 8;
-    const size_t shift_end_bit_in_byte = (at + count) % 8;
+    const ui8 shift_start_bit_in_byte = at % 8;
+    const ui8 shift_end_bit_in_byte = (at + count) % 8;
 
-    const size_t old_byte_size = header->getByteSize();
     priv::BitArrayHeader::increaseSize(header, count);
     ui8* data = header->getDataAs<ui8>();
 
-    // TODO: Rewrite this
-    if(shift_start_byte < old_byte_size - 1) {
-      utilfunc::doLeftShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
-      if((8 - shift_start_bit_in_byte) > (8 - shift_end_bit_in_byte)) {
-        data[shift_end_byte + 1] |= data[shift_start_byte] >> (8 - count % 8);
-        data[shift_end_byte] |= data[shift_start_byte] >> shift_start_bit_in_byte << (shift_start_bit_in_byte + count % 8);
-      } else {
-        data[shift_end_byte] |= data[shift_start_byte] >> (8 - count % 8);
-      }
-    } else {
-      data[shift_start_byte] =
-          (data[shift_start_byte] & (0xFF >> (8 - at))) |
-          ((data[shift_end_byte] << count) & (0xFF << (at + count)));
+    if(!shift_start_bit_in_byte && !shift_end_bit_in_byte) {
+      doLeftShift(data, header->getByteSize() - shift_start_byte, count);
+      return header->getData()[shift_start_byte].begin();
     }
 
+    if(shift_start_byte != shift_end_byte || shift_start_byte != header->getByteSize() - 1) {
+      doLeftShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      const ui8 shift_loss_size = 8 - shift_start_bit_in_byte;
+
+      if(shift_start_bit_in_byte >= shift_end_bit_in_byte) {
+        data[shift_end_byte] =
+            set0Before(data[shift_end_byte], shift_end_bit_in_byte + shift_loss_size) |
+            (data[shift_start_byte] >> (8 - shift_end_bit_in_byte - shift_loss_size));
+      } else {
+        const size_t next_byte_shift_loss = shift_loss_size - (8 - shift_end_bit_in_byte);
+        data[shift_end_byte + 1] =
+            set0Before(data[shift_end_byte], next_byte_shift_loss) |
+            data[shift_start_byte] >> (8 - next_byte_shift_loss);
+        data[shift_end_byte] =
+            set0From(data[shift_start_byte], shift_start_bit_in_byte) |
+            (data[shift_start_byte] << (shift_end_bit_in_byte - shift_start_bit_in_byte));
+      }
+
+    } else {
+      // If bit inserting only in last byte, without allocations new bytes after last byte
+      data[shift_start_byte] =
+          set0From(data[shift_start_byte], shift_start_bit_in_byte) |
+          set0Before(data[shift_end_byte] << count, shift_end_bit_in_byte);
+    }
     return header->getData()[shift_start_byte].getItearatorAt(shift_start_bit_in_byte);
   }
 
   static void removeBits(priv::BitArrayHeader*& header, size_t at, size_t count) {
+    using namespace util_functions;
     if(at >= header->bit_size) return;
     if(at + count >= header->bit_size)
       return priv::BitArrayHeader::reduceSize(header, count - (count - (header->bit_size - at)));
 
-    const size_t shift_start_byte = at / 8;
-    const size_t shift_start_bit_in_byte = at % 8;
-    const size_t shift_end_byte = (at + count) / 8;
-    const size_t shift_end_bit_in_byte = (at + count) % 8;
-    ui8* data = header->getDataAs<ui8>();
+    {
+      const size_t shift_start_byte = at / 8;
+      const size_t shift_start_bit_in_byte = at % 8;
+      const size_t shift_end_byte = (at + count) / 8;
+      const size_t shift_end_bit_in_byte = (at + count) % 8;
+      ui8* data = header->getDataAs<ui8>();
 
-    if(!shift_start_bit_in_byte)
-      utilfunc::doRightShift(data + shift_start_byte, header->getByteSize() - shift_start_byte, count);
-    elif(8 - shift_start_bit_in_byte >= count) {
-      /*if(8 - shift_start_bit_in_byte > count)
+      if(!shift_start_bit_in_byte)
+        doRightShift(data + shift_start_byte, header->getByteSize() - shift_start_byte, count);
+      elif(8 - shift_start_bit_in_byte >= count) {
+        /*if(8 - shift_start_bit_in_byte > count)
        * [abcdefgh][ijklmnop] rm 3 at 1 => [a###bcde][fghijklm]
        * [11111111] >> (8 - 1) = [10000000], [a###bcde] & [10000000] = [a0000000]
        * [a###bcde] >> 3 = [#bcde000], [11111111] << 1 = [01111111], [#bcde000] & [01111111] = [0bcde000]
@@ -123,13 +139,13 @@ public:
        * [abcd0000] | [00000000] = [abcd0000], [abcd0000] | [0000efgh] = [abcdefgh] - result
        */
 
-      data[shift_start_byte] =
-          (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
-          ((data[shift_start_byte] >> count) & (0xFF << shift_start_bit_in_byte)) |
-          data[shift_start_byte + 1] << (8 - count);
-      utilfunc::doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
-    } elif((8 - shift_start_bit_in_byte) > (8 - shift_end_bit_in_byte)) {
-      /* Example:
+        data[shift_start_byte] =
+            (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
+            ((data[shift_start_byte] >> count) & (0xFF << shift_start_bit_in_byte)) |
+            data[shift_start_byte + 1] << (8 - count);
+        doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      } elif((8 - shift_start_bit_in_byte) > (8 - shift_end_bit_in_byte)) {
+        /* Example:
        * [abcdefgh]...[ijklmnop] rm 10 at 4 => [abcd####]...[######ef][ghijklmn] (end_byte = n, end_bit_in_byte = 6)
        * [11111111] >> (8 - 4) = [11110000], [abcd####] & [11110000] = [abcd0000]
        * [11111111] << 6 = [00000011], [######ef] & [00000011] = [000000ef], [000000ef] >> (6 - 4) = [0000ef00]
@@ -137,26 +153,27 @@ public:
        * [abcd0000] | [0000ef00] = [abcdef00], [abcdef00] | [000000gh] = [abcdefgh]
       */
 
-      data[shift_start_byte] =
-          (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
-          ((data[shift_end_byte] & (0xFF << shift_end_bit_in_byte)) >> (shift_end_bit_in_byte - shift_start_bit_in_byte)) |
-          data[shift_end_byte + 1] << (8 - (shift_end_bit_in_byte - shift_start_bit_in_byte));
-      utilfunc::doRightShift(data + shift_end_byte + 1, header->getByteSize() - shift_end_byte - 1, count);
-    } else {
-      /* Example:
+        data[shift_start_byte] =
+            (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
+            ((data[shift_end_byte] & (0xFF << shift_end_bit_in_byte)) >> (shift_end_bit_in_byte - shift_start_bit_in_byte)) |
+            data[shift_end_byte + 1] << (8 - (shift_end_bit_in_byte - shift_start_bit_in_byte));
+        doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      } else {
+        /* Example:
        * [abcdefgh]...[ijklmnop] rm 6 at 4 => [abcd####]...[##efghjk] (end_byte = n, end_bit_in_byte = 2)
        * [11111111] >> (8 - 4) = [11110000], [abcd####] & [11110000] = [abcd0000]
        * [11111111] << 2 = [00111111], [##efghjk] & [00111111] = [00efghjk], [00efghjk] << (4 - 2) = [0000efgh]
        * [abcd0000] | [0000efgh] = [abcdefgh]
       */
 
-      data[shift_start_byte] =
-          (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
-          ((data[shift_end_byte] & (0xFF << shift_end_bit_in_byte)) << (shift_start_bit_in_byte - shift_end_bit_in_byte));
-      utilfunc::doRightShift(data + shift_end_byte, header->getByteSize() - shift_end_byte, count);
-    }
+        data[shift_start_byte] =
+            set0From(data[shift_start_byte], shift_start_bit_in_byte) |
+            (set0Before(data[shift_end_byte], shift_end_bit_in_byte) << (shift_start_bit_in_byte - shift_end_bit_in_byte));
+        doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      }
 
-    return priv::BitArrayHeader::reduceSize(header, count);
+      return priv::BitArrayHeader::reduceSize(header, count);
+    }
   }
 
   static void shrinkToFit(BitArrayHeader*& header) {
@@ -168,7 +185,7 @@ public:
   }
 
   static inline constexpr size_t calculateCapacity(size_t bit_count) noexcept {
-    return utilfunc::getNearestPow2(sizeof(BitArrayHeader) + calculateByteSize(bit_count));
+    return util_functions::getNearestPow2(sizeof(BitArrayHeader) + calculateByteSize(bit_count));
   }
 
   inline size_t getCapacity() const noexcept {return capacity;}
@@ -196,7 +213,7 @@ public:
 
 class BufferArrayHeader {
   size_t size = 0;
-  size_t capacity = utilfunc::getNearestPow2(sizeof(BufferArrayHeader));
+  size_t capacity = util_functions::getNearestPow2(sizeof(BufferArrayHeader));
 
   BufferArrayHeader(const literals::ui8arr& value_list)
     : size(value_list.size()), capacity(calculateCapacity(size)) {std::memcpy(getData(), value_list.begin(), size);}
@@ -216,7 +233,7 @@ class BufferArrayHeader {
   }
 
   static inline constexpr size_t calculateCapacity(size_t size) noexcept {
-    return utilfunc::getNearestPow2(sizeof(BufferArrayHeader) + size);
+    return util_functions::getNearestPow2(sizeof(BufferArrayHeader) + size);
   }
 
 public:
