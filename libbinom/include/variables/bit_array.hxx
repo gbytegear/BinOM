@@ -6,8 +6,24 @@
 namespace binom {
 
 class BitArray : public Variable {
+  operator Number& () = delete;
+  operator BitArray& () = delete;
+  operator BufferArray& () = delete;
+  operator Array& () = delete;
+  operator List& () = delete;
+  operator Map& () = delete;
+
+  inline Number& toNumber() = delete;
+  inline BitArray& toBitArray() = delete;
+  inline BufferArray& toBufferArray() = delete;
+  inline Array& toArray() = delete;
+  inline List& toList() = delete;
+  inline Map& toMap() = delete;
 
   inline priv::BitArrayHeader*& getData() const noexcept {return resource_link->data.bit_array_header;}
+
+  friend class Variable;
+  BitArray(priv::Link&& link) : Variable(std::move(link)) {}
 
 public:
   typedef BitIterator Iterator;

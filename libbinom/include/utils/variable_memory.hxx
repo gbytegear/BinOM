@@ -43,10 +43,10 @@ public:
   }
 
   static BitIterator increaseSize(BitArrayHeader*& header, size_t bit_count) {
-    size_t new_bit_size = header->bit_size + bit_count;
-    size_t new_capacity = calculateCapacity(new_bit_size);
+    const size_t new_bit_size = header->bit_size + bit_count;
+    const size_t new_capacity = calculateCapacity(new_bit_size);
     if(header->capacity != new_capacity) {
-      size_t old_bit_size = header->bit_size;
+      const size_t old_bit_size = header->bit_size;
       BitArrayHeader* old_pointer = header;
       header = new(new byte[ sizeof(BitArrayHeader) + new_capacity ]) BitArrayHeader(*old_pointer);
       header->bit_size = new_bit_size;
@@ -64,7 +64,10 @@ public:
     if(bit_count <= header->bit_size) {
       header->bit_size -= bit_count;
       return;
-    } else return;
+    } else {
+      header->bit_size = 0;
+      return;
+    }
   }
 
   static BitIterator insertBits(priv::BitArrayHeader*& header, size_t at, size_t count) {
@@ -178,7 +181,7 @@ public:
 
   static void shrinkToFit(BitArrayHeader*& header) {
     if(header->getByteSize() == header->capacity) return;
-    header->capacity = header->getByteSize();
+    header->capacity = sizeof(BitArrayHeader) + header->getByteSize();
     BitArrayHeader* old_pointer = header;
     header = new(new byte[ sizeof(BitArrayHeader) + header->capacity ]) BitArrayHeader(*old_pointer);
     delete old_pointer;
@@ -215,9 +218,6 @@ class BufferArrayHeader {
   size_t size = 0;
   size_t capacity = util_functions::getNearestPow2(sizeof(BufferArrayHeader));
 
-  BufferArrayHeader(const literals::ui8arr& value_list)
-    : size(value_list.size()), capacity(calculateCapacity(size)) {std::memcpy(getData(), value_list.begin(), size);}
-
   template<typename T>
   BufferArrayHeader(const std::initializer_list<T>& value_list)
     : size(value_list.size() * sizeof(T)), capacity(calculateCapacity(size)) {
@@ -239,6 +239,9 @@ class BufferArrayHeader {
 public:
   template<typename T>
   static BufferArrayHeader* create(const std::initializer_list<T>& value_list) {
+    static_assert (std::is_arithmetic_v<T>, "T isn't arithmetic type:"
+                                            " as argument requires const std::initializer_list<T>&"
+                                            " where assertion std::is_arithmetic<T>::value is true");
     return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ]) BufferArrayHeader(value_list);
   }
 
@@ -246,14 +249,89 @@ public:
     return new(new byte[ sizeof(BufferArrayHeader) + other->capacity ]) BufferArrayHeader(*other);
   }
 
-  void* getData() { return reinterpret_cast<void*>(this + 1); }
-  const void* getData() const { return reinterpret_cast<const void*>(this + 1); }
+  void* getData() const { return const_cast<void*>(reinterpret_cast<const void*>(this + 1)); }
 
   template<typename T>
-  T* getDataAs() const {return reinterpret_cast<T*>(this + 1);}
+  inline T* getDataAs() const {return const_cast<T*>(reinterpret_cast<const T*>(this + 1));}
 
   inline size_t getSize() const noexcept {return size;}
+  inline size_t getCount(VarBitWidth type) const noexcept {return size_t(std::ceil(llf_t(size)/ size_t(type)));}
   inline size_t getCapacity() const noexcept {return capacity;}
+
+  static void* increaseSize(BufferArrayHeader*& header, VarBitWidth type, size_t count) {
+    const size_t new_size = header->size + count * size_t(type);
+    const size_t old_size = header->size;
+    const size_t new_capacity = calculateCapacity(new_size);
+    if(new_capacity == header->capacity) {
+      BufferArrayHeader* new_header = new(new byte[ new_capacity ]) BufferArrayHeader(*header);
+      new_header->size = new_size;
+      new_header->capacity = new_capacity;
+      delete header;
+      header = new_header;
+    } else {
+      header->size = new_size;
+    }
+    return header->getDataAs<byte>() + old_size;
+  }
+
+  static void reduceSize(BufferArrayHeader*& header, VarBitWidth type, size_t count) {
+    const size_t size = count * size_t(type);
+    if(size <= header->size) {
+      header->size -= size;
+      return;
+    } else {
+      header->size = 0;
+      return;
+    }
+  }
+
+  static void shrinkToFit(BufferArrayHeader*& header) {
+    if(header->size == header->capacity) return;
+    header->capacity = sizeof(BufferArrayHeader) + header->size;
+    BufferArrayHeader* old_header = header;
+    header = new(new byte[ header->capacity ]) BufferArrayHeader(*old_header);
+    delete old_header;
+  }
+
+  static void* insert(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count) {
+    size_t old_size = header->size;
+    size_t from = at * size_t(type);
+    if(from >= old_size) return increaseSize(header, type, count);
+    increaseSize(header, type, count);
+    memmove(header->getDataAs<byte>() + from + count * size_t(type),
+            header->getDataAs<byte>() + from,
+            old_size - from);
+    return header->getDataAs<byte>() + from;
+  }
+
+  static void remove(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count) {
+    size_t rm_size = count * size_t(type);
+    size_t from = at * size_t(type);
+    if(from >= header->size) return;
+    if(from + rm_size >= header->size)
+      return reduceSize(header, VarBitWidth::byte, header->size - from);
+    size_t old_size = header->size;
+    memmove(header->getDataAs<byte>() + from,
+            header->getDataAs<byte>() + from + rm_size,
+            old_size - from - rm_size);
+    return reduceSize(header, type, count);
+  }
+
+  inline void* get(VarBitWidth type, size_t at) const {
+    switch (type) {
+    case binom::VarBitWidth::byte: return getDataAs<byte>() + at;
+    case binom::VarBitWidth::word: return getDataAs<word>() + at;
+    case binom::VarBitWidth::dword: return getDataAs<dword>() + at;
+    case binom::VarBitWidth::qword: return getDataAs<qword>() + at;
+    case binom::VarBitWidth::invalid_type:
+    default: return nullptr;
+    }
+  }
+
+  inline void* getBeginPtr() const {return getData();}
+  inline void* getEndPtr(VarBitWidth type) const {return getDataAs<byte>() + getCount(type) * size_t(type);}
+  inline void* getReverseBeginPtr(VarBitWidth type) const {return getDataAs<byte>() + (i64(getCount(type)) - 1) * size_t(type);}
+  inline void* getReverseEndPtr(VarBitWidth type) const {return getDataAs<byte>() - size_t(type);}
 
   inline void operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
 

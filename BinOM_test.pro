@@ -7,8 +7,6 @@ LIBS += -lpthread
 QMAKE_CXXFLAGS += -Wextra
 
 SOURCES += test/test.cxx \
-    libbinom/source/variables/bit_array.cxx \
-    libbinom/source/variables/number.cxx \
     libbinom/source/variables/variable.cxx
 
 HEADERS += \
@@ -27,9 +25,12 @@ HEADERS += \
     libbinom/include/utils/types.hxx \
     libbinom/include/utils/util_functions.hxx \
     libbinom/include/utils/variable_memory.hxx \
+    libbinom/include/variables/array.hxx \
     libbinom/include/variables/bit_array.hxx \
     libbinom/include/variables/buffer_array.hxx \
     libbinom/include/variables/generic_value.hxx \
+    libbinom/include/variables/list.hxx \
+    libbinom/include/variables/map.hxx \
     libbinom/include/variables/number.hxx \
     libbinom/include/variables/variable.hxx \
     test/all_test.hxx \

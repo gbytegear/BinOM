@@ -921,7 +921,7 @@ public:
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
       if(auto lk = downcast().getLock(MtxLockType::unique_locked);!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
       else switch (ArithmeticTypeBase tmp(downcast()); getValType()) {
-      case ValType::boolean: return ArithmeticTypeDriven(~bool(downcast()));
+      case ValType::boolean: return ArithmeticTypeDriven(!bool(downcast()));
       case ValType::ui8: return ArithmeticTypeDriven(~ui8(downcast()));
       case ValType::si8: return ArithmeticTypeDriven(~i8(downcast()));
       case ValType::ui16: return ArithmeticTypeDriven(~ui16(downcast()));

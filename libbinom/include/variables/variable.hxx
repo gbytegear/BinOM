@@ -8,44 +8,74 @@ namespace binom {
 
 class Variable {
 protected:
+  using Link = priv::Link;
+  using ResourceData = priv::ResourceData;
 
-  priv::Link resource_link;
+  Link resource_link;
 
 private:
-  friend struct priv::SharedResource;
-  static void destroyResorce(priv::ResourceData res_data);
-  static priv::Link cloneResource(priv::Link resource_link) noexcept; // TODO...
 
-  Variable(priv::ResourceData data) : resource_link(data) {}
+  Variable(ResourceData data) : resource_link(data) {}
 
 protected:
-  Variable(priv::Link&& link) : resource_link(std::move(link)) {}
+  Variable(Link&& link) : resource_link(std::move(link)) {}
 
 public:
-  Variable() noexcept : Variable(priv::ResourceData{VarType::null, {.pointer = nullptr}}) {}
-  Variable(decltype(nullptr)) noexcept : Variable(priv::ResourceData{VarType::null, {.pointer = nullptr}}) {}
-  Variable(bool value) noexcept : Variable(priv::ResourceData{VarType::boolean, {.bool_val = value}}) {}
-  Variable(ui8 value) noexcept : Variable(priv::ResourceData{VarType::ui8, {.ui8_val = value}}) {}
-  Variable(i8 value) noexcept : Variable(priv::ResourceData{VarType::si8, {.i8_val = value}}) {}
-  Variable(ui16 value) noexcept : Variable(priv::ResourceData{VarType::ui16, {.ui16_val = value}}) {}
-  Variable(i16 value) noexcept : Variable(priv::ResourceData{VarType::si16, {.i16_val = value}}) {}
-  Variable(ui32 value) noexcept : Variable(priv::ResourceData{VarType::ui32, {.ui32_val = value}}) {}
-  Variable(i32 value) noexcept : Variable(priv::ResourceData{VarType::si32, {.i32_val = value}}) {}
-  Variable(f32 value) noexcept : Variable(priv::ResourceData{VarType::f32, {.f32_val = value}}) {}
-  Variable(ui64 value) noexcept : Variable(priv::ResourceData{VarType::ui64, {.ui64_val = value}}) {}
-  Variable(i64 value) noexcept : Variable(priv::ResourceData{VarType::si64, {.i64_val = value}}) {}
-  Variable(f64 value) noexcept : Variable(priv::ResourceData{VarType::f64, {.f64_val = value}}) {}
+  // Null
+  Variable() noexcept : Variable(ResourceData{VarType::null, {.pointer = nullptr}}) {}
+  Variable(decltype(nullptr)) noexcept : Variable(ResourceData{VarType::null, {.pointer = nullptr}}) {}
+  // Number
+  Variable(bool value) noexcept : Variable(ResourceData{VarType::boolean, {.bool_val = value}}) {}
+  Variable(ui8 value) noexcept : Variable(ResourceData{VarType::ui8, {.ui8_val = value}}) {}
+  Variable(i8 value) noexcept : Variable(ResourceData{VarType::si8, {.i8_val = value}}) {}
+  Variable(ui16 value) noexcept : Variable(ResourceData{VarType::ui16, {.ui16_val = value}}) {}
+  Variable(i16 value) noexcept : Variable(ResourceData{VarType::si16, {.i16_val = value}}) {}
+  Variable(ui32 value) noexcept : Variable(ResourceData{VarType::ui32, {.ui32_val = value}}) {}
+  Variable(i32 value) noexcept : Variable(ResourceData{VarType::si32, {.i32_val = value}}) {}
+  Variable(f32 value) noexcept : Variable(ResourceData{VarType::f32, {.f32_val = value}}) {}
+  Variable(ui64 value) noexcept : Variable(ResourceData{VarType::ui64, {.ui64_val = value}}) {}
+  Variable(i64 value) noexcept : Variable(ResourceData{VarType::si64, {.i64_val = value}}) {}
+  Variable(f64 value) noexcept : Variable(ResourceData{VarType::f64, {.f64_val = value}}) {}
   Variable(const GenericValue& value) noexcept : Variable(value.toResourceData()) {}
   Variable(GenericValue&& value) noexcept : Variable(value.toResourceData()) {}
 
+  // BitArray
   Variable(const literals::bitarr bit_array)
-    : Variable(priv::ResourceData{VarType::bit_array, {.bit_array_header = priv::BitArrayHeader::create(bit_array)}}) {}
+    : Variable(ResourceData{VarType::bit_array, {.bit_array_header = priv::BitArrayHeader::create(bit_array)}}) {}
 
+  // BufferArray
+  Variable(const literals::ui8arr ui8_array)
+    : Variable(ResourceData{VarType::ui8_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui8_array)}}) {}
+  Variable(const literals::i8arr i8_array)
+    : Variable(ResourceData{VarType::si8_array, {.buffer_array_header = priv::BufferArrayHeader::create(i8_array)}}) {}
+  Variable(const literals::ui16arr ui16_array)
+    : Variable(ResourceData{VarType::ui16_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui16_array)}}) {}
+  Variable(const literals::i16arr i16_array)
+    : Variable(ResourceData{VarType::si16_array, {.buffer_array_header = priv::BufferArrayHeader::create(i16_array)}}) {}
+  Variable(const literals::ui32arr ui32_array)
+    : Variable(ResourceData{VarType::ui32_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui32_array)}}) {}
+  Variable(const literals::i32arr i32_array)
+    : Variable(ResourceData{VarType::si32_array, {.buffer_array_header = priv::BufferArrayHeader::create(i32_array)}}) {}
+  Variable(const literals::f32arr f32_array)
+    : Variable(ResourceData{VarType::f32_array, {.buffer_array_header = priv::BufferArrayHeader::create(f32_array)}}) {}
+  Variable(const literals::ui64arr ui64_array)
+    : Variable(ResourceData{VarType::ui64_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui64_array)}}) {}
+  Variable(const literals::i64arr i64_array)
+    : Variable(ResourceData{VarType::si64_array, {.buffer_array_header = priv::BufferArrayHeader::create(i64_array)}}) {}
+  Variable(const literals::f64arr f64_array)
+    : Variable(ResourceData{VarType::f64_array, {.buffer_array_header = priv::BufferArrayHeader::create(f64_array)}}) {}
 
+  // Move & Copy
   Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
-  Variable(const Variable& other) noexcept : resource_link(cloneResource(other.resource_link)) {}
-  static Variable createRefVariable(const Variable& other) noexcept {return priv::Link(other.resource_link);}
+  Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
+
+  static Variable createRefVariable(const Variable& other) noexcept {return Link(other.resource_link);}
   static Number createRefVariable(const Number& other) noexcept;
+  static BitArray createRefVariable(const BitArray& other) noexcept;
+  static BufferArray createRefVariable(const BufferArray& other) noexcept;
+  static Array createRefVariable(const Array& other) noexcept;
+  static List createRefVariable(const List& other) noexcept;
+  static Map createRefVariable(const Map& other) noexcept;
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept {
     return resource_link.getLock(lock_type);
@@ -104,7 +134,7 @@ public:
     case binom::VarTypeClass::bit_array: return 1;
     case binom::VarTypeClass::buffer_array: return ui8(getBitWidth());
     case binom::VarTypeClass::array:
-    case binom::VarTypeClass::list: return sizeof (priv::Link);
+    case binom::VarTypeClass::list: return sizeof (Link);
     case binom::VarTypeClass::map: // TODO
     case binom::VarTypeClass::invalid_type: return 0;
     }
@@ -114,9 +144,17 @@ public:
   operator BitArray& ();
   operator BufferArray& ();
   operator Array& ();
+  operator List& ();
+  operator Map& ();
+
+  inline Number& toNumber() {return self;}
+  inline BitArray& toBitArray() {return self;}
+  inline BufferArray& toBufferArray() {return self;}
+  inline Array& toArray() {return self;}
+  inline List& toList() {return self;}
+  inline Map& toMap() {return self;}
 
 };
-
 
 }
 

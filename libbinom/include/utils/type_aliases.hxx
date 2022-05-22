@@ -33,6 +33,9 @@ typedef long long ll_t;
 typedef unsigned long long ull_t;
 
 typedef ui8 byte;
+typedef ui16 word;
+typedef ui32 dword;
+typedef ui64 qword;
 
 constexpr ui8 operator "" _ui8 (ull_t val) {return val;}
 constexpr i8 operator "" _i8 (ull_t val) {return val;}

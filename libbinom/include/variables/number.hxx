@@ -13,6 +13,20 @@ class Number :
   USE_ARITHMETIC
   USE_ARITHMETIC_CAST
 
+  operator Number& () = delete;
+  operator BitArray& () = delete;
+  operator BufferArray& () = delete;
+  operator Array& () = delete;
+  operator List& () = delete;
+  operator Map& () = delete;
+
+  inline Number& toNumber() = delete;
+  inline BitArray& toBitArray() = delete;
+  inline BufferArray& toBufferArray() = delete;
+  inline Array& toArray() = delete;
+  inline List& toList() = delete;
+  inline Map& toMap() = delete;
+
   arithmetic::ArithmeticData& getArithmeticDataImpl() const {return *reinterpret_cast<arithmetic::ArithmeticData*>(&resource_link->data);}
   ValType getValTypeImpl() const {return getValType();}
 

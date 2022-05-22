@@ -12,6 +12,7 @@ struct ResourceData {
   union Data {
     void* pointer = nullptr;
 
+    // Number
     bool  bool_val;
     ui8   ui8_val;
     ui16  ui16_val;
@@ -24,7 +25,13 @@ struct ResourceData {
     f32   f32_val;
     f64   f64_val;
 
+    // BitArray
     BitArrayHeader* bit_array_header;
+    // BufferArray
+    BufferArrayHeader* buffer_array_header;
+    // Array
+    // List
+    // Map
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };
@@ -41,7 +48,19 @@ struct SharedResource {
   bool isExist() noexcept {return link_counter;}
 
   SharedResource(ResourceData resource_data) : resource_data(resource_data) {}
-  ~SharedResource();
+  ~SharedResource() {
+    switch (toTypeClass(resource_data.type)) {
+    case binom::VarTypeClass::null:
+    case binom::VarTypeClass::number: return;
+    case binom::VarTypeClass::bit_array: delete resource_data.data.bit_array_header; return;
+    case binom::VarTypeClass::buffer_array: delete resource_data.data.buffer_array_header; return;
+    case binom::VarTypeClass::array: return; // TODO
+    case binom::VarTypeClass::list: return; // TODO
+    case binom::VarTypeClass::map: return; // TODO
+    case binom::VarTypeClass::invalid_type: default:
+    return;
+    }
+  }
 };
 
 class Link {
@@ -61,13 +80,14 @@ public:
   }
 
   ~Link() {
-    if(resource) {
-      if(!--resource->link_counter) {
-        resource->mtx.lock();
-        resource->mtx.unlock();
-        delete resource;
+    SharedResource* old_resource = resource;
+    resource = nullptr;
+    if(old_resource) {
+      if(!--old_resource->link_counter) {
+        old_resource->mtx.lock();
+        old_resource->mtx.unlock();
+        delete old_resource;
       }
-      resource = nullptr;
     }
   }
 
@@ -93,6 +113,28 @@ public:
     if(auto lk = getLock(MtxLockType::shared_locked); lk)
       return resource->resource_data.type;
     else return VarType::invalid_type;
+  }
+
+  static Link cloneResource(priv::Link resource_link) noexcept {
+    switch (toTypeClass(resource_link.getType())) {
+    case binom::VarTypeClass::null:
+    case binom::VarTypeClass::number:
+    return **resource_link;
+
+    case binom::VarTypeClass::bit_array:
+    return ResourceData{VarType::bit_array, {.bit_array_header = BitArrayHeader::copy(resource_link->data.bit_array_header)}};
+
+    case binom::VarTypeClass::buffer_array:
+    return ResourceData{resource_link.getType(), {.buffer_array_header = BufferArrayHeader::copy(resource_link->data.buffer_array_header)}};
+
+    case binom::VarTypeClass::array: // TODO
+    case binom::VarTypeClass::list: // TODO
+    case binom::VarTypeClass::map: // TODO
+    default:
+    case binom::VarTypeClass::invalid_type:
+    break;
+    }
+    return ResourceData{VarType::null, {}};
   }
 
 };

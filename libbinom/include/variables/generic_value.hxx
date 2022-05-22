@@ -78,8 +78,8 @@ class GenericValueRef :
   } ptr;
 
   arithmetic::ArithmeticData& getArithmeticDataImpl() const noexcept {return *ptr.num_data_ptr;}
-  ValType getValTypeImpl() const noexcept {return value_type;}
-  static bool checkLock(const OptionalSharedRecursiveLock& lock) noexcept;
+  ValType getValTypeImpl() const noexcept {if(ptr.ptr) return value_type; else return ValType::invalid_type;}
+  static bool checkLock(const OptionalSharedRecursiveLock& lock) noexcept {return lock.has_value();}
 
   friend class GenericValueIterator;
   friend class ReverseGenericValueIterator;
@@ -93,7 +93,7 @@ public:
   GenericValueRef(const GenericValueRef& other) : owner(other.owner), value_type(other.value_type), ptr(other.ptr.ptr) {}
   GenericValueRef(GenericValueRef&& other) : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
 
-  OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
+  OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept { return owner.getLock(lock_type); }
 
   operator GenericValue() {
     if(auto lk = getLock(MtxLockType::shared_locked); lk)
@@ -205,6 +205,8 @@ public:
 
   bool operator==(GenericValueIterator&& other) const noexcept {return ptr.ptr == other.ptr.ptr;}
   bool operator!=(GenericValueIterator&& other) const noexcept {return ptr.ptr != other.ptr.ptr;}
+  bool operator==(const GenericValueIterator& other) const noexcept {return ptr.ptr == other.ptr.ptr;}
+  bool operator!=(const GenericValueIterator& other) const noexcept {return ptr.ptr != other.ptr.ptr;}
 
   GenericValueRef operator*() const noexcept {return GenericValueRef(value_type, ptr.ptr, owner);}
 

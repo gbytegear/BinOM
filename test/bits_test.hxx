@@ -55,60 +55,6 @@ void testBits() {
     PRINT_RUN(test.popBack(3));
     printBist(test);
   );
-
-//  std::pair<size_t, size_t> test_cases[] = {
-//    {11, 15},
-//    {7, 12},
-//    {2, 5},
-//    {9, 20},
-//    {0, 14}
-//  };
-//  TEST_ANNOUNCE(Test BitArrayHeader);
-//  GRP(
-//    PRINT_RUN(BitArrayHeader* data_ptr = BitArrayHeader::create({false, true, true, false, true, false, false, true, true, true, true}));
-//    TEST_ANNOUNCE(Test BitArrayHeader::insertBits)
-//    GRP(
-//      for(auto element : test_cases) {
-//        const size_t at = element.first;
-//        const size_t count = element.second;
-//        LOG("Test case: size_t at = " << at << "; size_t count = " << count << ";")
-//        {
-//          LOG("Print bits:")
-//          int counter = 0;
-//          for(const auto &element : *data_ptr)
-//            LOG( counter++ << " - " << element);
-//          LOG("==================");
-//        }
-//        PRINT_RUN(BitArrayHeader* copy_ptr = BitArrayHeader::copy(data_ptr););
-//        PRINT_RUN(BitArrayHeader::insertBits(data_ptr, at, count););
-//        PRINT_RUN(BitArrayHeader& data = *data_ptr;);
-//        PRINT_RUN(BitArrayHeader& copy = *copy_ptr;);
-
-//        {
-//          LOG("Print bits:")
-//          int counter = 0;
-//          for(const auto &element : *data_ptr)
-//            LOG( counter++ << " - " << element);
-//          LOG("==================");
-//        }
-
-
-//        LOG("Check old segments of data:");
-//        for(size_t i = 0; i < at; ++i) {
-//          LOG("Index:" << i);
-//          TEST(data[i] == copy[i]);
-//        }
-
-//        for(size_t i = at; i < copy.getBitSize(); ++i) {
-//          LOG("Old index:" << i << "; New index: " << (i + count));
-//          TEST(data[i + count] == copy[i]);
-//        }
-
-//        PRINT_RUN(delete copy_ptr;);
-//      }
-//    )
-//    PRINT_RUN(delete data_ptr;);
-//  )
 }
 
 #endif // BITS_TEST_H

@@ -1,45 +1,13 @@
 #include "libbinom/include/variables/variable.hxx"
 #include "libbinom/include/variables/number.hxx"
 #include "libbinom/include/variables/bit_array.hxx"
+#include "libbinom/include/variables/buffer_array.hxx"
+#include "libbinom/include/variables/array.hxx"
+#include "libbinom/include/variables/list.hxx"
+#include "libbinom/include/variables/map.hxx"
 
 using namespace binom;
 using namespace binom::priv;
-
-SharedResource::~SharedResource() {Variable::destroyResorce(resource_data);}
-
-void Variable::destroyResorce(priv::ResourceData res_data) {
-  switch (toTypeClass(res_data.type)) {
-  case binom::VarTypeClass::null:
-  case binom::VarTypeClass::number: return;
-  case binom::VarTypeClass::bit_array: delete res_data.data.bit_array_header; return;
-  case binom::VarTypeClass::buffer_array: return; // TODO
-  case binom::VarTypeClass::array: return; // TODO
-  case binom::VarTypeClass::list: return; // TODO
-  case binom::VarTypeClass::map: return; // TODO
-  case binom::VarTypeClass::invalid_type: default:
-  return;
-  }
-}
-
-Link Variable::cloneResource(priv::Link resource_link) noexcept {
-  switch (toTypeClass(resource_link.getType())) {
-  case binom::VarTypeClass::null:
-  case binom::VarTypeClass::number:
-  return **resource_link;
-
-  case binom::VarTypeClass::bit_array:
-  return ResourceData{VarType::bit_array, {.bit_array_header = BitArrayHeader::copy(resource_link->data.bit_array_header)}};
-
-  case binom::VarTypeClass::buffer_array: // TODO
-  case binom::VarTypeClass::array: // TODO
-  case binom::VarTypeClass::list: // TODO
-  case binom::VarTypeClass::map: // TODO
-  default:
-  case binom::VarTypeClass::invalid_type:
-  break;
-  }
-  return ResourceData{VarType::null, {}};
-}
 
 size_t Variable::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
@@ -62,22 +30,45 @@ size_t Variable::getElementCount() const noexcept {
   return -1;
 }
 
+Number Variable::createRefVariable(const Number& other) noexcept {return Link(other.resource_link);}
+
 Variable::operator Number&() {
   if(getTypeClass() == VarTypeClass::number) return reinterpret_cast<Number&>(self);
   throw Error(ErrorType::binom_invalid_type);
 }
+
+BitArray Variable::createRefVariable(const BitArray& other) noexcept {return Link(other.resource_link);}
 
 Variable::operator BitArray&() {
   if(getTypeClass() == VarTypeClass::bit_array) return reinterpret_cast<BitArray&>(self);
   throw Error(ErrorType::binom_invalid_type);
 }
 
+BufferArray Variable::createRefVariable(const BufferArray& other) noexcept {return Link(other.resource_link);}
+
 Variable::operator BufferArray&() {
   if(getTypeClass() == VarTypeClass::buffer_array) return reinterpret_cast<BufferArray&>(self);
   throw Error(ErrorType::binom_invalid_type);
 }
 
+Array Variable::createRefVariable(const Array& other) noexcept {/* TODO */}
+
 Variable::operator Array&() {
   if(getTypeClass() == VarTypeClass::array) return reinterpret_cast<Array&>(self);
   throw Error(ErrorType::binom_invalid_type);
 }
+
+List Variable::createRefVariable(const List& other) noexcept {/* TODO */}
+
+Variable::operator List&() {
+  if(getTypeClass() == VarTypeClass::list) return reinterpret_cast<List&>(self);
+  throw Error(ErrorType::binom_invalid_type);
+}
+
+Map Variable::createRefVariable(const Map& other) noexcept {/* TODO */}
+
+Variable::operator Map&() {
+  if(getTypeClass() == VarTypeClass::map) return reinterpret_cast<Map&>(self);
+  throw Error(ErrorType::binom_invalid_type);
+}
+
