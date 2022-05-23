@@ -35,6 +35,8 @@ public:
   BufferArray(const BufferArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
   BufferArray(BufferArray&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
 
+  BufferArray getReference() noexcept {return Link(resource_link);}
+
   size_t getCount() const noexcept {
     auto lk = getLock(MtxLockType::shared_locked);
     if(!lk) return 0;

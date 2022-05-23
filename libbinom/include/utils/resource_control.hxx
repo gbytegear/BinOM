@@ -124,6 +124,7 @@ public:
 
   size_t getCount() const noexcept;
   size_t getCapacity() const noexcept;
+  size_t getSize() const noexcept;
 
   Variable* getData() const;
   static Iterator increaseSize(ArrayHeader*& header, size_t count);
