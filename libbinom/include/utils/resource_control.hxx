@@ -122,6 +122,9 @@ public:
   static ArrayHeader* create(const literals::arr& value_list);
   static ArrayHeader* copy(const ArrayHeader* other);
 
+  size_t getCount() const noexcept;
+  size_t getCapacity() const noexcept;
+
   Variable* getData() const;
   static Iterator increaseSize(ArrayHeader*& header, size_t count);
   static void reduceSize(ArrayHeader*& header, size_t count);

@@ -445,6 +445,11 @@ ArrayHeader* ArrayHeader::copy(const ArrayHeader* other) {
   return new(new byte[other->capacity]) ArrayHeader(*other);
 }
 
+size_t ArrayHeader::getCount() const noexcept {return count;}
+size_t ArrayHeader::getCapacity() const noexcept {return capacity;}
+
+size_t ArrayHeader::getSize() const noexcept {return count * sizeof (Link);}
+
 Variable* ArrayHeader::getData() const { return reinterpret_cast<Variable*>(const_cast<ArrayHeader*>(this + 1)); }
 
 ArrayHeader::Iterator ArrayHeader::increaseSize(ArrayHeader*& header, size_t count) {

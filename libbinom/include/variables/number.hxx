@@ -64,6 +64,8 @@ public:
   Number(const GenericValue& value) noexcept : Variable(value) {}
   Number(GenericValue&& value) noexcept : Variable(std::move(value)) {}
 
+  Number getReference() noexcept {return Link(resource_link);}
+
   using arithmetic::ArithmeticTypeBase<Number>::operator=;
 };
 

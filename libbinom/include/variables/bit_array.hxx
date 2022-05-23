@@ -35,10 +35,18 @@ public:
   BitArray(const BitArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
   BitArray(BitArray&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
 
+  BitArray getReference() noexcept {return Link(resource_link);}
+
   size_t getSize() const noexcept {
     auto lk = getLock(MtxLockType::shared_locked);
     if(!lk) return 0;
     return getData()->getBitSize();
+  }
+
+  size_t getCapacity() const noexcept {
+    auto lk = getLock(MtxLockType::shared_locked);
+    if(!lk) return 0;
+    return getData()->getCapacity();
   }
 
   ValueRef operator[] (size_t index) const {

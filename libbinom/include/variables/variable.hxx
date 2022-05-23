@@ -13,11 +13,9 @@ protected:
 
   Link resource_link;
 
-private:
+protected:
 
   Variable(ResourceData data) : resource_link(data) {}
-
-protected:
   Variable(Link&& link) : resource_link(std::move(link)) {}
 
 public:
@@ -65,17 +63,16 @@ public:
   Variable(const literals::f64arr f64_array)
     : Variable(ResourceData{VarType::f64_array, {.buffer_array_header = priv::BufferArrayHeader::create(f64_array)}}) {}
 
+  // Array
+  Variable(const literals::arr array)
+    : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(array)}}) {}
+
+
   // Move & Copy
   Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
   Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 
-  static Variable createRefVariable(const Variable& other) noexcept {return Link(other.resource_link);}
-  static Number createRefVariable(const Number& other) noexcept;
-  static BitArray createRefVariable(const BitArray& other) noexcept;
-  static BufferArray createRefVariable(const BufferArray& other) noexcept;
-  static Array createRefVariable(const Array& other) noexcept;
-  static List createRefVariable(const List& other) noexcept;
-  static Map createRefVariable(const Map& other) noexcept;
+  Variable getReference() noexcept {return Link(resource_link);}
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept {
     return resource_link.getLock(lock_type);
