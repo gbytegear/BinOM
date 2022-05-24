@@ -20,10 +20,10 @@ class BufferArray : public Variable {
   inline List& toList() = delete;
   inline Map& toMap() = delete;
 
-  inline priv::BufferArrayHeader*& getData() const noexcept {return resource_link->data.buffer_array_header;}
+  priv::BufferArrayHeader*& getData() const noexcept;
 
   friend class Variable;
-  BufferArray(priv::Link&& link) : Variable(std::move(link)) {}
+  BufferArray(priv::Link&& link);
 
 public:
   typedef GenericValueIterator Iterator;
@@ -32,34 +32,15 @@ public:
 
   template<typename T>
   BufferArray(const std::initializer_list<T> init_list) : Variable(init_list) {static_assert (std::is_arithmetic_v<T>);}
-  BufferArray(const BufferArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
-  BufferArray(BufferArray&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
+  BufferArray(const BufferArray& other) noexcept;
+  BufferArray(BufferArray&& other) noexcept;
 
-  BufferArray getReference() noexcept {return Link(resource_link);}
+  BufferArray getReference() noexcept;
+  size_t getElementCount() const noexcept;
+  size_t getSize() const noexcept;
+  size_t getCapacity() const noexcept;
 
-  size_t getCount() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return 0;
-    return getData()->getCount(getBitWidth());
-  }
-
-  size_t getSize() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return 0;
-    return getData()->getSize();
-  }
-
-  size_t getCapacity() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return 0;
-    return getData()->getCapacity();
-  }
-
-  ValueRef operator[](size_t index) noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return ValueRef(ValType::invalid_type, nullptr, resource_link);
-    return ValueRef(getValType(), getData()->get(getBitWidth(), index), resource_link);
-  }
+  ValueRef operator[](size_t index) noexcept;
 
   template<typename T>
   ValueRef pushBack(T value) noexcept {
@@ -84,16 +65,7 @@ public:
     return value_it;
   }
 
-  Iterator pushBack(BufferArray& value_list) {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-    Iterator value_it(getValType(), priv::BufferArrayHeader::increaseSize(getData(), getBitWidth(), value_list.getSize()), resource_link);
-    { Iterator this_it = value_it;
-      for(auto value : value_list)
-        *(this_it++) = value;
-    }
-    return value_it;
-  }
+  Iterator pushBack(BufferArray& value_list);
 
   template<typename T>
   ValueRef pushFront(T value) noexcept {return insert(0, value);}
@@ -101,7 +73,7 @@ public:
   template<typename T>
   Iterator pushFront(std::initializer_list<T> value_list) {return insert(0, value_list);}
 
-  Iterator pushFront(BufferArray& value_list) {return insert(0, value_list);}
+  Iterator pushFront(BufferArray& value_list);
 
   template<typename T>
   ValueRef insert(size_t at, T value) noexcept {
@@ -126,40 +98,19 @@ public:
     return value_it;
   }
 
-  Iterator insert(size_t at, BufferArray& value_list) {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-    Iterator value_it(getValType(), priv::BufferArrayHeader::insert(getData(), getBitWidth(), at, value_list.getSize()), resource_link);
-    { Iterator this_it = value_it;
-      for(auto value : value_list)
-        *(this_it++) = value;
-    }
-    return value_it;
-  }
+  Iterator insert(size_t at, BufferArray& value_list);
 
-  Iterator begin() const {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-    return Iterator(getValType(), getData()->getBeginPtr(), resource_link);
-  }
+  Iterator begin() const;
+  Iterator end() const;
 
-  Iterator end() const {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-    return Iterator(getValType(), getData()->getEndPtr(getBitWidth()), resource_link);
-  }
+  ReverseIterator rbegin() const;
+  ReverseIterator rend() const;
 
-  ReverseIterator rbegin() const {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return ReverseIterator(ValType::invalid_type, nullptr, resource_link);
-    return ReverseIterator(getValType(), getData()->getReverseBeginPtr(getBitWidth()), resource_link);
-  }
+  BufferArray& operator=(const BufferArray& other);
+  BufferArray& operator=(BufferArray&& other);
 
-  ReverseIterator rend() const {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return ReverseIterator(ValType::invalid_type, nullptr, resource_link);
-    return ReverseIterator(getValType(), getData()->getReverseEndPtr(getBitWidth()), resource_link);
-  }
+  BufferArray& changeLink(const BufferArray& other);
+  BufferArray& changeLink(BufferArray&& other);
 
 };
 

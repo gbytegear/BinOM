@@ -86,7 +86,7 @@ public:
   inline T* getDataAs() const {return const_cast<T*>(reinterpret_cast<const T*>(this + 1));}
 
   size_t getSize() const noexcept;
-  size_t getCount(VarBitWidth type) const noexcept;
+  size_t getElementCount(VarBitWidth type) const noexcept;
   size_t getCapacity() const noexcept;
 
   static void* increaseSize(BufferArrayHeader*& header, VarBitWidth type, size_t count);
@@ -122,7 +122,7 @@ public:
   static ArrayHeader* create(const literals::arr& value_list);
   static ArrayHeader* copy(const ArrayHeader* other);
 
-  size_t getCount() const noexcept;
+  size_t getElementCount() const noexcept;
   size_t getCapacity() const noexcept;
   size_t getSize() const noexcept;
 
@@ -132,6 +132,8 @@ public:
   static void popBack(ArrayHeader*& header, size_t count);
   static Iterator insert(ArrayHeader*& header, size_t at, size_t count);
   static void remove(ArrayHeader*& header, size_t at, size_t count);
+
+  Variable operator[](size_t index);
 
   Iterator begin() const;
   Iterator end() const;
@@ -181,6 +183,7 @@ struct SharedResource {
   std::shared_mutex mtx;
 
   bool isExist() noexcept;
+  void destroy();
 
   SharedResource(ResourceData resource_data);
   ~SharedResource();
@@ -194,6 +197,8 @@ public:
   Link(Link&& other) noexcept;
   Link(const Link& other) noexcept;
   ~Link();
+
+  void overwriteWithResourceCopy(ResourceData& resource_data);
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
   ResourceData* operator*() const noexcept;

@@ -11,21 +11,35 @@ using namespace extended_type_traits;
 
 bool SharedResource::isExist() noexcept {return link_counter;}
 
-SharedResource::SharedResource(ResourceData resource_data) : resource_data(resource_data) {}
-
-SharedResource::~SharedResource() {
+void SharedResource::destroy() {
   switch (toTypeClass(resource_data.type)) {
   case VarTypeClass::null:
   case VarTypeClass::number: return;
-  case VarTypeClass::bit_array: delete resource_data.data.bit_array_header; return;
-  case VarTypeClass::buffer_array: delete resource_data.data.buffer_array_header; return;
-  case VarTypeClass::array: delete resource_data.data.array_header; return;
+  case VarTypeClass::bit_array:
+    if(resource_data.data.pointer)
+      delete resource_data.data.bit_array_header;
+    resource_data.data.pointer = nullptr;
+  return;
+  case VarTypeClass::buffer_array:
+    if(resource_data.data.pointer)
+      delete resource_data.data.buffer_array_header;
+    resource_data.data.pointer = nullptr;
+  return;
+  case VarTypeClass::array:
+    if(resource_data.data.pointer)
+      delete resource_data.data.array_header;
+    resource_data.data.pointer = nullptr;
+  return;
   case VarTypeClass::list: return; // TODO
   case VarTypeClass::map: return; // TODO
   case VarTypeClass::invalid_type: default:
   return;
   }
 }
+
+SharedResource::SharedResource(ResourceData resource_data) : resource_data(resource_data) {}
+
+SharedResource::~SharedResource() {destroy();}
 
 
 //////////////////////////////////////////////////////////// Link ////////////////////////////////////////////////////////
@@ -54,6 +68,36 @@ Link::~Link() {
       delete old_resource;
     }
   }
+}
+
+void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
+  resource->destroy();
+  resource->resource_data.type = resource_data.type;
+  switch (toTypeClass(resource_data.type)) {
+  case VarTypeClass::null: return;
+  case VarTypeClass::number:
+    resource->resource_data.data.ui64_val = resource_data.data.ui64_val;
+  return;
+
+  case VarTypeClass::bit_array:
+    resource->resource_data.data.bit_array_header = BitArrayHeader::copy(resource_data.data.bit_array_header);
+  return;
+
+  case VarTypeClass::buffer_array:
+    resource->resource_data.data.buffer_array_header = BufferArrayHeader::copy(resource_data.data.buffer_array_header);
+  return;
+
+  case VarTypeClass::array:
+    resource->resource_data.data.array_header = ArrayHeader::copy(resource_data.data.array_header);
+  return;
+
+  case VarTypeClass::list: // TODO
+  case VarTypeClass::map: // TODO
+  default:
+  case VarTypeClass::invalid_type:
+  break;
+  }
+  resource->resource_data.type = VarType::null;
 }
 
 OptionalSharedRecursiveLock Link::getLock(MtxLockType lock_type) const noexcept {
@@ -329,7 +373,7 @@ void* BufferArrayHeader::getData() const { return const_cast<void*>(reinterpret_
 
 size_t BufferArrayHeader::getSize() const noexcept {return size;}
 
-size_t BufferArrayHeader::getCount(VarBitWidth type) const noexcept {return size_t(std::ceil(llf_t(size)/ size_t(type)));}
+size_t BufferArrayHeader::getElementCount(VarBitWidth type) const noexcept {return size_t(std::ceil(llf_t(size)/ size_t(type)));}
 
 size_t BufferArrayHeader::getCapacity() const noexcept {return capacity;}
 
@@ -405,9 +449,9 @@ void* BufferArrayHeader::get(VarBitWidth type, size_t at) const {
 
 void* BufferArrayHeader::getBeginPtr() const {return getData();}
 
-void* BufferArrayHeader::getEndPtr(VarBitWidth type) const {return getDataAs<byte>() + getCount(type) * size_t(type);}
+void* BufferArrayHeader::getEndPtr(VarBitWidth type) const {return getDataAs<byte>() + getElementCount(type) * size_t(type);}
 
-void* BufferArrayHeader::getReverseBeginPtr(VarBitWidth type) const {return getDataAs<byte>() + (i64(getCount(type)) - 1) * size_t(type);}
+void* BufferArrayHeader::getReverseBeginPtr(VarBitWidth type) const {return getDataAs<byte>() + (i64(getElementCount(type)) - 1) * size_t(type);}
 
 void* BufferArrayHeader::getReverseEndPtr(VarBitWidth type) const {return getDataAs<byte>() - size_t(type);}
 
@@ -445,7 +489,7 @@ ArrayHeader* ArrayHeader::copy(const ArrayHeader* other) {
   return new(new byte[other->capacity]) ArrayHeader(*other);
 }
 
-size_t ArrayHeader::getCount() const noexcept {return count;}
+size_t ArrayHeader::getElementCount() const noexcept {return count;}
 size_t ArrayHeader::getCapacity() const noexcept {return capacity;}
 
 size_t ArrayHeader::getSize() const noexcept {return count * sizeof (Link);}
@@ -511,6 +555,12 @@ void ArrayHeader::remove(ArrayHeader*& header, size_t at, size_t count) {
           header->getData() + at + count,
           (old_count - at - count) * sizeof (Link));
   return reduceSize(header, count);
+}
+
+Variable ArrayHeader::operator[](size_t index) {
+  if(index < getElementCount())
+    return getData()[index].getReference();
+  else return nullptr;
 }
 
 ArrayHeader::Iterator ArrayHeader::begin() const {return getData();}

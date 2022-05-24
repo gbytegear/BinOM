@@ -27,17 +27,15 @@ class Number :
   inline List& toList() = delete;
   inline Map& toMap() = delete;
 
-  arithmetic::ArithmeticData& getArithmeticDataImpl() const {return *reinterpret_cast<arithmetic::ArithmeticData*>(&resource_link->data);}
-  ValType getValTypeImpl() const {return getValType();}
+  arithmetic::ArithmeticData& getArithmeticDataImpl() const;
+  ValType getValTypeImpl() const;
 
-  static bool checkLock(const OptionalSharedRecursiveLock& lock) noexcept {return lock.has_value();}
+  static bool checkLock(const OptionalSharedRecursiveLock& lock) noexcept;
 
-  void setTypeImpl(ValType new_type) noexcept {
-    resource_link->type = toVarType(new_type);
-  }
+  void setTypeImpl(ValType new_type) noexcept;
 
   friend class Variable;
-  Number(priv::Link&& link) : Variable(std::move(link)) {}
+  Number(priv::Link&& link);
 
 public:
   using Variable::getLock;
@@ -45,28 +43,30 @@ public:
   using Variable::getBitWidth;
   using Variable::getNumberType;
 
-  Number() noexcept :             Variable(int(0)) {}
-  Number(bool value) noexcept :   Variable(value) {}
-  Number(ui8 value) noexcept :    Variable(value) {}
-  Number(i8 value) noexcept :     Variable(value) {}
-  Number(ui16 value) noexcept :   Variable(value) {}
-  Number(i16 value) noexcept :    Variable(value) {}
-  Number(ui32 value) noexcept :   Variable(value) {}
-  Number(i32 value) noexcept :    Variable(value) {}
-  Number(f32 value) noexcept :    Variable(value) {}
-  Number(ui64 value) noexcept :   Variable(value) {}
-  Number(i64 value) noexcept :    Variable(value) {}
-  Number(f64 value) noexcept :    Variable(value) {}
+  Number() noexcept;
+  Number(bool value) noexcept;
+  Number(ui8 value) noexcept;
+  Number(i8 value) noexcept;
+  Number(ui16 value) noexcept;
+  Number(i16 value) noexcept;
+  Number(ui32 value) noexcept;
+  Number(i32 value) noexcept;
+  Number(f32 value) noexcept;
+  Number(ui64 value) noexcept;
+  Number(i64 value) noexcept;
+  Number(f64 value) noexcept;
 
-  Number(const Number& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
-  Number(Number&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
+  Number(const Number& other) noexcept;
+  Number(Number&& other) noexcept;
 
-  Number(const GenericValue& value) noexcept : Variable(value) {}
-  Number(GenericValue&& value) noexcept : Variable(std::move(value)) {}
+  Number(const GenericValue& value) noexcept;
+  Number(GenericValue&& value) noexcept;
 
-  Number getReference() noexcept {return Link(resource_link);}
+  Number getReference() noexcept;
 
   using arithmetic::ArithmeticTypeBase<Number>::operator=;
+  Number& changeLink(const Number& other);
+  Number& changeLink(Number&& other);
 };
 
 }

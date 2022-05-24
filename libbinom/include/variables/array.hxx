@@ -32,10 +32,10 @@ public:
 
   Array getReference() noexcept {return Link(resource_link);}
 
-  size_t getCount() const noexcept {
+  size_t getElementCount() const noexcept {
     auto lk = getLock(MtxLockType::shared_locked);
     if(!lk) return 0;
-    return getData()->getCount();
+    return getData()->getElementCount();
   }
 
   size_t getCapacity() const noexcept {
@@ -55,9 +55,7 @@ public:
   Variable operator[](size_t index) noexcept {
     auto lk = getLock(MtxLockType::shared_locked);
     if(!lk) return nullptr;
-    if(index < getData()->getCount())
-      return getData()->getData()[index].getReference();
-    else return nullptr;
+    return (*getData())[index];
   }
 
 };
