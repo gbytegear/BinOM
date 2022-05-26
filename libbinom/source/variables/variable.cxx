@@ -52,7 +52,7 @@ Variable::Variable(const literals::f64arr f64_array)
 Variable::Variable(const literals::arr array)
   : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(array)}}) {}
 
-Variable::Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
+Variable::Variable(const Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 
 Variable Variable::getReference() const noexcept {return Link(resource_link);}
@@ -137,54 +137,54 @@ size_t Variable::getElementSize() const noexcept {
   }
 }
 
-Variable::operator Number&() {
+Variable::operator Number&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::number) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<Number&>(self);
+  return reinterpret_cast<Number&>(const_cast<Variable&>(self));
 }
 
-Variable::operator BitArray&() {
+Variable::operator BitArray&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::bit_array) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<BitArray&>(self);
+  return reinterpret_cast<BitArray&>(const_cast<Variable&>(self));
 }
 
-Variable::operator BufferArray&() {
+Variable::operator BufferArray&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::buffer_array) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<BufferArray&>(self);
+  return reinterpret_cast<BufferArray&>(const_cast<Variable&>(self));
 }
 
-Variable::operator Array&() {
+Variable::operator Array&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::array) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<Array&>(self);
+  return reinterpret_cast<Array&>(const_cast<Variable&>(self));
 }
 
-Variable::operator List&() {
+Variable::operator List&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::list) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<List&>(self);
+  return reinterpret_cast<List&>(const_cast<Variable&>(self));
 }
 
-Variable::operator Map&() {
+Variable::operator Map&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::map) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<Map&>(self);
+  return reinterpret_cast<Map&>(const_cast<Variable&>(self));
 }
 
-Number& Variable::toNumber() {return self;}
-BitArray& Variable::toBitArray() {return self;}
-BufferArray& Variable::toBufferArray() {return self;}
-Array& Variable::toArray() {return self;}
-List& Variable::toList() {return self;}
-Map& Variable::toMap() {return self;}
+Number& Variable::toNumber() const {return self;}
+BitArray& Variable::toBitArray() const {return self;}
+BufferArray& Variable::toBufferArray() const {return self;}
+Array& Variable::toArray() const {return self;}
+List& Variable::toList() const {return self;}
+Map& Variable::toMap() const {return self;}
 
 Variable& Variable::operator=(const Variable& other) {
   if(this == &other) return self;

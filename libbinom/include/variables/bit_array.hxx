@@ -33,7 +33,7 @@ public:
   BitArray();
   BitArray(const literals::bitarr bit_array);
   BitArray(const BitArray& other) noexcept;
-  BitArray(BitArray&& other) noexcept;
+  BitArray(const BitArray&& other) noexcept;
 
   BitArray getReference() noexcept;
   size_t getElementCount() const noexcept;

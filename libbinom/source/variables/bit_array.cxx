@@ -8,7 +8,7 @@ BitArray::BitArray(priv::Link&& link) : Variable(std::move(link)) {}
 BitArray::BitArray() : Variable(literals::bitarr{}) {}
 BitArray::BitArray(const literals::bitarr bit_array) : Variable(bit_array) {}
 BitArray::BitArray(const BitArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
-BitArray::BitArray(BitArray&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
+BitArray::BitArray(const BitArray&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
 BitArray BitArray::getReference() noexcept {return Link(resource_link);}
 

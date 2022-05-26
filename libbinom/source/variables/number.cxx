@@ -25,9 +25,9 @@ Number::Number(ui64 value) noexcept :   Variable(value) {}
 Number::Number(i64 value) noexcept :    Variable(value) {}
 Number::Number(f64 value) noexcept :    Variable(value) {}
 Number::Number(const Number& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
-Number::Number(Number&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
+Number::Number(const Number&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 Number::Number(const GenericValue& value) noexcept : Variable(value) {}
-Number::Number(GenericValue&& value) noexcept : Variable(std::move(value)) {}
+Number::Number(const GenericValue&& value) noexcept : Variable(std::move(value)) {}
 
 Number Number::getReference() noexcept {return Link(resource_link);}
 

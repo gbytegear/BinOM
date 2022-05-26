@@ -7,7 +7,7 @@ BufferArrayHeader*& BufferArray::getData() const noexcept {return resource_link-
 
 BufferArray::BufferArray(priv::Link&& link) : Variable(std::move(link)) {}
 BufferArray::BufferArray(const BufferArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
-BufferArray::BufferArray(BufferArray&& other) noexcept : Variable(dynamic_cast<Variable&&>(other)) {}
+BufferArray::BufferArray(const BufferArray&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
 BufferArray BufferArray::getReference() noexcept {return Link(resource_link);}
 

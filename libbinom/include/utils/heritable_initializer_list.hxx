@@ -22,7 +22,10 @@ private:
 
 public:
   constexpr HeritableInitializerList(std::initializer_list<T> init_list)
-    : array(init_list.begin()), size(init_list.size()) { }
+    : array(init_list.begin()), size(init_list.size()) {}
+
+  constexpr HeritableInitializerList(HeritableInitializerList<T>&& init_list)
+    : array(init_list.array), size(init_list.size) {}
 
   constexpr HeritableInitializerList() noexcept
     : array(0), size(0) { }

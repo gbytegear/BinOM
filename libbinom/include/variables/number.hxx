@@ -57,10 +57,10 @@ public:
   Number(f64 value) noexcept;
 
   Number(const Number& other) noexcept;
-  Number(Number&& other) noexcept;
+  Number(const Number&& other) noexcept;
 
   Number(const GenericValue& value) noexcept;
-  Number(GenericValue&& value) noexcept;
+  Number(const GenericValue&& value) noexcept;
 
   Number getReference() noexcept;
 

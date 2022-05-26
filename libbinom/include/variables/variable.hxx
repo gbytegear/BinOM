@@ -55,7 +55,7 @@ public:
   Variable(const literals::arr array);
 
   // Move & Copy
-  Variable(Variable&& other) noexcept;
+  Variable(const Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
 
   Variable getReference() const noexcept;
@@ -74,20 +74,20 @@ public:
 
 
   // Downcast operators
-  operator Number& ();
-  operator BitArray& ();
-  operator BufferArray& ();
-  operator Array& ();
-  operator List& ();
-  operator Map& ();
+  operator Number& () const;
+  operator BitArray& () const;
+  operator BufferArray& () const;
+  operator Array& () const;
+  operator List& () const;
+  operator Map& () const;
 
   // Downcast methods
-  Number& toNumber();
-  BitArray& toBitArray();
-  BufferArray& toBufferArray();
-  Array& toArray();
-  List& toList();
-  Map& toMap();
+  Number& toNumber() const;
+  BitArray& toBitArray() const;
+  BufferArray& toBufferArray() const;
+  Array& toArray() const;
+  List& toList() const;
+  Map& toMap() const;
 
   Variable& operator=(const Variable& other);
   Variable& operator=(Variable&& other);

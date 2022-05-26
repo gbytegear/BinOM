@@ -33,7 +33,7 @@ public:
   template<typename T>
   BufferArray(const std::initializer_list<T> init_list) : Variable(init_list) {static_assert (std::is_arithmetic_v<T>);}
   BufferArray(const BufferArray& other) noexcept;
-  BufferArray(BufferArray&& other) noexcept;
+  BufferArray(const BufferArray&& other) noexcept;
 
   BufferArray getReference() noexcept;
   size_t getElementCount() const noexcept;

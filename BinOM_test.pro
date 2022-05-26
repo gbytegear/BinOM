@@ -23,6 +23,7 @@ HEADERS += \
     libbinom/include/utils/generic_arithmetic.hxx \
     libbinom/include/utils/heritable_initializer_list.hxx \
     libbinom/include/utils/memctrl.hxx \
+    libbinom/include/utils/print_variable.hxx \
     libbinom/include/utils/resource_control.hxx \
     libbinom/include/utils/shared_recursive_mutex_wrapper.hxx \
     libbinom/include/utils/type_aliases.hxx \
@@ -42,4 +43,5 @@ HEADERS += \
     test/number_test.hxx \
     test/recursive_shared_mutex_test.hxx \
     test/types_test.hxx \
-    test/tester.hxx
+    test/tester.hxx \
+    test/variable_test.hxx
