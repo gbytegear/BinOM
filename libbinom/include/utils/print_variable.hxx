@@ -6,6 +6,7 @@
 #include "../variables/bit_array.hxx"
 #include "../variables/buffer_array.hxx"
 #include "../variables/array.hxx"
+#include "../variables/singly_linked_list.hxx"
 #include <iostream>
 
 
@@ -15,7 +16,7 @@ class {
   using Variable = binom::Variable;
   void print(const Variable& variable, size_t shift = 0) {
     switch (variable.getType()) {
-    case binom::VarType::null: std::cout << std::string(shift, '|') << "null\n"; break;
+    case binom::VarType::null: std::cout << std::string(shift, '|') << "null\n\r"; break;
     case binom::VarType::boolean: std::cout << std::string(shift, '|') << "bool: " << std::boolalpha << bool(variable.toNumber()) << std::noboolalpha << std::endl; break;
     case binom::VarType::ui8: std::cout << std::string(shift, '|') << "ui8: " << ui16(variable.toNumber()) << std::endl; break;
     case binom::VarType::si8: std::cout << std::string(shift, '|') << "si8: " << i16(variable.toNumber()) << std::endl; break;
@@ -82,15 +83,23 @@ class {
       std::cout << std::endl;
       break;
     case binom::VarType::array:
-      std::cout << std::string(shift, '|') << "array:\n";
+      std::cout << std::string(shift, '|') << "array:\n\r";
       if(shift >= 100) {
-        std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n";
+        std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n\r";
         return;
       }
       for(const auto& var : variable.toArray()) print(var, shift + 1);
       break;
+    case binom::VarType::singly_linked_list:
+      std::cout << std::string(shift, '|') << "singly_linked_list:\n\r";
+      if(shift >= 100) {
+        std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n\r";
+        return;
+      }
+      for(const auto& var : variable.toSinglyLinkedList()) print(var, shift + 1);
+      break;
     default:
-    case binom::VarType::invalid_type: std::cout << "unexpected type\n"; break;
+    case binom::VarType::invalid_type: std::cout << "unexpected type\n\r"; break;
     }
   }
 public: void operator()(const Variable& var) {print(var);}

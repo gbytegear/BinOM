@@ -54,6 +54,8 @@ public:
   // Array
   Variable(const literals::arr array);
 
+  Variable(const literals::sllist singly_linked_list);
+
   // Move & Copy
   Variable(const Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
@@ -78,7 +80,7 @@ public:
   operator BitArray& () const;
   operator BufferArray& () const;
   operator Array& () const;
-  operator SingleLinkedList& () const;
+  operator SinglyLinkedList& () const;
   operator DoublyLinkedList& () const;
   operator Map& () const;
 
@@ -87,7 +89,7 @@ public:
   BitArray& toBitArray() const;
   BufferArray& toBufferArray() const;
   Array& toArray() const;
-  SingleLinkedList& toSingleLinkedList() const;
+  SinglyLinkedList& toSinglyLinkedList() const;
   DoublyLinkedList& toDoublyLinkedList() const;
   Map& toMap() const;
 

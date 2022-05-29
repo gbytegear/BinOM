@@ -10,7 +10,7 @@ class BufferArray : public Variable {
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
-  operator SingleLinkedList& () = delete;
+  operator SinglyLinkedList& () = delete;
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
@@ -18,7 +18,7 @@ class BufferArray : public Variable {
   BitArray& toBitArray() const = delete;
   BufferArray& toBufferArray() const = delete;
   Array& toArray() const = delete;
-  SingleLinkedList& toSingleLinkedList() const = delete;
+  SinglyLinkedList& toSinglyLinkedList() const = delete;
   DoublyLinkedList& toDoublyLinkedList() const = delete;
   Map& toMap() const = delete;
 

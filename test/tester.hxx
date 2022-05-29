@@ -103,28 +103,28 @@
 thread_local size_t log_depth = 0;
 
 #define GRP_PUSH ++log_depth;
-#define GRP_POP std::cout << std::string(log_depth - 1, '|') << "+---\n"; std::cout.flush(); --log_depth;
+#define GRP_POP std::cout << std::string(log_depth - 1, '|') << "+---\n\r"; std::cout.flush(); --log_depth;
 #define GRP(expression) GRP_PUSH expression GRP_POP
 
-#define SEPARATOR std::cout << "\x1B[97m=============================================================================\033[0m\n";  std::cout.flush();
+#define SEPARATOR std::cout << "\x1B[97m=============================================================================\033[0m\n\r";  std::cout.flush();
 
 #define PRINT_RUN(expression) \
-  std::cout << "\x1B[33m" << std::string(log_depth, '|') INFO << "\x1B[93m[r]\x1B[33m: " << #expression << "\033[0m\n"; std::cout.flush(); \
+  std::cout << "\x1B[33m" << std::string(log_depth, '|') INFO << "\x1B[93m[r]\x1B[33m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
   expression
 
 #define TEST_ANNOUNCE(MSG) \
-  std::cout << "\033[107;30m" << std::string(log_depth, '|') INFO << "[T]: " #MSG << "\033[0m\n"; std::cout.flush();
+  std::cout << "\033[107;30m" << std::string(log_depth, '|') INFO << "[T]: " #MSG << "\033[0m\n\r"; std::cout.flush();
 
 #define LOG(INF) \
-  std::cout << "\x1B[34m" << std::string(log_depth, '|') INFO << "\x1B[94m[i]\x1B[34m: " << INF << "\033[0m\n"; std::cout.flush();
+  std::cout << "\x1B[34m" << std::string(log_depth, '|') INFO << "\x1B[94m[i]\x1B[34m: " << INF << "\033[0m\n\r"; std::cout.flush();
 
 #define TEST_LEGEND \
-  std::cout << "Test legend:\n" \
-               "\x1B[93m[r]\033[0m - running line of code\n" \
-               "\033[107;30m[T]\033[0m - test announce\n" \
-               "\x1B[94m[i]\033[0m - log\n" \
-               "\x1B[92m[✓]\033[0m - passed test\n" \
-               "\x1B[97;41m[✗]\033[0m - failed test\n"; std::cout.flush();
+  std::cout << "Test legend:\n\r" \
+               "\x1B[93m[r]\033[0m - running line of code\n\r" \
+               "\033[107;30m[T]\033[0m - test announce\n\r" \
+               "\x1B[94m[i]\033[0m - log\n\r" \
+               "\x1B[92m[✓]\033[0m - passed test\n\r" \
+               "\x1B[97;41m[✗]\033[0m - failed test\n\r"; std::cout.flush();
 
 [[noreturn]] void __signal_handler(int signum);
 
@@ -136,29 +136,29 @@ inline struct __TestInit {
     signal(SIGABRT, __signal_handler);
 
     SEPARATOR
-    std::cout << "OS: " << OS_TYPE << '\n'; std::cout.flush();
+    std::cout << "OS: " << OS_TYPE << '\n\r'; std::cout.flush();
     SEPARATOR
     TEST_LEGEND
   }
   ~__TestInit() {
     SEPARATOR
     if(is_success)
-      std::cout << "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n"
-                   "\033[102;30m|                            Test ended success!                            |\033[0m\n"
-                   "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n";
+      std::cout << "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n\r"
+                   "\033[102;30m|                            Test ended success!                            |\033[0m\n\r"
+                   "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n\r";
     else
-      std::cout << "\033[101;31m+---------------------------------------------------------------------------+\033[0m\n"
-                   "\033[101;31m|                           Test ended with error!                          |\033[0m\n"
-                   "\033[101;31m+---------------------------------------------------------------------------+\033[0m\n";
+      std::cout << "\033[101;31m+---------------------------------------------------------------------------+\033[0m\n\r"
+                   "\033[101;31m|                           Test ended with error!                          |\033[0m\n\r"
+                   "\033[101;31m+---------------------------------------------------------------------------+\033[0m\n\r";
        std::cout.flush();
   }
 } __test_init;
 
 #define TEST(expression) \
   if(static_cast <bool> (expression)) { \
-    std::cout << "\x1B[32m" << std::string(log_depth, '|') INFO << "\x1B[92m[✓]\x1B[32m: " << #expression << "\033[0m\n"; std::cout.flush(); \
+    std::cout << "\x1B[32m" << std::string(log_depth, '|') INFO << "\x1B[92m[✓]\x1B[32m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
   } else { \
-    std::cout << "\x1B[97;101m" << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: " << #expression << "\033[0m\n"; std::cout.flush(); \
+    std::cout << "\x1B[97;101m" << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
     __test_init.is_success = false; \
     std::cout.flush(); \
     std::exit(-1); \
@@ -182,7 +182,7 @@ void __signal_handler(int signum) {
   case SIGTERM: std::cout << "Recived signal SIGTERM"; std::cout.flush(); break;
   case SIGABRT: std::cout << "Recived signal SIGABRT"; std::cout.flush(); break;
   }
-  std::cout << "\033[0m\n";
+  std::cout << "\033[0m\n\r";
   std::cout.flush();
   __test_init.is_success = false;
   std::exit(signum);

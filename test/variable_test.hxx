@@ -8,6 +8,7 @@ using namespace binom;
 
 void testVariable() {
   RAIIPerfomanceTest test_perf("Variable test: ");
+  using namespace literals;
   TEST_ANNOUNCE(Variable-reference test); GRP_PUSH;
   {
     PRINT_RUN(Variable a = 256_ui64);
@@ -28,8 +29,6 @@ void testVariable() {
 
   TEST_ANNOUNCE(Variable-reference in array test); GRP_PUSH;
   {
-    using namespace literals;
-
     LOG("(bug in [r]): Variable array = arr{ true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
     Variable array = arr{ true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
 
@@ -44,6 +43,14 @@ void testVariable() {
     PRINT_RUN(array.toArray().popBack());
   }
   GRP_POP;
+
+  TEST_ANNOUNCE(SinglyLinkedList test); GRP_PUSH;
+  {
+    LOG("(bug in [r]): Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
+    Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
+    PRINT_RUN(SinglyLinkedList sl_list = sl_list_var.toSinglyLinkedList().getReference());
+    PRINT_RUN(utils::printVariable(sl_list));
+  }
 }
 
 #endif // VARIABLE_TEST_HXX

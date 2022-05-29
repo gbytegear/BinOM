@@ -398,7 +398,7 @@ class Number;
 class BitArray;
 class BufferArray;
 class Array;
-class SingleLinkedList;
+class SinglyLinkedList;
 class DoublyLinkedList;
 class Map;
 
@@ -406,7 +406,7 @@ namespace literals {
 namespace priv {
 
 struct ArrayLiteral : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct SingleLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct SinglyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct DoublyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct LessMapLiteral;
 struct GreaterMapLiteral;
@@ -425,7 +425,7 @@ typedef std::initializer_list<const ui64>       ui64arr;
 typedef std::initializer_list<const i64>        i64arr;
 typedef std::initializer_list<const f64>        f64arr;
 typedef priv::ArrayLiteral                      arr;
-typedef priv::SingleLinkedListLiteral           sllist;
+typedef priv::SinglyLinkedListLiteral           sllist;
 typedef priv::DoublyLinkedListLiteral           dllist;
 typedef priv::LessMapLiteral                    lmap;
 typedef priv::GreaterMapLiteral                 gmap;

@@ -29,6 +29,7 @@ Variable::Variable(GenericValue&& value) noexcept : Variable(value.toResourceDat
 
 Variable::Variable(const literals::bitarr bit_array)
   : Variable(ResourceData{VarType::bit_array, {.bit_array_header = priv::BitArrayHeader::create(bit_array)}}) {}
+
 Variable::Variable(const literals::ui8arr ui8_array)
   : Variable(ResourceData{VarType::ui8_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui8_array)}}) {}
 Variable::Variable(const literals::i8arr i8_array)
@@ -49,8 +50,12 @@ Variable::Variable(const literals::i64arr i64_array)
   : Variable(ResourceData{VarType::si64_array, {.buffer_array_header = priv::BufferArrayHeader::create(i64_array)}}) {}
 Variable::Variable(const literals::f64arr f64_array)
   : Variable(ResourceData{VarType::f64_array, {.buffer_array_header = priv::BufferArrayHeader::create(f64_array)}}) {}
+
 Variable::Variable(const literals::arr array)
   : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(array)}}) {}
+
+Variable::Variable(const literals::sllist singly_linked_list)
+  : Variable(ResourceData{VarType::singly_linked_list, {.single_linked_list_header = new priv::SinglyLinkedListHeader(singly_linked_list)}}) {}
 
 Variable::Variable(const Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
@@ -168,11 +173,11 @@ Variable::operator Array&() const {
   return reinterpret_cast<Array&>(const_cast<Variable&>(self));
 }
 
-Variable::operator SingleLinkedList&() const {
+Variable::operator SinglyLinkedList&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::singly_linked_list) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<SingleLinkedList&>(const_cast<Variable&>(self));
+  return reinterpret_cast<SinglyLinkedList&>(const_cast<Variable&>(self));
 }
 
 Variable::operator DoublyLinkedList&() const {
@@ -193,7 +198,7 @@ Number& Variable::toNumber() const {return self;}
 BitArray& Variable::toBitArray() const {return self;}
 BufferArray& Variable::toBufferArray() const {return self;}
 Array& Variable::toArray() const {return self;}
-SingleLinkedList& Variable::toSingleLinkedList() const {return self;}
+SinglyLinkedList& Variable::toSinglyLinkedList() const {return self;}
 DoublyLinkedList& Variable::toDoublyLinkedList() const {return self;}
 Map& Variable::toMap() const {return self;}
 

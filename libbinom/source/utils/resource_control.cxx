@@ -15,22 +15,31 @@ void SharedResource::destroy() {
   switch (toTypeClass(resource_data.type)) {
   case VarTypeClass::null:
   case VarTypeClass::number: return;
+
   case VarTypeClass::bit_array:
     if(resource_data.data.pointer)
       delete resource_data.data.bit_array_header;
     resource_data.data.pointer = nullptr;
   return;
+
   case VarTypeClass::buffer_array:
     if(resource_data.data.pointer)
       delete resource_data.data.buffer_array_header;
     resource_data.data.pointer = nullptr;
   return;
+
   case VarTypeClass::array:
     if(resource_data.data.pointer)
       delete resource_data.data.array_header;
     resource_data.data.pointer = nullptr;
   return;
-  case VarTypeClass::singly_linked_list: // TODO
+
+  case VarTypeClass::singly_linked_list:
+    if(resource_data.data.pointer)
+      delete resource_data.data.single_linked_list_header;
+    resource_data.data.pointer = nullptr;
+  return;
+
   case VarTypeClass::doubly_linked_list: // TODO
   case VarTypeClass::map: return; // TODO
   case VarTypeClass::invalid_type: default:
@@ -578,37 +587,20 @@ void ArrayHeader::operator delete(void* ptr) {
 
 //////////////////////////////////////////////////////////// ArrayHeader ////////////////////////////////////////////////////////
 
-struct SingleLinkedListHeader::Node {
-  Variable value;
-  Node* next = nullptr;
-};
+#include "libbinom/include/variables/singly_linked_list.hxx"
 
-class SingleLinkedListHeader::Iterator {
-  Node* prev = nullptr; //!< Required for insert
-  Node* node;
+SinglyLinkedListHeader::SinglyLinkedListHeader(const sllist& value_list) {pushBack(value_list);}
 
-  friend class SingleLinkedListHeader;
-  Iterator(Node* node, Node* prev = nullptr) : prev(prev), node(node) {}
+SinglyLinkedListHeader::~SinglyLinkedListHeader() {
+  auto it = begin(), _end = end();
+  while(it != _end) {
+    Node* node = it.node;
+    ++it;
+    delete node;
+  }
+}
 
-public:
-  Iterator(const Iterator& other) : prev(other.prev), node(other.node) {}
-  Iterator(const Iterator&& other) : prev(other.prev), node(other.node) {}
-
-  Iterator& operator++() {if(node) { prev = node; node = node->next;} return self;}
-  Iterator operator++(int) {Iterator tmp(self); ++self; return tmp;}
-
-  Variable operator*() {if(node) return node->value.getReference(); else return nullptr;}
-  Variable* operator->() {if(node) return &node->value; else return nullptr;}
-
-  bool operator==(const Iterator& other) const noexcept {return node == other.node;}
-  bool operator==(const Iterator&& other) const noexcept {return node == other.node;}
-  bool operator!=(const Iterator& other) const noexcept {return node != other.node;}
-  bool operator!=(const Iterator&& other) const noexcept {return node != other.node;}
-};
-
-SingleLinkedListHeader::SingleLinkedListHeader(const sllist& value_list) {pushBack(value_list);}
-
-Variable SingleLinkedListHeader::pushBack(Variable var) {
+Variable SinglyLinkedListHeader::pushBack(Variable var) {
   if(!last) {
     first = last = new Node{std::move(var), nullptr};
   } else {
@@ -617,7 +609,7 @@ Variable SingleLinkedListHeader::pushBack(Variable var) {
   return last->value.getReference();
 }
 
-SingleLinkedListHeader::Iterator SingleLinkedListHeader::pushBack(const literals::sllist& value_list) {
+SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushBack(const literals::sllist& value_list) {
   Iterator result(nullptr, nullptr);
 
   auto it = value_list.begin();
@@ -639,7 +631,7 @@ SingleLinkedListHeader::Iterator SingleLinkedListHeader::pushBack(const literals
   return result;
 }
 
-Variable SingleLinkedListHeader::pushFront(Variable var) {
+Variable SinglyLinkedListHeader::pushFront(Variable var) {
   if(!first) {
     first = last = new Node{std::move(var), nullptr};
   } else {
@@ -648,7 +640,7 @@ Variable SingleLinkedListHeader::pushFront(Variable var) {
   return first->value.getReference();
 }
 
-SingleLinkedListHeader::Iterator SingleLinkedListHeader::pushFront(const literals::sllist& value_list) {
+SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushFront(const literals::sllist& value_list) {
   Iterator result(nullptr);
 
   Node* last_first = first;
@@ -664,7 +656,7 @@ SingleLinkedListHeader::Iterator SingleLinkedListHeader::pushFront(const literal
   return first;
 }
 
-SingleLinkedListHeader::Iterator SingleLinkedListHeader::insert(Iterator it, Variable var) {
+SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::insert(Iterator it, Variable var) {
   if(!it.node && !it.prev) return it;
   elif(!it.node && it.prev == last) {
     last = it.prev = it.prev->next = new Node{std::move(var), it.node};
@@ -678,7 +670,7 @@ SingleLinkedListHeader::Iterator SingleLinkedListHeader::insert(Iterator it, Var
   return it;
 }
 
-SingleLinkedListHeader::Iterator SingleLinkedListHeader::remove(Iterator it) {
+SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::remove(Iterator it) {
   if(!it.node) return it;
   Node* removable_node = it.node;
   if(it.prev) {
@@ -690,3 +682,6 @@ SingleLinkedListHeader::Iterator SingleLinkedListHeader::remove(Iterator it) {
   }
   return it;
 }
+
+SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::begin() const {return Iterator(first);}
+SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::end() const {return Iterator(nullptr, last);}

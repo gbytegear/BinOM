@@ -25,12 +25,12 @@ enum class ErrorType : ui8 {
   binom_query_invalid_field,
   binom_invalid_visitor,
 
-  // BinOM DataBase Exceptions
-  binomdb_invalid_file,
-  binomdb_invalid_storage_version,
-  binomdb_memory_management_error,
-  binomdb_page_isnt_exist,
-  binomdb_block_isnt_exist,
+  // BinOM FileStorage Exceptions
+  binomfs_invalid_file,
+  binomfs_invalid_storage_version,
+  binomfs_memory_management_error,
+  binomfs_page_isnt_exist,
+  binomfs_block_isnt_exist,
 
   // BinOM Lexer
   unexpected_expression
@@ -39,44 +39,44 @@ enum class ErrorType : ui8 {
 class Error {
   ErrorType err_type;
 public:
-  Error(ErrorType code = ErrorType::no_error) : err_type(code) {}
+  constexpr Error(ErrorType code = ErrorType::no_error) : err_type(code) {}
   const char* what() const noexcept;
-  ErrorType code() const noexcept {return err_type;}
-  operator ErrorType() const noexcept {return err_type;}
-  operator bool () const noexcept {return err_type != ErrorType::no_error;}
+  inline ErrorType code() const noexcept {return err_type;}
+  inline operator ErrorType() const noexcept {return err_type;}
+  inline operator bool () const noexcept {return err_type != ErrorType::no_error;}
 };
 
 inline const char* Error::what() const noexcept {
   switch (err_type) {
-  case ErrorType::no_error: return                  "";
-  case ErrorType::out_of_range: return              "Out of range";
-  case ErrorType::file_open_error: return           "File open error";
-  case ErrorType::invalid_data: return              "Invalid data";
-  case ErrorType::null_ponter_dereference: return   "Trying to dereference null-pointer";
+  case ErrorType::no_error: return                  "\n\r";
+  case ErrorType::out_of_range: return              "Out of range\n\r";
+  case ErrorType::file_open_error: return           "File open error\n\r";
+  case ErrorType::invalid_data: return              "Invalid data\n\r";
+  case ErrorType::null_ponter_dereference: return   "Trying to dereference null-pointer\n\r";
 
-  case ErrorType::binom_invalid_type: return        "Invalid BinOM type";
+  case ErrorType::binom_invalid_type: return        "BinOM: Invalid BinOM type\n\r";
   case ErrorType::binom_resource_not_available:
-  return                                            "BinOM Variable resource isn't available";
-  case ErrorType::binom_out_of_range: return        "Out of BinOM container range";
-  case ErrorType::binom_unique_error: return        "Non-unique key";
-  case ErrorType::binom_invalid_visitor: return     "Invalide visitor";
+  return                                            "BinOM: Variable resource isn't available\n\r";
+  case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range\n\r";
+  case ErrorType::binom_unique_error: return        "BinOM: Non-unique key\n\r";
+  case ErrorType::binom_invalid_visitor: return     "BinOM: Invalide visitor\n\r";
 
-  case ErrorType::binomdb_invalid_file: return      "BinOM DB invalid file";
-  case ErrorType::binomdb_invalid_storage_version:
-  return                                            "BinOM DB invalid file storage version";
-  case ErrorType::binomdb_memory_management_error:
-  return                                            "BinOM DB memory management error";
-  case ErrorType::binomdb_page_isnt_exist:
-  return                                            "BinOM DB page isn't exist";
-  case ErrorType::binomdb_block_isnt_exist:
-  return                                            "BinOM DB block isn't exist";
+  case ErrorType::binomfs_invalid_file: return      "BinOM FileStorage: Invalid file\n\r";
+  case ErrorType::binomfs_invalid_storage_version:
+  return                                            "BinOM FileStorage: Invalid file storage version\n\r";
+  case ErrorType::binomfs_memory_management_error:
+  return                                            "BinOM FileStorage: Memory management error\n\r";
+  case ErrorType::binomfs_page_isnt_exist:
+  return                                            "BinOM FileStorage: Page isn't exist\n\r";
+  case ErrorType::binomfs_block_isnt_exist:
+  return                                            "BinOM FileStorage: Block isn't exist\n\r";
   case ErrorType::binom_query_invalid_field:
-  return                                            "BinOM invalid Query field";
+  return                                            "BinOM: Invalid Query field\n\r";
 
-  case ErrorType::unexpected_expression: return     "Unexpected expression";
+  case ErrorType::unexpected_expression: return     "Unexpected expression\n\r";
 
-  case ErrorType::any: return                       "Unknown exception";
-  default: return                                   "Invalid error codes";
+  case ErrorType::any: return                       "Unknown exception\n\r";
+  default: return                                   "Invalid error codes\n\r";
   }
 }
 

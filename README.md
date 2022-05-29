@@ -13,7 +13,7 @@
   * [x] `binom::BitArray`
   * [x] `binom::BufferArray`
   * [x] `binom::Array`
-  * [ ] `binom::SinglyLinkedList`
+  * [x] `binom::SinglyLinkedList`
   * [ ] `binom::DoublyLinkedList`
   * [ ] `binom::Map`
 * [ ] Implement serialization of BinOM containers

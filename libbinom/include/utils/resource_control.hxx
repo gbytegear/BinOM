@@ -145,14 +145,15 @@ public:
 };
 
 
-class SingleLinkedListHeader {
+class SinglyLinkedListHeader {
   struct Node;
   size_t size = 0;
   Node* first = nullptr;
   Node* last = nullptr;
 public:
   class Iterator;
-  SingleLinkedListHeader(const literals::sllist& value_list);
+  SinglyLinkedListHeader(const literals::sllist& value_list);
+  ~SinglyLinkedListHeader();
 
   Variable pushBack(Variable var);
   Iterator pushBack(const literals::sllist& value_list);
@@ -164,6 +165,7 @@ public:
   Iterator remove(Iterator it);
 
   Iterator begin() const;
+  Iterator end() const;
 
 };
 
@@ -188,7 +190,7 @@ struct ResourceData {
     BitArrayHeader* bit_array_header;
     BufferArrayHeader* buffer_array_header;
     ArrayHeader* array_header;
-    SingleLinkedListHeader* single_linked_list_header;
+    SinglyLinkedListHeader* single_linked_list_header;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };
