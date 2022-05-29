@@ -78,7 +78,8 @@ public:
   operator BitArray& () const;
   operator BufferArray& () const;
   operator Array& () const;
-  operator List& () const;
+  operator SingleLinkedList& () const;
+  operator DoublyLinkedList& () const;
   operator Map& () const;
 
   // Downcast methods
@@ -86,7 +87,8 @@ public:
   BitArray& toBitArray() const;
   BufferArray& toBufferArray() const;
   Array& toArray() const;
-  List& toList() const;
+  SingleLinkedList& toSingleLinkedList() const;
+  DoublyLinkedList& toDoublyLinkedList() const;
   Map& toMap() const;
 
   Variable& operator=(const Variable& other);

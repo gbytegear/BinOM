@@ -30,7 +30,8 @@ void SharedResource::destroy() {
       delete resource_data.data.array_header;
     resource_data.data.pointer = nullptr;
   return;
-  case VarTypeClass::list: return; // TODO
+  case VarTypeClass::singly_linked_list: // TODO
+  case VarTypeClass::doubly_linked_list: // TODO
   case VarTypeClass::map: return; // TODO
   case VarTypeClass::invalid_type: default:
   return;
@@ -91,7 +92,8 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
     resource->resource_data.data.array_header = ArrayHeader::copy(resource_data.data.array_header);
   return;
 
-  case VarTypeClass::list: // TODO
+  case VarTypeClass::singly_linked_list: // TODO
+  case VarTypeClass::doubly_linked_list: // TODO
   case VarTypeClass::map: // TODO
   default:
   case VarTypeClass::invalid_type:
@@ -139,7 +141,8 @@ Link Link::cloneResource(Link resource_link) noexcept {
   case VarTypeClass::array:
   return ResourceData{VarType::array, {.array_header = ArrayHeader::copy(resource_link->data.array_header)}};
 
-  case VarTypeClass::list: // TODO
+  case VarTypeClass::singly_linked_list: // TODO
+  case VarTypeClass::doubly_linked_list: // TODO
   case VarTypeClass::map: // TODO
   default:
   case VarTypeClass::invalid_type:
@@ -571,4 +574,119 @@ ArrayHeader::ReverseIterator ArrayHeader::rend() const {return ArrayHeader::Reve
 void ArrayHeader::operator delete(void* ptr) {
   for(auto element : *reinterpret_cast<ArrayHeader*>(ptr)) element.~Variable();
   return ::delete [] reinterpret_cast<byte*>(ptr);
+}
+
+//////////////////////////////////////////////////////////// ArrayHeader ////////////////////////////////////////////////////////
+
+struct SingleLinkedListHeader::Node {
+  Variable value;
+  Node* next = nullptr;
+};
+
+class SingleLinkedListHeader::Iterator {
+  Node* prev = nullptr; //!< Required for insert
+  Node* node;
+
+  friend class SingleLinkedListHeader;
+  Iterator(Node* node, Node* prev = nullptr) : prev(prev), node(node) {}
+
+public:
+  Iterator(const Iterator& other) : prev(other.prev), node(other.node) {}
+  Iterator(const Iterator&& other) : prev(other.prev), node(other.node) {}
+
+  Iterator& operator++() {if(node) { prev = node; node = node->next;} return self;}
+  Iterator operator++(int) {Iterator tmp(self); ++self; return tmp;}
+
+  Variable operator*() {if(node) return node->value.getReference(); else return nullptr;}
+  Variable* operator->() {if(node) return &node->value; else return nullptr;}
+
+  bool operator==(const Iterator& other) const noexcept {return node == other.node;}
+  bool operator==(const Iterator&& other) const noexcept {return node == other.node;}
+  bool operator!=(const Iterator& other) const noexcept {return node != other.node;}
+  bool operator!=(const Iterator&& other) const noexcept {return node != other.node;}
+};
+
+SingleLinkedListHeader::SingleLinkedListHeader(const sllist& value_list) {pushBack(value_list);}
+
+Variable SingleLinkedListHeader::pushBack(Variable var) {
+  if(!last) {
+    first = last = new Node{std::move(var), nullptr};
+  } else {
+    last = last->next = new Node{std::move(var), nullptr};
+  }
+  return last->value.getReference();
+}
+
+SingleLinkedListHeader::Iterator SingleLinkedListHeader::pushBack(const literals::sllist& value_list) {
+  Iterator result(nullptr, nullptr);
+
+  auto it = value_list.begin();
+
+  if(!last) {
+    result.node = first = last = new Node{std::move(*it), nullptr};
+  } else {
+    result.prev = last;
+    result.node = last = last->next = new Node{std::move(*it), nullptr};
+  }
+
+  for(auto end = value_list.end(); it != end; ++it)
+    if(!last) {
+      first = last = new Node{std::move(*it), nullptr};
+    } else {
+      last = last->next = new Node{std::move(*it), nullptr};
+    }
+
+  return result;
+}
+
+Variable SingleLinkedListHeader::pushFront(Variable var) {
+  if(!first) {
+    first = last = new Node{std::move(var), nullptr};
+  } else {
+    first = new Node{std::move(var), first};
+  }
+  return first->value.getReference();
+}
+
+SingleLinkedListHeader::Iterator SingleLinkedListHeader::pushFront(const literals::sllist& value_list) {
+  Iterator result(nullptr);
+
+  Node* last_first = first;
+  Node** ptr_it = &first;
+
+  for(const auto& value : value_list) {
+    (*ptr_it) = new Node{std::move(value), nullptr};
+    ptr_it = &(*ptr_it)->next;
+  }
+
+  (*ptr_it)->next = last_first;
+
+  return first;
+}
+
+SingleLinkedListHeader::Iterator SingleLinkedListHeader::insert(Iterator it, Variable var) {
+  if(!it.node && !it.prev) return it;
+  elif(!it.node && it.prev == last) {
+    last = it.prev = it.prev->next = new Node{std::move(var), it.node};
+  } elif(it.prev) {
+    it.prev->next = new Node{std::move(var), it.node};
+    it.node = it.prev->next;
+  } elif (first == it.node) {
+    first = new Node{std::move(var), it.node};
+    it.node = first;
+  }
+  return it;
+}
+
+SingleLinkedListHeader::Iterator SingleLinkedListHeader::remove(Iterator it) {
+  if(!it.node) return it;
+  Node* removable_node = it.node;
+  if(it.prev) {
+    it.node = it.prev->next = it.node->next;
+    delete removable_node;
+  } elif (first == it.node) {
+    it.node = it.node->next;
+    delete removable_node;
+  }
+  return it;
 }

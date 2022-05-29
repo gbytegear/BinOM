@@ -37,9 +37,10 @@ enum class VarType : ui8 {
   si64_array              = 0x16, ///< Array of signed 64-bit integer numbers
   f64_array               = 0x17, ///< Array of 64-bit numbers with floating point
   array                   = 0x18, ///< Heterogeneous array
-  list                    = 0x19, ///< Heterogeneous list
-  less_map                = 0x1A, ///< Associative heterogeneous container with key-sorted by descending
-  greater_map             = 0x1B, ///< Associative heterogeneous container with key-sorted by ascending
+  singly_linked_list      = 0x19, ///< Heterogeneous singly linked list
+  doubly_linked_list      = 0x1A, ///< Heterogeneous doubly linked list
+  less_map                = 0x1B, ///< Associative heterogeneous container with key-sorted by descending
+  greater_map             = 0x1C, ///< Associative heterogeneous container with key-sorted by ascending
 
   separator               = 0x00, ///< End code
   invalid_type            = 0xFF  ///< Invalid type code
@@ -51,8 +52,9 @@ enum class VarTypeClass : ui8 {
   bit_array               = 0x03,
   buffer_array            = 0x04,
   array                   = 0x05,
-  list                    = 0x06,
-  map                     = 0x07,
+  singly_linked_list      = 0x06,
+  doubly_linked_list      = 0x07,
+  map                     = 0x08,
 
   invalid_type            = int(VarType::invalid_type)
 };
@@ -132,11 +134,11 @@ inline VarTypeClass toTypeClass(VarType type) noexcept {
   case VarType::f64_array:
   return VarTypeClass::buffer_array;
 
-  case VarType::array:
-  return VarTypeClass::array;
+  case VarType::array: return VarTypeClass::array;
 
-  case VarType::list:
-  return VarTypeClass::list;
+  case VarType::singly_linked_list: return VarTypeClass::singly_linked_list;
+
+  case VarType::doubly_linked_list: return VarTypeClass::doubly_linked_list;
 
   case VarType::less_map:
   case VarType::greater_map:
@@ -306,7 +308,8 @@ inline VarSortType toSortType(VarType type) noexcept {
   case VarType::si64_array:
   case VarType::f64_array:
   case VarType::array:
-  case VarType::list:
+  case VarType::singly_linked_list:
+  case VarType::doubly_linked_list:
   return VarSortType::unsorted;
 
   case VarType::less_map:
@@ -395,14 +398,16 @@ class Number;
 class BitArray;
 class BufferArray;
 class Array;
-class List;
+class SingleLinkedList;
+class DoublyLinkedList;
 class Map;
 
 namespace literals {
 namespace priv {
 
 struct ArrayLiteral : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct ListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct SingleLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct DoublyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct LessMapLiteral;
 struct GreaterMapLiteral;
 
@@ -420,7 +425,8 @@ typedef std::initializer_list<const ui64>       ui64arr;
 typedef std::initializer_list<const i64>        i64arr;
 typedef std::initializer_list<const f64>        f64arr;
 typedef priv::ArrayLiteral                      arr;
-typedef priv::ListLiteral                       list;
+typedef priv::SingleLinkedListLiteral           sllist;
+typedef priv::DoublyLinkedListLiteral           dllist;
 typedef priv::LessMapLiteral                    lmap;
 typedef priv::GreaterMapLiteral                 gmap;
 

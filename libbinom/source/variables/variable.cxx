@@ -3,7 +3,7 @@
 #include "libbinom/include/variables/bit_array.hxx"
 #include "libbinom/include/variables/buffer_array.hxx"
 #include "libbinom/include/variables/array.hxx"
-#include "libbinom/include/variables/list.hxx"
+#include "libbinom/include/variables/singly_linked_list.hxx"
 #include "libbinom/include/variables/map.hxx"
 
 using namespace binom;
@@ -107,16 +107,18 @@ size_t Variable::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return 0;
   switch (getTypeClass()) {
-  case binom::VarTypeClass::null: return 0;
-  case binom::VarTypeClass::number: return 1;
-  case binom::VarTypeClass::bit_array: return const_cast<Variable&>(self).toBitArray().getElementCount();
-  case binom::VarTypeClass::buffer_array: return const_cast<Variable&>(self).toBufferArray().getElementCount();
-  case binom::VarTypeClass::array: return const_cast<Variable&>(self).toArray().getElementCount();
-  case binom::VarTypeClass::list:
+  case VarTypeClass::null: return 0;
+  case VarTypeClass::number: return 1;
+  case VarTypeClass::bit_array: return const_cast<Variable&>(self).toBitArray().getElementCount();
+  case VarTypeClass::buffer_array: return const_cast<Variable&>(self).toBufferArray().getElementCount();
+  case VarTypeClass::array: return const_cast<Variable&>(self).toArray().getElementCount();
+  case VarTypeClass::singly_linked_list: // TODO
   break;
-  case binom::VarTypeClass::map:
+  case VarTypeClass::doubly_linked_list: // TODO
   break;
-  case binom::VarTypeClass::invalid_type:
+  case VarTypeClass::map:
+  break;
+  case VarTypeClass::invalid_type:
   break;
   }
   return -1;
@@ -131,7 +133,8 @@ size_t Variable::getElementSize() const noexcept {
   case binom::VarTypeClass::bit_array: return 1;
   case binom::VarTypeClass::buffer_array: return size_t(getBitWidth());
   case binom::VarTypeClass::array:
-  case binom::VarTypeClass::list: return sizeof (Link);
+  case binom::VarTypeClass::singly_linked_list:
+  case binom::VarTypeClass::doubly_linked_list: return sizeof (Link);
   case binom::VarTypeClass::map: // TODO
   case binom::VarTypeClass::invalid_type: return 0;
   }
@@ -165,11 +168,18 @@ Variable::operator Array&() const {
   return reinterpret_cast<Array&>(const_cast<Variable&>(self));
 }
 
-Variable::operator List&() const {
+Variable::operator SingleLinkedList&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
-  if(getTypeClass() != VarTypeClass::list) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<List&>(const_cast<Variable&>(self));
+  if(getTypeClass() != VarTypeClass::singly_linked_list) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<SingleLinkedList&>(const_cast<Variable&>(self));
+}
+
+Variable::operator DoublyLinkedList&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::doubly_linked_list) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<DoublyLinkedList&>(const_cast<Variable&>(self));
 }
 
 Variable::operator Map&() const {
@@ -183,7 +193,8 @@ Number& Variable::toNumber() const {return self;}
 BitArray& Variable::toBitArray() const {return self;}
 BufferArray& Variable::toBufferArray() const {return self;}
 Array& Variable::toArray() const {return self;}
-List& Variable::toList() const {return self;}
+SingleLinkedList& Variable::toSingleLinkedList() const {return self;}
+DoublyLinkedList& Variable::toDoublyLinkedList() const {return self;}
 Map& Variable::toMap() const {return self;}
 
 Variable& Variable::operator=(const Variable& other) {

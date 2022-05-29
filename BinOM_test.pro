@@ -32,10 +32,11 @@ HEADERS += \
     libbinom/include/variables/array.hxx \
     libbinom/include/variables/bit_array.hxx \
     libbinom/include/variables/buffer_array.hxx \
+    libbinom/include/variables/doubly_linked_list.hxx \
     libbinom/include/variables/generic_value.hxx \
-    libbinom/include/variables/list.hxx \
     libbinom/include/variables/map.hxx \
     libbinom/include/variables/number.hxx \
+    libbinom/include/variables/singly_linked_list.hxx \
     libbinom/include/variables/variable.hxx \
     test/all_test.hxx \
     test/bits_test.hxx \

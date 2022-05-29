@@ -11,6 +11,7 @@
 #include <cmath>
 #include <new>
 
+
 namespace binom::priv {
 using namespace extended_type_traits;
 
@@ -143,12 +144,35 @@ public:
   void operator delete(void* ptr);
 };
 
+
+class SingleLinkedListHeader {
+  struct Node;
+  size_t size = 0;
+  Node* first = nullptr;
+  Node* last = nullptr;
+public:
+  class Iterator;
+  SingleLinkedListHeader(const literals::sllist& value_list);
+
+  Variable pushBack(Variable var);
+  Iterator pushBack(const literals::sllist& value_list);
+
+  Variable pushFront(Variable var);
+  Iterator pushFront(const literals::sllist& value_list);
+
+  Iterator insert(Iterator it, Variable var);
+  Iterator remove(Iterator it);
+
+  Iterator begin() const;
+
+};
+
+
 struct ResourceData {
 
   union Data {
     void* pointer = nullptr;
 
-    // Number
     bool  bool_val;
     ui8   ui8_val;
     ui16  ui16_val;
@@ -161,14 +185,10 @@ struct ResourceData {
     f32   f32_val;
     f64   f64_val;
 
-    // BitArray
     BitArrayHeader* bit_array_header;
-    // BufferArray
     BufferArrayHeader* buffer_array_header;
-    // Array
     ArrayHeader* array_header;
-    // List
-    // Map
+    SingleLinkedListHeader* single_linked_list_header;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };

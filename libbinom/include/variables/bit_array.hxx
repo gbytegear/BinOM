@@ -10,15 +10,18 @@ class BitArray : public Variable {
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
-  operator List& () = delete;
+  operator SingleLinkedList& () = delete;
+  operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
-  inline Number& toNumber() = delete;
-  inline BitArray& toBitArray() = delete;
-  inline BufferArray& toBufferArray() = delete;
-  inline Array& toArray() = delete;
-  inline List& toList() = delete;
-  inline Map& toMap() = delete;
+  Number& toNumber() const = delete;
+  BitArray& toBitArray() const = delete;
+  BufferArray& toBufferArray() const = delete;
+  Array& toArray() const = delete;
+  SingleLinkedList& toSingleLinkedList() const = delete;
+  DoublyLinkedList& toDoublyLinkedList() const = delete;
+  Map& toMap() const = delete;
+
 
   priv::BitArrayHeader*& getData() const noexcept;
 
@@ -61,8 +64,6 @@ public:
   void popBack(size_t size);
   void popFront(size_t size);
   void remove(size_t at, size_t size);
-
-
 
   Iterator begin() const;
   Iterator end() const;
