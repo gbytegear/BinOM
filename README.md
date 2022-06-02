@@ -14,7 +14,7 @@
   * [x] `binom::BufferArray`
   * [x] `binom::Array`
   * [x] `binom::SinglyLinkedList`
-  * [ ] `binom::DoublyLinkedList`
+  * [x] `binom::DoublyLinkedList`
   * [ ] `binom::Map`
 * [ ] Implement serialization of BinOM containers
 * [ ] Implement file storage

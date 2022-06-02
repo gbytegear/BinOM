@@ -35,7 +35,9 @@ void testVariable() {
     LOG("(bug in [r]): array.toArray() += arr{false, true, array.getReference()};")
     array.toArray() += arr{false, true, array.getReference()};
 
+#ifdef FULL_TEST
     PRINT_RUN(utils::printVariable(array));
+#endif
 
     LOG("FIXME:")
     LOG("If you don't delete the variable-reference to the parent element,")
@@ -50,6 +52,14 @@ void testVariable() {
     Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
     PRINT_RUN(SinglyLinkedList sl_list = sl_list_var.toSinglyLinkedList().getReference());
     PRINT_RUN(utils::printVariable(sl_list));
+  }
+
+  TEST_ANNOUNCE(DoublyLinkedList test); GRP_PUSH;
+  {
+    LOG("(bug in [r]): Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
+    Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
+    PRINT_RUN(DoublyLinkedList dl_list = dl_list_var.toDoublyLinkedList().getReference());
+    PRINT_RUN(utils::printVariable(dl_list));
   }
 }
 

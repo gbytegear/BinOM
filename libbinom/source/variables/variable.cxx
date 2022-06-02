@@ -57,6 +57,9 @@ Variable::Variable(const literals::arr array)
 Variable::Variable(const literals::sllist singly_linked_list)
   : Variable(ResourceData{VarType::singly_linked_list, {.single_linked_list_header = new priv::SinglyLinkedListHeader(singly_linked_list)}}) {}
 
+Variable::Variable(const literals::dllist doubly_linked_list)
+  : Variable(ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_header = new priv::DoublyLinkedListHeader(doubly_linked_list)}}) {}
+
 Variable::Variable(const Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 

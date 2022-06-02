@@ -153,6 +153,7 @@ class SinglyLinkedListHeader {
 public:
   class Iterator;
   SinglyLinkedListHeader(const literals::sllist& value_list);
+  SinglyLinkedListHeader(const SinglyLinkedListHeader& other);
   ~SinglyLinkedListHeader();
 
   Variable pushBack(Variable var);
@@ -162,11 +163,42 @@ public:
   Iterator pushFront(const literals::sllist& value_list);
 
   Iterator insert(Iterator it, Variable var);
-  Iterator remove(Iterator it);
+  void remove(Iterator it);
+
+  Iterator begin() const;
+  Iterator end() const;
+};
+
+
+class DoublyLinkedListHeader {
+  struct Node;
+  size_t size = 0;
+  Node* first = nullptr;
+  Node* last = nullptr;
+public:
+  class Iterator;
+  class ReverseIterator;
+  DoublyLinkedListHeader(const literals::dllist& value_list);
+  DoublyLinkedListHeader(const DoublyLinkedListHeader& other);
+  ~DoublyLinkedListHeader();
+
+  Variable pushBack(Variable var);
+  Iterator pushBack(const literals::dllist& value_list);
+
+  Variable pushFront(Variable var);
+  Iterator pushFront(const literals::dllist& value_list);
+
+  Iterator insert(Iterator it, Variable var);
+
+  void popBack();
+  void popFront();
+  void remove(Iterator it);
 
   Iterator begin() const;
   Iterator end() const;
 
+  ReverseIterator rbegin() const;
+  ReverseIterator rend() const;
 };
 
 
@@ -191,6 +223,7 @@ struct ResourceData {
     BufferArrayHeader* buffer_array_header;
     ArrayHeader* array_header;
     SinglyLinkedListHeader* single_linked_list_header;
+    DoublyLinkedListHeader* doubly_linked_list_header;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };
@@ -221,12 +254,12 @@ public:
   ~Link();
 
   void overwriteWithResourceCopy(ResourceData& resource_data);
+  static Link cloneResource(priv::Link resource_link) noexcept;
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
   ResourceData* operator*() const noexcept;
   ResourceData* operator->() const noexcept;
   VarType getType() const noexcept;
-  static Link cloneResource(priv::Link resource_link) noexcept;
 };
 
 }

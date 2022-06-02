@@ -54,7 +54,11 @@ public:
   // Array
   Variable(const literals::arr array);
 
+  // SinglyLinkedList
   Variable(const literals::sllist singly_linked_list);
+
+  // DoublyLinkedList
+  Variable(const literals::dllist doubly_linked_list);
 
   // Move & Copy
   Variable(const Variable&& other) noexcept;

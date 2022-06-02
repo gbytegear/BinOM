@@ -136,7 +136,7 @@ inline struct __TestInit {
     signal(SIGABRT, __signal_handler);
 
     SEPARATOR
-    std::cout << "OS: " << OS_TYPE << '\n\r'; std::cout.flush();
+    std::cout << "OS: " << OS_TYPE << "\n\r"; std::cout.flush();
     SEPARATOR
     TEST_LEGEND
   }

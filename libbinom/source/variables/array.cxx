@@ -13,6 +13,9 @@ Array::Array()
 Array::Array(const literals::arr array)
   : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(array)}}) {}
 
+Array::Array(const Array& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
+Array::Array(const Array&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
+
 Array Array::getReference() noexcept {return Link(resource_link);}
 
 size_t Array::getElementCount() const noexcept {

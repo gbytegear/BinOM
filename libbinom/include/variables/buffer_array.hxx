@@ -8,7 +8,6 @@ namespace binom {
 class BufferArray : public Variable {
   operator Number& () = delete;
   operator BitArray& () = delete;
-  operator BufferArray& () = delete;
   operator Array& () = delete;
   operator SinglyLinkedList& () = delete;
   operator DoublyLinkedList& () = delete;

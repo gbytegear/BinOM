@@ -7,6 +7,11 @@ inline SinglyLinkedListHeader*& SinglyLinkedList::getData() const noexcept {retu
 
 SinglyLinkedList::SinglyLinkedList(priv::Link&& link) : Variable(std::move(link)) {}
 
+SinglyLinkedList::SinglyLinkedList() : Variable(literals::sllist{}) {}
+SinglyLinkedList::SinglyLinkedList(const literals::sllist singly_linked_list) : Variable(singly_linked_list) {}
+SinglyLinkedList::SinglyLinkedList(const SinglyLinkedList& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
+SinglyLinkedList::SinglyLinkedList(const SinglyLinkedList&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
+
 SinglyLinkedList SinglyLinkedList::getReference() noexcept {return Link(resource_link);}
 
 Variable SinglyLinkedList::pushBack(Variable var) {
@@ -39,10 +44,10 @@ SinglyLinkedList::Iterator SinglyLinkedList::insert(Iterator it, Variable var) {
   else return Iterator(nullptr, nullptr);
 }
 
-SinglyLinkedList::Iterator SinglyLinkedList::remove(Iterator it) {
+void SinglyLinkedList::remove(Iterator it) {
   if(auto lk = getLock(MtxLockType::unique_locked); lk)
     return getData()->remove(it);
-  else return Iterator(nullptr, nullptr);
+  else return;
 }
 
 SinglyLinkedList::Iterator SinglyLinkedList::begin() const {

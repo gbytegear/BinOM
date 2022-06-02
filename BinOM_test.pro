@@ -11,6 +11,7 @@ SOURCES += test/test.cxx \
     libbinom/source/variables/array.cxx \
     libbinom/source/variables/bit_array.cxx \
     libbinom/source/variables/buffer_array.cxx \
+    libbinom/source/variables/doubly_linked_list.cxx \
     libbinom/source/variables/number.cxx \
     libbinom/source/variables/singly_linked_list.cxx \
     libbinom/source/variables/variable.cxx

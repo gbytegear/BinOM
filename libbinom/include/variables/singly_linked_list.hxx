@@ -39,7 +39,6 @@ class SinglyLinkedList : public Variable {
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
-  operator SinglyLinkedList& () = delete;
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
@@ -58,8 +57,10 @@ class SinglyLinkedList : public Variable {
 public:
   typedef priv::SinglyLinkedListHeader::Iterator Iterator;
 
-  SinglyLinkedList() : Variable(literals::sllist{}) {}
-  SinglyLinkedList(const literals::sllist singly_linked_list) : Variable(singly_linked_list) {}
+  SinglyLinkedList();
+  SinglyLinkedList(const literals::sllist singly_linked_list);
+  SinglyLinkedList(const SinglyLinkedList& other) noexcept;
+  SinglyLinkedList(const SinglyLinkedList&& other) noexcept;
 
   SinglyLinkedList getReference() noexcept;
 
@@ -71,7 +72,7 @@ public:
 
   Iterator insert(Iterator it, Variable var);
 
-  Iterator remove(Iterator it);
+  void remove(Iterator it);
 
   Iterator begin() const;
   Iterator end() const;

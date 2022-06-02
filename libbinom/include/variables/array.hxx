@@ -9,7 +9,6 @@ class Array : public Variable {
   operator Number& () = delete;
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
-  operator Array& () = delete;
   operator SinglyLinkedList& () = delete;
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
@@ -32,6 +31,8 @@ public:
 
   Array();
   Array(const literals::arr array);
+  Array(const Array& other) noexcept;
+  Array(const Array&& other) noexcept;
 
   Array getReference() noexcept;
   size_t getElementCount() const noexcept;

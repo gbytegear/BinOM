@@ -7,6 +7,7 @@
 #include "../variables/buffer_array.hxx"
 #include "../variables/array.hxx"
 #include "../variables/singly_linked_list.hxx"
+#include "../variables/doubly_linked_list.hxx"
 #include <iostream>
 
 
@@ -32,56 +33,57 @@ class {
       std::cout << std::string(shift, '|') << "bit_array: " << std::boolalpha;
       for(auto value : variable.toBitArray()) std::cout << bool(value) << ' ';
       std::cout << std::noboolalpha << std::endl;
+    break;
     case binom::VarType::ui8_array:
       std::cout << std::string(shift, '|') << "ui8_array: ";
       for(auto value : variable.toBufferArray()) std::cout << ui8(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::si8_array:
       std::cout << std::string(shift, '|') << "si8_array: ";
       for(auto value : variable.toBufferArray()) std::cout << i8(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::ui16_array:
       std::cout << std::string(shift, '|') << "ui16_array: ";
       for(auto value : variable.toBufferArray()) std::cout << ui16(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::si16_array:
       std::cout << std::string(shift, '|') << "si16_array: ";
       for(auto value : variable.toBufferArray()) std::cout << i16(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::ui32_array:
       std::cout << std::string(shift, '|') << "ui32_array: ";
       for(auto value : variable.toBufferArray()) std::cout << ui32(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::si32_array:
       std::cout << std::string(shift, '|') << "si32_array: ";
       for(auto value : variable.toBufferArray()) std::cout << i32(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::f32_array:
       std::cout << std::string(shift, '|') << "f32_array: ";
       for(auto value : variable.toBufferArray()) std::cout << f32(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::ui64_array:
       std::cout << std::string(shift, '|') << "ui64_array: ";
       for(auto value : variable.toBufferArray()) std::cout << ui64(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::si64_array:
       std::cout << std::string(shift, '|') << "si64_array: ";
       for(auto value : variable.toBufferArray()) std::cout << i64(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::f64_array:
       std::cout << std::string(shift, '|') << "f64_array: ";
       for(auto value : variable.toBufferArray()) std::cout << f64(value) << ' ';
       std::cout << std::endl;
-      break;
+    break;
     case binom::VarType::array:
       std::cout << std::string(shift, '|') << "array:\n\r";
       if(shift >= 100) {
@@ -89,7 +91,7 @@ class {
         return;
       }
       for(const auto& var : variable.toArray()) print(var, shift + 1);
-      break;
+    break;
     case binom::VarType::singly_linked_list:
       std::cout << std::string(shift, '|') << "singly_linked_list:\n\r";
       if(shift >= 100) {
@@ -97,7 +99,15 @@ class {
         return;
       }
       for(const auto& var : variable.toSinglyLinkedList()) print(var, shift + 1);
-      break;
+    break;
+    case binom::VarType::doubly_linked_list:
+      std::cout << std::string(shift, '|') << "doubly_linked_list:\n\r";
+      if(shift >= 100) {
+        std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n\r";
+        return;
+      }
+      for(const auto& var : variable.toDoublyLinkedList()) print(var, shift + 1);
+    break;
     default:
     case binom::VarType::invalid_type: std::cout << "unexpected type\n\r"; break;
     }

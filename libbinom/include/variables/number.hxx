@@ -13,7 +13,6 @@ class Number :
   USE_ARITHMETIC
   USE_ARITHMETIC_CAST
 
-  operator Number& () = delete;
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;

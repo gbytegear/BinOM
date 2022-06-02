@@ -40,7 +40,12 @@ void SharedResource::destroy() {
     resource_data.data.pointer = nullptr;
   return;
 
-  case VarTypeClass::doubly_linked_list: // TODO
+  case VarTypeClass::doubly_linked_list:
+    if(resource_data.data.pointer)
+      delete resource_data.data.doubly_linked_list_header;
+    resource_data.data.pointer = nullptr;
+  return;
+
   case VarTypeClass::map: return; // TODO
   case VarTypeClass::invalid_type: default:
   return;
@@ -101,14 +106,49 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
     resource->resource_data.data.array_header = ArrayHeader::copy(resource_data.data.array_header);
   return;
 
-  case VarTypeClass::singly_linked_list: // TODO
-  case VarTypeClass::doubly_linked_list: // TODO
+  case VarTypeClass::singly_linked_list:
+    resource->resource_data.data.single_linked_list_header = new SinglyLinkedListHeader(*resource_data.data.single_linked_list_header);
+  return;
+
+  case VarTypeClass::doubly_linked_list:
+    resource->resource_data.data.doubly_linked_list_header = new DoublyLinkedListHeader(*resource_data.data.doubly_linked_list_header);
+  return;
+
   case VarTypeClass::map: // TODO
   default:
   case VarTypeClass::invalid_type:
   break;
   }
   resource->resource_data.type = VarType::null;
+}
+
+Link Link::cloneResource(Link resource_link) noexcept {
+  switch (toTypeClass(resource_link.getType())) {
+  case VarTypeClass::null:
+  case VarTypeClass::number:
+  return **resource_link;
+
+  case VarTypeClass::bit_array:
+  return ResourceData{VarType::bit_array, {.bit_array_header = BitArrayHeader::copy(resource_link->data.bit_array_header)}};
+
+  case VarTypeClass::buffer_array:
+  return ResourceData{resource_link.getType(), {.buffer_array_header = BufferArrayHeader::copy(resource_link->data.buffer_array_header)}};
+
+  case VarTypeClass::array:
+  return ResourceData{VarType::array, {.array_header = ArrayHeader::copy(resource_link->data.array_header)}};
+
+  case VarTypeClass::singly_linked_list:
+  return ResourceData{VarType::singly_linked_list, {.single_linked_list_header = new SinglyLinkedListHeader(*resource_link->data.single_linked_list_header)}};
+
+  case VarTypeClass::doubly_linked_list:
+  return ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_header = new DoublyLinkedListHeader(*resource_link->data.doubly_linked_list_header)}};
+
+  case VarTypeClass::map: // TODO
+  default:
+  case VarTypeClass::invalid_type:
+  break;
+  }
+  return ResourceData{VarType::null, {.pointer = nullptr}};
 }
 
 OptionalSharedRecursiveLock Link::getLock(MtxLockType lock_type) const noexcept {
@@ -133,31 +173,6 @@ VarType Link::getType() const noexcept {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
     return resource->resource_data.type;
   else return VarType::invalid_type;
-}
-
-Link Link::cloneResource(Link resource_link) noexcept {
-  switch (toTypeClass(resource_link.getType())) {
-  case VarTypeClass::null:
-  case VarTypeClass::number:
-  return **resource_link;
-
-  case VarTypeClass::bit_array:
-  return ResourceData{VarType::bit_array, {.bit_array_header = BitArrayHeader::copy(resource_link->data.bit_array_header)}};
-
-  case VarTypeClass::buffer_array:
-  return ResourceData{resource_link.getType(), {.buffer_array_header = BufferArrayHeader::copy(resource_link->data.buffer_array_header)}};
-
-  case VarTypeClass::array:
-  return ResourceData{VarType::array, {.array_header = ArrayHeader::copy(resource_link->data.array_header)}};
-
-  case VarTypeClass::singly_linked_list: // TODO
-  case VarTypeClass::doubly_linked_list: // TODO
-  case VarTypeClass::map: // TODO
-  default:
-  case VarTypeClass::invalid_type:
-  break;
-  }
-  return ResourceData{VarType::null, {}};
 }
 
 
@@ -585,11 +600,13 @@ void ArrayHeader::operator delete(void* ptr) {
   return ::delete [] reinterpret_cast<byte*>(ptr);
 }
 
-//////////////////////////////////////////////////////////// ArrayHeader ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////// SinglyLinkedListHeader ////////////////////////////////////////////////////////
 
 #include "libbinom/include/variables/singly_linked_list.hxx"
 
 SinglyLinkedListHeader::SinglyLinkedListHeader(const sllist& value_list) {pushBack(value_list);}
+
+SinglyLinkedListHeader::SinglyLinkedListHeader(const SinglyLinkedListHeader& other) {for(const auto& value : other) pushBack(value);}
 
 SinglyLinkedListHeader::~SinglyLinkedListHeader() {
   auto it = begin(), _end = end();
@@ -622,11 +639,7 @@ SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushBack(const literals
   }
 
   for(auto end = value_list.end(); it != end; ++it)
-    if(!last) {
-      first = last = new Node{std::move(*it), nullptr};
-    } else {
       last = last->next = new Node{std::move(*it), nullptr};
-    }
 
   return result;
 }
@@ -641,10 +654,8 @@ Variable SinglyLinkedListHeader::pushFront(Variable var) {
 }
 
 SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushFront(const literals::sllist& value_list) {
-  Iterator result(nullptr);
-
   Node* last_first = first;
-  Node** ptr_it = &first;
+  Node** ptr_it = &first; // Pointer at first or Node::next
 
   for(const auto& value : value_list) {
     (*ptr_it) = new Node{std::move(value), nullptr};
@@ -670,18 +681,117 @@ SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::insert(Iterator it, Var
   return it;
 }
 
-SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::remove(Iterator it) {
-  if(!it.node) return it;
+void SinglyLinkedListHeader::remove(Iterator it) {
+  if(!it.node) return;
   Node* removable_node = it.node;
-  if(it.prev) {
-    it.node = it.prev->next = it.node->next;
-    delete removable_node;
-  } elif (first == it.node) {
-    it.node = it.node->next;
-    delete removable_node;
-  }
-  return it;
+  delete removable_node;
 }
 
 SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::begin() const {return Iterator(first);}
 SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::end() const {return Iterator(nullptr, last);}
+
+//////////////////////////////////////////////////////////// ArrayHeader ////////////////////////////////////////////////////////
+
+#include "libbinom/include/variables/doubly_linked_list.hxx"
+
+DoublyLinkedListHeader::DoublyLinkedListHeader(const literals::dllist& value_list) {pushBack(value_list);}
+DoublyLinkedListHeader::DoublyLinkedListHeader(const DoublyLinkedListHeader& other) {for(const auto& value : other) pushBack(value);}
+
+DoublyLinkedListHeader::~DoublyLinkedListHeader() {
+  auto it = begin(), _end = end();
+  while(it != _end) {
+    Node* node = it.node;
+    ++it;
+    delete node;
+  }
+}
+
+Variable DoublyLinkedListHeader::pushBack(Variable var) {
+  if(!last) {
+    first = last = new Node{std::move(var), nullptr, nullptr};
+  } else {
+    last = last->next = new Node{std::move(var), nullptr, last};
+  }
+  return last->value.getReference();
+}
+
+DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::pushBack(const literals::dllist& value_list) {
+  Iterator result(nullptr);
+
+  auto it = value_list.begin();
+
+  if(!last) {
+    result.node = first = last = new Node{std::move(*it), nullptr, last};
+  } else {
+    result.node = last = last->next = new Node{std::move(*it), nullptr, last};
+  }
+
+  for(auto end = value_list.end(); it != end; ++it)
+      last = last->next = new Node{std::move(*it), nullptr, last};
+
+  return result;
+}
+
+Variable DoublyLinkedListHeader::pushFront(Variable var) {
+  if(!first) {
+    first = last = new Node{std::move(var), nullptr, nullptr};
+  } else {
+    first = first->prev = new Node{std::move(var), first, nullptr};
+  }
+  return first->value.getReference();
+}
+
+DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::pushFront(const literals::dllist& value_list) {
+  Node* last_first = first;
+  Node** ptr_it = &first; // Pointer at first or Node::next
+  Node* prev_node = nullptr;
+
+  for(const auto& value : value_list) {
+    prev_node = (*ptr_it) = new Node{std::move(value), nullptr, prev_node};
+    ptr_it = &(*ptr_it)->next;
+  }
+
+  (*ptr_it)->next = last_first;
+  last_first->prev = prev_node;
+
+  return first;
+}
+
+DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::insert(Iterator it, Variable var) {
+  if(!it.node) return it;
+  elif(it.node == nullptr) {
+    it.node = last = last->next = new Node{std::move(var), nullptr, last};
+  } elif(it.node == first) {
+    it.node = first = first->prev = new Node{std::move(var), first, nullptr};
+  } else {
+    it.node = it.node->prev->next = it.node->prev = new Node{std::move(var), it.node, it.node->prev};
+  }
+  return it;
+}
+
+void DoublyLinkedListHeader::popBack() {
+  if(!last) return;
+  Node* prev_last = last;
+  last = last->prev;
+  if(first == prev_last) first = nullptr;
+  delete prev_last;
+}
+
+void DoublyLinkedListHeader::popFront() {
+  if(!first) return;
+  Node* prev_first = first;
+  first = first->next;
+  if(last == prev_first) last = nullptr;
+  delete prev_first;
+}
+
+void DoublyLinkedListHeader::remove(Iterator it) {
+  if(it.node == first) return popFront();
+  elif(it.node == last) return popBack();
+}
+
+DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::begin() const {return Iterator(first);}
+DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::end() const {return Iterator(nullptr);}
+
+DoublyLinkedListHeader::ReverseIterator DoublyLinkedListHeader::rbegin() const {return ReverseIterator(last);}
+DoublyLinkedListHeader::ReverseIterator DoublyLinkedListHeader::rend() const {return ReverseIterator(nullptr);}

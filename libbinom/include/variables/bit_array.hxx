@@ -7,7 +7,6 @@ namespace binom {
 
 class BitArray : public Variable {
   operator Number& () = delete;
-  operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
   operator SinglyLinkedList& () = delete;
