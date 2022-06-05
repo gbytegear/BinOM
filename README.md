@@ -21,6 +21,29 @@
   * [ ] File memory manager
   * [ ] File node accessor
 
+## Build & Run
+
+### Library
+For build shared and static library - run in project directory:
+```bash
+make lib -j
+```
+Library files will be placed in build directiry:
+```
+<BinOM Project directory>/build/libbinom.a
+<BinOM Project directory>/build/libbinom.so
+```
+Link library with your project:
+```bash
+g++ -I<Path to BinOM project directory>/libbinom/include -L<Path to BinOM project directory>/build -lbinom -lpthread <your sources>
+```
+
+### Automatic test
+For build and run automatic test - run in project directory:
+```bash
+make test -j
+```
+
 ## BinOM Types info
 ### Types:
 * null - NULL
