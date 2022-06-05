@@ -41,6 +41,7 @@ void subwriter() {
 
 void testRecursiveSharedMutex() {
   RAIIPerfomanceTest test_perf("Recursive shared mutex test: ");
+  SEPARATOR
   TEST_ANNOUNCE(RecursiveSharedMutex test);
   shared_mtx.lock();
   std::list<std::thread> threads;

@@ -10,6 +10,7 @@ BufferArray::BufferArray(const BufferArray& other) noexcept : Variable(dynamic_c
 BufferArray::BufferArray(const BufferArray&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
 BufferArray BufferArray::getReference() noexcept {return Link(resource_link);}
+const BufferArray BufferArray::getReference() const noexcept {return Link(resource_link);}
 
 size_t BufferArray::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
@@ -33,30 +34,6 @@ BufferArray::ValueRef BufferArray::operator[](size_t index) noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ValueRef(ValType::invalid_type, nullptr, resource_link);
   return ValueRef(getValType(), getData()->get(getBitWidth(), index), resource_link);
-}
-
-BufferArray::Iterator BufferArray::pushBack(BufferArray& value_list) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-  Iterator value_it(getValType(), priv::BufferArrayHeader::increaseSize(getData(), getBitWidth(), value_list.getSize()), resource_link);
-  { Iterator this_it = value_it;
-    for(auto value : value_list)
-      *(this_it++) = value;
-  }
-  return value_it;
-}
-
-BufferArray::Iterator BufferArray::pushFront(BufferArray& value_list) {return insert(0, value_list);}
-
-BufferArray::Iterator BufferArray::insert(size_t at, BufferArray& value_list) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-  Iterator value_it(getValType(), priv::BufferArrayHeader::insert(getData(), getBitWidth(), at, value_list.getSize()), resource_link);
-  { Iterator this_it = value_it;
-    for(auto value : value_list)
-      *(this_it++) = value;
-  }
-  return value_it;
 }
 
 BufferArray::Iterator BufferArray::begin() const {

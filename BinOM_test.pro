@@ -8,6 +8,7 @@ QMAKE_CXXFLAGS += -Wextra
 
 SOURCES += test/test.cxx \
     libbinom/source/utils/resource_control.cxx \
+    libbinom/source/utils/variable_headers.cxx \
     libbinom/source/variables/array.cxx \
     libbinom/source/variables/bit_array.cxx \
     libbinom/source/variables/buffer_array.cxx \
@@ -17,6 +18,7 @@ SOURCES += test/test.cxx \
     libbinom/source/variables/variable.cxx
 
 HEADERS += \
+    libbinom/include/binom.hxx \
     libbinom/include/utils/avl_tree.hxx \
     libbinom/include/utils/bit_map64.hxx \
     libbinom/include/utils/bits.hxx \
@@ -28,10 +30,12 @@ HEADERS += \
     libbinom/include/utils/memctrl.hxx \
     libbinom/include/utils/print_variable.hxx \
     libbinom/include/utils/resource_control.hxx \
+    libbinom/include/utils/reverse_iterator.hxx \
     libbinom/include/utils/shared_recursive_mutex_wrapper.hxx \
     libbinom/include/utils/type_aliases.hxx \
     libbinom/include/utils/types.hxx \
     libbinom/include/utils/util_functions.hxx \
+    libbinom/include/utils/variable_headers.hxx \
     libbinom/include/variables/array.hxx \
     libbinom/include/variables/bit_array.hxx \
     libbinom/include/variables/buffer_array.hxx \
@@ -43,6 +47,8 @@ HEADERS += \
     libbinom/include/variables/variable.hxx \
     test/all_test.hxx \
     test/bits_test.hxx \
+    test/buffer_array_test.hxx \
+    test/bugs.hxx \
     test/generic_value_test.hxx \
     test/number_test.hxx \
     test/recursive_shared_mutex_test.hxx \

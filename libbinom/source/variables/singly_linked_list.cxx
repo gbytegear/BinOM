@@ -13,6 +13,13 @@ SinglyLinkedList::SinglyLinkedList(const SinglyLinkedList& other) noexcept : Var
 SinglyLinkedList::SinglyLinkedList(const SinglyLinkedList&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
 SinglyLinkedList SinglyLinkedList::getReference() noexcept {return Link(resource_link);}
+const SinglyLinkedList SinglyLinkedList::getReference() const noexcept {return Link(resource_link);}
+
+bool SinglyLinkedList::isEmpty() const {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->isEmpty();
+  else return true;
+}
 
 Variable SinglyLinkedList::pushBack(Variable var) {
   if(auto lk = getLock(MtxLockType::unique_locked); lk)
@@ -47,6 +54,12 @@ SinglyLinkedList::Iterator SinglyLinkedList::insert(Iterator it, Variable var) {
 void SinglyLinkedList::remove(Iterator it) {
   if(auto lk = getLock(MtxLockType::unique_locked); lk)
     return getData()->remove(it);
+  else return;
+}
+
+void SinglyLinkedList::clear() {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk)
+    return getData()->clear();
   else return;
 }
 

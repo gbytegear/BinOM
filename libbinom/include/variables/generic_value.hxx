@@ -37,7 +37,6 @@ class GenericValue :
   priv::ResourceData toResourceData() const noexcept {return {toVarType(type), reinterpret_cast<const priv::ResourceData::Data&>(data)};}
 
 public:
-  using arithmetic::ArithmeticTypeBase<GenericValue>::operator=;
   GenericValue() noexcept {}
   GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {getLock(priv::MtxLockType::shared_locked);}
   GenericValue(ui8 value) noexcept : type(ValType::ui8), data{.ui8_val = value} {}
@@ -51,7 +50,8 @@ public:
   GenericValue(i64 value) noexcept : type(ValType::si64), data{.i64_val = value} {}
   GenericValue(f64 value) noexcept : type(ValType::f64), data{.f64_val = value} {}
   GenericValue(const GenericValue& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
-  GenericValue(GenericValue&& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
+  GenericValue(const GenericValue&& other) : type(other.type), data{.ui64_val = other.data.ui64_val} {}
+  using arithmetic::ArithmeticTypeBase<GenericValue>::operator=;
 };
 
 class GenericValueRef :
@@ -89,9 +89,10 @@ class GenericValueRef :
   GenericValueRef(ValType value_type, void* ptr, priv::Link owner)
     : owner(std::move(owner)), value_type(value_type), ptr(ptr) {}
 public:
-  using arithmetic::ArithmeticTypeBase<GenericValueRef>::operator=;
   GenericValueRef(const GenericValueRef& other) : owner(other.owner), value_type(other.value_type), ptr(other.ptr.ptr) {}
-  GenericValueRef(GenericValueRef&& other) : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
+  GenericValueRef(const GenericValueRef&& other) : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
+
+  using arithmetic::ArithmeticTypeBase<GenericValueRef>::operator=;
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept { return owner.getLock(lock_type); }
 
@@ -129,7 +130,7 @@ class GenericValueIterator {
 public:
   GenericValueIterator(const GenericValueIterator& other)
     : owner(other.owner), value_type(other.value_type), ptr(other.ptr.ptr) {}
-  GenericValueIterator(GenericValueIterator&& other)
+  GenericValueIterator(const GenericValueIterator&& other)
     : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
   GenericValueIterator& operator=(GenericValueIterator&& other) noexcept {
     return *new(this) GenericValueIterator(other);

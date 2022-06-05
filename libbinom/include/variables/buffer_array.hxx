@@ -13,13 +13,28 @@ class BufferArray : public Variable {
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
-  Number& toNumber() const = delete;
-  BitArray& toBitArray() const = delete;
-  BufferArray& toBufferArray() const = delete;
-  Array& toArray() const = delete;
-  SinglyLinkedList& toSinglyLinkedList() const = delete;
-  DoublyLinkedList& toDoublyLinkedList() const = delete;
-  Map& toMap() const = delete;
+  Number& toNumber() = delete;
+  BitArray& toBitArray() = delete;
+  BufferArray& toBufferArray() = delete;
+  Array& toArray() = delete;
+  SinglyLinkedList& toSinglyLinkedList() = delete;
+  DoublyLinkedList& toDoublyLinkedList() = delete;
+  Map& toMap() = delete;
+
+  operator const Number& () const = delete;
+  operator const BitArray& () const = delete;
+  operator const Array& () const = delete;
+  operator const SinglyLinkedList& () const = delete;
+  operator const DoublyLinkedList& () const = delete;
+  operator const Map& () const = delete;
+
+  const Number& toNumber() const = delete;
+  const BitArray& toBitArray() const = delete;
+  const BufferArray& toBufferArray() const = delete;
+  const Array& toArray() const = delete;
+  const SinglyLinkedList& toSinglyLinkedList() const = delete;
+  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const Map& toMap() const = delete;
 
   priv::BufferArrayHeader*& getData() const noexcept;
 
@@ -37,6 +52,8 @@ public:
   BufferArray(const BufferArray&& other) noexcept;
 
   BufferArray getReference() noexcept;
+  const BufferArray getReference() const noexcept;
+
   size_t getElementCount() const noexcept;
   size_t getSize() const noexcept;
   size_t getCapacity() const noexcept;
@@ -66,15 +83,11 @@ public:
     return value_it;
   }
 
-  Iterator pushBack(BufferArray& value_list);
+  template<typename T>
+  ValueRef pushFront(T value) noexcept {return insert<T>(0, value);}
 
   template<typename T>
-  ValueRef pushFront(T value) noexcept {return insert(0, value);}
-
-  template<typename T>
-  Iterator pushFront(std::initializer_list<T> value_list) {return insert(0, value_list);}
-
-  Iterator pushFront(BufferArray& value_list);
+  Iterator pushFront(std::initializer_list<T> value_list) {return insert<T>(0, value_list);}
 
   template<typename T>
   ValueRef insert(size_t at, T value) noexcept {
@@ -98,8 +111,6 @@ public:
     }
     return value_it;
   }
-
-  Iterator insert(size_t at, BufferArray& value_list);
 
   Iterator begin() const;
   Iterator end() const;

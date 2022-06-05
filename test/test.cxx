@@ -8,8 +8,12 @@ int main() {
   testGenericValue();
   testNumber();
   testBits();
-#ifdef FULL_TEST
+  testBufferArray();
+
+#ifdef FULL_TEST // Questionable or incompletely implemented tests
   testRecursiveSharedMutex();
+  testVariable(); // Not ended!
 #endif
-  testVariable();
+
+  testAllBugs();
 }

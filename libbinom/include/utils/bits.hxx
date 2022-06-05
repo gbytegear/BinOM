@@ -85,8 +85,8 @@ public:
 
 class Bits::Iterator {
   friend struct Bits;
-  Bits* bits = nullptr;
-  ui8 index = 0;
+  mutable Bits* bits = nullptr;
+  mutable ui8 index = 0;
   Iterator() = default;
   Iterator(const Bits* bits, ui8 index) : bits(const_cast<Bits*>(bits)), index(index) {}
 public:
@@ -113,6 +113,34 @@ public:
     return self;
   }
 
+  const Iterator& operator++() const noexcept {
+    if(isNull()) return self;
+    if(index < 7) {++index;}
+    else {index = 0; ++bits;}
+    return self;
+  }
+
+  const Iterator& operator--() const noexcept {
+    if(isNull()) return self;
+    if(index > 0) {--index;}
+    else {index = 7; --bits;}
+    return self;
+  }
+
+  const Iterator operator++(int) const noexcept {
+    Iterator tmp(self);
+    if(isNull()) return tmp;
+    ++self;
+    return tmp;
+  }
+
+  const Iterator operator--(int) const noexcept {
+    Iterator tmp(self);
+    if(isNull()) return tmp;
+    --self;
+    return tmp;
+  }
+
   Iterator operator++(int) noexcept {
     Iterator tmp(self);
     if(isNull()) return tmp;
@@ -127,16 +155,17 @@ public:
     return tmp;
   }
 
-  inline operator ValueRef() const noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
-  ValueRef operator*() const noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
-
+  inline operator ValueRef() noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
+  inline operator const ValueRef() const noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
+  ValueRef operator*() noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
+  const ValueRef operator*() const noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
 };
 
 
 class Bits::ReverseIterator {
   friend struct Bits;
-  Bits* bits = nullptr;
-  ui8 index = 0;
+  mutable Bits* bits = nullptr;
+  mutable ui8 index = 0;
   ReverseIterator() = default;
   ReverseIterator(const Bits* bits, ui8 index) : bits(const_cast<Bits*>(bits)), index(index) {}
 public:
@@ -146,8 +175,8 @@ public:
   bool isNull() const noexcept {return !bits;}
 
   ReverseIterator& operator=(ReverseIterator value) noexcept {return *new(this) ReverseIterator(std::move(value));}
-  bool operator==(ReverseIterator other) noexcept {return bits == other.bits && index == other.index;}
-  bool operator!=(ReverseIterator other) noexcept {return bits != other.bits || index != other.index;}
+  bool operator==(ReverseIterator other) const noexcept {return bits == other.bits && index == other.index;}
+  bool operator!=(ReverseIterator other) const noexcept {return bits != other.bits || index != other.index;}
 
   ReverseIterator& operator++() noexcept {
     if(isNull()) return self;
@@ -157,6 +186,20 @@ public:
   }
 
   ReverseIterator& operator--() noexcept {
+    if(isNull()) return self;
+    if(index < 7) {++index;}
+    else {index = 0; ++bits;}
+    return self;
+  }
+
+  const ReverseIterator& operator++() const noexcept {
+    if(isNull()) return self;
+    if(index > 0) {--index;}
+    else {index = 7; --bits;}
+    return self;
+  }
+
+  const ReverseIterator& operator--() const noexcept {
     if(isNull()) return self;
     if(index < 7) {++index;}
     else {index = 0; ++bits;}
@@ -177,8 +220,24 @@ public:
     return tmp;
   }
 
-  inline operator ValueRef() const noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
-  ValueRef operator*() const noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
+  const ReverseIterator operator++(int) const noexcept {
+    ReverseIterator tmp(self);
+    if(isNull()) return tmp;
+    --self;
+    return tmp;
+  }
+
+  const ReverseIterator operator--(int) const noexcept {
+    ReverseIterator tmp(self);
+    if(isNull()) return tmp;
+    ++self;
+    return tmp;
+  }
+
+  inline operator ValueRef() noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
+  ValueRef operator*() noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
+  inline operator const ValueRef() const noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
+  const ValueRef operator*() const noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
 
 };
 
@@ -204,6 +263,10 @@ namespace binom {
 typedef priv::Bits::Iterator BitIterator;
 typedef priv::Bits::ReverseIterator BitReverseIterator;
 typedef priv::Bits::ValueRef BitValueRef;
+
+typedef const priv::Bits::Iterator BitConstIterator;
+typedef const priv::Bits::ReverseIterator BitConstReverseIterator;
+typedef const priv::Bits::ValueRef BitConstValueRef;
 
 }
 

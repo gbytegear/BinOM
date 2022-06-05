@@ -6,7 +6,7 @@ C_FLAGS = -O3 -fPIC -w
 CXX_FLAGS = -O3 -fPIC -w -std=c++17
 LD_FLAGS =
 LD_SHARED_FLAGS = -fPIC -shared
-LD_LIBS  =
+LD_LIBS  = -lpthread
 
 TEST_EXEC = binom_test
 LIB_TARGET = libbinom
@@ -31,6 +31,12 @@ test: $(TEST_DIR)/$(TEST_EXEC)
 
 lib: $(OBJECTS) $(BUILD_DIR)/$(LIB_TARGET).a $(BUILD_DIR)/$(LIB_TARGET).so
 
+$(BUILD_DIR):
+	$(MKDIR) $@
+
+$(TEST_DIR):
+	$(MKDIR) $@
+
 $(BUILD_DIR)/$(LIB_TARGET).a:
 	ar cr $@ $(OBJECTS)
 
@@ -40,13 +46,11 @@ $(BUILD_DIR)/$(LIB_TARGET).so:
 $(TEST_DIR)/$(TEST_EXEC): $(OBJECTS) $(TEST_OBJECTS)
 	$(CXX) $(OBJECTS) $(TEST_OBJECTS) -o $@ $(LD_FLAGS) $(LD_LIBS)
 
-$(OBJECTS): $(SOURCES)
-	$(MKDIR) $(dir $@)
-	$(CXX) $(INCLUDE_PATH) $(CXX_FLAGS) -c $(filter %$(subst .o,.cxx,$(notdir $@)), $(SOURCES)) -o $@
+$(OBJECTS): $(BUILD_DIR) $(SOURCES)
+	$(CXX) $(INCLUDE_PATH) $(CXX_FLAGS) -c $(filter-out %_$(subst .o,.cxx,$(notdir $@)), $(filter %$(subst .o,.cxx,$(notdir $@)), $(SOURCES))) -o $@
 
-$(TEST_OBJECTS): $(TEST_SOURCES)
-	$(MKDIR) $(dir $@)
-	$(CXX) $(INCLUDE_PATH) $(CXX_FLAGS) -c $(filter %$(subst .o,.cxx,$(notdir $@)), $(TEST_SOURCES)) -o $@
+$(TEST_OBJECTS): $(TEST_DIR) $(TEST_SOURCES)
+	$(CXX) $(INCLUDE_PATH) $(CXX_FLAGS) -c $(filter-out %_$(subst .o,.cxx,$(notdir $@)), $(filter %$(subst .o,.cxx,$(notdir $@)), $(TEST_SOURCES))) -o $@
 
 .PHONY: clean
 clean:

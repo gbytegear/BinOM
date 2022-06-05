@@ -45,37 +45,6 @@ public:
   bool operator!=(const ReverseIterator&& other) const noexcept;
 };
 
-class priv::DoublyLinkedListHeader::ReverseIterator {
-  Node* node;
-
-  friend class binom::priv::DoublyLinkedListHeader;
-  friend class binom::DoublyLinkedList;
-  ReverseIterator(Node* node);
-
-public:
-  ReverseIterator(const ReverseIterator& other);
-  ReverseIterator(const ReverseIterator&& other);
-  ReverseIterator(const Iterator& other);
-  ReverseIterator(const Iterator&& other);
-
-  ReverseIterator& operator++();
-  ReverseIterator operator++(int);
-  ReverseIterator& operator--();
-  ReverseIterator operator--(int);
-
-  Variable operator*();
-  Variable* operator->();
-
-  bool operator==(const ReverseIterator& other) const noexcept;
-  bool operator==(const ReverseIterator&& other) const noexcept;
-  bool operator!=(const ReverseIterator& other) const noexcept;
-  bool operator!=(const ReverseIterator&& other) const noexcept;
-  bool operator==(const Iterator& other) const noexcept;
-  bool operator==(const Iterator&& other) const noexcept;
-  bool operator!=(const Iterator& other) const noexcept;
-  bool operator!=(const Iterator&& other) const noexcept;
-};
-
 class DoublyLinkedList : public Variable {
   operator Number& () = delete;
   operator BitArray& () = delete;
@@ -84,13 +53,28 @@ class DoublyLinkedList : public Variable {
   operator SinglyLinkedList& () = delete;
   operator Map& () = delete;
 
-  Number& toNumber() const = delete;
-  BitArray& toBitArray() const = delete;
-  BufferArray& toBufferArray() const = delete;
-  Array& toArray() const = delete;
-  SinglyLinkedList& toSinglyLinkedList() const = delete;
-  DoublyLinkedList& toDoublyLinkedList() const = delete;
-  Map& toMap() const = delete;
+  Number& toNumber() = delete;
+  BitArray& toBitArray() = delete;
+  BufferArray& toBufferArray() = delete;
+  Array& toArray() = delete;
+  SinglyLinkedList& toSinglyLinkedList() = delete;
+  DoublyLinkedList& toDoublyLinkedList() = delete;
+  Map& toMap() = delete;
+
+  operator const Number& () const = delete;
+  operator const BitArray& () const = delete;
+  operator const BufferArray& () const = delete;
+  operator const Array& () const = delete;
+  operator const SinglyLinkedList& () const = delete;
+  operator const Map& () const = delete;
+
+  const Number& toNumber() const = delete;
+  const BitArray& toBitArray() const = delete;
+  const BufferArray& toBufferArray() const = delete;
+  const Array& toArray() const = delete;
+  const SinglyLinkedList& toSinglyLinkedList() const = delete;
+  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const Map& toMap() const = delete;
 
   priv::DoublyLinkedListHeader*& getData() const noexcept;
 
@@ -105,7 +89,10 @@ public:
   DoublyLinkedList(const DoublyLinkedList& other) noexcept;
   DoublyLinkedList(const DoublyLinkedList&& other) noexcept;
 
+  bool isEmpty() const;
+
   DoublyLinkedList getReference() noexcept;
+  const DoublyLinkedList getReference() const noexcept;
 
   Variable pushBack(Variable variable);
   Variable pushFront(Variable variable);
@@ -116,7 +103,7 @@ public:
   void popFront();
 
   void remove(Iterator it);
-//  void clear();
+  void clear();
 
   Iterator begin() const;
   static Iterator end();

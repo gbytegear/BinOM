@@ -20,13 +20,28 @@ class Number :
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
-  Number& toNumber() const = delete;
-  BitArray& toBitArray() const = delete;
-  BufferArray& toBufferArray() const = delete;
-  Array& toArray() const = delete;
-  SinglyLinkedList& toSinglyLinkedList() const = delete;
-  DoublyLinkedList& toDoublyLinkedList() const = delete;
-  Map& toMap() const = delete;
+  Number& toNumber() = delete;
+  BitArray& toBitArray() = delete;
+  BufferArray& toBufferArray() = delete;
+  Array& toArray() = delete;
+  SinglyLinkedList& toSinglyLinkedList() = delete;
+  DoublyLinkedList& toDoublyLinkedList() = delete;
+  Map& toMap() = delete;
+
+  operator const BitArray& () const = delete;
+  operator const BufferArray& () const = delete;
+  operator const Array& () const = delete;
+  operator const SinglyLinkedList& () const = delete;
+  operator const DoublyLinkedList& () const = delete;
+  operator const Map& () const = delete;
+
+  const Number& toNumber() const = delete;
+  const BitArray& toBitArray() const = delete;
+  const BufferArray& toBufferArray() const = delete;
+  const Array& toArray() const = delete;
+  const SinglyLinkedList& toSinglyLinkedList() const = delete;
+  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const Map& toMap() const = delete;
 
 
   arithmetic::ArithmeticData& getArithmeticDataImpl() const;
@@ -65,6 +80,7 @@ public:
   Number(const GenericValue&& value) noexcept;
 
   Number getReference() noexcept;
+  const Number getReference() const noexcept;
 
   using arithmetic::ArithmeticTypeBase<Number>::operator=;
   Number& changeLink(const Number& other);

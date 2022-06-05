@@ -36,12 +36,12 @@ class {
     break;
     case binom::VarType::ui8_array:
       std::cout << std::string(shift, '|') << "ui8_array: ";
-      for(auto value : variable.toBufferArray()) std::cout << ui8(value) << ' ';
+      for(auto value : variable.toBufferArray()) std::cout << ui16(value) << ' ';
       std::cout << std::endl;
     break;
     case binom::VarType::si8_array:
       std::cout << std::string(shift, '|') << "si8_array: ";
-      for(auto value : variable.toBufferArray()) std::cout << i8(value) << ' ';
+      for(auto value : variable.toBufferArray()) std::cout << i16(value) << ' ';
       std::cout << std::endl;
     break;
     case binom::VarType::ui16_array:

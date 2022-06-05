@@ -30,6 +30,7 @@ Number::Number(const GenericValue& value) noexcept : Variable(value) {}
 Number::Number(const GenericValue&& value) noexcept : Variable(std::move(value)) {}
 
 Number Number::getReference() noexcept {return Link(resource_link);}
+const Number Number::getReference() const noexcept {return Link(resource_link);}
 
 Number& Number::changeLink(const Number& other) {
   if(this == &other) return self;

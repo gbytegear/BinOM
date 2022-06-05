@@ -8,6 +8,7 @@ using namespace binom;
 
 void testVariable() {
   RAIIPerfomanceTest test_perf("Variable test: ");
+  SEPARATOR
   using namespace literals;
   TEST_ANNOUNCE(Variable-reference test); GRP_PUSH;
   {
@@ -60,6 +61,17 @@ void testVariable() {
     Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
     PRINT_RUN(DoublyLinkedList dl_list = dl_list_var.toDoublyLinkedList().getReference());
     PRINT_RUN(utils::printVariable(dl_list));
+
+
+    for(const auto& element : dl_list) {
+      utils::printVariable(element);
+    }
+
+    for(const auto& element : reverse_iterator::ReverseRange(dl_list)) {
+      utils::printVariable(element);
+    }
+
+
   }
 }
 

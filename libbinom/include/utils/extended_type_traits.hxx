@@ -18,7 +18,7 @@ template <class T, class U>
 inline constexpr bool is_base_of_v = is_base_of<T, U>::value;
 
 template <template<typename T> class CRTP_Base, class CRTP_Driven>
-struct is_crtp_base_of : std::is_base_of<CRTP_Base<remove_cvref_t<CRTP_Driven>>, remove_cvref_t<CRTP_Driven>> {};
+struct is_crtp_base_of : std::is_base_of<remove_cvref_t<CRTP_Base<remove_cvref_t<CRTP_Driven>>>, remove_cvref_t<CRTP_Driven>> {};
 
 template <template<typename T> class CRTP_Base, class CRTP_Driven>
 inline constexpr bool is_crtp_base_of_v = is_crtp_base_of<CRTP_Base, CRTP_Driven>::value;

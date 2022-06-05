@@ -42,13 +42,28 @@ class SinglyLinkedList : public Variable {
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
-  Number& toNumber() const = delete;
-  BitArray& toBitArray() const = delete;
-  BufferArray& toBufferArray() const = delete;
-  Array& toArray() const = delete;
-  SinglyLinkedList& toSinglyLinkedList() const = delete;
-  DoublyLinkedList& toDoublyLinkedList() const = delete;
-  Map& toMap() const = delete;
+  Number& toNumber() = delete;
+  BitArray& toBitArray() = delete;
+  BufferArray& toBufferArray() = delete;
+  Array& toArray() = delete;
+  SinglyLinkedList& toSinglyLinkedList() = delete;
+  DoublyLinkedList& toDoublyLinkedList() = delete;
+  Map& toMap() = delete;
+
+  operator const Number& () const = delete;
+  operator const BitArray& () const = delete;
+  operator const BufferArray& () const = delete;
+  operator const Array& () const = delete;
+  operator const DoublyLinkedList& () const = delete;
+  operator const Map& () const = delete;
+
+  const Number& toNumber() const = delete;
+  const BitArray& toBitArray() const = delete;
+  const BufferArray& toBufferArray() const = delete;
+  const Array& toArray() const = delete;
+  const SinglyLinkedList& toSinglyLinkedList() const = delete;
+  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const Map& toMap() const = delete;
 
   priv::SinglyLinkedListHeader*& getData() const noexcept;
 
@@ -63,6 +78,9 @@ public:
   SinglyLinkedList(const SinglyLinkedList&& other) noexcept;
 
   SinglyLinkedList getReference() noexcept;
+  const SinglyLinkedList getReference() const noexcept;
+
+  bool isEmpty() const;
 
   Variable pushBack(Variable var);
   Iterator pushBack(const literals::sllist value_list);
@@ -73,6 +91,7 @@ public:
   Iterator insert(Iterator it, Variable var);
 
   void remove(Iterator it);
+  void clear();
 
   Iterator begin() const;
   Iterator end() const;

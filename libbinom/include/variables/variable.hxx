@@ -64,7 +64,8 @@ public:
   Variable(const Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
 
-  Variable getReference() const noexcept;
+  Variable getReference() noexcept;
+  const Variable getReference() const noexcept;
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
@@ -80,22 +81,38 @@ public:
 
 
   // Downcast operators
-  operator Number& () const;
-  operator BitArray& () const;
-  operator BufferArray& () const;
-  operator Array& () const;
-  operator SinglyLinkedList& () const;
-  operator DoublyLinkedList& () const;
-  operator Map& () const;
+  operator Number& ();
+  operator BitArray& ();
+  operator BufferArray& ();
+  operator Array& ();
+  operator SinglyLinkedList& ();
+  operator DoublyLinkedList& ();
+  operator Map& ();
+
+  operator const Number& () const;
+  operator const BitArray& () const;
+  operator const BufferArray& () const;
+  operator const Array& () const;
+  operator const SinglyLinkedList& () const;
+  operator const DoublyLinkedList& () const;
+  operator const Map& () const;
 
   // Downcast methods
-  Number& toNumber() const;
-  BitArray& toBitArray() const;
-  BufferArray& toBufferArray() const;
-  Array& toArray() const;
-  SinglyLinkedList& toSinglyLinkedList() const;
-  DoublyLinkedList& toDoublyLinkedList() const;
-  Map& toMap() const;
+  Number& toNumber();
+  BitArray& toBitArray();
+  BufferArray& toBufferArray();
+  Array& toArray();
+  SinglyLinkedList& toSinglyLinkedList();
+  DoublyLinkedList& toDoublyLinkedList();
+  Map& toMap();
+
+  const Number& toNumber() const;
+  const BitArray& toBitArray() const;
+  const BufferArray& toBufferArray() const;
+  const Array& toArray() const;
+  const SinglyLinkedList& toSinglyLinkedList() const;
+  const DoublyLinkedList& toDoublyLinkedList() const;
+  const Map& toMap() const;
 
   Variable& operator=(const Variable& other);
   Variable& operator=(Variable&& other);

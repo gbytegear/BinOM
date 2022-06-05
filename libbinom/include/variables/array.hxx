@@ -13,21 +13,37 @@ class Array : public Variable {
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
 
-  Number& toNumber() const = delete;
-  BitArray& toBitArray() const = delete;
-  BufferArray& toBufferArray() const = delete;
-  Array& toArray() const = delete;
-  SinglyLinkedList& toSinglyLinkedList() const = delete;
-  DoublyLinkedList& toDoublyLinkedList() const = delete;
-  Map& toMap() const = delete;
+  Number& toNumber() = delete;
+  BitArray& toBitArray() = delete;
+  BufferArray& toBufferArray() = delete;
+  Array& toArray() = delete;
+  SinglyLinkedList& toSinglyLinkedList() = delete;
+  DoublyLinkedList& toDoublyLinkedList() = delete;
+  Map& toMap() = delete;
+
+  operator const Number& () const = delete;
+  operator const BitArray& () const = delete;
+  operator const BufferArray& () const = delete;
+  operator const SinglyLinkedList& () const = delete;
+  operator const DoublyLinkedList& () const = delete;
+  operator const Map& () const = delete;
+
+  const Number& toNumber() const = delete;
+  const BitArray& toBitArray() const = delete;
+  const BufferArray& toBufferArray() const = delete;
+  const Array& toArray() const = delete;
+  const SinglyLinkedList& toSinglyLinkedList() const = delete;
+  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const Map& toMap() const = delete;
 
   priv::ArrayHeader*& getData() const noexcept;
 
   friend class Variable;
   Array(priv::Link&& link);
+
 public:
   typedef Variable* Iterator;
-  typedef std::reverse_iterator<Variable*> ReverseIterator;
+  typedef reverse_iterator::ReverseIterator<Variable*> ReverseIterator;
 
   Array();
   Array(const literals::arr array);
@@ -40,13 +56,13 @@ public:
   size_t getSize() const noexcept;
 
   Variable pushBack(Variable variable);
-  Iterator pushBack(literals::arr variable_list);
+  Iterator pushBack(const literals::arr variable_list);
 
   Variable pushFront(Variable variable);
-  Iterator pushFront(literals::arr variable_list);
+  Iterator pushFront(const literals::arr variable_list);
 
   Variable insert(size_t at, Variable variable);
-  Iterator insert(size_t at, literals::arr variable_list);
+  Iterator insert(size_t at, const literals::arr variable_list);
 
   void popBack(size_t count = 1);
   void popFront(size_t count = 1);
@@ -55,17 +71,17 @@ public:
   void clear();
 
   Variable operator[](size_t index) noexcept;
+  const Variable operator[](size_t index) const noexcept;
 
-  Variable operator+=(Variable variable);
-  Variable operator+=(literals::arr variable_list);
+  Array& operator+=(Variable variable);
+  Array& operator+=(literals::arr variable_list);
+  Array& operator+=(const Array variable_array);
 
   Iterator begin() const;
   Iterator end() const;
 
   ReverseIterator rbegin() const;
   ReverseIterator rend() const;
-
-
 };
 
 }

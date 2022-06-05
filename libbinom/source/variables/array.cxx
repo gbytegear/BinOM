@@ -46,7 +46,7 @@ Variable Array::pushBack(Variable variable) {
   return allocated_memory->getReference();
 }
 
-Array::Iterator Array::pushBack(literals::arr variable_list) {
+Array::Iterator Array::pushBack(const literals::arr variable_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return nullptr;
 
@@ -68,7 +68,7 @@ Variable Array::pushFront(Variable variable) {
   return allocated_memory->getReference();
 }
 
-Array::Iterator Array::pushFront(literals::arr variable_list) {
+Array::Iterator Array::pushFront(const literals::arr variable_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return nullptr;
 
@@ -136,9 +136,15 @@ Variable Array::operator[](size_t index) noexcept {
   return (*getData())[index];
 }
 
-Variable Array::operator+=(Variable variable) {return pushBack(std::move(variable));}
+const Variable Array::operator[](size_t index) const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return nullptr;
+  return (*getData())[index];
+}
 
-Variable Array::operator+=(literals::arr variable_list) {return pushBack(std::move(variable_list));}
+Array& Array::operator +=(Variable variable) {pushBack(std::move(variable)); return self;}
+Array& Array::operator+=(literals::arr variable_list) {pushBack(std::move(variable_list)); return self;}
+Array& Array::operator+=(const Array variable_array) {pushBack(std::move(variable_array)); return self;}
 
 Array::Iterator Array::begin() const {return getData()->begin();}
 

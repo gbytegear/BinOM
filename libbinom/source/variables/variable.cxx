@@ -63,7 +63,8 @@ Variable::Variable(const literals::dllist doubly_linked_list)
 Variable::Variable(const Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 
-Variable Variable::getReference() const noexcept {return Link(resource_link);}
+Variable Variable::getReference() noexcept {return Link(resource_link);}
+const Variable Variable::getReference() const noexcept {return Link(resource_link);}
 
 OptionalSharedRecursiveLock Variable::getLock(priv::MtxLockType lock_type) const noexcept {
   return resource_link.getLock(lock_type);
@@ -144,66 +145,124 @@ size_t Variable::getElementSize() const noexcept {
   case binom::VarTypeClass::singly_linked_list:
   case binom::VarTypeClass::doubly_linked_list: return sizeof (Link);
   case binom::VarTypeClass::map: // TODO
+  default:
   case binom::VarTypeClass::invalid_type: return 0;
   }
 }
 
-Variable::operator Number&() const {
+Variable::operator Number&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::number) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<Number&>(const_cast<Variable&>(self));
+  return reinterpret_cast<Number&>(self);
 }
 
-Variable::operator BitArray&() const {
+Variable::operator BitArray&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::bit_array) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<BitArray&>(const_cast<Variable&>(self));
+  return reinterpret_cast<BitArray&>(self);
 }
 
-Variable::operator BufferArray&() const {
+Variable::operator BufferArray&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::buffer_array) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<BufferArray&>(const_cast<Variable&>(self));
+  return reinterpret_cast<BufferArray&>(self);
 }
 
-Variable::operator Array&() const {
+Variable::operator Array&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::array) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<Array&>(const_cast<Variable&>(self));
+  return reinterpret_cast<Array&>(self);
 }
 
-Variable::operator SinglyLinkedList&() const {
+Variable::operator SinglyLinkedList&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::singly_linked_list) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<SinglyLinkedList&>(const_cast<Variable&>(self));
+  return reinterpret_cast<SinglyLinkedList&>(self);
 }
 
-Variable::operator DoublyLinkedList&() const {
+Variable::operator DoublyLinkedList&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::doubly_linked_list) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<DoublyLinkedList&>(const_cast<Variable&>(self));
+  return reinterpret_cast<DoublyLinkedList&>(self);
 }
 
-Variable::operator Map&() const {
+Variable::operator Map&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
   if(getTypeClass() != VarTypeClass::map) throw Error(ErrorType::binom_invalid_type);
-  return reinterpret_cast<Map&>(const_cast<Variable&>(self));
+  return reinterpret_cast<Map&>(self);
 }
 
-Number& Variable::toNumber() const {return self;}
-BitArray& Variable::toBitArray() const {return self;}
-BufferArray& Variable::toBufferArray() const {return self;}
-Array& Variable::toArray() const {return self;}
-SinglyLinkedList& Variable::toSinglyLinkedList() const {return self;}
-DoublyLinkedList& Variable::toDoublyLinkedList() const {return self;}
-Map& Variable::toMap() const {return self;}
+Variable::operator const Number&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::number) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const Number&>(self);
+}
+
+Variable::operator const BitArray&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::bit_array) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const BitArray&>(self);
+}
+
+Variable::operator const BufferArray&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::buffer_array) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const BufferArray&>(self);
+}
+
+Variable::operator const Array&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::array) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const Array&>(self);
+}
+
+Variable::operator const SinglyLinkedList&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::singly_linked_list) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const SinglyLinkedList&>(self);
+}
+
+Variable::operator const DoublyLinkedList&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::doubly_linked_list) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const DoublyLinkedList&>(self);
+}
+
+Variable::operator const Map&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::map) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const Map&>(self);
+}
+
+Number& Variable::toNumber() {return self;}
+BitArray& Variable::toBitArray() {return self;}
+BufferArray& Variable::toBufferArray() {return self;}
+Array& Variable::toArray() {return self;}
+SinglyLinkedList& Variable::toSinglyLinkedList() {return self;}
+DoublyLinkedList& Variable::toDoublyLinkedList() {return self;}
+Map& Variable::toMap() {return self;}
+
+const Number& Variable::toNumber() const {return self;}
+const BitArray& Variable::toBitArray() const {return self;}
+const BufferArray& Variable::toBufferArray() const {return self;}
+const Array& Variable::toArray() const {return self;}
+const SinglyLinkedList& Variable::toSinglyLinkedList() const {return self;}
+const DoublyLinkedList& Variable::toDoublyLinkedList() const {return self;}
+const Map& Variable::toMap() const {return self;}
 
 Variable& Variable::operator=(const Variable& other) {
   if(this == &other) return self;

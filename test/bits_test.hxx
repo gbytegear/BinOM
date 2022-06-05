@@ -16,6 +16,7 @@ void printBist(const binom::BitArray& bit_array) {
 
 void testBits() {
   RAIIPerfomanceTest test_perf("Bits test: ");
+  SEPARATOR
   using namespace binom;
   using namespace binom::priv;
   TEST_ANNOUNCE(Test Bits & Bits value);

@@ -106,6 +106,11 @@ thread_local size_t log_depth = 0;
 #define GRP_POP std::cout << std::string(log_depth - 1, '|') << "+---\n\r"; std::cout.flush(); --log_depth;
 #define GRP(expression) GRP_PUSH expression GRP_POP
 
+#define NORMAL_TXT "\033[0m"
+#define WHITE_TXT "\x1B[97m"
+#define RED_TXT "\x1B[97;101m"
+#define GREEN_TXT "\x1B[32m"
+
 #define SEPARATOR std::cout << "\x1B[97m=============================================================================\033[0m\n\r";  std::cout.flush();
 
 #define PRINT_RUN(expression) \
