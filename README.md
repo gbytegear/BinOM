@@ -16,6 +16,9 @@
   * [x] `binom::SinglyLinkedList`
   * [x] `binom::DoublyLinkedList`
   * [ ] `binom::Map`
+    * [ ] `binom::KeyValue`
+  * [ ] `binom::Table`
+    * [ ] `binom::TableDescriptor`
 * [ ] Implement serialization of BinOM containers
 * [ ] Implement file storage
   * [ ] File memory manager
@@ -72,8 +75,33 @@ make test -j
 * array - Heterogeneous array
 * singly_linked_list - Heterogeneous singly linked list
 * doubly_linked_list - Heterogeneous doubly linked list
-* less_map - Associative heterogeneous container with key-sorted by descending
-* greater_map - Associative heterogeneous container with key-sorted by ascending
+* map - Key-sorted associative heterogeneous container
+* table - Multiple key-sorted associative heterogeneous container
+
+### KeyType:
+* null - NULL
+* boolean - Boolean value
+* ui8 - Unsigned 8-bit integer number
+* si8 - Signed 8-bit integer number
+* ui16 - Unsigned 16-bit integer number
+* si16 - Signed 16-bit integer number
+* ui32 - Unsigned 32-bit integer number
+* si32 - Signed 32-bit integer number
+* f32 - 32-bit number with floating point
+* ui64 - Unsigned 64-bit integer number
+* si64 - Signed 64-bit integer number
+* f64 - 64-bit number with floating point
+* bit_array - Array of boolean values
+* ui8_array - Array of unsigned 8-bit integer numbers
+* si8_array - Array of signed 8-bit integer numbers
+* ui16_array - Array of unsigned 16-bit integer numbers
+* si16_array - Array of signed 16-bit integer numbers
+* ui32_array - Array of unsigned 32-bit integer numbers
+* si32_array - Array of signed 32-bit integer numbers
+* f32_array - Array of 32-bit numbers with floating point
+* ui64_array - Array of unsigned 64-bit integer numbers
+* si64_array - Array of signed 64-bit integer numbers
+* f64_array - Array of 64-bit numbers with floating point
 
 ### Type properties:
 #### Type class enum / C++ Class:
@@ -84,7 +112,8 @@ make test -j
 * array - `binom::Array` - heterogeneous array;
 * singly_linked_list - `binom::SinglyLinkedList` - heterogeneous singly linked list;
 * doubly_linked_list - `binom::DoublyLinkedList` - heterogeneous doubly linked list;
-* map - `binom::Map` - sorted associative container that contains key-value pairs with unique keys.
+* map - `binom::Map` - Key-sorted associative heterogeneous containe;
+* table - `binom::Table` - Multiple key-sorted associative heterogeneous container
 
 #### Number value widths:
 * byte - 8 bit width;
@@ -96,11 +125,6 @@ make test -j
 * unsigned_integer;
 * signed_integer;
 * float_point.
-
-#### Container Sort Type:
-* unsorted;
-* less;
-* greater;
 
 #### Value type:
 * boolean - Boolean value

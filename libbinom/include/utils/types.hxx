@@ -39,11 +39,40 @@ enum class VarType : ui8 {
   array                   = 0x18, ///< Heterogeneous array
   singly_linked_list      = 0x19, ///< Heterogeneous singly linked list
   doubly_linked_list      = 0x1A, ///< Heterogeneous doubly linked list
-  less_map                = 0x1B, ///< Associative heterogeneous container with key-sorted by descending
-  greater_map             = 0x1C, ///< Associative heterogeneous container with key-sorted by ascending
+  map                     = 0x1B, ///< Associative heterogeneous container with key-sorted
+  table                   = 0x1C, ///< Multiple key-sorted associative heterogeneous container
 
   separator               = 0x00, ///< End code
   invalid_type            = 0xFF  ///< Invalid type code
+};
+
+enum class VarKeyType : ui8 {
+  null                    = int(VarType::null),       ///< NULL
+  boolean                 = int(VarType::boolean),    ///< Boolean value
+  ui8                     = int(VarType::ui8),        ///< Unsigned 8-bit integer number
+  si8                     = int(VarType::si8),        ///< Signed 8-bit integer number
+  ui16                    = int(VarType::ui16),       ///< Unsigned 16-bit integer number
+  si16                    = int(VarType::si16),       ///< Signed 16-bit integer number
+  ui32                    = int(VarType::ui32),       ///< Unsigned 32-bit integer number
+  si32                    = int(VarType::si32),       ///< Signed 32-bit integer number
+  f32                     = int(VarType::f32),        ///< 32-bit number with floating point
+  ui64                    = int(VarType::ui64),       ///< Unsigned 64-bit integer number
+  si64                    = int(VarType::si64),       ///< Signed 64-bit integer number
+  f64                     = int(VarType::f64),        ///< 64-bit number with floating point
+  bit_array               = int(VarType::bit_array),  ///< Array of boolean values
+  ui8_array               = int(VarType::ui8_array),  ///< Array of unsigned 8-bit integer numbers
+  si8_array               = int(VarType::si8_array),  ///< Array of signed 8-bit integer numbers
+  ui16_array              = int(VarType::ui16_array), ///< Array of unsigned 16-bit integer numbers
+  si16_array              = int(VarType::si16_array), ///< Array of signed 16-bit integer numbers
+  ui32_array              = int(VarType::ui32_array), ///< Array of unsigned 32-bit integer numbers
+  si32_array              = int(VarType::si32_array), ///< Array of signed 32-bit integer numbers
+  f32_array               = int(VarType::f32_array),  ///< Array of 32-bit numbers with floating point
+  ui64_array              = int(VarType::ui64_array), ///< Array of unsigned 64-bit integer numbers
+  si64_array              = int(VarType::si64_array), ///< Array of signed 64-bit integer numbers
+  f64_array               = int(VarType::f64_array),  ///< Array of 64-bit numbers with floating point
+
+  separator               = int(VarType::separator),    ///< End code
+  invalid_type            = int(VarType::invalid_type)  ///< Invalid type code
 };
 
 enum class VarTypeClass : ui8 {
@@ -55,6 +84,7 @@ enum class VarTypeClass : ui8 {
   singly_linked_list      = 0x06,
   doubly_linked_list      = 0x07,
   map                     = 0x08,
+  table                   = 0x09,
 
   invalid_type            = int(VarType::invalid_type)
 };
@@ -72,14 +102,6 @@ enum class VarNumberType : ui8 {
   unsigned_integer        = 0x00,
   signed_integer          = 0x01,
   float_point             = 0x02,
-
-  invalid_type            = int(VarType::invalid_type)
-};
-
-enum class VarSortType : ui8 {
-  unsorted                = 0x00,
-  less                    = 0x01,
-  greater                 = 0x02,
 
   invalid_type            = int(VarType::invalid_type)
 };
@@ -140,9 +162,9 @@ inline VarTypeClass toTypeClass(VarType type) noexcept {
 
   case VarType::doubly_linked_list: return VarTypeClass::doubly_linked_list;
 
-  case VarType::less_map:
-  case VarType::greater_map:
-  return VarTypeClass::map;
+  case VarType::map: return VarTypeClass::map;
+
+  case VarType::table: return VarTypeClass::table;
 
   case VarType::separator:
   case VarType::invalid_type:
@@ -157,6 +179,17 @@ inline bool operator == (VarTypeClass type_class, VarType type) noexcept {return
 inline bool operator != (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) != type_class;}
 inline bool operator != (VarTypeClass type_class, VarType type) noexcept {return toTypeClass(type) != type_class;}
 
+inline VarKeyType toKeyType(VarType type) noexcept {
+  if(type <= VarType::f64_array) return VarKeyType(type);
+  else return VarKeyType::invalid_type;
+}
+
+inline VarType toVarType(VarKeyType key_type) noexcept {return VarType(key_type);}
+
+inline bool operator == (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
+inline bool operator == (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) == key_type;}
+inline bool operator != (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
+inline bool operator != (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) != key_type;}
 
 inline VarBitWidth toBitWidth(VarType type) noexcept {
   switch (type) {
@@ -295,39 +328,6 @@ inline bool operator == (VarNumberType number_type, ValType val_type) noexcept {
 inline bool operator != (ValType val_type, VarNumberType number_type) noexcept {return toNumberType(val_type) != number_type;}
 inline bool operator != (VarNumberType number_type, ValType val_type) noexcept {return toNumberType(val_type) != number_type;}
 
-inline VarSortType toSortType(VarType type) noexcept {
-  switch (type) {
-  case VarType::ui8_array:
-  case VarType::si8_array:
-  case VarType::ui16_array:
-  case VarType::si16_array:
-  case VarType::ui32_array:
-  case VarType::si32_array:
-  case VarType::f32_array:
-  case VarType::ui64_array:
-  case VarType::si64_array:
-  case VarType::f64_array:
-  case VarType::array:
-  case VarType::singly_linked_list:
-  case VarType::doubly_linked_list:
-  return VarSortType::unsorted;
-
-  case VarType::less_map:
-  return VarSortType::less;
-
-  case VarType::greater_map:
-  return VarSortType::greater;
-
-  default:
-  return VarSortType::invalid_type;
-  }
-}
-
-inline bool operator==(VarSortType sort_type, VarType type) noexcept {return sort_type == toSortType(type);}
-inline bool operator==(VarType type, VarSortType sort_type) noexcept {return toSortType(type) == sort_type;}
-inline bool operator!=(VarSortType sort_type, VarType type) noexcept {return sort_type != toSortType(type);}
-inline bool operator!=(VarType type, VarSortType sort_type) noexcept {return toSortType(type) != sort_type;}
-
 inline ValType toValueType(VarType type) noexcept {
   switch (type) {
   case VarType::boolean:
@@ -401,6 +401,7 @@ class Array;
 class SinglyLinkedList;
 class DoublyLinkedList;
 class Map;
+class Table;
 
 namespace literals {
 namespace priv {
@@ -408,8 +409,8 @@ namespace priv {
 struct ArrayLiteral : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct SinglyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct DoublyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct LessMapLiteral;
-struct GreaterMapLiteral;
+struct MapLiteral;
+struct TableLiteral;
 
 }
 
@@ -427,8 +428,8 @@ typedef std::initializer_list<const f64>        f64arr;
 typedef priv::ArrayLiteral                      arr;
 typedef priv::SinglyLinkedListLiteral           sllist;
 typedef priv::DoublyLinkedListLiteral           dllist;
-typedef priv::LessMapLiteral                    lmap;
-typedef priv::GreaterMapLiteral                 gmap;
+typedef priv::MapLiteral                        map;
+typedef priv::TableLiteral                      table;
 
 }
 

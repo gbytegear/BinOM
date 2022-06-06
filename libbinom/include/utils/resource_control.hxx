@@ -8,8 +8,6 @@
 
 
 namespace binom::priv {
-using namespace extended_type_traits;
-
 
 struct ResourceData {
 
@@ -56,6 +54,9 @@ struct SharedResource {
 class Link {
   SharedResource* resource = nullptr;
 
+  friend class binom::Variable;
+  std::shared_mutex& getMutex() {return resource->mtx;}
+
 public:
   Link(ResourceData resource_data) noexcept;
   Link(Link&& other) noexcept;
@@ -64,6 +65,7 @@ public:
 
   void overwriteWithResourceCopy(ResourceData& resource_data);
   static Link cloneResource(priv::Link resource_link) noexcept;
+  ui64 getLinkCount() const noexcept;
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
   ResourceData* operator*() const noexcept;

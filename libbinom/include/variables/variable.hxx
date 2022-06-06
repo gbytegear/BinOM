@@ -3,6 +3,7 @@
 
 #include "../utils/resource_control.hxx"
 #include "generic_value.hxx"
+#include "mutex"
 
 namespace binom {
 
@@ -13,10 +14,13 @@ protected:
 
   Link resource_link;
 
+  std::shared_mutex& getMutex() {return resource_link.getMutex();}
+
   Variable(ResourceData data);
   Variable(Link&& link);
 
 public:
+
   // Null
   Variable() noexcept;
   Variable(decltype(nullptr)) noexcept;
@@ -69,6 +73,33 @@ public:
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
+  template<class... Var>
+  static void transaction(Var&... vars) {
+    static_assert ((std::is_same_v<Variable, std::remove_reference_t<Var>> && ...) ||
+                   (std::is_base_of_v<Variable, std::remove_reference_t<Var>> && ...));
+    std::lock((vars.getMutex())...);
+  }
+
+//  template<class... Var>
+//  class Transaction {
+//    std::tuple<Var...> variables;
+//    bool locked = true;
+//  public:
+//    Transaction(Var&... vars) : variables(vars...) {
+//      static_assert ((std::is_same_v<Variable, std::remove_reference_t<Var>> && ...) ||
+//                     (std::is_base_of_v<Variable, std::remove_reference_t<Var>> && ...));
+//      std::lock((vars.getMutex())...);
+//    }
+
+//    void unlock() {
+//      if(locked)std::apply([](auto&... vars) {((vars.getMutex().unlock()),...);}, variables);
+//      locked = false;
+//    }
+
+//    ~Transaction() {unlock();}
+//  };
+
+
   // Properties
   bool isResourceExist() const noexcept;
   VarType getType() const noexcept;
@@ -78,7 +109,7 @@ public:
   VarNumberType getNumberType() const noexcept;
   size_t getElementCount() const noexcept;
   size_t getElementSize() const noexcept;
-
+  ui64 getLinkCount() const noexcept;
 
   // Downcast operators
   operator Number& ();

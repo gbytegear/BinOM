@@ -44,6 +44,7 @@ void SharedResource::destroy() {
   return;
 
   case VarTypeClass::map: return; // TODO
+  case VarTypeClass::table: return; // TODO
   case VarTypeClass::invalid_type: default:
   return;
   }
@@ -112,6 +113,7 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
   return;
 
   case VarTypeClass::map: // TODO
+  case VarTypeClass::table: // TODO
   default:
   case VarTypeClass::invalid_type:
   break;
@@ -141,11 +143,18 @@ Link Link::cloneResource(Link resource_link) noexcept {
   return ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_header = new DoublyLinkedListHeader(*resource_link->data.doubly_linked_list_header)}};
 
   case VarTypeClass::map: // TODO
+  case VarTypeClass::table: // TODO
   default:
   case VarTypeClass::invalid_type:
   break;
   }
   return ResourceData{VarType::null, {.pointer = nullptr}};
+}
+
+ui64 Link::getLinkCount() const noexcept {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return resource->link_counter;
+  else return 0;
 }
 
 OptionalSharedRecursiveLock Link::getLock(MtxLockType lock_type) const noexcept {

@@ -150,6 +150,12 @@ size_t Variable::getElementSize() const noexcept {
   }
 }
 
+ui64 Variable::getLinkCount() const noexcept {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return resource_link.getLinkCount();
+  else return 0;
+}
+
 Variable::operator Number&() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
