@@ -29,16 +29,17 @@ class GenericValue :
   void reallocateImpl([[maybe_unused]] ValType type) noexcept {}
   void setTypeImpl(ValType new_type) noexcept {type = new_type;}
 
-  friend class Variable;
-  friend class Number;
-  friend class GenericValueRef;
+  friend class binom::Variable;
+  friend class binom::Number;
+  friend class binom::GenericValueRef;
+  friend class binom::KeyValue;
   GenericValue(ValType type, arithmetic::ArithmeticData data) : type(type), data(data) {}
 
   priv::ResourceData toResourceData() const noexcept {return {toVarType(type), reinterpret_cast<const priv::ResourceData::Data&>(data)};}
 
 public:
   GenericValue() noexcept {}
-  GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {getLock(priv::MtxLockType::shared_locked);}
+  GenericValue(bool value) noexcept : type(ValType::boolean), data{.bool_val = value} {getLock(MtxLockType::shared_locked);}
   GenericValue(ui8 value) noexcept : type(ValType::ui8), data{.ui8_val = value} {}
   GenericValue(i8 value) noexcept : type(ValType::si8), data{.i8_val = value} {}
   GenericValue(ui16 value) noexcept : type(ValType::ui16), data{.ui16_val = value} {}
@@ -58,27 +59,36 @@ class GenericValueRef :
     public arithmetic::ArithmeticTypeBase<GenericValueRef> {
   USE_ARITHMETIC
 
-  priv::Link owner;
-  ValType value_type;
-  union pointer {
-      void* ptr;
-      bool* bool_ptr;
-      ui8* ui8_ptr;
-      ui16* ui16_ptr;
-      ui32* ui32_ptr;
-      ui64* ui64_ptr;
-      i8* i8_ptr;
-      i16* i16_ptr;
-      i32* i32_ptr;
-      i64* i64_ptr;
-      f32* f32_ptr;
-      f64* f64_ptr;
-      arithmetic::ArithmeticData* num_data_ptr;
-      pointer(void* ptr) : ptr(ptr) {}
-  } ptr;
+  priv::Link link;
+  size_t index = 0;
 
-  arithmetic::ArithmeticData& getArithmeticDataImpl() const noexcept {return *ptr.num_data_ptr;}
-  ValType getValTypeImpl() const noexcept {if(ptr.ptr) return value_type; else return ValType::invalid_type;}
+  ValType getValTypeImpl() const noexcept {
+    auto lk = getLock(MtxLockType::shared_locked);
+    if(!lk)
+      return ValType::invalid_type;
+    return toValueType(link->type);
+  }
+
+  arithmetic::ArithmeticData& getArithmeticDataImpl() noexcept {
+    switch (toTypeClass(link->type)) {
+    default:
+    case binom::VarTypeClass::null:
+    case binom::VarTypeClass::number: return reinterpret_cast<arithmetic::ArithmeticData&>(link->data);
+    case binom::VarTypeClass::buffer_array:
+    return *reinterpret_cast<arithmetic::ArithmeticData*>(link->data.buffer_array_header->get(getBitWidth(), index));
+    }
+  }
+
+  const arithmetic::ArithmeticData& getArithmeticDataImpl() const noexcept {
+    switch (toTypeClass(link->type)) {
+    default:
+    case binom::VarTypeClass::null:
+    case binom::VarTypeClass::number: return reinterpret_cast<const arithmetic::ArithmeticData&>(link->data);
+    case binom::VarTypeClass::buffer_array:
+    return *reinterpret_cast<const arithmetic::ArithmeticData*>(link->data.buffer_array_header->get(getBitWidth(), index));
+    }
+  }
+
   static bool checkLock(const OptionalSharedRecursiveLock& lock) noexcept {return lock.has_value();}
 
   friend class GenericValueIterator;
@@ -86,238 +96,133 @@ class GenericValueRef :
   friend class Number;
   friend class BufferArray;
 
-  GenericValueRef(ValType value_type, void* ptr, priv::Link owner)
-    : owner(std::move(owner)), value_type(value_type), ptr(ptr) {}
+  GenericValueRef(priv::Link link, size_t index)
+    : link(std::move(link)), index(index) {}
 public:
-  GenericValueRef(const GenericValueRef& other) : owner(other.owner), value_type(other.value_type), ptr(other.ptr.ptr) {}
-  GenericValueRef(const GenericValueRef&& other) : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
+  GenericValueRef(const GenericValueRef& other) : link(other.link), index(other.index) {}
+  GenericValueRef(const GenericValueRef&& other) : link(other.link), index(other.index) {}
 
   using arithmetic::ArithmeticTypeBase<GenericValueRef>::operator=;
 
-  OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept { return owner.getLock(lock_type); }
+  OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept { return link.getLock(lock_type); }
 
-  operator GenericValue() {
-    if(auto lk = getLock(MtxLockType::shared_locked); lk)
-      return GenericValue(value_type, *ptr.num_data_ptr);
-    return GenericValue();
-  }
+  operator GenericValue() const { return GenericValue(getValTypeImpl(), getArithmeticDataImpl()); }
 
 };
 
 class GenericValueIterator {
-  priv::Link owner;
-  ValType value_type;
-  union pointer {
-      void* ptr;
-      bool* bool_ptr;
-      ui8* ui8_ptr;
-      ui16* ui16_ptr;
-      ui32* ui32_ptr;
-      ui64* ui64_ptr;
-      i8* i8_ptr;
-      i16* i16_ptr;
-      i32* i32_ptr;
-      i64* i64_ptr;
-      f32* f32_ptr;
-      f64* f64_ptr;
-      arithmetic::ArithmeticData* num_data_ptr;
-      pointer(void* ptr) : ptr(ptr) {}
-  } ptr;
+  priv::Link link;
+  ptrdiff_t index;
 
   friend class BufferArray;
-  GenericValueIterator(ValType value_type, void* ptr, priv::Link owner)
-    : owner(std::move(owner)), value_type(value_type), ptr(ptr) {}
+  GenericValueIterator(priv::Link link, ptrdiff_t index)
+    : link(std::move(link)), index(index) {}
 public:
   GenericValueIterator(const GenericValueIterator& other)
-    : owner(other.owner), value_type(other.value_type), ptr(other.ptr.ptr) {}
+    : link(other.link), index(other.index) {}
   GenericValueIterator(const GenericValueIterator&& other)
-    : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
+    : link(other.link), index(other.index) {}
+
   GenericValueIterator& operator=(GenericValueIterator&& other) noexcept {
     return *new(this) GenericValueIterator(other);
   }
 
   GenericValueIterator& operator++() noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ++ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: ++ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: ++ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: ++ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    ++index;
     return self;
   }
 
   GenericValueIterator& operator--() noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: --ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: --ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: --ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: --ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    --index;
     return self;
   }
 
   GenericValueIterator operator++(int) noexcept {
     GenericValueIterator tmp(*this);
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ++ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: ++ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: ++ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: ++ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    ++index;
     return tmp;
   }
 
   GenericValueIterator operator--(int) noexcept {
     GenericValueIterator tmp(*this);
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: --ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: --ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: --ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: --ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    --index;
     return tmp;
   }
 
   GenericValueIterator& operator+=(ptrdiff_t shift) noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ptr.ui8_ptr += shift; break;
-    case binom::VarBitWidth::word: ptr.ui16_ptr += shift; break;
-    case binom::VarBitWidth::dword: ptr.ui32_ptr += shift; break;
-    case binom::VarBitWidth::qword: ptr.ui64_ptr += shift; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    index += shift;
     return self;
   }
 
   GenericValueIterator& operator-=(ptrdiff_t shift) noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ptr.ui8_ptr -= shift; break;
-    case binom::VarBitWidth::word: ptr.ui16_ptr -= shift; break;
-    case binom::VarBitWidth::dword: ptr.ui32_ptr -= shift; break;
-    case binom::VarBitWidth::qword: ptr.ui64_ptr -= shift; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    index -= shift;
     return self;
   }
 
-  bool operator==(GenericValueIterator&& other) const noexcept {return ptr.ptr == other.ptr.ptr;}
-  bool operator!=(GenericValueIterator&& other) const noexcept {return ptr.ptr != other.ptr.ptr;}
-  bool operator==(const GenericValueIterator& other) const noexcept {return ptr.ptr == other.ptr.ptr;}
-  bool operator!=(const GenericValueIterator& other) const noexcept {return ptr.ptr != other.ptr.ptr;}
+  bool operator==(GenericValueIterator&& other) const noexcept {return index == other.index;}
+  bool operator!=(GenericValueIterator&& other) const noexcept {return index != other.index;}
+  bool operator==(const GenericValueIterator& other) const noexcept {return index == other.index;}
+  bool operator!=(const GenericValueIterator& other) const noexcept {return index != other.index;}
 
-  GenericValueRef operator*() const noexcept {return GenericValueRef(value_type, ptr.ptr, owner);}
+  GenericValueRef operator*() const noexcept {return GenericValueRef(link, index);}
 
 };
 
 class ReverseGenericValueIterator {
   friend class GenericValueIterator;
-  priv::Link owner;
-  ValType value_type;
-  union pointer {
-      void* ptr;
-      bool* bool_ptr;
-      ui8* ui8_ptr;
-      ui16* ui16_ptr;
-      ui32* ui32_ptr;
-      ui64* ui64_ptr;
-      i8* i8_ptr;
-      i16* i16_ptr;
-      i32* i32_ptr;
-      i64* i64_ptr;
-      f32* f32_ptr;
-      f64* f64_ptr;
-      arithmetic::ArithmeticData* num_data_ptr;
-      pointer(void* ptr) : ptr(ptr) {}
-  } ptr;
+  priv::Link link;
+  ptrdiff_t index;
 
   friend class BufferArray;
-  ReverseGenericValueIterator(ValType value_type, void* ptr, priv::Link owner)
-    : owner(std::move(owner)), value_type(value_type), ptr(ptr) {}
+  ReverseGenericValueIterator(priv::Link link, ptrdiff_t index)
+    : link(std::move(link)), index(index) {}
 public:
   ReverseGenericValueIterator(const ReverseGenericValueIterator& other)
-    : owner(other.owner), value_type(other.value_type), ptr(other.ptr.ptr) {}
+    : link(other.link), index(other.index) {}
   ReverseGenericValueIterator(ReverseGenericValueIterator&& other)
-    : owner(std::move(other.owner)), value_type(other.value_type), ptr(other.ptr.ptr) {}
+    : link(other.link), index(other.index) {}
   ReverseGenericValueIterator& operator=(ReverseGenericValueIterator&& other) noexcept {
     return *new(this) ReverseGenericValueIterator(other);
   }
 
   ReverseGenericValueIterator& operator++() noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: --ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: --ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: --ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: --ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    --index;
     return self;
   }
 
   ReverseGenericValueIterator& operator--() noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ++ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: ++ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: ++ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: ++ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    ++index;
     return self;
   }
 
   ReverseGenericValueIterator operator++(int) noexcept {
     ReverseGenericValueIterator tmp(*this);
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: --ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: --ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: --ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: --ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    --index;
     return tmp;
   }
 
   ReverseGenericValueIterator operator--(int) noexcept {
     ReverseGenericValueIterator tmp(*this);
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ++ptr.ui8_ptr; break;
-    case binom::VarBitWidth::word: ++ptr.ui16_ptr; break;
-    case binom::VarBitWidth::dword: ++ptr.ui32_ptr; break;
-    case binom::VarBitWidth::qword: ++ptr.ui64_ptr; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    ++index;
     return tmp;
   }
 
   ReverseGenericValueIterator& operator+=(ptrdiff_t shift) noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ptr.ui8_ptr -= shift; break;
-    case binom::VarBitWidth::word: ptr.ui16_ptr -= shift; break;
-    case binom::VarBitWidth::dword: ptr.ui32_ptr -= shift; break;
-    case binom::VarBitWidth::qword: ptr.ui64_ptr -= shift; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    index -= shift;
     return self;
   }
 
   ReverseGenericValueIterator& operator-=(ptrdiff_t shift) noexcept {
-    switch (toBitWidth(value_type)) {
-    case binom::VarBitWidth::byte: ptr.ui8_ptr += shift; break;
-    case binom::VarBitWidth::word: ptr.ui16_ptr += shift; break;
-    case binom::VarBitWidth::dword: ptr.ui32_ptr += shift; break;
-    case binom::VarBitWidth::qword: ptr.ui64_ptr += shift; break;
-    case binom::VarBitWidth::invalid_type: break;
-    }
+    index += shift;
     return self;
   }
 
-  bool operator==(ReverseGenericValueIterator&& other) const noexcept {return ptr.ptr == other.ptr.ptr;}
-  bool operator!=(ReverseGenericValueIterator&& other) const noexcept {return ptr.ptr != other.ptr.ptr;}
+  bool operator==(ReverseGenericValueIterator&& other) const noexcept {return index == other.index;}
+  bool operator!=(ReverseGenericValueIterator&& other) const noexcept {return index != other.index;}
+  bool operator==(const ReverseGenericValueIterator& other) const noexcept {return index == other.index;}
+  bool operator!=(const ReverseGenericValueIterator& other) const noexcept {return index != other.index;}
 
-  GenericValueRef operator*() const noexcept {return GenericValueRef(value_type, ptr.ptr, owner);}
+  GenericValueRef operator*() const noexcept {return GenericValueRef(link, index);}
 
 };
 

@@ -38,9 +38,10 @@ class BufferArray : public Variable {
 
   priv::BufferArrayHeader*& getData() const noexcept;
 
-  friend class Variable;
   BufferArray(priv::Link&& link);
 
+  friend class binom::Variable;
+  friend class binom::KeyValue;
 public:
   typedef GenericValueIterator Iterator;
   typedef ReverseGenericValueIterator ReverseIterator;

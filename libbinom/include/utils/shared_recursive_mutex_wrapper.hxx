@@ -1,11 +1,12 @@
 #ifndef SHARED_RECURSIVE_MUTEX_WRAPPER_HXX
 #define SHARED_RECURSIVE_MUTEX_WRAPPER_HXX
 
-#include "types.hxx"
+#include "type_aliases.hxx"
 #include <shared_mutex>
 #include <map>
 
-namespace binom::priv {
+namespace shared_recursive_mtx {
+using namespace type_alias;
 
 class SharedRecursiveLock;
 
@@ -253,8 +254,9 @@ public:
 }
 
 namespace binom {
-using priv::MtxLockType;
-typedef std::optional<priv::SharedRecursiveLock> OptionalSharedRecursiveLock;
+using shared_recursive_mtx::MtxLockType;
+using shared_recursive_mtx::SharedRecursiveLock;
+typedef std::optional<shared_recursive_mtx::SharedRecursiveLock> OptionalSharedRecursiveLock;
 }
 
 #endif // SHARED_RECURSIVE_MUTEX_WRAPPER_HXX

@@ -66,7 +66,7 @@ Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneRe
 Variable Variable::getReference() noexcept {return Link(resource_link);}
 const Variable Variable::getReference() const noexcept {return Link(resource_link);}
 
-OptionalSharedRecursiveLock Variable::getLock(priv::MtxLockType lock_type) const noexcept {
+OptionalSharedRecursiveLock Variable::getLock(MtxLockType lock_type) const noexcept {
   return resource_link.getLock(lock_type);
 }
 

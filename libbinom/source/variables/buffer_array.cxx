@@ -32,32 +32,32 @@ size_t BufferArray::getCapacity() const noexcept {
 
 BufferArray::ValueRef BufferArray::operator[](size_t index) noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return ValueRef(ValType::invalid_type, nullptr, resource_link);
-  return ValueRef(getValType(), getData()->get(getBitWidth(), index), resource_link);
+  if(!lk) return ValueRef(resource_link, 0);
+  return ValueRef(resource_link, index);
 }
 
 BufferArray::Iterator BufferArray::begin() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-  return Iterator(getValType(), getData()->getBeginPtr(), resource_link);
+  if(!lk) return Iterator(resource_link, 0);
+  return Iterator(resource_link, 0);
 }
 
 BufferArray::Iterator BufferArray::end() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-  return Iterator(getValType(), getData()->getEndPtr(getBitWidth()), resource_link);
+  if(!lk) return Iterator(resource_link, 0);
+  return Iterator(resource_link, getData()->getSize() / size_t(getBitWidth()));
 }
 
 BufferArray::ReverseIterator BufferArray::rbegin() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return ReverseIterator(ValType::invalid_type, nullptr, resource_link);
-  return ReverseIterator(getValType(), getData()->getReverseBeginPtr(getBitWidth()), resource_link);
+  if(!lk) return ReverseIterator(resource_link, 0);
+  return ReverseIterator(resource_link, (getData()->getSize() / size_t(getBitWidth())) - 1);
 }
 
 BufferArray::ReverseIterator BufferArray::rend() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return ReverseIterator(ValType::invalid_type, nullptr, resource_link);
-  return ReverseIterator(getValType(), getData()->getReverseEndPtr(getBitWidth()), resource_link);
+  if(!lk) return ReverseIterator(resource_link, 0);
+  return ReverseIterator(resource_link, -1);
 }
 
 BufferArray& BufferArray::operator=(const BufferArray& other) {

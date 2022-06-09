@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <initializer_list>
 
-namespace binom {
+namespace heritable_initializer_list {
 
 template<class T>
 class HeritableInitializerList {

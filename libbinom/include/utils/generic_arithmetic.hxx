@@ -13,8 +13,8 @@ using namespace extended_type_traits;
 /// Placeholder for getLock (don't inhearit if we NEED multithreading support)
 class ArithmeticMthrImplPlaceholders {
 protected:
-  priv::OptionalLockPlaceholder getLock(MtxLockType lock_type) const noexcept {return priv::OptionalLockPlaceholder(nullptr, lock_type);}
-  bool checkLock(const priv::OptionalLockPlaceholder&) const noexcept {return true;}
+  shared_recursive_mtx::OptionalLockPlaceholder getLock(MtxLockType lock_type) const noexcept {return shared_recursive_mtx::OptionalLockPlaceholder(nullptr, lock_type);}
+  bool checkLock(const shared_recursive_mtx::OptionalLockPlaceholder&) const noexcept {return true;}
 };
 
 //////////////////////
@@ -45,7 +45,8 @@ class ArithmeticTypeBase {
   ArithmeticTypeDriven& downcast() noexcept {return *reinterpret_cast<ArithmeticTypeDriven*>(this);}
   const ArithmeticTypeDriven& downcast() const noexcept {return *reinterpret_cast<const ArithmeticTypeDriven*>(this);}
 
-  inline ArithmeticData& getArithmeticData() const {return downcast().getArithmeticDataImpl();}
+  inline ArithmeticData& getArithmeticData() {return downcast().getArithmeticDataImpl();}
+  inline const ArithmeticData& getArithmeticData() const {return downcast().getArithmeticDataImpl();}
 
 public:
 
@@ -64,7 +65,7 @@ public:
   VarBitWidth getBitWidth() const noexcept {
     auto lk = downcast().getLock(MtxLockType::shared_locked);
     if(!downcast().checkLock(lk)) return VarBitWidth::invalid_type;
-    return getBitWidth(getValType());
+    return binom::toBitWidth(getValType());
   }
 
   template<typename T>
@@ -1003,7 +1004,7 @@ protected:
 public:
 
   ArithmeticTypeDriven& castTo(ValType new_type) noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    auto lk = downcast().getLock(MtxLockType::unique_locked);
     if(!downcast().checkLock(lk)) return downcast();
     reallocate(new_type);
     switch (downcast().getValType()) {
@@ -1191,7 +1192,7 @@ public:
   }
 
   ArithmeticTypeDriven& reinterpretCastTo(ValType new_type) noexcept {
-    auto lk = downcast().getLock(priv::MtxLockType::unique_locked);
+    auto lk = downcast().getLock(MtxLockType::unique_locked);
     if(!downcast().checkLock(lk)) return downcast();
     reallocate(new_type);
     setType(new_type);

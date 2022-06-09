@@ -18,15 +18,4 @@ int main() {
 #endif
 
   testAllBugs();
-
-//  Variable a = 15;
-//  Number b = 256;
-
-//  Variable::Transaction tr(a, b);
-//  if(b > 50) {
-//    a.toNumber() += 50;
-//    b -= 50;
-//  }
-//  tr.unlock();
-
 }

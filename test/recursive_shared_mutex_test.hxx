@@ -14,7 +14,7 @@ bool is_valid_data = true;
 
 void subreader() {
   GRP_PUSH
-  binom::priv::SharedRecursiveLock lock(&shared_mtx, binom::priv::MtxLockType::shared_locked);
+  shared_recursive_mtx::SharedRecursiveLock lock(&shared_mtx, shared_recursive_mtx::MtxLockType::shared_locked);
   static thread_local int recursion_depth = 0;
 
   TEST(is_valid_data);
@@ -28,7 +28,7 @@ void subreader() {
 
 void subwriter() {
   GRP_PUSH
-  binom::priv::SharedRecursiveLock lock(&shared_mtx, binom::priv::MtxLockType::unique_locked);
+  shared_recursive_mtx::SharedRecursiveLock lock(&shared_mtx, shared_recursive_mtx::MtxLockType::unique_locked);
   static thread_local int recursion_depth = 0;
 
   PRINT_RUN(is_valid_data = false);

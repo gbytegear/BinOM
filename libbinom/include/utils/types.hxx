@@ -174,6 +174,44 @@ inline VarTypeClass toTypeClass(VarType type) noexcept {
   }
 }
 
+inline VarTypeClass toTypeClass(VarKeyType type) noexcept {
+  switch (type) {
+  case VarKeyType::null: return VarTypeClass::null;
+  case VarKeyType::boolean:
+  case VarKeyType::ui8:
+  case VarKeyType::si8:
+  case VarKeyType::ui16:
+  case VarKeyType::si16:
+  case VarKeyType::ui32:
+  case VarKeyType::si32:
+  case VarKeyType::f32:
+  case VarKeyType::ui64:
+  case VarKeyType::si64:
+  case VarKeyType::f64:
+  return VarTypeClass::number;
+
+  case VarKeyType::bit_array:
+  return VarTypeClass::bit_array;
+
+  case VarKeyType::ui8_array:
+  case VarKeyType::si8_array:
+  case VarKeyType::ui16_array:
+  case VarKeyType::si16_array:
+  case VarKeyType::ui32_array:
+  case VarKeyType::si32_array:
+  case VarKeyType::f32_array:
+  case VarKeyType::ui64_array:
+  case VarKeyType::si64_array:
+  case VarKeyType::f64_array:
+  return VarTypeClass::buffer_array;
+
+  case VarKeyType::separator:
+  case VarKeyType::invalid_type:
+  default:
+  return VarTypeClass::invalid_type;
+  }
+}
+
 inline bool operator == (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) == type_class;}
 inline bool operator == (VarTypeClass type_class, VarType type) noexcept {return toTypeClass(type) == type_class;}
 inline bool operator != (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) != type_class;}
@@ -184,12 +222,35 @@ inline VarKeyType toKeyType(VarType type) noexcept {
   else return VarKeyType::invalid_type;
 }
 
+inline VarKeyType toKeyType(ValType type) noexcept {
+  switch (type) {
+  case ValType::boolean:      return VarKeyType::boolean;
+  case ValType::ui8:          return VarKeyType::ui8;
+  case ValType::si8:          return VarKeyType::si8;
+  case ValType::ui16:         return VarKeyType::ui16;
+  case ValType::si16:         return VarKeyType::si16;
+  case ValType::ui32:         return VarKeyType::ui32;
+  case ValType::si32:         return VarKeyType::si32;
+  case ValType::f32:          return VarKeyType::f32;
+  case ValType::ui64:         return VarKeyType::ui64;
+  case ValType::si64:         return VarKeyType::si64;
+  case ValType::f64:          return VarKeyType::f64;
+  default:
+  case ValType::invalid_type: return VarKeyType::invalid_type;
+  }
+}
+
 inline VarType toVarType(VarKeyType key_type) noexcept {return VarType(key_type);}
 
 inline bool operator == (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
 inline bool operator == (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) == key_type;}
 inline bool operator != (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
 inline bool operator != (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) != key_type;}
+
+inline bool operator == (ValType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
+inline bool operator == (VarKeyType key_type, ValType type) noexcept {return toKeyType(type) == key_type;}
+inline bool operator != (ValType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
+inline bool operator != (VarKeyType key_type, ValType type) noexcept {return toKeyType(type) != key_type;}
 
 inline VarBitWidth toBitWidth(VarType type) noexcept {
   switch (type) {
@@ -331,6 +392,7 @@ inline bool operator != (VarNumberType number_type, ValType val_type) noexcept {
 inline ValType toValueType(VarType type) noexcept {
   switch (type) {
   case VarType::boolean:
+  case VarType::bit_array:
   return ValType::boolean;
 
   case VarType::ui8:
@@ -378,6 +440,57 @@ inline ValType toValueType(VarType type) noexcept {
   }
 }
 
+inline ValType toValueType(VarKeyType type) noexcept {
+  switch (type) {
+  case VarKeyType::boolean:
+  case VarKeyType::bit_array:
+  return ValType::boolean;
+
+  case VarKeyType::ui8:
+  case VarKeyType::ui8_array:
+  return ValType::ui8;
+
+  case VarKeyType::si8:
+  case VarKeyType::si8_array:
+  return ValType::si8;
+
+  case VarKeyType::ui16:
+  case VarKeyType::ui16_array:
+  return ValType::ui16;
+
+  case VarKeyType::si16:
+  case VarKeyType::si16_array:
+  return ValType::si16;
+
+  case VarKeyType::ui32:
+  case VarKeyType::ui32_array:
+  return ValType::ui32;
+
+  case VarKeyType::si32:
+  case VarKeyType::si32_array:
+  return ValType::si32;
+
+  case VarKeyType::f32:
+  case VarKeyType::f32_array:
+  return ValType::f32;
+
+  case VarKeyType::ui64:
+  case VarKeyType::ui64_array:
+  return ValType::ui64;
+
+  case VarKeyType::si64:
+  case VarKeyType::si64_array:
+  return ValType::si64;
+
+  case VarKeyType::f64:
+  case VarKeyType::f64_array:
+  return ValType::f64;
+
+  default:
+  return ValType::invalid_type;
+  }
+}
+
 inline VarType toVarType(ValType type) {
   return VarType(type);
 }
@@ -402,13 +515,14 @@ class SinglyLinkedList;
 class DoublyLinkedList;
 class Map;
 class Table;
+class KeyValue;
 
 namespace literals {
 namespace priv {
 
-struct ArrayLiteral : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct SinglyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct DoublyLinkedListLiteral  : public HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct ArrayLiteral : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct SinglyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
+struct DoublyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct MapLiteral;
 struct TableLiteral;
 

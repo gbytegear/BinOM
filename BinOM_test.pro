@@ -13,6 +13,7 @@ SOURCES += test/test.cxx \
     libbinom/source/variables/bit_array.cxx \
     libbinom/source/variables/buffer_array.cxx \
     libbinom/source/variables/doubly_linked_list.cxx \
+    libbinom/source/variables/key_value.cxx \
     libbinom/source/variables/number.cxx \
     libbinom/source/variables/singly_linked_list.cxx \
     libbinom/source/variables/variable.cxx
@@ -41,6 +42,7 @@ HEADERS += \
     libbinom/include/variables/buffer_array.hxx \
     libbinom/include/variables/doubly_linked_list.hxx \
     libbinom/include/variables/generic_value.hxx \
+    libbinom/include/variables/key_value.hxx \
     libbinom/include/variables/map.hxx \
     libbinom/include/variables/number.hxx \
     libbinom/include/variables/singly_linked_list.hxx \

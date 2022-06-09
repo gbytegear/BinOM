@@ -6,7 +6,6 @@
 #include "shared_recursive_mutex_wrapper.hxx"
 #include <atomic>
 
-
 namespace binom::priv {
 
 struct ResourceData {

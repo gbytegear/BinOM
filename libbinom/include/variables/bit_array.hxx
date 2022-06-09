@@ -39,9 +39,10 @@ class BitArray : public Variable {
 
   priv::BitArrayHeader*& getData() const noexcept;
 
-  friend class Variable;
   BitArray(priv::Link&& link);
 
+  friend class binom::Variable;
+  friend class binom::KeyValue;
 public:
   typedef BitIterator Iterator;
   typedef BitValueRef ValueRef;

@@ -45,7 +45,6 @@ public:
 
   auto begin() {return range.rbegin();}
   auto end() {return range.rend();}
-
 };
 
 }

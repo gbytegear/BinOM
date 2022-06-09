@@ -54,6 +54,8 @@ class Number :
   friend class Variable;
   Number(priv::Link&& link);
 
+  friend class binom::KeyValue;
+
 public:
   using Variable::getLock;
   using Variable::getValType;
