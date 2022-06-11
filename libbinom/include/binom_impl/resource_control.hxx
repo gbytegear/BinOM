@@ -1,9 +1,10 @@
 #ifndef RESOURCE_CONTROL_HXX
 #define RESOURCE_CONTROL_HXX
 
-#include "variable_headers.hxx"
+#include "types.hxx"
 
-#include "shared_recursive_mutex_wrapper.hxx"
+#include "../utils/shared_recursive_mutex_wrapper.hxx"
+
 #include <atomic>
 
 namespace binom::priv {

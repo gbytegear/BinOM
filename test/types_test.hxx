@@ -1,7 +1,7 @@
 #ifndef TYPES_TEST_HXX
 #define TYPES_TEST_HXX
 
-#include "libbinom/include/utils/types.hxx"
+#include "libbinom/include/binom_impl/types.hxx"
 #include "test/tester.hxx"
 
 using namespace binom;

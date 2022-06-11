@@ -43,61 +43,43 @@ BitArray::Iterator BitArray::operator+=(const literals::bitarr value_list) {retu
 BitArray::ValueRef BitArray::pushBack(bool value) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullValue();
-  auto it = priv::BitArrayHeader::increaseSize(getData(), 1);
-  return (*it) = value;
+  return priv::BitArrayHeader::pushBack(getData(), value);
 }
 
 BitArray::Iterator BitArray::pushBack(const literals::bitarr value_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  auto it = priv::BitArrayHeader::increaseSize(getData(), value_list.size());
-  { auto data_it = it;
-    for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
-      (*data_it) = *value_it;
-  }
-  return it;
+  return priv::BitArrayHeader::pushBack(getData(), value_list);
 }
 
 BitArray::ValueRef BitArray::pushFront(bool value) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  auto it = priv::BitArrayHeader::insertBits(getData(), 0, 1);
-  return (*it) = value;
+  return priv::BitArrayHeader::pushFront(getData(), value);
 }
 
 BitArray::Iterator BitArray::pushFront(const literals::bitarr value_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  auto it = priv::BitArrayHeader::insertBits(getData(), 0, value_list.size());
-  { auto data_it = it;
-    for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
-      (*data_it) = *value_it;
-  }
-  return it;
+  return priv::BitArrayHeader::pushFront(getData(), value_list);
 }
 
 BitArray::ValueRef BitArray::insert(size_t at, bool value) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  auto it = priv::BitArrayHeader::insertBits(getData(), at, 1);
-  return (*it) = value;
+  return priv::BitArrayHeader::insert(getData(), at, value);
 }
 
 BitArray::Iterator BitArray::insert(size_t at, const literals::bitarr value_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  auto it = priv::BitArrayHeader::insertBits(getData(), at, value_list.size());
-  { auto data_it = it;
-    for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
-      (*data_it) = *value_it;
-  }
-  return it;
+  return priv::BitArrayHeader::insert(getData(), at, value_list);
 }
 
 void BitArray::popBack(size_t size) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
-  priv::BitArrayHeader::reduceSize(getData(), size >= getData()->getBitSize() ? getData()->getBitSize() : size);
+  priv::BitArrayHeader::popBack(getData(), size);
 }
 
 void BitArray::popFront(size_t size) {

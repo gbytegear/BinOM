@@ -2,6 +2,7 @@
 #define ARRAY_HXX
 
 #include "variable.hxx"
+#include "../utils/reverse_iterator.hxx"
 
 namespace binom {
 

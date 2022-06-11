@@ -4,16 +4,16 @@ using namespace binom;
 using namespace binom::priv;
 
 KeyValue::KeyValue(bool value) noexcept : type(VarKeyType::boolean), data{.bool_val = value} {}
-KeyValue::KeyValue(ui8 value) noexcept : type(VarKeyType::ui8), data{.ui8_val = value} {}
-KeyValue::KeyValue(i8 value) noexcept : type(VarKeyType::si8), data{.i8_val = value} {}
+KeyValue::KeyValue(ui8 value) noexcept  : type(VarKeyType::ui8), data{.ui8_val = value} {}
+KeyValue::KeyValue(i8 value) noexcept   : type(VarKeyType::si8), data{.i8_val = value} {}
 KeyValue::KeyValue(ui16 value) noexcept : type(VarKeyType::ui16), data{.ui16_val = value} {}
-KeyValue::KeyValue(i16 value) noexcept : type(VarKeyType::si16), data{.i16_val = value} {}
+KeyValue::KeyValue(i16 value) noexcept  : type(VarKeyType::si16), data{.i16_val = value} {}
 KeyValue::KeyValue(ui32 value) noexcept : type(VarKeyType::ui32), data{.ui32_val = value} {}
-KeyValue::KeyValue(i32 value) noexcept : type(VarKeyType::si32), data{.i32_val = value} {}
-KeyValue::KeyValue(f32 value) noexcept : type(VarKeyType::f32), data{.f32_val = value} {}
+KeyValue::KeyValue(i32 value) noexcept  : type(VarKeyType::si32), data{.i32_val = value} {}
+KeyValue::KeyValue(f32 value) noexcept  : type(VarKeyType::f32), data{.f32_val = value} {}
 KeyValue::KeyValue(ui64 value) noexcept : type(VarKeyType::ui64), data{.ui64_val = value} {}
-KeyValue::KeyValue(i64 value) noexcept : type(VarKeyType::si64), data{.i64_val = value} {}
-KeyValue::KeyValue(f64 value) noexcept : type(VarKeyType::f64), data{.f64_val = value} {}
+KeyValue::KeyValue(i64 value) noexcept  : type(VarKeyType::si64), data{.i64_val = value} {}
+KeyValue::KeyValue(f64 value) noexcept  : type(VarKeyType::f64), data{.f64_val = value} {}
 KeyValue::KeyValue(const GenericValue& value) noexcept
   : type(toKeyType(value.getValType())), data{.ui64_val = value.getArithmeticDataImpl().ui64_val} {}
 KeyValue::KeyValue(GenericValue&& value) noexcept

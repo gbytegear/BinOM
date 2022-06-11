@@ -63,25 +63,16 @@ public:
 
   template<typename T>
   ValueRef pushBack(T value) noexcept {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>);
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return ValueRef(ValType::invalid_type, nullptr, resource_link);
-    ValueRef value_ref(getValType(), priv::BufferArrayHeader::increaseSize(getData(), getBitWidth(), 1), resource_link);
-    value_ref = value;
-    return value_ref;
+    if(auto lk = getLock(MtxLockType::unique_locked); lk)
+      return ValueRef(resource_link, priv::BufferArrayHeader::pushBack(getData(), getValType(), value));
+    else return ValueRef(resource_link);
   }
 
   template<typename T>
-  Iterator pushBack(std::initializer_list<T> value_list) {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>);
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-    Iterator value_it(getValType(), priv::BufferArrayHeader::increaseSize(getData(), getBitWidth(), value_list.size()), resource_link);
-    { Iterator this_it = value_it;
-      for(const auto& value : value_list)
-        *(this_it++) = value;
-    }
-    return value_it;
+  Iterator pushBack(const std::initializer_list<T> value_list) {
+    if(auto lk = getLock(MtxLockType::unique_locked); lk)
+      return Iterator(resource_link, priv::BufferArrayHeader::pushBack(getData(), getValType(), value_list));
+    else return Iterator(resource_link);
   }
 
   template<typename T>
@@ -92,25 +83,16 @@ public:
 
   template<typename T>
   ValueRef insert(size_t at, T value) noexcept {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>);
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return GenericValueRef(ValType::invalid_type, nullptr, resource_link);
-    ValueRef value_ref(getValType(), priv::BufferArrayHeader::insert(getData(), getBitWidth(), at, 1), resource_link);
-    value_ref = value;
-    return value_ref;
+    if(auto lk = getLock(MtxLockType::unique_locked); lk)
+      return ValueRef(resource_link, priv::BufferArrayHeader::insert(getData(), getBitWidth(), at, 1, value));
+    else return ValueRef(resource_link);
   }
 
   template<typename T>
   Iterator insert(size_t at, std::initializer_list<T> value_list) {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>);
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return Iterator(ValType::invalid_type, nullptr, resource_link);
-    ValueRef value_it(getValType(), priv::BufferArrayHeader::insert(getData(), getBitWidth(), at, value_list.size()), resource_link);
-    { Iterator this_it = value_it;
-      for(const auto& value : value_list)
-        *(this_it++) = value;
-    }
-    return value_it;
+    if(auto lk = getLock(MtxLockType::unique_locked); lk)
+      return Iterator(resource_link, priv::BufferArrayHeader::insert(getData(), getBitWidth(), at, 1, value_list));
+    else return Iterator(resource_link);
   }
 
   Iterator begin() const;

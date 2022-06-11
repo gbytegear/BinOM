@@ -1,7 +1,7 @@
 //#define FULL_TEST
-//#define TEST_FULL_INFO
+#define TEST_FULL_INFO
 #include "test/all_test.hxx"
-#include "libbinom/include/utils/print_variable.hxx"
+#include "libbinom/include/binom_impl/print_variable.hxx"
 
 #include <mutex>
 

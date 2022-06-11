@@ -1,4 +1,4 @@
-#include "libbinom/include/utils/variable_headers.hxx"
+#include "libbinom/include/binom_impl/ram_storage_implementation.hxx"
 
 #include "libbinom/include/variables/variable.hxx"
 #include "libbinom/include/utils/util_functions.hxx"
@@ -187,6 +187,56 @@ size_t BitArrayHeader::calculateCapacity(size_t bit_count) noexcept {
   return util_functions::getNearestPow2(sizeof(BitArrayHeader) + calculateByteSize(bit_count));
 }
 
+BitValueRef BitArrayHeader::pushBack(BitArrayHeader*& header, bool value) {
+  auto it = increaseSize(header, 1);
+  return (*it) = value;
+}
+
+BitIterator BitArrayHeader::pushBack(BitArrayHeader*& header, const literals::bitarr& value_list) {
+  auto it = priv::BitArrayHeader::increaseSize(header, value_list.size());
+  { auto data_it = it;
+    for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
+      (*data_it) = *value_it;
+  }
+  return it;
+}
+
+BitValueRef BitArrayHeader::pushFront(BitArrayHeader*& header, bool value) {
+  auto it = insertBits(header, 0, 1);
+  return (*it) = value;
+}
+
+BitIterator BitArrayHeader::pushFront(BitArrayHeader*& header, const literals::bitarr& value_list) {
+  auto it = priv::BitArrayHeader::insertBits(header, 0, value_list.size());
+  { auto data_it = it;
+    for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
+      (*data_it) = *value_it;
+  }
+  return it;
+}
+
+BitValueRef BitArrayHeader::insert(BitArrayHeader*& header, size_t at, bool value) {
+  auto it = BitArrayHeader::insertBits(header, at, 1);
+  return (*it) = value;
+}
+
+BitIterator BitArrayHeader::insert(BitArrayHeader*& header, size_t at, const literals::bitarr value_list) {
+  auto it = BitArrayHeader::insertBits(header, at, value_list.size());
+  { auto data_it = it;
+    for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
+      (*data_it) = *value_it;
+  }
+  return it;
+}
+
+void BitArrayHeader::popBack(BitArrayHeader*& header, size_t size) {
+  priv::BitArrayHeader::reduceSize(header, size >= header->getBitSize() ? header->getBitSize() : size);
+}
+
+void BitArrayHeader::popFront(BitArrayHeader*& header, size_t size) {
+  BitArrayHeader::removeBits(header, 0, size);
+}
+
 size_t BitArrayHeader::getCapacity() const noexcept {return capacity;}
 
 size_t BitArrayHeader::getBitSize() const noexcept {return bit_size;}
@@ -270,7 +320,7 @@ void BufferArrayHeader::shrinkToFit(BufferArrayHeader*& header) {
   delete old_header;
 }
 
-void* BufferArrayHeader::insert(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count) {
+void* BufferArrayHeader::insertBlock(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count) {
   size_t old_size = header->size;
   size_t from = at * size_t(type);
   if(from >= old_size) return increaseSize(header, type, count);

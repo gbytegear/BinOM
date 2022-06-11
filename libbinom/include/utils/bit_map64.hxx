@@ -2,6 +2,7 @@
 #define BIT_MAP64_HXX
 
 #include "type_aliases.hxx"
+
 #include <array>
 
 namespace binom::priv {

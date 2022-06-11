@@ -1,4 +1,5 @@
-#include "libbinom/include/utils/resource_control.hxx"
+#include "libbinom/include/binom_impl/resource_control.hxx"
+#include "libbinom/include/binom_impl/ram_storage_implementation.hxx"
 
 using namespace binom;
 using namespace binom::priv;

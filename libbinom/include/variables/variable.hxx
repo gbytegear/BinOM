@@ -1,7 +1,8 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
-#include "../utils/resource_control.hxx"
+#include "../binom_impl/resource_control.hxx"
+#include "../binom_impl/ram_storage_implementation.hxx"
 #include "generic_value.hxx"
 #include "mutex"
 

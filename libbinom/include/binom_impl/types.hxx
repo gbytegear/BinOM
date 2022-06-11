@@ -1,9 +1,10 @@
 #ifndef TYPES_HXX
 #define TYPES_HXX
 
-#include "memctrl.hxx"
+#include "../utils/memctrl.hxx"
+#include "../utils/heritable_initializer_list.hxx"
+
 #include <initializer_list>
-#include "heritable_initializer_list.hxx"
 
 /// Binary Object Model
 namespace binom {
@@ -504,6 +505,18 @@ inline bool operator == (VarType type, ValType val_type) noexcept {return toVarT
 inline bool operator != (ValType val_type, VarType type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 inline bool operator != (VarType type, ValType val_type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 
+namespace priv { // BinOM containers implementation
+
+class BitArrayHeader;
+class BufferArrayHeader;
+class ArrayHeader;
+class SinglyLinkedListHeader;
+class DoublyLinkedListHeader;
+class MapHeader;
+class TableHeader;
+class KeyValueHeader;
+
+}
 
 class Variable;
 

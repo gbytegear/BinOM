@@ -1,8 +1,8 @@
 #ifndef KEY_VALUE_HXX
 #define KEY_VALUE_HXX
 
-#include "../utils/types.hxx"
-#include "../utils/variable_headers.hxx"
+#include "../binom_impl/types.hxx"
+#include "../binom_impl/ram_storage_implementation.hxx"
 #include "number.hxx"
 #include "bit_array.hxx"
 #include "buffer_array.hxx"
@@ -78,8 +78,6 @@ public:
   VarNumberType getNumberType() const noexcept;
   size_t getElementCount() const noexcept;
   size_t getElementSize() const noexcept;
-
-
 
 };
 

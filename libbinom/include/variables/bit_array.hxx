@@ -78,9 +78,9 @@ public:
   ValueRef insert(size_t at, bool value);
   Iterator insert(size_t at, const literals::bitarr value_list);
 
-  void popBack(size_t size);
-  void popFront(size_t size);
-  void remove(size_t at, size_t size);
+  void popBack(size_t size = 1);
+  void popFront(size_t size = 1);
+  void remove(size_t at, size_t size = 1);
 
   Iterator begin() const;
   Iterator end() const;

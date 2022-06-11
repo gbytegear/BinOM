@@ -13,9 +13,9 @@ BufferArray BufferArray::getReference() noexcept {return Link(resource_link);}
 const BufferArray BufferArray::getReference() const noexcept {return Link(resource_link);}
 
 size_t BufferArray::getElementCount() const noexcept {
-  auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return 0;
-  return getData()->getElementCount(getBitWidth());
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->getElementCount(getBitWidth());
+  else return 0;
 }
 
 size_t BufferArray::getSize() const noexcept {
