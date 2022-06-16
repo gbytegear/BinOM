@@ -81,8 +81,8 @@ public:
   Number(const GenericValue& value) noexcept;
   Number(const GenericValue&& value) noexcept;
 
-  Number getReference() noexcept;
-  const Number getReference() const noexcept;
+  Number move() noexcept;
+  const Number move() const noexcept;
 
   using arithmetic::ArithmeticTypeBase<Number>::operator=;
   Number& changeLink(const Number& other);

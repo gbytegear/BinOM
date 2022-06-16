@@ -46,7 +46,7 @@ binom::arithmetic::ArithmeticData& binom::GenericValueRef::getArithmeticDataImpl
   case binom::VarTypeClass::null:
   case binom::VarTypeClass::number: return reinterpret_cast<arithmetic::ArithmeticData&>(link->data);
   case binom::VarTypeClass::buffer_array:
-  return *reinterpret_cast<arithmetic::ArithmeticData*>(link->data.buffer_array_header->get(getBitWidth(), index));
+  return *reinterpret_cast<arithmetic::ArithmeticData*>(link->data.buffer_array_implementation->get(getBitWidth(), index));
   }
 }
 
@@ -56,7 +56,7 @@ const binom::arithmetic::ArithmeticData& binom::GenericValueRef::getArithmeticDa
   case binom::VarTypeClass::null:
   case binom::VarTypeClass::number: return reinterpret_cast<const arithmetic::ArithmeticData&>(link->data);
   case binom::VarTypeClass::buffer_array:
-  return *reinterpret_cast<const arithmetic::ArithmeticData*>(link->data.buffer_array_header->get(getBitWidth(), index));
+  return *reinterpret_cast<const arithmetic::ArithmeticData*>(link->data.buffer_array_implementation->get(getBitWidth(), index));
   }
 }
 

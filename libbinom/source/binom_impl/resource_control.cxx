@@ -16,31 +16,31 @@ void SharedResource::destroy() {
 
   case VarTypeClass::bit_array:
     if(resource_data.data.pointer)
-      delete resource_data.data.bit_array_header;
+      delete resource_data.data.bit_array_implementation;
     resource_data.data.pointer = nullptr;
   return;
 
   case VarTypeClass::buffer_array:
     if(resource_data.data.pointer)
-      delete resource_data.data.buffer_array_header;
+      delete resource_data.data.buffer_array_implementation;
     resource_data.data.pointer = nullptr;
   return;
 
   case VarTypeClass::array:
     if(resource_data.data.pointer)
-      delete resource_data.data.array_header;
+      delete resource_data.data.array_implementation;
     resource_data.data.pointer = nullptr;
   return;
 
   case VarTypeClass::singly_linked_list:
     if(resource_data.data.pointer)
-      delete resource_data.data.single_linked_list_header;
+      delete resource_data.data.single_linked_list_implementation;
     resource_data.data.pointer = nullptr;
   return;
 
   case VarTypeClass::doubly_linked_list:
     if(resource_data.data.pointer)
-      delete resource_data.data.doubly_linked_list_header;
+      delete resource_data.data.doubly_linked_list_implementation;
     resource_data.data.pointer = nullptr;
   return;
 
@@ -94,23 +94,23 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
   return;
 
   case VarTypeClass::bit_array:
-    resource->resource_data.data.bit_array_header = BitArrayHeader::copy(resource_data.data.bit_array_header);
+    resource->resource_data.data.bit_array_implementation = BitArrayImplementation::copy(resource_data.data.bit_array_implementation);
   return;
 
   case VarTypeClass::buffer_array:
-    resource->resource_data.data.buffer_array_header = BufferArrayHeader::copy(resource_data.data.buffer_array_header);
+    resource->resource_data.data.buffer_array_implementation = BufferArrayImplementation::copy(resource_data.data.buffer_array_implementation);
   return;
 
   case VarTypeClass::array:
-    resource->resource_data.data.array_header = ArrayHeader::copy(resource_data.data.array_header);
+    resource->resource_data.data.array_implementation = ArrayImplementation::copy(resource_data.data.array_implementation);
   return;
 
   case VarTypeClass::singly_linked_list:
-    resource->resource_data.data.single_linked_list_header = new SinglyLinkedListHeader(*resource_data.data.single_linked_list_header);
+    resource->resource_data.data.single_linked_list_implementation = new SinglyLinkedListImplementation(*resource_data.data.single_linked_list_implementation);
   return;
 
   case VarTypeClass::doubly_linked_list:
-    resource->resource_data.data.doubly_linked_list_header = new DoublyLinkedListHeader(*resource_data.data.doubly_linked_list_header);
+    resource->resource_data.data.doubly_linked_list_implementation = new DoublyLinkedListImplementation(*resource_data.data.doubly_linked_list_implementation);
   return;
 
   case VarTypeClass::map: // TODO
@@ -129,19 +129,19 @@ Link Link::cloneResource(Link resource_link) noexcept {
   return **resource_link;
 
   case VarTypeClass::bit_array:
-  return ResourceData{VarType::bit_array, {.bit_array_header = BitArrayHeader::copy(resource_link->data.bit_array_header)}};
+  return ResourceData{VarType::bit_array, {.bit_array_implementation = BitArrayImplementation::copy(resource_link->data.bit_array_implementation)}};
 
   case VarTypeClass::buffer_array:
-  return ResourceData{resource_link.getType(), {.buffer_array_header = BufferArrayHeader::copy(resource_link->data.buffer_array_header)}};
+  return ResourceData{resource_link.getType(), {.buffer_array_implementation = BufferArrayImplementation::copy(resource_link->data.buffer_array_implementation)}};
 
   case VarTypeClass::array:
-  return ResourceData{VarType::array, {.array_header = ArrayHeader::copy(resource_link->data.array_header)}};
+  return ResourceData{VarType::array, {.array_implementation = ArrayImplementation::copy(resource_link->data.array_implementation)}};
 
   case VarTypeClass::singly_linked_list:
-  return ResourceData{VarType::singly_linked_list, {.single_linked_list_header = new SinglyLinkedListHeader(*resource_link->data.single_linked_list_header)}};
+  return ResourceData{VarType::singly_linked_list, {.single_linked_list_implementation = new SinglyLinkedListImplementation(*resource_link->data.single_linked_list_implementation)}};
 
   case VarTypeClass::doubly_linked_list:
-  return ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_header = new DoublyLinkedListHeader(*resource_link->data.doubly_linked_list_header)}};
+  return ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_implementation = new DoublyLinkedListImplementation(*resource_link->data.doubly_linked_list_implementation)}};
 
   case VarTypeClass::map: // TODO
   case VarTypeClass::table: // TODO

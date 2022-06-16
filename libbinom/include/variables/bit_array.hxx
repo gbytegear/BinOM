@@ -37,7 +37,7 @@ class BitArray : public Variable {
   const Map& toMap() const = delete;
 
 
-  priv::BitArrayHeader*& getData() const noexcept;
+  priv::BitArrayImplementation*& getData() const noexcept;
 
   BitArray(priv::Link&& link);
 
@@ -56,8 +56,8 @@ public:
   BitArray(const BitArray& other) noexcept;
   BitArray(const BitArray&& other) noexcept;
 
-  BitArray getReference() noexcept;
-  const BitArray getReference() const noexcept;
+  BitArray move() noexcept;
+  const BitArray move() const noexcept;
 
   size_t getElementCount() const noexcept;
   size_t getSize() const noexcept;

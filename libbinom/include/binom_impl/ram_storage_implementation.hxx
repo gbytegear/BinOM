@@ -10,37 +10,37 @@
 
 namespace binom::priv {
 
-class BitArrayHeader {
+class BitArrayImplementation {
   ui64 bit_size = 0;
   size_t capacity = 0;
 
-  BitArrayHeader(const literals::bitarr& bit_array_data);
-  BitArrayHeader(const BitArrayHeader& other);
+  BitArrayImplementation(const literals::bitarr& bit_array_data);
+  BitArrayImplementation(const BitArrayImplementation& other);
 
-  static BitIterator increaseSize(BitArrayHeader*& header, size_t bit_count);
-  static void reduceSize(BitArrayHeader*& header, size_t bit_count);
-  static BitIterator insertBits(priv::BitArrayHeader*& header, size_t at, size_t count);
+  static BitIterator increaseSize(BitArrayImplementation*& implementation, size_t bit_count);
+  static void reduceSize(BitArrayImplementation*& implementation, size_t bit_count);
+  static BitIterator insertBits(priv::BitArrayImplementation*& implementation, size_t at, size_t count);
 public:
-  static BitArrayHeader* create(const literals::bitarr& bit_array_data);
-  static BitArrayHeader* copy(const BitArrayHeader* other);
+  static BitArrayImplementation* create(const literals::bitarr& bit_array_data);
+  static BitArrayImplementation* copy(const BitArrayImplementation* other);
 
   static size_t calculateByteSize(size_t bit_count) noexcept;
   static size_t calculateCapacity(size_t bit_count) noexcept;
 
-  static BitValueRef pushBack(BitArrayHeader*& header, bool value);
-  static BitIterator pushBack(BitArrayHeader*& header, const literals::bitarr& value_list);
+  static BitValueRef pushBack(BitArrayImplementation*& implementation, bool value);
+  static BitIterator pushBack(BitArrayImplementation*& implementation, const literals::bitarr& value_list);
 
-  static BitValueRef pushFront(BitArrayHeader*& header, bool value);
-  static BitIterator pushFront(BitArrayHeader*& header, const literals::bitarr& value_list);
+  static BitValueRef pushFront(BitArrayImplementation*& implementation, bool value);
+  static BitIterator pushFront(BitArrayImplementation*& implementation, const literals::bitarr& value_list);
 
-  static BitValueRef insert(BitArrayHeader*& header, size_t at, bool value);
-  static BitIterator insert(BitArrayHeader*& header, size_t at, const literals::bitarr value_list);
+  static BitValueRef insert(BitArrayImplementation*& implementation, size_t at, bool value);
+  static BitIterator insert(BitArrayImplementation*& implementation, size_t at, const literals::bitarr value_list);
 
-  static void popBack(BitArrayHeader*& header, size_t size);
-  static void popFront(BitArrayHeader*& header, size_t size);
-  static void removeBits(priv::BitArrayHeader*& header, size_t at, size_t count);
+  static void popBack(BitArrayImplementation*& implementation, size_t size);
+  static void popFront(BitArrayImplementation*& implementation, size_t size);
+  static void removeBits(priv::BitArrayImplementation*& implementation, size_t at, size_t count);
 
-  static void shrinkToFit(BitArrayHeader*& header);
+  static void shrinkToFit(BitArrayImplementation*& implementation);
 
   size_t getCapacity() const noexcept;
   size_t getBitSize() const noexcept;
@@ -49,7 +49,7 @@ public:
 
   template<typename T>
   inline T* getDataAs() const noexcept {
-    return reinterpret_cast<T*>(reinterpret_cast<ui8*>(const_cast<BitArrayHeader*>(this)) + sizeof(BitArrayHeader));
+    return reinterpret_cast<T*>(reinterpret_cast<ui8*>(const_cast<BitArrayImplementation*>(this)) + sizeof(BitArrayImplementation));
   }
 
   void operator delete(void* ptr);
@@ -63,12 +63,12 @@ public:
 };
 
 
-class BufferArrayHeader {
+class BufferArrayImplementation {
   size_t size = 0;
   size_t capacity = 0;
 
   template<typename T>
-  BufferArrayHeader(const std::initializer_list<T>& value_list)
+  BufferArrayImplementation(const std::initializer_list<T>& value_list)
     : size(value_list.size() * sizeof(T)), capacity(calculateCapacity(size)) {
     static_assert (std::is_arithmetic_v<T>, "T isn't arithmetic type:"
                                             " as argument requires const std::initializer_list<T>&"
@@ -76,13 +76,13 @@ class BufferArrayHeader {
     std::memcpy(getData(), value_list.begin(), size);
   }
 
-  BufferArrayHeader(const BufferArrayHeader& other);
+  BufferArrayImplementation(const BufferArrayImplementation& other);
   static size_t calculateCapacity(size_t size) noexcept;
 
-  static void* increaseSize(BufferArrayHeader*& header, VarBitWidth type, size_t count);
-  static void reduceSize(BufferArrayHeader*& header, VarBitWidth type, size_t count);
-  static void shrinkToFit(BufferArrayHeader*& header);
-  static void* insertBlock(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count);
+  static void* increaseSize(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count);
+  static void reduceSize(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count);
+  static void shrinkToFit(BufferArrayImplementation*& implementation);
+  static void* insertBlock(BufferArrayImplementation*& implementation, VarBitWidth type, size_t at, size_t count);
 
   template<typename T>
   static constexpr VarNumberType determineNumberType() {
@@ -150,61 +150,61 @@ class BufferArrayHeader {
 
 public:
   template<typename T>
-  static BufferArrayHeader* create(const std::initializer_list<T>& value_list) {
+  static BufferArrayImplementation* create(const std::initializer_list<T>& value_list) {
     static_assert (std::is_arithmetic_v<T>, "T isn't arithmetic type:"
                                             " as argument requires const std::initializer_list<T>&"
                                             " where assertion std::is_arithmetic<T>::value is true");
-    return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ]) BufferArrayHeader(value_list);
+    return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ]) BufferArrayImplementation(value_list);
   }
 
-  static BufferArrayHeader* copy(const BufferArrayHeader* other);
+  static BufferArrayImplementation* copy(const BufferArrayImplementation* other);
 
   template<typename T>
-  static size_t pushBack(BufferArrayHeader*& header, ValType type, T value) noexcept {
+  static size_t pushBack(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
-    void* data = increaseSize(header, bit_width, 1);
+    void* data = increaseSize(implementation, bit_width, 1);
     set(type, data, value);
-    return pointerToIndex(bit_width, header->getData(), data);
+    return pointerToIndex(bit_width, implementation->getData(), data);
   }
 
   template<typename T>
-  static size_t pushBack(BufferArrayHeader*& header, ValType type, const std::initializer_list<T>& value_list) {
+  static size_t pushBack(BufferArrayImplementation*& implementation, ValType type, const std::initializer_list<T>& value_list) {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
-    void* data = increaseSize(header, bit_width, value_list.size());
+    void* data = increaseSize(implementation, bit_width, value_list.size());
     setRange(type, data, value_list);
-    return pointerToIndex(bit_width, header->getData(), data);
+    return pointerToIndex(bit_width, implementation->getData(), data);
   }
 
   template<typename T>
-  static size_t pushFront(BufferArrayHeader*& header, ValType type, T value) noexcept {return insert<T>(header, type, 0, value);}
+  static size_t pushFront(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {return insert<T>(implementation, type, 0, value);}
   template<typename T>
-  static size_t pushFront(BufferArrayHeader*& header, ValType type, std::initializer_list<T> value_list) {return insert<T>(header, type, 0, value_list);}
+  static size_t pushFront(BufferArrayImplementation*& implementation, ValType type, std::initializer_list<T> value_list) {return insert<T>(implementation, type, 0, value_list);}
 
   template<typename T>
-  static size_t insert(BufferArrayHeader*& header, ValType type, size_t at, T value) noexcept {
+  static size_t insert(BufferArrayImplementation*& implementation, ValType type, size_t at, T value) noexcept {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
-    void* data = insertBlock(header, bit_width, at, 1);
+    void* data = insertBlock(implementation, bit_width, at, 1);
     set(type, data, value);
-    return pointerToIndex(bit_width, header->getData(), data);
+    return pointerToIndex(bit_width, implementation->getData(), data);
   }
 
   template<typename T>
-  static size_t insert(BufferArrayHeader*& header, ValType type, size_t at, const std::initializer_list<T>& value_list) {
+  static size_t insert(BufferArrayImplementation*& implementation, ValType type, size_t at, const std::initializer_list<T>& value_list) {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
-    void* data = insertBlock(header, bit_width, at, 1);
+    void* data = insertBlock(implementation, bit_width, at, 1);
     setRange(type, data, value_list);
-    return pointerToIndex(bit_width, header->getData(), data);
+    return pointerToIndex(bit_width, implementation->getData(), data);
   }
 
-  static void remove(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count);
+  static void remove(BufferArrayImplementation*& implementation, VarBitWidth type, size_t at, size_t count);
 
   void* getData() const;
 
@@ -227,31 +227,48 @@ public:
 };
 
 
-class ArrayHeader {
-  size_t count;
-  size_t capacity;
-
-  ArrayHeader(const literals::arr& value_list);
-  ArrayHeader(const ArrayHeader& other);
-
-  static size_t calculateCapacity(size_t count) noexcept;
+class ArrayImplementation {
 public:
   typedef Variable* Iterator;
   typedef reverse_iterator::ReverseIterator<Variable*> ReverseIterator;
+private:
+  size_t count;
+  size_t capacity;
 
-  static ArrayHeader* create(const literals::arr& value_list);
-  static ArrayHeader* copy(const ArrayHeader* other);
+  ArrayImplementation(const literals::arr& value_list);
+  ArrayImplementation(const ArrayImplementation& other);
+
+  static size_t calculateCapacity(size_t count) noexcept;
+
+  static Iterator increaseSize(ArrayImplementation*& implementation, size_t count);
+  static void reduceSize(ArrayImplementation*& implementation, size_t count);
+  static Iterator insert(ArrayImplementation*& implementation, size_t at, size_t count);
+
+public:
+
+  static ArrayImplementation* create(const literals::arr& value_list);
+  static ArrayImplementation* copy(const ArrayImplementation* other);
 
   size_t getElementCount() const noexcept;
   size_t getCapacity() const noexcept;
   size_t getSize() const noexcept;
 
   Variable* getData() const;
-  static Iterator increaseSize(ArrayHeader*& header, size_t count);
-  static void reduceSize(ArrayHeader*& header, size_t count);
-  static void popBack(ArrayHeader*& header, size_t count);
-  static Iterator insert(ArrayHeader*& header, size_t at, size_t count);
-  static void remove(ArrayHeader*& header, size_t at, size_t count);
+
+  static Variable pushBack(ArrayImplementation*& implementation, Variable variable);
+  static Iterator pushBack(ArrayImplementation*& implementation, const literals::arr variable_list);
+
+  static Variable pushFront(ArrayImplementation*& implementation, Variable variable);
+  static Iterator pushFront(ArrayImplementation*& implementation, const literals::arr& variable_list);
+
+  static Variable insert(ArrayImplementation*& implementation, size_t at, Variable variable);
+  static Iterator insert(ArrayImplementation*& implementation, size_t at, const literals::arr& variable_list);
+
+  static void popBack(ArrayImplementation*& implementation, size_t count = 1);
+  static void popFront(ArrayImplementation*& implementation, size_t count = 1);
+
+  static void remove(ArrayImplementation*& implementation, size_t at, size_t count);
+  static void clear(ArrayImplementation*& implementation);
 
   Variable operator[](size_t index);
 
@@ -264,16 +281,16 @@ public:
 };
 
 
-class SinglyLinkedListHeader {
+class SinglyLinkedListImplementation {
   struct Node;
   size_t size = 0;
   Node* first = nullptr;
   Node* last = nullptr;
 public:
   class Iterator;
-  SinglyLinkedListHeader(const literals::sllist& value_list);
-  SinglyLinkedListHeader(const SinglyLinkedListHeader& other);
-  ~SinglyLinkedListHeader();
+  SinglyLinkedListImplementation(const literals::sllist& value_list);
+  SinglyLinkedListImplementation(const SinglyLinkedListImplementation& other);
+  ~SinglyLinkedListImplementation();
 
   bool isEmpty();
 
@@ -293,7 +310,7 @@ public:
 };
 
 
-class DoublyLinkedListHeader {
+class DoublyLinkedListImplementation {
   struct Node;
   size_t size = 0;
   Node* first = nullptr;
@@ -301,9 +318,9 @@ class DoublyLinkedListHeader {
 public:
   class Iterator;
   typedef reverse_iterator::ReverseIterator<Iterator> ReverseIterator;
-  DoublyLinkedListHeader(const literals::dllist& value_list);
-  DoublyLinkedListHeader(const DoublyLinkedListHeader& other);
-  ~DoublyLinkedListHeader();
+  DoublyLinkedListImplementation(const literals::dllist& value_list);
+  DoublyLinkedListImplementation(const DoublyLinkedListImplementation& other);
+  ~DoublyLinkedListImplementation();
 
   bool isEmpty();
 

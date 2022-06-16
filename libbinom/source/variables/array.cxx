@@ -3,20 +3,20 @@
 using namespace binom;
 using namespace binom::priv;
 
-ArrayHeader*& Array::getData() const noexcept {return resource_link->data.array_header;}
+ArrayImplementation*& Array::getData() const noexcept {return resource_link->data.array_implementation;}
 
 Array::Array(priv::Link&& link) : Variable(std::move(link)) {}
 
 Array::Array()
-  : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(literals::arr{})}}) {}
+  : Variable(ResourceData{VarType::array, {.array_implementation = priv::ArrayImplementation::create(literals::arr{})}}) {}
 
 Array::Array(const literals::arr array)
-  : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(array)}}) {}
+  : Variable(ResourceData{VarType::array, {.array_implementation = priv::ArrayImplementation::create(array)}}) {}
 
 Array::Array(const Array& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
 Array::Array(const Array&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
-Array Array::getReference() noexcept {return Link(resource_link);}
+Array Array::move() noexcept {return Link(resource_link);}
 
 size_t Array::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
@@ -37,97 +37,61 @@ size_t Array::getSize() const noexcept {
 }
 
 Variable Array::pushBack(Variable variable) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return nullptr;
-
-  auto allocated_memory = priv::ArrayHeader::increaseSize(getData(), 1);
-  new(allocated_memory) Variable(std::move(variable));
-
-  return allocated_memory->getReference();
+  if(auto lk = getLock(MtxLockType::unique_locked);lk) return priv::ArrayImplementation::pushBack(getData(), variable.move());
+  else return nullptr;
 }
 
 Array::Iterator Array::pushBack(const literals::arr variable_list) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return nullptr;
-
-  auto allocated_memory = priv::ArrayHeader::increaseSize(getData(), variable_list.getSize());
-  auto it = allocated_memory;
-  for(const auto& variable : variable_list)
-    new(it++) Variable(std::move(variable));
-
-  return allocated_memory;
+  if(auto lk = getLock(MtxLockType::unique_locked);lk) return priv::ArrayImplementation::pushBack(getData(), variable_list);
+  else return nullptr;
 }
 
 Variable Array::pushFront(Variable variable) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return nullptr;
-
-  auto allocated_memory = priv::ArrayHeader::insert(getData(), 0, 1);
-  new(allocated_memory) Variable(std::move(variable));
-
-  return allocated_memory->getReference();
+  if(auto lk = getLock(MtxLockType::unique_locked);lk) return priv::ArrayImplementation::pushFront(getData(), variable.move());
+  else return nullptr;
 }
 
 Array::Iterator Array::pushFront(const literals::arr variable_list) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return nullptr;
-
-  auto allocated_memory = priv::ArrayHeader::insert(getData(), 0, variable_list.getSize());
-  auto it = allocated_memory;
-  for(const auto& variable : variable_list)
-    new(it++) Variable(std::move(variable));
-
-  return allocated_memory;
+  if(auto lk = getLock(MtxLockType::unique_locked);lk) return priv::ArrayImplementation::pushFront(getData(), variable_list);
+  else return nullptr;
 }
 
 Variable Array::insert(size_t at, Variable variable) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return nullptr;
-
-  auto allocated_memory = priv::ArrayHeader::insert(getData(), at, 1);
-  new(allocated_memory) Variable(std::move(variable));
-
-  return allocated_memory->getReference();
+  if(auto lk = getLock(MtxLockType::unique_locked);lk) return priv::ArrayImplementation::insert(getData(), at, variable.move());
+  else return nullptr;
 }
 
 Array::Iterator Array::insert(size_t at, literals::arr variable_list) {
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return nullptr;
-
-  auto allocated_memory = priv::ArrayHeader::insert(getData(), at, variable_list.getSize());
-  auto it = allocated_memory;
-  for(const auto& variable : variable_list)
-    new(it++) Variable(std::move(variable));
-
-  return allocated_memory;
+  if(auto lk = getLock(MtxLockType::unique_locked);lk) return priv::ArrayImplementation::insert(getData(), at, variable_list);
+  else return nullptr;
 }
 
 void Array::popBack(size_t count) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
 
-  priv::ArrayHeader::popBack(getData(), count);
+  priv::ArrayImplementation::popBack(getData(), count);
 }
 
 void Array::popFront(size_t count) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
 
-  priv::ArrayHeader::remove(getData(), 0, count);
+  priv::ArrayImplementation::popFront(getData(), count);
 }
 
 void Array::remove(size_t at, size_t count) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
 
-  priv::ArrayHeader::remove(getData(), at, count);
+  priv::ArrayImplementation::remove(getData(), at, count);
 }
 
 void Array::clear() {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
 
-  priv::ArrayHeader::popBack(getData(), getElementCount());
+  priv::ArrayImplementation::clear(getData());
 }
 
 Variable Array::operator[](size_t index) noexcept {
@@ -142,7 +106,7 @@ const Variable Array::operator[](size_t index) const noexcept {
   return (*getData())[index];
 }
 
-Array& Array::operator +=(Variable variable) {pushBack(std::move(variable)); return self;}
+Array& Array::operator+=(Variable variable) {pushBack(std::move(variable)); return self;}
 Array& Array::operator+=(literals::arr variable_list) {pushBack(std::move(variable_list)); return self;}
 Array& Array::operator+=(const Array variable_array) {pushBack(std::move(variable_array)); return self;}
 
@@ -153,3 +117,31 @@ Array::Iterator Array::end() const {return getData()->end();}
 Array::ReverseIterator Array::rbegin() const {return getData()->rbegin();}
 
 Array::ReverseIterator Array::rend() const {return getData()->rend();}
+
+Array& Array::operator=(const Array& other) {
+  if(this == &other) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+Array& Array::operator=(Array&& other) {
+  if(this == &other) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+Array& Array::changeLink(const Array& other) {
+  if(this == &other) return self;
+  this->~Array();
+  return *new(this) Array(other);
+}
+
+Array& Array::changeLink(Array&& other) {
+  if(this == &other) return self;
+  this->~Array();
+  return *new(this) Array(std::move(other));
+}

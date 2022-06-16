@@ -69,8 +69,8 @@ public:
   Variable(const Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
 
-  Variable getReference() noexcept;
-  const Variable getReference() const noexcept;
+  Variable move() noexcept;
+  const Variable move() const noexcept;
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 

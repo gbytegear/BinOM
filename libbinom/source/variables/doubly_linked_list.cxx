@@ -3,39 +3,39 @@
 using namespace binom;
 using namespace binom::priv;
 
-DoublyLinkedListHeader::Iterator::Iterator(Node* node) : node(node) {}
-DoublyLinkedListHeader::Iterator::Iterator(const Iterator& other) : node(other.node) {}
-DoublyLinkedListHeader::Iterator::Iterator(const Iterator&& other) : node(other.node) {}
-DoublyLinkedListHeader::Iterator::Iterator(const ReverseIterator& other) : node(other.getIterator().node) {}
-DoublyLinkedListHeader::Iterator::Iterator(const ReverseIterator&& other) : node(other.getIterator().node) {}
+DoublyLinkedListImplementation::Iterator::Iterator(Node* node) : node(node) {}
+DoublyLinkedListImplementation::Iterator::Iterator(const Iterator& other) : node(other.node) {}
+DoublyLinkedListImplementation::Iterator::Iterator(const Iterator&& other) : node(other.node) {}
+DoublyLinkedListImplementation::Iterator::Iterator(const ReverseIterator& other) : node(other.getIterator().node) {}
+DoublyLinkedListImplementation::Iterator::Iterator(const ReverseIterator&& other) : node(other.getIterator().node) {}
 
-binom::priv::DoublyLinkedListHeader::Iterator& DoublyLinkedListHeader::Iterator::operator++() {if(node) node = node->next; return self;}
-binom::priv::DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::Iterator::operator++(int) {
+binom::priv::DoublyLinkedListImplementation::Iterator& DoublyLinkedListImplementation::Iterator::operator++() {if(node) node = node->next; return self;}
+binom::priv::DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::Iterator::operator++(int) {
   auto tmp = self;
   if(node) node = node->next;
   return tmp;
 }
 
-binom::priv::DoublyLinkedListHeader::Iterator& DoublyLinkedListHeader::Iterator::operator--() {if(node) node = node->prev; return self;}
-binom::priv::DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::Iterator::operator--(int) {
+binom::priv::DoublyLinkedListImplementation::Iterator& DoublyLinkedListImplementation::Iterator::operator--() {if(node) node = node->prev; return self;}
+binom::priv::DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::Iterator::operator--(int) {
   auto tmp = self;
   if(node) node = node->prev;
   return tmp;
 }
 
-Variable DoublyLinkedListHeader::Iterator::operator*() {return node->value.getReference();}
-Variable* DoublyLinkedListHeader::Iterator::operator->() {return &node->value;}
+Variable DoublyLinkedListImplementation::Iterator::operator*() {return node->value.move();}
+Variable* DoublyLinkedListImplementation::Iterator::operator->() {return &node->value;}
 
-bool DoublyLinkedListHeader::Iterator::operator==(const Iterator& other) const noexcept {return node == other.node;}
-bool DoublyLinkedListHeader::Iterator::operator==(const Iterator&& other) const noexcept {return node == other.node;}
-bool DoublyLinkedListHeader::Iterator::operator!=(const Iterator& other) const noexcept {return node != other.node;}
-bool DoublyLinkedListHeader::Iterator::operator!=(const Iterator&& other) const noexcept {return node != other.node;}
-bool DoublyLinkedListHeader::Iterator::operator==(const ReverseIterator& other) const noexcept {return node == other.getIterator().node;}
-bool DoublyLinkedListHeader::Iterator::operator==(const ReverseIterator&& other) const noexcept {return node == other.getIterator().node;}
-bool DoublyLinkedListHeader::Iterator::operator!=(const ReverseIterator& other) const noexcept {return node != other.getIterator().node;}
-bool DoublyLinkedListHeader::Iterator::operator!=(const ReverseIterator&& other) const noexcept {return node != other.getIterator().node;}
+bool DoublyLinkedListImplementation::Iterator::operator==(const Iterator& other) const noexcept {return node == other.node;}
+bool DoublyLinkedListImplementation::Iterator::operator==(const Iterator&& other) const noexcept {return node == other.node;}
+bool DoublyLinkedListImplementation::Iterator::operator!=(const Iterator& other) const noexcept {return node != other.node;}
+bool DoublyLinkedListImplementation::Iterator::operator!=(const Iterator&& other) const noexcept {return node != other.node;}
+bool DoublyLinkedListImplementation::Iterator::operator==(const ReverseIterator& other) const noexcept {return node == other.getIterator().node;}
+bool DoublyLinkedListImplementation::Iterator::operator==(const ReverseIterator&& other) const noexcept {return node == other.getIterator().node;}
+bool DoublyLinkedListImplementation::Iterator::operator!=(const ReverseIterator& other) const noexcept {return node != other.getIterator().node;}
+bool DoublyLinkedListImplementation::Iterator::operator!=(const ReverseIterator&& other) const noexcept {return node != other.getIterator().node;}
 
-DoublyLinkedListHeader*& DoublyLinkedList::getData() const noexcept {return resource_link->data.doubly_linked_list_header;}
+DoublyLinkedListImplementation*& DoublyLinkedList::getData() const noexcept {return resource_link->data.doubly_linked_list_implementation;}
 
 DoublyLinkedList::DoublyLinkedList(priv::Link&& link) : Variable(std::move(link)) {}
 
@@ -50,8 +50,8 @@ bool DoublyLinkedList::isEmpty() const {
   else return true;
 }
 
-DoublyLinkedList DoublyLinkedList::getReference() noexcept {return Link(resource_link);}
-const DoublyLinkedList DoublyLinkedList::getReference() const noexcept {return Link(resource_link);}
+DoublyLinkedList DoublyLinkedList::move() noexcept {return Link(resource_link);}
+const DoublyLinkedList DoublyLinkedList::move() const noexcept {return Link(resource_link);}
 
 Variable DoublyLinkedList::pushBack(Variable variable) {
   if(auto lk = getLock(MtxLockType::unique_locked); lk)

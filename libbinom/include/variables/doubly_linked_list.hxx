@@ -6,7 +6,7 @@
 namespace binom {
 namespace priv {
 
-struct DoublyLinkedListHeader::Node {
+struct DoublyLinkedListImplementation::Node {
   Variable value;
   Node* next = nullptr;
   Node* prev = nullptr;
@@ -14,10 +14,10 @@ struct DoublyLinkedListHeader::Node {
 
 }
 
-class priv::DoublyLinkedListHeader::Iterator {
+class priv::DoublyLinkedListImplementation::Iterator {
   Node* node;
 
-  friend class binom::priv::DoublyLinkedListHeader;
+  friend class binom::priv::DoublyLinkedListImplementation;
   friend class binom::DoublyLinkedList;
   Iterator(Node* node);
 
@@ -76,13 +76,13 @@ class DoublyLinkedList : public Variable {
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
 
-  priv::DoublyLinkedListHeader*& getData() const noexcept;
+  priv::DoublyLinkedListImplementation*& getData() const noexcept;
 
   friend class Variable;
   DoublyLinkedList(priv::Link&& link);
 public:
-  typedef priv::DoublyLinkedListHeader::Iterator Iterator;
-  typedef priv::DoublyLinkedListHeader::ReverseIterator ReverseIterator;
+  typedef priv::DoublyLinkedListImplementation::Iterator Iterator;
+  typedef priv::DoublyLinkedListImplementation::ReverseIterator ReverseIterator;
 
   DoublyLinkedList();
   DoublyLinkedList(const literals::dllist doubly_linked_list);
@@ -91,8 +91,8 @@ public:
 
   bool isEmpty() const;
 
-  DoublyLinkedList getReference() noexcept;
-  const DoublyLinkedList getReference() const noexcept;
+  DoublyLinkedList move() noexcept;
+  const DoublyLinkedList move() const noexcept;
 
   Variable pushBack(Variable variable);
   Variable pushFront(Variable variable);

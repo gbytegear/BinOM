@@ -507,14 +507,14 @@ inline bool operator != (VarType type, ValType val_type) noexcept {return toVarT
 
 namespace priv { // BinOM containers implementation
 
-class BitArrayHeader;
-class BufferArrayHeader;
-class ArrayHeader;
-class SinglyLinkedListHeader;
-class DoublyLinkedListHeader;
-class MapHeader;
-class TableHeader;
-class KeyValueHeader;
+class BitArrayImplementation;
+class BufferArrayImplementation;
+class ArrayImplementation;
+class SinglyLinkedListImplementation;
+class DoublyLinkedListImplementation;
+class MapImplementation;
+class TableImplementation;
+class KeyValueImplementation;
 
 }
 

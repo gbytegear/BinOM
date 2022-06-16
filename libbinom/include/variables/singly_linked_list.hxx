@@ -5,16 +5,16 @@
 
 namespace binom {
 
-struct priv::SinglyLinkedListHeader::Node {
+struct priv::SinglyLinkedListImplementation::Node {
   Variable value;
   Node* next = nullptr;
 };
 
-class priv::SinglyLinkedListHeader::Iterator {
+class priv::SinglyLinkedListImplementation::Iterator {
   Node* prev = nullptr; //!< Required for insert
   Node* node;
 
-  friend class binom::priv::SinglyLinkedListHeader;
+  friend class binom::priv::SinglyLinkedListImplementation;
   friend class binom::SinglyLinkedList;
   Iterator(Node* node, Node* prev = nullptr);
 
@@ -65,20 +65,20 @@ class SinglyLinkedList : public Variable {
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
 
-  priv::SinglyLinkedListHeader*& getData() const noexcept;
+  priv::SinglyLinkedListImplementation*& getData() const noexcept;
 
   friend class Variable;
   SinglyLinkedList(priv::Link&& link);
 public:
-  typedef priv::SinglyLinkedListHeader::Iterator Iterator;
+  typedef priv::SinglyLinkedListImplementation::Iterator Iterator;
 
   SinglyLinkedList();
   SinglyLinkedList(const literals::sllist singly_linked_list);
   SinglyLinkedList(const SinglyLinkedList& other) noexcept;
   SinglyLinkedList(const SinglyLinkedList&& other) noexcept;
 
-  SinglyLinkedList getReference() noexcept;
-  const SinglyLinkedList getReference() const noexcept;
+  SinglyLinkedList move() noexcept;
+  const SinglyLinkedList move() const noexcept;
 
   bool isEmpty() const;
 
@@ -95,6 +95,12 @@ public:
 
   Iterator begin() const;
   Iterator end() const;
+
+  SinglyLinkedList& operator=(const SinglyLinkedList& other);
+  SinglyLinkedList& operator=(SinglyLinkedList&& other);
+
+  SinglyLinkedList& changeLink(const SinglyLinkedList& other);
+  SinglyLinkedList& changeLink(SinglyLinkedList&& other);
 };
 
 }

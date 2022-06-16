@@ -3,7 +3,7 @@
 using namespace binom;
 using namespace binom::priv;
 
-inline SinglyLinkedListHeader*& SinglyLinkedList::getData() const noexcept {return resource_link->data.single_linked_list_header;}
+inline SinglyLinkedListImplementation*& SinglyLinkedList::getData() const noexcept {return resource_link->data.single_linked_list_implementation;}
 
 SinglyLinkedList::SinglyLinkedList(priv::Link&& link) : Variable(std::move(link)) {}
 
@@ -12,8 +12,8 @@ SinglyLinkedList::SinglyLinkedList(const literals::sllist singly_linked_list) : 
 SinglyLinkedList::SinglyLinkedList(const SinglyLinkedList& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
 SinglyLinkedList::SinglyLinkedList(const SinglyLinkedList&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
-SinglyLinkedList SinglyLinkedList::getReference() noexcept {return Link(resource_link);}
-const SinglyLinkedList SinglyLinkedList::getReference() const noexcept {return Link(resource_link);}
+SinglyLinkedList SinglyLinkedList::move() noexcept {return Link(resource_link);}
+const SinglyLinkedList SinglyLinkedList::move() const noexcept {return Link(resource_link);}
 
 bool SinglyLinkedList::isEmpty() const {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
@@ -75,17 +75,45 @@ SinglyLinkedList::Iterator SinglyLinkedList::end() const {
   else return Iterator(nullptr, nullptr);
 }
 
-SinglyLinkedListHeader::Iterator::Iterator(Node* node, Node* prev) : prev(prev), node(node) {}
-SinglyLinkedListHeader::Iterator::Iterator(const Iterator& other) : prev(other.prev), node(other.node) {}
-SinglyLinkedListHeader::Iterator::Iterator(const Iterator&& other) : prev(other.prev), node(other.node) {}
+SinglyLinkedListImplementation::Iterator::Iterator(Node* node, Node* prev) : prev(prev), node(node) {}
+SinglyLinkedListImplementation::Iterator::Iterator(const Iterator& other) : prev(other.prev), node(other.node) {}
+SinglyLinkedListImplementation::Iterator::Iterator(const Iterator&& other) : prev(other.prev), node(other.node) {}
 
-binom::priv::SinglyLinkedListHeader::Iterator& SinglyLinkedListHeader::Iterator::operator++() {if(node) { prev = node; node = node->next;} return self;}
-binom::priv::SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
+binom::priv::SinglyLinkedListImplementation::Iterator& SinglyLinkedListImplementation::Iterator::operator++() {if(node) { prev = node; node = node->next;} return self;}
+binom::priv::SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
 
-Variable SinglyLinkedListHeader::Iterator::operator*() {if(node) return node->value.getReference(); else return nullptr;}
-Variable* SinglyLinkedListHeader::Iterator::operator->() {if(node) return &node->value; else return nullptr;}
+Variable SinglyLinkedListImplementation::Iterator::operator*() {if(node) return node->value.move(); else return nullptr;}
+Variable* SinglyLinkedListImplementation::Iterator::operator->() {if(node) return &node->value; else return nullptr;}
 
-bool SinglyLinkedListHeader::Iterator::operator==(const Iterator& other) const noexcept {return node == other.node;}
-bool SinglyLinkedListHeader::Iterator::operator==(const Iterator&& other) const noexcept {return node == other.node;}
-bool SinglyLinkedListHeader::Iterator::operator!=(const Iterator& other) const noexcept {return node != other.node;}
-bool SinglyLinkedListHeader::Iterator::operator!=(const Iterator&& other) const noexcept {return node != other.node;}
+bool SinglyLinkedListImplementation::Iterator::operator==(const Iterator& other) const noexcept {return node == other.node;}
+bool SinglyLinkedListImplementation::Iterator::operator==(const Iterator&& other) const noexcept {return node == other.node;}
+bool SinglyLinkedListImplementation::Iterator::operator!=(const Iterator& other) const noexcept {return node != other.node;}
+bool SinglyLinkedListImplementation::Iterator::operator!=(const Iterator&& other) const noexcept {return node != other.node;}
+
+SinglyLinkedList& SinglyLinkedList::operator=(const SinglyLinkedList& other) {
+  if(this == &other) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+SinglyLinkedList& SinglyLinkedList::operator=(SinglyLinkedList&& other) {
+  if(this == &other) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+SinglyLinkedList& SinglyLinkedList::changeLink(const SinglyLinkedList& other) {
+  if(this == &other) return self;
+  this->~SinglyLinkedList();
+  return *new(this) SinglyLinkedList(other);
+}
+
+SinglyLinkedList& SinglyLinkedList::changeLink(SinglyLinkedList&& other) {
+  if(this == &other) return self;
+  this->~SinglyLinkedList();
+  return *new(this) SinglyLinkedList(std::move(other));
+}

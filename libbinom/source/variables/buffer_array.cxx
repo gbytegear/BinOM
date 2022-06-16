@@ -3,14 +3,14 @@
 using namespace binom;
 using namespace binom::priv;
 
-BufferArrayHeader*& BufferArray::getData() const noexcept {return resource_link->data.buffer_array_header;}
+BufferArrayImplementation*& BufferArray::getData() const noexcept {return resource_link->data.buffer_array_implementation;}
 
 BufferArray::BufferArray(priv::Link&& link) : Variable(std::move(link)) {}
 BufferArray::BufferArray(const BufferArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
 BufferArray::BufferArray(const BufferArray&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
-BufferArray BufferArray::getReference() noexcept {return Link(resource_link);}
-const BufferArray BufferArray::getReference() const noexcept {return Link(resource_link);}
+BufferArray BufferArray::move() noexcept {return Link(resource_link);}
+const BufferArray BufferArray::move() const noexcept {return Link(resource_link);}
 
 size_t BufferArray::getElementCount() const noexcept {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
@@ -78,16 +78,12 @@ BufferArray& BufferArray::operator=(BufferArray&& other) {
 
 BufferArray& BufferArray::changeLink(const BufferArray& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~BufferArray();
   return *new(this) BufferArray(other);
 }
 
 BufferArray& BufferArray::changeLink(BufferArray&& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~BufferArray();
   return *new(this) BufferArray(std::move(other));
 }

@@ -25,8 +25,8 @@ class KeyValue {
     f32   f32_val;
     f64   f64_val;
 
-    priv::BitArrayHeader* bit_array_header;
-    priv::BufferArrayHeader* buffer_array_header;
+    priv::BitArrayImplementation* bit_array_implementation;
+    priv::BufferArrayImplementation* buffer_array_implementation;
   };
 
   VarKeyType type = VarKeyType::null;

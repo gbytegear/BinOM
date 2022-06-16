@@ -14,12 +14,12 @@ void testVariable() {
   {
     PRINT_RUN(Variable a = 256_ui64);
 
-    LOG("NOTE: Number b = a.getReference()");
-    LOG("getReference() -> rvalue-ref");
+    LOG("NOTE: Number b = a.move()");
+    LOG("move() -> rvalue-ref");
     LOG("operator T&() -> lvalue-ref");
     LOG("Number(const Number&) *MAKES COPY*")
-    PRINT_RUN(Number b = a.toNumber().getReference());
-    PRINT_RUN(Variable c = a.getReference());
+    PRINT_RUN(Number b = a.toNumber().move());
+    PRINT_RUN(Variable c = a.move());
     TEST(ui64(a.toNumber()) == 256);
     TEST(ui64(b) == 256);
     PRINT_RUN(b = 512;)
@@ -33,8 +33,8 @@ void testVariable() {
     LOG("(bug in [r]): Variable array = arr{ true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
     Variable array = arr{ true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
 
-    LOG("(bug in [r]): array.toArray() += arr{false, true, array.getReference()};")
-    array.toArray() += arr{false, true, array.getReference()};
+    LOG("(bug in [r]): array.toArray() += arr{false, true, array.move()};")
+    array.toArray() += arr{false, true, array.move()};
 
 #ifdef FULL_TEST
     PRINT_RUN(utils::printVariable(array));
@@ -51,7 +51,7 @@ void testVariable() {
   {
     LOG("(bug in [r]): Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
     Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
-    PRINT_RUN(SinglyLinkedList sl_list = sl_list_var.toSinglyLinkedList().getReference());
+    PRINT_RUN(SinglyLinkedList sl_list = sl_list_var.toSinglyLinkedList().move());
     PRINT_RUN(utils::printVariable(sl_list));
   }
 
@@ -59,7 +59,7 @@ void testVariable() {
   {
     LOG("(bug in [r]): Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
     Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
-    PRINT_RUN(DoublyLinkedList dl_list = dl_list_var.toDoublyLinkedList().getReference());
+    PRINT_RUN(DoublyLinkedList dl_list = dl_list_var.toDoublyLinkedList().move());
     PRINT_RUN(utils::printVariable(dl_list));
 
 

@@ -28,43 +28,43 @@ Variable::Variable(const GenericValue& value) noexcept : Variable(value.toResour
 Variable::Variable(GenericValue&& value) noexcept : Variable(value.toResourceData()) {}
 
 Variable::Variable(const literals::bitarr bit_array)
-  : Variable(ResourceData{VarType::bit_array, {.bit_array_header = priv::BitArrayHeader::create(bit_array)}}) {}
+  : Variable(ResourceData{VarType::bit_array, {.bit_array_implementation = priv::BitArrayImplementation::create(bit_array)}}) {}
 
 Variable::Variable(const literals::ui8arr ui8_array)
-  : Variable(ResourceData{VarType::ui8_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui8_array)}}) {}
+  : Variable(ResourceData{VarType::ui8_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(ui8_array)}}) {}
 Variable::Variable(const literals::i8arr i8_array)
-  : Variable(ResourceData{VarType::si8_array, {.buffer_array_header = priv::BufferArrayHeader::create(i8_array)}}) {}
+  : Variable(ResourceData{VarType::si8_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(i8_array)}}) {}
 Variable::Variable(const literals::ui16arr ui16_array)
-  : Variable(ResourceData{VarType::ui16_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui16_array)}}) {}
+  : Variable(ResourceData{VarType::ui16_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(ui16_array)}}) {}
 Variable::Variable(const literals::i16arr i16_array)
-  : Variable(ResourceData{VarType::si16_array, {.buffer_array_header = priv::BufferArrayHeader::create(i16_array)}}) {}
+  : Variable(ResourceData{VarType::si16_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(i16_array)}}) {}
 Variable::Variable(const literals::ui32arr ui32_array)
-  : Variable(ResourceData{VarType::ui32_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui32_array)}}) {}
+  : Variable(ResourceData{VarType::ui32_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(ui32_array)}}) {}
 Variable::Variable(const literals::i32arr i32_array)
-  : Variable(ResourceData{VarType::si32_array, {.buffer_array_header = priv::BufferArrayHeader::create(i32_array)}}) {}
+  : Variable(ResourceData{VarType::si32_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(i32_array)}}) {}
 Variable::Variable(const literals::f32arr f32_array)
-  : Variable(ResourceData{VarType::f32_array, {.buffer_array_header = priv::BufferArrayHeader::create(f32_array)}}) {}
+  : Variable(ResourceData{VarType::f32_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(f32_array)}}) {}
 Variable::Variable(const literals::ui64arr ui64_array)
-  : Variable(ResourceData{VarType::ui64_array, {.buffer_array_header = priv::BufferArrayHeader::create(ui64_array)}}) {}
+  : Variable(ResourceData{VarType::ui64_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(ui64_array)}}) {}
 Variable::Variable(const literals::i64arr i64_array)
-  : Variable(ResourceData{VarType::si64_array, {.buffer_array_header = priv::BufferArrayHeader::create(i64_array)}}) {}
+  : Variable(ResourceData{VarType::si64_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(i64_array)}}) {}
 Variable::Variable(const literals::f64arr f64_array)
-  : Variable(ResourceData{VarType::f64_array, {.buffer_array_header = priv::BufferArrayHeader::create(f64_array)}}) {}
+  : Variable(ResourceData{VarType::f64_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(f64_array)}}) {}
 
 Variable::Variable(const literals::arr array)
-  : Variable(ResourceData{VarType::array, {.array_header = priv::ArrayHeader::create(array)}}) {}
+  : Variable(ResourceData{VarType::array, {.array_implementation = priv::ArrayImplementation::create(array)}}) {}
 
 Variable::Variable(const literals::sllist singly_linked_list)
-  : Variable(ResourceData{VarType::singly_linked_list, {.single_linked_list_header = new priv::SinglyLinkedListHeader(singly_linked_list)}}) {}
+  : Variable(ResourceData{VarType::singly_linked_list, {.single_linked_list_implementation = new priv::SinglyLinkedListImplementation(singly_linked_list)}}) {}
 
 Variable::Variable(const literals::dllist doubly_linked_list)
-  : Variable(ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_header = new priv::DoublyLinkedListHeader(doubly_linked_list)}}) {}
+  : Variable(ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_implementation = new priv::DoublyLinkedListImplementation(doubly_linked_list)}}) {}
 
 Variable::Variable(const Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 
-Variable Variable::getReference() noexcept {return Link(resource_link);}
-const Variable Variable::getReference() const noexcept {return Link(resource_link);}
+Variable Variable::move() noexcept {return Link(resource_link);}
+const Variable Variable::move() const noexcept {return Link(resource_link);}
 
 OptionalSharedRecursiveLock Variable::getLock(MtxLockType lock_type) const noexcept {
   return resource_link.getLock(lock_type);
@@ -288,16 +288,12 @@ Variable& Variable::operator=(Variable&& other) {
 
 Variable& Variable::changeLink(const Variable& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~Variable();
   return *new(this) Variable(other);
 }
 
 Variable& Variable::changeLink(Variable&& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~Variable();
   return *new(this) Variable(std::move(other));
 }

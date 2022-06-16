@@ -10,79 +10,79 @@ using namespace binom::literals;
 using namespace extended_type_traits;
 
 
-//////////////////////////////////////////////////////////// BitArrayHeader ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////// BitArrayImplementation ////////////////////////////////////////////////////////
 
 
 
-BitArrayHeader::BitArrayHeader(const literals::bitarr& bit_array_data)
+BitArrayImplementation::BitArrayImplementation(const literals::bitarr& bit_array_data)
   : bit_size(bit_array_data.size()), capacity(calculateCapacity(bit_array_data.size())) {
   auto data_it = bit_array_data.begin();
   for(auto it = begin(), _end = end(); it != _end; ++it, ++data_it)
     (*it) = *data_it;
 }
 
-BitArrayHeader::BitArrayHeader(const BitArrayHeader& other)
+BitArrayImplementation::BitArrayImplementation(const BitArrayImplementation& other)
   : bit_size(other.bit_size), capacity(other.capacity) {
   memcpy(getData(), other.getData(), getByteSize());
 }
 
-BitArrayHeader* BitArrayHeader::create(const literals::bitarr& bit_array_data) {
-  return new(new byte[ calculateCapacity(bit_array_data.size()) ]) BitArrayHeader(bit_array_data);
+BitArrayImplementation* BitArrayImplementation::create(const literals::bitarr& bit_array_data) {
+  return new(new byte[ calculateCapacity(bit_array_data.size()) ]) BitArrayImplementation(bit_array_data);
 }
 
-BitArrayHeader* BitArrayHeader::copy(const BitArrayHeader* other) {
-  return new(new byte[ other->capacity ]) BitArrayHeader(*other);
+BitArrayImplementation* BitArrayImplementation::copy(const BitArrayImplementation* other) {
+  return new(new byte[ other->capacity ]) BitArrayImplementation(*other);
 }
 
-size_t BitArrayHeader::calculateByteSize(size_t bit_count) noexcept {
+size_t BitArrayImplementation::calculateByteSize(size_t bit_count) noexcept {
   return size_t(std::ceil(llf_t(bit_count)/ 8));
 }
 
-BitIterator BitArrayHeader::increaseSize(BitArrayHeader*& header, size_t bit_count) {
-  const size_t new_bit_size = header->bit_size + bit_count;
+BitIterator BitArrayImplementation::increaseSize(BitArrayImplementation*& implementation, size_t bit_count) {
+  const size_t new_bit_size = implementation->bit_size + bit_count;
   const size_t new_capacity = calculateCapacity(new_bit_size);
-  if(header->capacity != new_capacity) {
-    const size_t old_bit_size = header->bit_size;
-    BitArrayHeader* old_pointer = header;
-    header = new(new byte[ sizeof(BitArrayHeader) + new_capacity ]) BitArrayHeader(*old_pointer);
-    header->bit_size = new_bit_size;
-    header->capacity = new_capacity;
+  if(implementation->capacity != new_capacity) {
+    const size_t old_bit_size = implementation->bit_size;
+    BitArrayImplementation* old_pointer = implementation;
+    implementation = new(new byte[ sizeof(BitArrayImplementation) + new_capacity ]) BitArrayImplementation(*old_pointer);
+    implementation->bit_size = new_bit_size;
+    implementation->capacity = new_capacity;
     delete old_pointer;
-    return header->getData()[old_bit_size / 8].getItearatorAt(old_bit_size % 8);
+    return implementation->getData()[old_bit_size / 8].getItearatorAt(old_bit_size % 8);
   } else {
-    BitIterator it = header->end();
-    header->bit_size = new_bit_size;
+    BitIterator it = implementation->end();
+    implementation->bit_size = new_bit_size;
     return it;
   }
 }
 
-void BitArrayHeader::reduceSize(BitArrayHeader*& header, size_t bit_count) {
-  if(bit_count <= header->bit_size) {
-    header->bit_size -= bit_count;
+void BitArrayImplementation::reduceSize(BitArrayImplementation*& implementation, size_t bit_count) {
+  if(bit_count <= implementation->bit_size) {
+    implementation->bit_size -= bit_count;
     return;
   } else {
-    header->bit_size = 0;
+    implementation->bit_size = 0;
     return;
   }
 }
 
-BitIterator BitArrayHeader::insertBits(BitArrayHeader*& header, size_t at, size_t count) {
+BitIterator BitArrayImplementation::insertBits(BitArrayImplementation*& implementation, size_t at, size_t count) {
   using namespace util_functions;
   const size_t shift_start_byte = at / 8;
   const size_t shift_end_byte = (at + count) / 8;
   const ui8 shift_start_bit_in_byte = at % 8;
   const ui8 shift_end_bit_in_byte = (at + count) % 8;
 
-  priv::BitArrayHeader::increaseSize(header, count);
-  ui8* data = header->getDataAs<ui8>();
+  priv::BitArrayImplementation::increaseSize(implementation, count);
+  ui8* data = implementation->getDataAs<ui8>();
 
   if(!shift_start_bit_in_byte && !shift_end_bit_in_byte) {
-    doLeftShift(data, header->getByteSize() - shift_start_byte, count);
-    return header->getData()[shift_start_byte].begin();
+    doLeftShift(data, implementation->getByteSize() - shift_start_byte, count);
+    return implementation->getData()[shift_start_byte].begin();
   }
 
-  if(shift_start_byte != shift_end_byte || shift_start_byte != header->getByteSize() - 1) {
-    doLeftShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+  if(shift_start_byte != shift_end_byte || shift_start_byte != implementation->getByteSize() - 1) {
+    doLeftShift(data + shift_start_byte + 1, implementation->getByteSize() - shift_start_byte - 1, count);
     const ui8 shift_loss_size = 8 - shift_start_bit_in_byte;
 
     if(shift_start_bit_in_byte >= shift_end_bit_in_byte) {
@@ -105,24 +105,24 @@ BitIterator BitArrayHeader::insertBits(BitArrayHeader*& header, size_t at, size_
         set0From(data[shift_start_byte], shift_start_bit_in_byte) |
         set0Before(data[shift_end_byte] << count, shift_end_bit_in_byte);
   }
-  return header->getData()[shift_start_byte].getItearatorAt(shift_start_bit_in_byte);
+  return implementation->getData()[shift_start_byte].getItearatorAt(shift_start_bit_in_byte);
 }
 
-void BitArrayHeader::removeBits(BitArrayHeader*& header, size_t at, size_t count) {
+void BitArrayImplementation::removeBits(BitArrayImplementation*& implementation, size_t at, size_t count) {
   using namespace util_functions;
-  if(at >= header->bit_size) return;
-  if(at + count >= header->bit_size)
-    return priv::BitArrayHeader::reduceSize(header, count - (count - (header->bit_size - at)));
+  if(at >= implementation->bit_size) return;
+  if(at + count >= implementation->bit_size)
+    return priv::BitArrayImplementation::reduceSize(implementation, count - (count - (implementation->bit_size - at)));
 
   {
     const size_t shift_start_byte = at / 8;
     const size_t shift_start_bit_in_byte = at % 8;
     const size_t shift_end_byte = (at + count) / 8;
     const size_t shift_end_bit_in_byte = (at + count) % 8;
-    ui8* data = header->getDataAs<ui8>();
+    ui8* data = implementation->getDataAs<ui8>();
 
     if(!shift_start_bit_in_byte)
-      doRightShift(data + shift_start_byte, header->getByteSize() - shift_start_byte, count);
+      doRightShift(data + shift_start_byte, implementation->getByteSize() - shift_start_byte, count);
     elif(8 - shift_start_bit_in_byte >= count) {
       /*if(8 - shift_start_bit_in_byte > count)
        * [abcdefgh][ijklmnop] rm 3 at 1 => [a###bcde][fghijklm]
@@ -142,7 +142,7 @@ void BitArrayHeader::removeBits(BitArrayHeader*& header, size_t at, size_t count
           (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
           ((data[shift_start_byte] >> count) & (0xFF << shift_start_bit_in_byte)) |
           data[shift_start_byte + 1] << (8 - count);
-      doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      doRightShift(data + shift_start_byte + 1, implementation->getByteSize() - shift_start_byte - 1, count);
     } elif((8 - shift_start_bit_in_byte) > (8 - shift_end_bit_in_byte)) {
       /* Example:
        * [abcdefgh]...[ijklmnop] rm 10 at 4 => [abcd####]...[######ef][ghijklmn] (end_byte = n, end_bit_in_byte = 6)
@@ -156,7 +156,7 @@ void BitArrayHeader::removeBits(BitArrayHeader*& header, size_t at, size_t count
           (data[shift_start_byte] & (0xFF >> (8 - shift_start_bit_in_byte))) |
           ((data[shift_end_byte] & (0xFF << shift_end_bit_in_byte)) >> (shift_end_bit_in_byte - shift_start_bit_in_byte)) |
           data[shift_end_byte + 1] << (8 - (shift_end_bit_in_byte - shift_start_bit_in_byte));
-      doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      doRightShift(data + shift_start_byte + 1, implementation->getByteSize() - shift_start_byte - 1, count);
     } else {
       /* Example:
        * [abcdefgh]...[ijklmnop] rm 6 at 4 => [abcd####]...[##efghjk] (end_byte = n, end_bit_in_byte = 2)
@@ -168,32 +168,32 @@ void BitArrayHeader::removeBits(BitArrayHeader*& header, size_t at, size_t count
       data[shift_start_byte] =
           set0From(data[shift_start_byte], shift_start_bit_in_byte) |
           (set0Before(data[shift_end_byte], shift_end_bit_in_byte) << (shift_start_bit_in_byte - shift_end_bit_in_byte));
-      doRightShift(data + shift_start_byte + 1, header->getByteSize() - shift_start_byte - 1, count);
+      doRightShift(data + shift_start_byte + 1, implementation->getByteSize() - shift_start_byte - 1, count);
     }
 
-    return priv::BitArrayHeader::reduceSize(header, count);
+    return priv::BitArrayImplementation::reduceSize(implementation, count);
   }
 }
 
-void BitArrayHeader::shrinkToFit(BitArrayHeader*& header) {
-  if(header->getByteSize() == header->capacity) return;
-  header->capacity = sizeof(BitArrayHeader) + header->getByteSize();
-  BitArrayHeader* old_pointer = header;
-  header = new(new byte[ sizeof(BitArrayHeader) + header->capacity ]) BitArrayHeader(*old_pointer);
+void BitArrayImplementation::shrinkToFit(BitArrayImplementation*& implementation) {
+  if(implementation->getByteSize() == implementation->capacity) return;
+  implementation->capacity = sizeof(BitArrayImplementation) + implementation->getByteSize();
+  BitArrayImplementation* old_pointer = implementation;
+  implementation = new(new byte[ sizeof(BitArrayImplementation) + implementation->capacity ]) BitArrayImplementation(*old_pointer);
   delete old_pointer;
 }
 
-size_t BitArrayHeader::calculateCapacity(size_t bit_count) noexcept {
-  return util_functions::getNearestPow2(sizeof(BitArrayHeader) + calculateByteSize(bit_count));
+size_t BitArrayImplementation::calculateCapacity(size_t bit_count) noexcept {
+  return util_functions::getNearestPow2(sizeof(BitArrayImplementation) + calculateByteSize(bit_count));
 }
 
-BitValueRef BitArrayHeader::pushBack(BitArrayHeader*& header, bool value) {
-  auto it = increaseSize(header, 1);
+BitValueRef BitArrayImplementation::pushBack(BitArrayImplementation*& implementation, bool value) {
+  auto it = increaseSize(implementation, 1);
   return (*it) = value;
 }
 
-BitIterator BitArrayHeader::pushBack(BitArrayHeader*& header, const literals::bitarr& value_list) {
-  auto it = priv::BitArrayHeader::increaseSize(header, value_list.size());
+BitIterator BitArrayImplementation::pushBack(BitArrayImplementation*& implementation, const literals::bitarr& value_list) {
+  auto it = priv::BitArrayImplementation::increaseSize(implementation, value_list.size());
   { auto data_it = it;
     for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
       (*data_it) = *value_it;
@@ -201,13 +201,13 @@ BitIterator BitArrayHeader::pushBack(BitArrayHeader*& header, const literals::bi
   return it;
 }
 
-BitValueRef BitArrayHeader::pushFront(BitArrayHeader*& header, bool value) {
-  auto it = insertBits(header, 0, 1);
+BitValueRef BitArrayImplementation::pushFront(BitArrayImplementation*& implementation, bool value) {
+  auto it = insertBits(implementation, 0, 1);
   return (*it) = value;
 }
 
-BitIterator BitArrayHeader::pushFront(BitArrayHeader*& header, const literals::bitarr& value_list) {
-  auto it = priv::BitArrayHeader::insertBits(header, 0, value_list.size());
+BitIterator BitArrayImplementation::pushFront(BitArrayImplementation*& implementation, const literals::bitarr& value_list) {
+  auto it = priv::BitArrayImplementation::insertBits(implementation, 0, value_list.size());
   { auto data_it = it;
     for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
       (*data_it) = *value_it;
@@ -215,13 +215,13 @@ BitIterator BitArrayHeader::pushFront(BitArrayHeader*& header, const literals::b
   return it;
 }
 
-BitValueRef BitArrayHeader::insert(BitArrayHeader*& header, size_t at, bool value) {
-  auto it = BitArrayHeader::insertBits(header, at, 1);
+BitValueRef BitArrayImplementation::insert(BitArrayImplementation*& implementation, size_t at, bool value) {
+  auto it = BitArrayImplementation::insertBits(implementation, at, 1);
   return (*it) = value;
 }
 
-BitIterator BitArrayHeader::insert(BitArrayHeader*& header, size_t at, const literals::bitarr value_list) {
-  auto it = BitArrayHeader::insertBits(header, at, value_list.size());
+BitIterator BitArrayImplementation::insert(BitArrayImplementation*& implementation, size_t at, const literals::bitarr value_list) {
+  auto it = BitArrayImplementation::insertBits(implementation, at, value_list.size());
   { auto data_it = it;
     for(auto value_it = value_list.begin(), value_end = value_list.end(); value_it != value_end; ++value_it, ++data_it)
       (*data_it) = *value_it;
@@ -229,122 +229,122 @@ BitIterator BitArrayHeader::insert(BitArrayHeader*& header, size_t at, const lit
   return it;
 }
 
-void BitArrayHeader::popBack(BitArrayHeader*& header, size_t size) {
-  priv::BitArrayHeader::reduceSize(header, size >= header->getBitSize() ? header->getBitSize() : size);
+void BitArrayImplementation::popBack(BitArrayImplementation*& implementation, size_t size) {
+  priv::BitArrayImplementation::reduceSize(implementation, size >= implementation->getBitSize() ? implementation->getBitSize() : size);
 }
 
-void BitArrayHeader::popFront(BitArrayHeader*& header, size_t size) {
-  BitArrayHeader::removeBits(header, 0, size);
+void BitArrayImplementation::popFront(BitArrayImplementation*& implementation, size_t size) {
+  BitArrayImplementation::removeBits(implementation, 0, size);
 }
 
-size_t BitArrayHeader::getCapacity() const noexcept {return capacity;}
+size_t BitArrayImplementation::getCapacity() const noexcept {return capacity;}
 
-size_t BitArrayHeader::getBitSize() const noexcept {return bit_size;}
+size_t BitArrayImplementation::getBitSize() const noexcept {return bit_size;}
 
-size_t BitArrayHeader::getByteSize() const noexcept {return calculateByteSize(bit_size);}
+size_t BitArrayImplementation::getByteSize() const noexcept {return calculateByteSize(bit_size);}
 
-Bits* BitArrayHeader::getData() const noexcept {
-  return reinterpret_cast<Bits*>(const_cast<BitArrayHeader*>(this)) + sizeof(BitArrayHeader);
+Bits* BitArrayImplementation::getData() const noexcept {
+  return reinterpret_cast<Bits*>(const_cast<BitArrayImplementation*>(this)) + sizeof(BitArrayImplementation);
 }
 
-void BitArrayHeader::operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
+void BitArrayImplementation::operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
 
-BitValueRef BitArrayHeader::operator[](size_t index) const noexcept {return getData()[index / 8][index % 8];}
+BitValueRef BitArrayImplementation::operator[](size_t index) const noexcept {return getData()[index / 8][index % 8];}
 
-BitIterator BitArrayHeader::begin() const noexcept {return getData()->begin();}
+BitIterator BitArrayImplementation::begin() const noexcept {return getData()->begin();}
 
-BitIterator BitArrayHeader::end() const noexcept {return getData()[bit_size / 8].getItearatorAt(bit_size % 8);}
+BitIterator BitArrayImplementation::end() const noexcept {return getData()[bit_size / 8].getItearatorAt(bit_size % 8);}
 
-BitReverseIterator BitArrayHeader::rbegin() const noexcept {if(!bit_size) return rend(); return getData()[(bit_size - 1) / 8].getReverseIteratorAt((bit_size - 1) % 8);}
+BitReverseIterator BitArrayImplementation::rbegin() const noexcept {if(!bit_size) return rend(); return getData()[(bit_size - 1) / 8].getReverseIteratorAt((bit_size - 1) % 8);}
 
-BitReverseIterator BitArrayHeader::rend() const noexcept {return getData()->rend();}
-
-
-
-//////////////////////////////////////////////////////////// BufferArrayHeader ////////////////////////////////////////////////////////
+BitReverseIterator BitArrayImplementation::rend() const noexcept {return getData()->rend();}
 
 
-BufferArrayHeader::BufferArrayHeader(const BufferArrayHeader& other)
+
+//////////////////////////////////////////////////////////// BufferArrayImplementation ////////////////////////////////////////////////////////
+
+
+BufferArrayImplementation::BufferArrayImplementation(const BufferArrayImplementation& other)
   : size(other.size), capacity(other.capacity) {
   memcpy(getData(), other.getData(), size);
 }
 
-size_t BufferArrayHeader::calculateCapacity(size_t size) noexcept {
-  return util_functions::getNearestPow2(sizeof(BufferArrayHeader) + size);
+size_t BufferArrayImplementation::calculateCapacity(size_t size) noexcept {
+  return util_functions::getNearestPow2(sizeof(BufferArrayImplementation) + size);
 }
 
-BufferArrayHeader* BufferArrayHeader::copy(const BufferArrayHeader* other) {
-  return new(new byte[ sizeof(BufferArrayHeader) + other->capacity ]) BufferArrayHeader(*other);
+BufferArrayImplementation* BufferArrayImplementation::copy(const BufferArrayImplementation* other) {
+  return new(new byte[ sizeof(BufferArrayImplementation) + other->capacity ]) BufferArrayImplementation(*other);
 }
 
-void* BufferArrayHeader::getData() const { return const_cast<void*>(reinterpret_cast<const void*>(this + 1)); }
+void* BufferArrayImplementation::getData() const { return const_cast<void*>(reinterpret_cast<const void*>(this + 1)); }
 
-size_t BufferArrayHeader::getSize() const noexcept {return size;}
+size_t BufferArrayImplementation::getSize() const noexcept {return size;}
 
-size_t BufferArrayHeader::getElementCount(VarBitWidth type) const noexcept {return size_t(std::ceil(llf_t(size)/ size_t(type)));}
+size_t BufferArrayImplementation::getElementCount(VarBitWidth type) const noexcept {return size_t(std::ceil(llf_t(size)/ size_t(type)));}
 
-size_t BufferArrayHeader::getCapacity() const noexcept {return capacity;}
+size_t BufferArrayImplementation::getCapacity() const noexcept {return capacity;}
 
-void* BufferArrayHeader::increaseSize(BufferArrayHeader*& header, VarBitWidth type, size_t count) {
-  const size_t new_size = header->size + count * size_t(type);
-  const size_t old_size = header->size;
+void* BufferArrayImplementation::increaseSize(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count) {
+  const size_t new_size = implementation->size + count * size_t(type);
+  const size_t old_size = implementation->size;
   const size_t new_capacity = calculateCapacity(new_size);
-  if(new_capacity == header->capacity) {
-    BufferArrayHeader* new_header = new(new byte[ new_capacity ]) BufferArrayHeader(*header);
-    new_header->size = new_size;
-    new_header->capacity = new_capacity;
-    delete header;
-    header = new_header;
+  if(new_capacity == implementation->capacity) {
+    BufferArrayImplementation* new_implementation = new(new byte[ new_capacity ]) BufferArrayImplementation(*implementation);
+    new_implementation->size = new_size;
+    new_implementation->capacity = new_capacity;
+    delete implementation;
+    implementation = new_implementation;
   } else {
-    header->size = new_size;
+    implementation->size = new_size;
   }
-  return header->getDataAs<byte>() + old_size;
+  return implementation->getDataAs<byte>() + old_size;
 }
 
-void BufferArrayHeader::reduceSize(BufferArrayHeader*& header, VarBitWidth type, size_t count) {
+void BufferArrayImplementation::reduceSize(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count) {
   const size_t size = count * size_t(type);
-  if(size <= header->size) {
-    header->size -= size;
+  if(size <= implementation->size) {
+    implementation->size -= size;
     return;
   } else {
-    header->size = 0;
+    implementation->size = 0;
     return;
   }
 }
 
-void BufferArrayHeader::shrinkToFit(BufferArrayHeader*& header) {
-  if(header->size == header->capacity) return;
-  header->capacity = sizeof(BufferArrayHeader) + header->size;
-  BufferArrayHeader* old_header = header;
-  header = new(new byte[ header->capacity ]) BufferArrayHeader(*old_header);
-  delete old_header;
+void BufferArrayImplementation::shrinkToFit(BufferArrayImplementation*& implementation) {
+  if(implementation->size == implementation->capacity) return;
+  implementation->capacity = sizeof(BufferArrayImplementation) + implementation->size;
+  BufferArrayImplementation* old_implementation = implementation;
+  implementation = new(new byte[ implementation->capacity ]) BufferArrayImplementation(*old_implementation);
+  delete old_implementation;
 }
 
-void* BufferArrayHeader::insertBlock(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count) {
-  size_t old_size = header->size;
+void* BufferArrayImplementation::insertBlock(BufferArrayImplementation*& implementation, VarBitWidth type, size_t at, size_t count) {
+  size_t old_size = implementation->size;
   size_t from = at * size_t(type);
-  if(from >= old_size) return increaseSize(header, type, count);
-  increaseSize(header, type, count);
-  memmove(header->getDataAs<byte>() + from + count * size_t(type),
-          header->getDataAs<byte>() + from,
+  if(from >= old_size) return increaseSize(implementation, type, count);
+  increaseSize(implementation, type, count);
+  memmove(implementation->getDataAs<byte>() + from + count * size_t(type),
+          implementation->getDataAs<byte>() + from,
           old_size - from);
-  return header->getDataAs<byte>() + from;
+  return implementation->getDataAs<byte>() + from;
 }
 
-void BufferArrayHeader::remove(BufferArrayHeader*& header, VarBitWidth type, size_t at, size_t count) {
+void BufferArrayImplementation::remove(BufferArrayImplementation*& implementation, VarBitWidth type, size_t at, size_t count) {
   size_t rm_size = count * size_t(type);
   size_t from = at * size_t(type);
-  if(from >= header->size) return;
-  if(from + rm_size >= header->size)
-    return reduceSize(header, VarBitWidth::byte, header->size - from);
-  size_t old_size = header->size;
-  memmove(header->getDataAs<byte>() + from,
-          header->getDataAs<byte>() + from + rm_size,
+  if(from >= implementation->size) return;
+  if(from + rm_size >= implementation->size)
+    return reduceSize(implementation, VarBitWidth::byte, implementation->size - from);
+  size_t old_size = implementation->size;
+  memmove(implementation->getDataAs<byte>() + from,
+          implementation->getDataAs<byte>() + from + rm_size,
           old_size - from - rm_size);
-  return reduceSize(header, type, count);
+  return reduceSize(implementation, type, count);
 }
 
-void* BufferArrayHeader::get(VarBitWidth type, size_t at) const {
+void* BufferArrayImplementation::get(VarBitWidth type, size_t at) const {
   switch (type) {
   case VarBitWidth::byte: return getDataAs<byte>() + at;
   case VarBitWidth::word: return getDataAs<word>() + at;
@@ -355,145 +355,191 @@ void* BufferArrayHeader::get(VarBitWidth type, size_t at) const {
   }
 }
 
-void* BufferArrayHeader::getBeginPtr() const {return getData();}
+void* BufferArrayImplementation::getBeginPtr() const {return getData();}
 
-void* BufferArrayHeader::getEndPtr(VarBitWidth type) const {return getDataAs<byte>() + getElementCount(type) * size_t(type);}
+void* BufferArrayImplementation::getEndPtr(VarBitWidth type) const {return getDataAs<byte>() + getElementCount(type) * size_t(type);}
 
-void* BufferArrayHeader::getReverseBeginPtr(VarBitWidth type) const {return getDataAs<byte>() + (i64(getElementCount(type)) - 1) * size_t(type);}
+void* BufferArrayImplementation::getReverseBeginPtr(VarBitWidth type) const {return getDataAs<byte>() + (i64(getElementCount(type)) - 1) * size_t(type);}
 
-void* BufferArrayHeader::getReverseEndPtr(VarBitWidth type) const {return getDataAs<byte>() - size_t(type);}
+void* BufferArrayImplementation::getReverseEndPtr(VarBitWidth type) const {return getDataAs<byte>() - size_t(type);}
 
-void BufferArrayHeader::operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
-
-
-
-//////////////////////////////////////////////////////////// ArrayHeader ////////////////////////////////////////////////////////
+void BufferArrayImplementation::operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
 
 
 
-ArrayHeader::ArrayHeader(const arr& value_list)
+//////////////////////////////////////////////////////////// ArrayImplementation ////////////////////////////////////////////////////////
+
+
+
+ArrayImplementation::ArrayImplementation(const arr& value_list)
   : count(value_list.getSize()), capacity(calculateCapacity(count)) {
   auto it = begin();
   for(const auto& value : value_list)
     new(it++) Variable(value);
 }
 
-ArrayHeader::ArrayHeader(const ArrayHeader& other)
+ArrayImplementation::ArrayImplementation(const ArrayImplementation& other)
   : count(other.count), capacity(other.capacity) {
   auto it = begin();
   for(const auto& value : other)
     new(it++) Variable(value);
 }
 
-size_t ArrayHeader::calculateCapacity(size_t count) noexcept {
-  return util_functions::getNearestPow2(sizeof(ArrayHeader) + count * sizeof(Link));
+size_t ArrayImplementation::calculateCapacity(size_t count) noexcept {
+  return util_functions::getNearestPow2(sizeof(ArrayImplementation) + count * sizeof(Link));
 }
 
-ArrayHeader* ArrayHeader::create(const literals::arr& value_list) {
-  return new(new byte[calculateCapacity(value_list.getSize())]) ArrayHeader(value_list);
+ArrayImplementation* ArrayImplementation::create(const literals::arr& value_list) {
+  return new(new byte[calculateCapacity(value_list.getSize())]) ArrayImplementation(value_list);
 }
 
-ArrayHeader* ArrayHeader::copy(const ArrayHeader* other) {
-  return new(new byte[other->capacity]) ArrayHeader(*other);
+ArrayImplementation* ArrayImplementation::copy(const ArrayImplementation* other) {
+  return new(new byte[other->capacity]) ArrayImplementation(*other);
 }
 
-size_t ArrayHeader::getElementCount() const noexcept {return count;}
-size_t ArrayHeader::getCapacity() const noexcept {return capacity;}
+size_t ArrayImplementation::getElementCount() const noexcept {return count;}
+size_t ArrayImplementation::getCapacity() const noexcept {return capacity;}
 
-size_t ArrayHeader::getSize() const noexcept {return count * sizeof (Link);}
+size_t ArrayImplementation::getSize() const noexcept {return count * sizeof (Link);}
 
-Variable* ArrayHeader::getData() const { return reinterpret_cast<Variable*>(const_cast<ArrayHeader*>(this + 1)); }
+Variable* ArrayImplementation::getData() const { return reinterpret_cast<Variable*>(const_cast<ArrayImplementation*>(this + 1)); }
 
-ArrayHeader::Iterator ArrayHeader::increaseSize(ArrayHeader*& header, size_t count) {
-  const size_t new_count = header->count + count;
-  const size_t old_count = header->count;
+Variable ArrayImplementation::pushBack(ArrayImplementation*& implementation, Variable variable) {
+  auto allocated_memory = increaseSize(implementation, 1);
+  new(allocated_memory) Variable(std::move(variable));
+  return allocated_memory->move();
+}
+
+ArrayImplementation::Iterator ArrayImplementation::pushBack(ArrayImplementation*& implementation, const literals::arr variable_list) {
+  auto allocated_memory = increaseSize(implementation, variable_list.getSize());
+  auto it = allocated_memory;
+  for(const auto& variable : variable_list)
+    new(it++) Variable(std::move(variable));
+  return allocated_memory;
+}
+
+Variable ArrayImplementation::pushFront(ArrayImplementation*& implementation, Variable variable) {
+  auto allocated_memory = insert(implementation, 0, 1);
+  new(allocated_memory) Variable(std::move(variable));
+  return allocated_memory->move();
+}
+
+ArrayImplementation::Iterator ArrayImplementation::pushFront(ArrayImplementation*& implementation, const literals::arr& variable_list) {
+  auto allocated_memory = insert(implementation, 0, variable_list.getSize());
+  auto it = allocated_memory;
+  for(const auto& variable : variable_list)
+    new(it++) Variable(std::move(variable));
+  return allocated_memory;
+}
+
+Variable ArrayImplementation::insert(ArrayImplementation*& implementation, size_t at, Variable variable) {
+  auto allocated_memory = insert(implementation, at, 1);
+  new(allocated_memory) Variable(std::move(variable));
+  return allocated_memory->move();
+}
+
+ArrayImplementation::Iterator ArrayImplementation::insert(ArrayImplementation*& implementation, size_t at, const literals::arr& variable_list) {
+  auto allocated_memory = insert(implementation, at, variable_list.getSize());
+  auto it = allocated_memory;
+  for(const auto& variable : variable_list)
+    new(it++) Variable(std::move(variable));
+  return allocated_memory;
+}
+
+ArrayImplementation::Iterator ArrayImplementation::increaseSize(ArrayImplementation*& implementation, size_t count) {
+  const size_t new_count = implementation->count + count;
+  const size_t old_count = implementation->count;
   const size_t new_capacity = calculateCapacity(new_count);
-  if(new_capacity == header->capacity) {
-    ArrayHeader* new_header = new(new byte[ new_capacity ]) ArrayHeader(*header);
-    new_header->count = new_count;
-    new_header->capacity = new_capacity;
-    delete header;
-    header = new_header;
+  if(new_capacity == implementation->capacity) {
+    ArrayImplementation* new_implementation = new(new byte[ new_capacity ]) ArrayImplementation(*implementation);
+    new_implementation->count = new_count;
+    new_implementation->capacity = new_capacity;
+    delete implementation;
+    implementation = new_implementation;
   } else {
-    header->count = new_count;
+    implementation->count = new_count;
   }
-  return header->getData() + old_count;
+  return implementation->getData() + old_count;
 }
 
-void ArrayHeader::reduceSize(ArrayHeader*& header, size_t count) {
-  if(count <= header->count) {
-    header->count -= count;
+void ArrayImplementation::reduceSize(ArrayImplementation*& implementation, size_t count) {
+  if(count <= implementation->count) {
+    implementation->count -= count;
     return;
   } else {
-    header->count = 0;
+    implementation->count = 0;
     return;
   }
 }
 
-void ArrayHeader::popBack(ArrayHeader*& header, size_t count) {
-  if(count <= header->count)
-    for(auto it = header->getData() + header->count - count,
-             end = header->end(); it != end; ++it)
+void ArrayImplementation::popBack(ArrayImplementation*& implementation, size_t count) {
+  if(count <= implementation->count)
+    for(auto it = implementation->getData() + implementation->count - count,
+             end = implementation->end(); it != end; ++it)
       it->~Variable();
   else
-    for(auto element : *header) element.~Variable();
-  reduceSize(header, count);
+    for(auto element : *implementation) element.~Variable();
+  reduceSize(implementation, count);
 }
 
-ArrayHeader::Iterator ArrayHeader::insert(ArrayHeader*& header, size_t at, size_t count) {
-  size_t old_count = header->count;
-  if(at >= old_count) return increaseSize(header, count);
-  increaseSize(header, count);
-  memmove(header->getData() + at + count,
-          header->getData() + at,
+void ArrayImplementation::popFront(ArrayImplementation*& implementation, size_t count) {remove(implementation, 0, count);}
+
+ArrayImplementation::Iterator ArrayImplementation::insert(ArrayImplementation*& implementation, size_t at, size_t count) {
+  size_t old_count = implementation->count;
+  if(at >= old_count) return increaseSize(implementation, count);
+  increaseSize(implementation, count);
+  memmove(implementation->getData() + at + count,
+          implementation->getData() + at,
           (old_count - at) * sizeof (Link));
-  return header->getData() + at;
+  return implementation->getData() + at;
 }
 
-void ArrayHeader::remove(ArrayHeader*& header, size_t at, size_t count) {
-  if(at >= header->count) return;
-  if(at + count >= header->count)
-    return popBack(header, header->count - at);
+void ArrayImplementation::remove(ArrayImplementation*& implementation, size_t at, size_t count) {
+  if(at >= implementation->count) return;
+  if(at + count >= implementation->count)
+    return popBack(implementation, implementation->count - at);
 
-  for(auto it = header->getData() + at, end = header->getData() + at + count;
+  for(auto it = implementation->getData() + at, end = implementation->getData() + at + count;
       it != end; ++it) it->~Variable();
 
-  size_t old_count = header->count;
-  memmove(header->getData() + at,
-          header->getData() + at + count,
+  size_t old_count = implementation->count;
+  memmove(implementation->getData() + at,
+          implementation->getData() + at + count,
           (old_count - at - count) * sizeof (Link));
-  return reduceSize(header, count);
+  return reduceSize(implementation, count);
 }
 
-Variable ArrayHeader::operator[](size_t index) {
+void ArrayImplementation::clear(ArrayImplementation*& implementation) {popBack(implementation, implementation->getSize());}
+
+Variable ArrayImplementation::operator[](size_t index) {
   if(index < getElementCount())
-    return getData()[index].getReference();
+    return getData()[index].move();
   else return nullptr;
 }
 
-ArrayHeader::Iterator ArrayHeader::begin() const {return getData();}
-ArrayHeader::Iterator ArrayHeader::end() const {return getData() + count;}
-ArrayHeader::ReverseIterator ArrayHeader::rbegin() const {return ArrayHeader::ReverseIterator(getData() + count - 1);}
-ArrayHeader::ReverseIterator ArrayHeader::rend() const {return ArrayHeader::ReverseIterator(getData() - 1);}
+ArrayImplementation::Iterator ArrayImplementation::begin() const {return getData();}
+ArrayImplementation::Iterator ArrayImplementation::end() const {return getData() + count;}
+ArrayImplementation::ReverseIterator ArrayImplementation::rbegin() const {return ArrayImplementation::ReverseIterator(getData() + count - 1);}
+ArrayImplementation::ReverseIterator ArrayImplementation::rend() const {return ArrayImplementation::ReverseIterator(getData() - 1);}
 
-void ArrayHeader::operator delete(void* ptr) {
-  for(auto element : *reinterpret_cast<ArrayHeader*>(ptr)) element.~Variable();
+void ArrayImplementation::operator delete(void* ptr) {
+  for(auto element : *reinterpret_cast<ArrayImplementation*>(ptr)) element.~Variable();
   return ::delete [] reinterpret_cast<byte*>(ptr);
 }
 
-//////////////////////////////////////////////////////////// SinglyLinkedListHeader ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////// SinglyLinkedListImplementation ////////////////////////////////////////////////////////
 
 #include "libbinom/include/variables/singly_linked_list.hxx"
 
-SinglyLinkedListHeader::SinglyLinkedListHeader(const sllist& value_list) {pushBack(value_list);}
+SinglyLinkedListImplementation::SinglyLinkedListImplementation(const sllist& value_list) {pushBack(value_list);}
 
-SinglyLinkedListHeader::SinglyLinkedListHeader(const SinglyLinkedListHeader& other) {for(const auto& value : other) pushBack(value);}
+SinglyLinkedListImplementation::SinglyLinkedListImplementation(const SinglyLinkedListImplementation& other) {for(const auto& value : other) pushBack(value);}
 
-SinglyLinkedListHeader::~SinglyLinkedListHeader() {clear();}
+SinglyLinkedListImplementation::~SinglyLinkedListImplementation() {clear();}
 
-bool SinglyLinkedListHeader::isEmpty() {return !first;}
+bool SinglyLinkedListImplementation::isEmpty() {return !first;}
 
-void SinglyLinkedListHeader::clear() {
+void SinglyLinkedListImplementation::clear() {
   auto it = begin(), _end = end();
   while(it != _end) {
     Node* node = it.node;
@@ -503,16 +549,16 @@ void SinglyLinkedListHeader::clear() {
   first = last = nullptr;
 }
 
-Variable SinglyLinkedListHeader::pushBack(Variable var) {
+Variable SinglyLinkedListImplementation::pushBack(Variable var) {
   if(!last) {
     first = last = new Node{std::move(var), nullptr};
   } else {
     last = last->next = new Node{std::move(var), nullptr};
   }
-  return last->value.getReference();
+  return last->value.move();
 }
 
-SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushBack(const literals::sllist& value_list) {
+SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::pushBack(const literals::sllist& value_list) {
   Iterator result(nullptr, nullptr);
 
   auto it = value_list.begin();
@@ -530,16 +576,16 @@ SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushBack(const literals
   return result;
 }
 
-Variable SinglyLinkedListHeader::pushFront(Variable var) {
+Variable SinglyLinkedListImplementation::pushFront(Variable var) {
   if(!first) {
     first = last = new Node{std::move(var), nullptr};
   } else {
     first = new Node{std::move(var), first};
   }
-  return first->value.getReference();
+  return first->value.move();
 }
 
-SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushFront(const literals::sllist& value_list) {
+SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::pushFront(const literals::sllist& value_list) {
   Node* last_first = first;
   Node** ptr_it = &first; // Pointer at first or Node::next
 
@@ -553,7 +599,7 @@ SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::pushFront(const literal
   return first;
 }
 
-SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::insert(Iterator it, Variable var) {
+SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::insert(Iterator it, Variable var) {
   if(!it.node && !it.prev) return it;
   elif(!it.node && it.prev == last) {
     last = it.prev = it.prev->next = new Node{std::move(var), it.node};
@@ -567,27 +613,27 @@ SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::insert(Iterator it, Var
   return it;
 }
 
-void SinglyLinkedListHeader::remove(Iterator it) {
+void SinglyLinkedListImplementation::remove(Iterator it) {
   if(!it.node) return;
   Node* removable_node = it.node;
   delete removable_node;
 }
 
-SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::begin() const {return Iterator(first);}
-SinglyLinkedListHeader::Iterator SinglyLinkedListHeader::end() const {return Iterator(nullptr, last);}
+SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::begin() const {return Iterator(first);}
+SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::end() const {return Iterator(nullptr, last);}
 
-//////////////////////////////////////////////////////////// ArrayHeader ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////// ArrayImplementation ////////////////////////////////////////////////////////
 
 #include "libbinom/include/variables/doubly_linked_list.hxx"
 
-DoublyLinkedListHeader::DoublyLinkedListHeader(const literals::dllist& value_list) {pushBack(value_list);}
-DoublyLinkedListHeader::DoublyLinkedListHeader(const DoublyLinkedListHeader& other) {for(const auto& value : other) pushBack(value);}
+DoublyLinkedListImplementation::DoublyLinkedListImplementation(const literals::dllist& value_list) {pushBack(value_list);}
+DoublyLinkedListImplementation::DoublyLinkedListImplementation(const DoublyLinkedListImplementation& other) {for(const auto& value : other) pushBack(value);}
 
-DoublyLinkedListHeader::~DoublyLinkedListHeader() {clear();}
+DoublyLinkedListImplementation::~DoublyLinkedListImplementation() {clear();}
 
-bool DoublyLinkedListHeader::isEmpty() {return !first;}
+bool DoublyLinkedListImplementation::isEmpty() {return !first;}
 
-void DoublyLinkedListHeader::clear() {
+void DoublyLinkedListImplementation::clear() {
   auto it = begin(), _end = end();
   while(it != _end) {
     Node* node = it.node;
@@ -597,16 +643,16 @@ void DoublyLinkedListHeader::clear() {
   first = last = nullptr;
 }
 
-Variable DoublyLinkedListHeader::pushBack(Variable var) {
+Variable DoublyLinkedListImplementation::pushBack(Variable var) {
   if(!last) {
     first = last = new Node{std::move(var), nullptr, nullptr};
   } else {
     last = last->next = new Node{std::move(var), nullptr, last};
   }
-  return last->value.getReference();
+  return last->value.move();
 }
 
-DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::pushBack(const literals::dllist& value_list) {
+DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::pushBack(const literals::dllist& value_list) {
   Iterator result(nullptr);
 
   auto it = value_list.begin();
@@ -623,16 +669,16 @@ DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::pushBack(const literals
   return result;
 }
 
-Variable DoublyLinkedListHeader::pushFront(Variable var) {
+Variable DoublyLinkedListImplementation::pushFront(Variable var) {
   if(!first) {
     first = last = new Node{std::move(var), nullptr, nullptr};
   } else {
     first = first->prev = new Node{std::move(var), first, nullptr};
   }
-  return first->value.getReference();
+  return first->value.move();
 }
 
-DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::pushFront(const literals::dllist& value_list) {
+DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::pushFront(const literals::dllist& value_list) {
   Node* last_first = first;
   Node** ptr_it = &first; // Pointer at first or Node::next
   Node* prev_node = nullptr;
@@ -648,7 +694,7 @@ DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::pushFront(const literal
   return first;
 }
 
-DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::insert(Iterator it, Variable var) {
+DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::insert(Iterator it, Variable var) {
   if(!it.node) return it;
   elif(it.node == nullptr) {
     it.node = last = last->next = new Node{std::move(var), nullptr, last};
@@ -660,7 +706,7 @@ DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::insert(Iterator it, Var
   return it;
 }
 
-void DoublyLinkedListHeader::popBack() {
+void DoublyLinkedListImplementation::popBack() {
   if(!last) return;
   Node* prev_last = last;
   last = last->prev;
@@ -668,7 +714,7 @@ void DoublyLinkedListHeader::popBack() {
   delete prev_last;
 }
 
-void DoublyLinkedListHeader::popFront() {
+void DoublyLinkedListImplementation::popFront() {
   if(!first) return;
   Node* prev_first = first;
   first = first->next;
@@ -676,14 +722,14 @@ void DoublyLinkedListHeader::popFront() {
   delete prev_first;
 }
 
-void DoublyLinkedListHeader::remove(Iterator it) {
+void DoublyLinkedListImplementation::remove(Iterator it) {
   if(it.node == first) return popFront();
   elif(it.node == last) return popBack();
 }
 
-DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::begin() const {return Iterator(first);}
-DoublyLinkedListHeader::Iterator DoublyLinkedListHeader::end() const {return Iterator(nullptr);}
+DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::begin() const {return Iterator(first);}
+DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::end() const {return Iterator(nullptr);}
 
-DoublyLinkedListHeader::ReverseIterator DoublyLinkedListHeader::rbegin() const {return ReverseIterator(last);}
-DoublyLinkedListHeader::ReverseIterator DoublyLinkedListHeader::rend() const {return ReverseIterator(nullptr);}
+DoublyLinkedListImplementation::ReverseIterator DoublyLinkedListImplementation::rbegin() const {return ReverseIterator(last);}
+DoublyLinkedListImplementation::ReverseIterator DoublyLinkedListImplementation::rend() const {return ReverseIterator(nullptr);}
 

@@ -37,7 +37,7 @@ class Array : public Variable {
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
 
-  priv::ArrayHeader*& getData() const noexcept;
+  priv::ArrayImplementation*& getData() const noexcept;
 
   friend class Variable;
   Array(priv::Link&& link);
@@ -51,7 +51,7 @@ public:
   Array(const Array& other) noexcept;
   Array(const Array&& other) noexcept;
 
-  Array getReference() noexcept;
+  Array move() noexcept;
   size_t getElementCount() const noexcept;
   size_t getCapacity() const noexcept;
   size_t getSize() const noexcept;
@@ -83,6 +83,12 @@ public:
 
   ReverseIterator rbegin() const;
   ReverseIterator rend() const;
+
+  Array& operator=(const Array& other);
+  Array& operator=(Array&& other);
+
+  Array& changeLink(const Array& other);
+  Array& changeLink(Array&& other);
 };
 
 }

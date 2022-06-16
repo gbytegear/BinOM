@@ -3,15 +3,15 @@
 using namespace binom;
 using namespace binom::priv;
 
-BitArrayHeader*& BitArray::getData() const noexcept {return resource_link->data.bit_array_header;}
+BitArrayImplementation*& BitArray::getData() const noexcept {return resource_link->data.bit_array_implementation;}
 BitArray::BitArray(priv::Link&& link) : Variable(std::move(link)) {}
 BitArray::BitArray() : Variable(literals::bitarr{}) {}
 BitArray::BitArray(const literals::bitarr bit_array) : Variable(bit_array) {}
 BitArray::BitArray(const BitArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
 BitArray::BitArray(const BitArray&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
-BitArray BitArray::getReference() noexcept {return Link(resource_link);}
-const BitArray BitArray::getReference() const noexcept {return Link(resource_link);}
+BitArray BitArray::move() noexcept {return Link(resource_link);}
+const BitArray BitArray::move() const noexcept {return Link(resource_link);}
 
 size_t BitArray::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
@@ -43,55 +43,55 @@ BitArray::Iterator BitArray::operator+=(const literals::bitarr value_list) {retu
 BitArray::ValueRef BitArray::pushBack(bool value) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullValue();
-  return priv::BitArrayHeader::pushBack(getData(), value);
+  return priv::BitArrayImplementation::pushBack(getData(), value);
 }
 
 BitArray::Iterator BitArray::pushBack(const literals::bitarr value_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  return priv::BitArrayHeader::pushBack(getData(), value_list);
+  return priv::BitArrayImplementation::pushBack(getData(), value_list);
 }
 
 BitArray::ValueRef BitArray::pushFront(bool value) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  return priv::BitArrayHeader::pushFront(getData(), value);
+  return priv::BitArrayImplementation::pushFront(getData(), value);
 }
 
 BitArray::Iterator BitArray::pushFront(const literals::bitarr value_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  return priv::BitArrayHeader::pushFront(getData(), value_list);
+  return priv::BitArrayImplementation::pushFront(getData(), value_list);
 }
 
 BitArray::ValueRef BitArray::insert(size_t at, bool value) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  return priv::BitArrayHeader::insert(getData(), at, value);
+  return priv::BitArrayImplementation::insert(getData(), at, value);
 }
 
 BitArray::Iterator BitArray::insert(size_t at, const literals::bitarr value_list) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
-  return priv::BitArrayHeader::insert(getData(), at, value_list);
+  return priv::BitArrayImplementation::insert(getData(), at, value_list);
 }
 
 void BitArray::popBack(size_t size) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
-  priv::BitArrayHeader::popBack(getData(), size);
+  priv::BitArrayImplementation::popBack(getData(), size);
 }
 
 void BitArray::popFront(size_t size) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
-  priv::BitArrayHeader::removeBits(getData(), 0, size);
+  priv::BitArrayImplementation::removeBits(getData(), 0, size);
 }
 
 void BitArray::remove(size_t at, size_t size) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return;
-  priv::BitArrayHeader::removeBits(getData(), at, size);
+  priv::BitArrayImplementation::removeBits(getData(), at, size);
 }
 
 BitArray::Iterator BitArray::begin() const {
@@ -136,16 +136,12 @@ BitArray& BitArray::operator=(BitArray&& other) {
 
 BitArray& BitArray::changeLink(const BitArray& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~BitArray();
   return *new(this) BitArray(other);
 }
 
 BitArray& BitArray::changeLink(BitArray&& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~BitArray();
   return *new(this) BitArray(std::move(other));
 }

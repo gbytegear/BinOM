@@ -29,21 +29,17 @@ Number::Number(const Number&& other) noexcept : Variable(dynamic_cast<const Vari
 Number::Number(const GenericValue& value) noexcept : Variable(value) {}
 Number::Number(const GenericValue&& value) noexcept : Variable(std::move(value)) {}
 
-Number Number::getReference() noexcept {return Link(resource_link);}
-const Number Number::getReference() const noexcept {return Link(resource_link);}
+Number Number::move() noexcept {return Link(resource_link);}
+const Number Number::move() const noexcept {return Link(resource_link);}
 
 Number& Number::changeLink(const Number& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~Number();
   return *new(this) Number(other);
 }
 
 Number& Number::changeLink(Number&& other) {
   if(this == &other) return self;
-  auto lk = getLock(MtxLockType::unique_locked);
-  if(!lk) return self;
   this->~Number();
   return *new(this) Number(std::move(other));
 }

@@ -26,11 +26,11 @@ struct ResourceData {
     f32   f32_val;
     f64   f64_val;
 
-    BitArrayHeader* bit_array_header;
-    BufferArrayHeader* buffer_array_header;
-    ArrayHeader* array_header;
-    SinglyLinkedListHeader* single_linked_list_header;
-    DoublyLinkedListHeader* doubly_linked_list_header;
+    BitArrayImplementation* bit_array_implementation;
+    BufferArrayImplementation* buffer_array_implementation;
+    ArrayImplementation* array_implementation;
+    SinglyLinkedListImplementation* single_linked_list_implementation;
+    DoublyLinkedListImplementation* doubly_linked_list_implementation;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };
