@@ -6,6 +6,8 @@ using namespace binom::priv;
 BufferArrayImplementation*& BufferArray::getData() const noexcept {return resource_link->data.buffer_array_implementation;}
 
 BufferArray::BufferArray(priv::Link&& link) : Variable(std::move(link)) {}
+
+BufferArray::BufferArray() noexcept : Variable(literals::ui8arr{}) {}
 BufferArray::BufferArray(const BufferArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
 BufferArray::BufferArray(const BufferArray&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
 
@@ -32,32 +34,32 @@ size_t BufferArray::getCapacity() const noexcept {
 
 BufferArray::ValueRef BufferArray::operator[](size_t index) noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return ValueRef(resource_link, 0);
-  return ValueRef(resource_link, index);
+  if(!lk) return ValueRef(ValType::invalid_type, nullptr);
+  return getData()->get(getValType(), index);
 }
 
 BufferArray::Iterator BufferArray::begin() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return Iterator(resource_link, 0);
-  return Iterator(resource_link, 0);
+  if(!lk) return Iterator(ValType::invalid_type, nullptr);
+  return getData()->begin(getValType());
 }
 
 BufferArray::Iterator BufferArray::end() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return Iterator(resource_link, 0);
-  return Iterator(resource_link, getData()->getSize() / size_t(getBitWidth()));
+  if(!lk) return Iterator(ValType::invalid_type, nullptr);
+  return getData()->end(getValType());
 }
 
 BufferArray::ReverseIterator BufferArray::rbegin() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return ReverseIterator(resource_link, 0);
-  return ReverseIterator(resource_link, (getData()->getSize() / size_t(getBitWidth())) - 1);
+  if(!lk) return ReverseIterator(ValType::invalid_type, nullptr);
+  return getData()->rbegin(getValType());
 }
 
 BufferArray::ReverseIterator BufferArray::rend() const {
   auto lk = getLock(MtxLockType::shared_locked);
-  if(!lk) return ReverseIterator(resource_link, 0);
-  return ReverseIterator(resource_link, -1);
+  if(!lk) return ReverseIterator(ValType::invalid_type, nullptr);
+  return getData()->rend(getValType());
 }
 
 BufferArray& BufferArray::operator=(const BufferArray& other) {

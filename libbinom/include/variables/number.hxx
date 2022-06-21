@@ -51,10 +51,10 @@ class Number :
 
   void setTypeImpl(ValType new_type) noexcept;
 
-  friend class Variable;
   Number(priv::Link&& link);
 
-  friend class binom::KeyValue;
+  friend class Variable;
+  friend class KeyValue;
 
 public:
   using Variable::getLock;

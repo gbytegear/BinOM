@@ -94,6 +94,7 @@ public:
   Iterator(Iterator&& other) : bits(other.bits), index(other.index) {}
 
   bool isNull() const noexcept {return !bits;}
+  operator bool() const noexcept {return !bits;}
 
   Iterator& operator=(Iterator value) noexcept {return *new(this) Iterator(std::move(value));}
   bool operator==(Iterator other) noexcept {return bits == other.bits && index == other.index;}

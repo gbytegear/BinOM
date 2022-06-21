@@ -70,6 +70,30 @@ public:
     return binom::toBitWidth(getValType());
   }
 
+  bool isNaN() const noexcept {
+    auto lk = downcast().getLock(MtxLockType::shared_locked);
+    if(!downcast().checkLock(lk)) return true;
+    switch (getValType()) {
+    case binom::ValType::boolean:
+    case binom::ValType::ui8:
+    case binom::ValType::si8:
+    case binom::ValType::ui16:
+    case binom::ValType::si16:
+    case binom::ValType::ui32:
+    case binom::ValType::si32:
+    case binom::ValType::ui64:
+    case binom::ValType::si64:
+    return false;
+    case binom::ValType::f32:
+    return isnan(getArithmeticData().f32_val);
+    case binom::ValType::f64:
+    return isnan(getArithmeticData().f64_val);
+    case binom::ValType::invalid_type:
+    break;
+
+    }
+  }
+
   template<typename T>
   operator T() const noexcept {
     static_assert (std::is_arithmetic_v<T> || is_crtp_base_of_v<ArithmeticTypeBase, T>);

@@ -12,7 +12,7 @@ void Number::setTypeImpl(ValType new_type) noexcept {
 }
 
 Number::Number(priv::Link&& link) : Variable(std::move(link)) {}
-Number::Number() noexcept :             Variable(int(0)) {}
+Number::Number() noexcept :             Variable(FNaN) {}
 Number::Number(bool value) noexcept :   Variable(value) {}
 Number::Number(ui8 value) noexcept :    Variable(value) {}
 Number::Number(i8 value) noexcept :     Variable(value) {}

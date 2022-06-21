@@ -144,9 +144,7 @@ class BufferArrayImplementation {
       set(type, shiftToNextAndGetCurrent(bit_width, memory_block), &value);
   }
 
-  static inline size_t pointerToIndex(VarBitWidth bit_width, void* begin, void* pointer) {
-    return size_t((reinterpret_cast<ui8*>(pointer) - reinterpret_cast<ui8*>(begin)) / size_t(bit_width));
-  }
+  void* get(VarBitWidth type, size_t at) const;
 
 public:
   template<typename T>
@@ -160,48 +158,48 @@ public:
   static BufferArrayImplementation* copy(const BufferArrayImplementation* other);
 
   template<typename T>
-  static size_t pushBack(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {
+  static GenericValueRef pushBack(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = increaseSize(implementation, bit_width, 1);
     set(type, data, value);
-    return pointerToIndex(bit_width, implementation->getData(), data);
+    return GenericValueRef(type, data);
   }
 
   template<typename T>
-  static size_t pushBack(BufferArrayImplementation*& implementation, ValType type, const std::initializer_list<T>& value_list) {
+  static GenericValueIterator pushBack(BufferArrayImplementation*& implementation, ValType type, const std::initializer_list<T>& value_list) {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = increaseSize(implementation, bit_width, value_list.size());
     setRange(type, data, value_list);
-    return pointerToIndex(bit_width, implementation->getData(), data);
+    return GenericValueIterator(type, data);
   }
 
   template<typename T>
-  static size_t pushFront(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {return insert<T>(implementation, type, 0, value);}
+  static GenericValueRef pushFront(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {return insert<T>(implementation, type, 0, value);}
   template<typename T>
-  static size_t pushFront(BufferArrayImplementation*& implementation, ValType type, std::initializer_list<T> value_list) {return insert<T>(implementation, type, 0, value_list);}
+  static GenericValueIterator pushFront(BufferArrayImplementation*& implementation, ValType type, std::initializer_list<T> value_list) {return insert<T>(implementation, type, 0, value_list);}
 
   template<typename T>
-  static size_t insert(BufferArrayImplementation*& implementation, ValType type, size_t at, T value) noexcept {
+  static GenericValueRef insert(BufferArrayImplementation*& implementation, ValType type, size_t at, T value) noexcept {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = insertBlock(implementation, bit_width, at, 1);
     set(type, data, value);
-    return pointerToIndex(bit_width, implementation->getData(), data);
+    return GenericValueRef(type, data);
   }
 
   template<typename T>
-  static size_t insert(BufferArrayImplementation*& implementation, ValType type, size_t at, const std::initializer_list<T>& value_list) {
+  static GenericValueIterator insert(BufferArrayImplementation*& implementation, ValType type, size_t at, const std::initializer_list<T>& value_list) {
     static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
                    extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = insertBlock(implementation, bit_width, at, 1);
     setRange(type, data, value_list);
-    return pointerToIndex(bit_width, implementation->getData(), data);
+    return GenericValueIterator(type, data);
   }
 
   static void remove(BufferArrayImplementation*& implementation, VarBitWidth type, size_t at, size_t count);
@@ -215,15 +213,19 @@ public:
   size_t getElementCount(VarBitWidth type) const noexcept;
   size_t getCapacity() const noexcept;
 
-  void* get(VarBitWidth type, size_t at) const;
+  GenericValueRef get(ValType type, size_t at);
+  const GenericValueRef get(ValType type, size_t at) const;
 
-  void* getBeginPtr() const;
-  void* getEndPtr(VarBitWidth type) const;
-  void* getReverseBeginPtr(VarBitWidth type) const;
-  void* getReverseEndPtr(VarBitWidth type) const;
+  GenericValueIterator begin(ValType type);
+  GenericValueIterator end(ValType type);
+  const GenericValueIterator begin(ValType type) const;
+  const GenericValueIterator end(ValType type) const;
+  ReverseGenericValueIterator rbegin(ValType type);
+  ReverseGenericValueIterator rend(ValType type);
+  const ReverseGenericValueIterator rbegin(ValType type) const;
+  const ReverseGenericValueIterator rend(ValType type) const;
 
   void operator delete(void* ptr);
-
 };
 
 

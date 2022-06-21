@@ -78,10 +78,12 @@ KeyValue::KeyValue(const KeyValue&& value) noexcept : type(value.type) {
     data.ui64_val = value.data.ui64_val;
   return;
   case binom::VarTypeClass::bit_array:
-    data.bit_array_implementation = priv::BitArrayImplementation::copy(value.data.bit_array_implementation);
+    data.bit_array_implementation = value.data.bit_array_implementation;
+    const_cast<KeyValue&>(value).data.bit_array_implementation = nullptr;
   return;
   case binom::VarTypeClass::buffer_array:
-    data.buffer_array_implementation = priv::BufferArrayImplementation::copy(value.data.buffer_array_implementation);
+    data.buffer_array_implementation = value.data.buffer_array_implementation;
+    const_cast<KeyValue&>(value).data.buffer_array_implementation = nullptr;
   return;
   case binom::VarTypeClass::invalid_type: default:  return;
   }
@@ -112,4 +114,79 @@ size_t KeyValue::getElementSize() const noexcept {
   case binom::VarTypeClass::bit_array:
   case binom::VarTypeClass::buffer_array: return size_t(getBitWidth());
   }
+}
+
+KeyValue::CompareResult KeyValue::getCompare(KeyValue& other) const {
+  if(type > other.type) return CompareResult::highter;
+  elif(type < other.type) return CompareResult::lower;
+
+  switch (getTypeClass()) {
+
+  case binom::VarTypeClass::number: {
+    GenericValue this_value(getValType(), arithmetic::ArithmeticData{.ui64_val = data.ui64_val}),
+                 other_value(other.getValType(), arithmetic::ArithmeticData{.ui64_val = other.data.ui64_val});
+    if(this_value > other_value) return CompareResult::highter;
+    elif(this_value < other_value) return CompareResult::lower;
+    else return CompareResult::equal;
+  }
+
+  case binom::VarTypeClass::bit_array: {
+    auto this_it = data.bit_array_implementation->begin(),
+         this_end = data.bit_array_implementation->end(),
+         other_it = other.data.bit_array_implementation->begin(),
+         other_end = other.data.bit_array_implementation->end();
+    forever {
+      if(this_it == this_end && other_it == other_end) return CompareResult::equal;
+      elif(other_it == other_end) return CompareResult::highter;
+      elif(this_it == other_end) return CompareResult::lower;
+
+      if(bool(*this_it) > bool(*other_it)) return CompareResult::highter;
+      elif(bool(*this_it) < bool(*other_it)) return CompareResult::lower;
+
+      ++this_it;
+      ++other_it;
+    }
+  }
+
+  case binom::VarTypeClass::buffer_array:{
+    auto this_it = data.buffer_array_implementation->begin(getValType()),
+         this_end = data.buffer_array_implementation->end(getValType()),
+         other_it = other.data.buffer_array_implementation->begin(other.getValType()),
+         other_end = other.data.buffer_array_implementation->end(other.getValType());
+    forever {
+      if(this_it == this_end && other_it == other_end) return CompareResult::equal;
+      elif(other_it == other_end) return CompareResult::highter;
+      elif(this_it == other_end) return CompareResult::lower;
+
+      if(*this_it > *other_it) return CompareResult::highter;
+      elif(*this_it < *other_it) return CompareResult::lower;
+
+      ++this_it;
+      ++other_it;
+    }
+  }
+
+  case binom::VarTypeClass::null:
+  case binom::VarTypeClass::invalid_type: default:
+  return CompareResult::equal;
+
+  }
+}
+
+Number KeyValue::toNumber() const {
+  if(getTypeClass() == VarTypeClass::number)
+    return Number(priv::Link(ResourceData{getVarType(), {.ui64_val = data.ui64_val}}));
+  else return Number();
+}
+
+BitArray KeyValue::toBitArray() const {
+  if(getTypeClass() == VarTypeClass::bit_array)
+    return BitArray(priv::Link(ResourceData{getVarType(), {.bit_array_implementation = priv::BitArrayImplementation::copy(data.bit_array_implementation)}}));
+  else return BitArray();
+}
+
+BufferArray KeyValue::toBufferArray() const {
+  if(getTypeClass() == VarTypeClass::buffer_array)
+    return BufferArray(priv::Link(ResourceData{getVarType(), {.buffer_array_implementation = priv::BufferArrayImplementation::copy(data.buffer_array_implementation)}}));
+  else return BufferArray();
 }

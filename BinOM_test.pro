@@ -27,7 +27,7 @@ HEADERS += \
     libbinom/include/binom_impl/ram_storage_implementation.hxx \
     libbinom/include/binom_impl/resource_control.hxx \
     libbinom/include/binom_impl/types.hxx \
-    libbinom/include/utils/avl_tree.hxx \
+    libbinom/include/binom_impl/avl_tree.hxx \
     libbinom/include/utils/bit_map64.hxx \
     libbinom/include/utils/err.hxx \
     libbinom/include/utils/extended_cxx.hxx \

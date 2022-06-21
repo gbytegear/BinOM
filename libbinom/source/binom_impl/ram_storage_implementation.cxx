@@ -355,13 +355,25 @@ void* BufferArrayImplementation::get(VarBitWidth type, size_t at) const {
   }
 }
 
-void* BufferArrayImplementation::getBeginPtr() const {return getData();}
+GenericValueRef BufferArrayImplementation::get(ValType type, size_t at) {return GenericValueRef(type, get(toBitWidth(type), at));}
 
-void* BufferArrayImplementation::getEndPtr(VarBitWidth type) const {return getDataAs<byte>() + getElementCount(type) * size_t(type);}
+const GenericValueRef BufferArrayImplementation::get(ValType type, size_t at) const {return GenericValueRef(type, get(toBitWidth(type), at));}
 
-void* BufferArrayImplementation::getReverseBeginPtr(VarBitWidth type) const {return getDataAs<byte>() + (i64(getElementCount(type)) - 1) * size_t(type);}
+GenericValueIterator BufferArrayImplementation::begin(ValType type) {return GenericValueIterator(type, getData());}
 
-void* BufferArrayImplementation::getReverseEndPtr(VarBitWidth type) const {return getDataAs<byte>() - size_t(type);}
+GenericValueIterator BufferArrayImplementation::end(ValType type) {return GenericValueIterator(type, getDataAs<byte>() + getElementCount(toBitWidth(type)) * size_t(toBitWidth(type)));}
+
+const GenericValueIterator BufferArrayImplementation::begin(ValType type) const {return GenericValueIterator(type, getData());}
+
+const GenericValueIterator BufferArrayImplementation::end(ValType type) const {return GenericValueIterator(type, getDataAs<byte>() + getElementCount(toBitWidth(type)) * size_t(toBitWidth(type)));}
+
+ReverseGenericValueIterator BufferArrayImplementation::rbegin(ValType type) {return ReverseGenericValueIterator(type, getDataAs<byte>() + (i64(getElementCount(toBitWidth(type))) - 1) * size_t(toBitWidth(type)));}
+
+ReverseGenericValueIterator BufferArrayImplementation::rend(ValType type) {return ReverseGenericValueIterator(type, getDataAs<byte>() - size_t(toBitWidth(type)));}
+
+const ReverseGenericValueIterator BufferArrayImplementation::rbegin(ValType type) const {return ReverseGenericValueIterator(type, getDataAs<byte>() + (i64(getElementCount(toBitWidth(type))) - 1) * size_t(toBitWidth(type)));}
+
+const ReverseGenericValueIterator BufferArrayImplementation::rend(ValType type) const {return ReverseGenericValueIterator(type, getDataAs<byte>() - size_t(toBitWidth(type)));}
 
 void BufferArrayImplementation::operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
 

@@ -2,6 +2,7 @@
 #define TYPE_ALIASES_HXX
 
 #include <cstdint>
+#include <limits>
 #include "extended_cxx.hxx"
 
 //! Shorter and clearer data type aliases
@@ -62,6 +63,10 @@ constexpr ull_t operator "" _ull (ull_t val) {return val;}
 constexpr ui64 operator""_kb(ull_t val) {return val*1024;}
 constexpr ui64 operator""_mb(ull_t val) {return val*1048576;}
 constexpr ui64 operator""_gb(ull_t val) {return val*1073741824;}
+
+constexpr f_t FNaN = std::numeric_limits<f_t>::quiet_NaN();
+constexpr lf_t LFNaN = std::numeric_limits<lf_t>::quiet_NaN();
+constexpr llf_t LLFNaN = std::numeric_limits<llf_t>::quiet_NaN();
 
 }
 

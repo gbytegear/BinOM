@@ -10,6 +10,19 @@
 namespace binom {
 
 class KeyValue {
+public:
+
+  enum CompareResult : i8 {
+    highter = 1,
+    lower = -1,
+    equal = 0
+  };
+
+private:
+
+  friend class AVLTree;
+  CompareResult getCompare(KeyValue& other) const;
+
   union Data {
     void* pointer = nullptr;
 
@@ -32,6 +45,7 @@ class KeyValue {
   VarKeyType type = VarKeyType::null;
   Data data;
 public:
+
   KeyValue() = default;
 
   KeyValue(bool value) noexcept;
@@ -79,6 +93,14 @@ public:
   size_t getElementCount() const noexcept;
   size_t getElementSize() const noexcept;
 
+
+  Number toNumber() const;
+  BitArray toBitArray() const;
+  BufferArray toBufferArray() const;
+
+  operator Number () const {return toNumber();}
+  operator BitArray () const {return toBitArray();}
+  operator BufferArray () const {return toBufferArray();}
 };
 
 }

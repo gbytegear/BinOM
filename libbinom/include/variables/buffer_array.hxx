@@ -47,8 +47,9 @@ public:
   typedef ReverseGenericValueIterator ReverseIterator;
   typedef GenericValueRef ValueRef;
 
+  BufferArray() noexcept;
   template<typename T>
-  BufferArray(const std::initializer_list<T> init_list) : Variable(init_list) {static_assert (std::is_arithmetic_v<T>);}
+  BufferArray(const std::initializer_list<T> init_list) noexcept : Variable(init_list) {static_assert (std::is_arithmetic_v<T>);}
   BufferArray(const BufferArray& other) noexcept;
   BufferArray(const BufferArray&& other) noexcept;
 
@@ -64,15 +65,15 @@ public:
   template<typename T>
   ValueRef pushBack(T value) noexcept {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
-      return ValueRef(resource_link, priv::BufferArrayImplementation::pushBack(getData(), getValType(), value));
-    else return ValueRef(resource_link);
+      return priv::BufferArrayImplementation::pushBack(getData(), getValType(), value);
+    else return ValueRef(ValType::invalid_type, nullptr);
   }
 
   template<typename T>
   Iterator pushBack(const std::initializer_list<T> value_list) {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
-      return Iterator(resource_link, priv::BufferArrayImplementation::pushBack(getData(), getValType(), value_list));
-    else return Iterator(resource_link);
+      return priv::BufferArrayImplementation::pushBack(getData(), getValType(), value_list);
+    else return Iterator(ValType::invalid_type, nullptr);
   }
 
   template<typename T>
@@ -84,15 +85,15 @@ public:
   template<typename T>
   ValueRef insert(size_t at, T value) noexcept {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
-      return ValueRef(resource_link, priv::BufferArrayImplementation::insert(getData(), getBitWidth(), at, 1, value));
-    else return ValueRef(resource_link);
+      return priv::BufferArrayImplementation::insert(getData(), getBitWidth(), at, 1, value);
+    else return ValueRef(ValType::invalid_type, nullptr);
   }
 
   template<typename T>
   Iterator insert(size_t at, std::initializer_list<T> value_list) {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
-      return Iterator(resource_link, priv::BufferArrayImplementation::insert(getData(), getBitWidth(), at, 1, value_list));
-    else return Iterator(resource_link);
+      return priv::BufferArrayImplementation::insert(getData(), getBitWidth(), at, 1, value_list);
+    else return Iterator(ValType::invalid_type, nullptr);
   }
 
   Iterator begin() const;
