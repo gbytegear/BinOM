@@ -81,8 +81,12 @@ public:
   KeyValue(const BufferArray& value) noexcept;
   KeyValue(BufferArray&& value) noexcept;
 
+  KeyValue(Variable variable) noexcept;
+
   KeyValue(const KeyValue& value) noexcept;
-  KeyValue(const KeyValue&& value) noexcept;
+  KeyValue(KeyValue&& value) noexcept;
+
+  ~KeyValue();
 
   VarKeyType getType() const noexcept;
   VarTypeClass getTypeClass() const noexcept;
@@ -98,9 +102,27 @@ public:
   BitArray toBitArray() const;
   BufferArray toBufferArray() const;
 
-  operator Number () const {return toNumber();}
-  operator BitArray () const {return toBitArray();}
-  operator BufferArray () const {return toBufferArray();}
+  inline operator Number () const {return toNumber();}
+  inline operator BitArray () const {return toBitArray();}
+  inline operator BufferArray () const {return toBufferArray();}
+
+  KeyValue& operator=(KeyValue key) {this->~KeyValue(); return *new(this) KeyValue(std::move(key));}
+  KeyValue& operator=(Number number) {this->~KeyValue(); return *new(this) KeyValue(number.move());}
+  KeyValue& operator=(BitArray bit_array) {this->~KeyValue(); return *new(this) KeyValue(bit_array.move());}
+  KeyValue& operator=(BufferArray buffer_array) {this->~KeyValue(); return *new(this) KeyValue(buffer_array.move());}
+  KeyValue& operator=(Variable variable) {
+    switch (variable.getTypeClass()) {
+    case binom::VarTypeClass::null:
+      this->~KeyValue(); return *new(this) KeyValue();
+    case binom::VarTypeClass::number:
+      this->~KeyValue(); return *new(this) KeyValue(variable.toNumber().move());
+    case binom::VarTypeClass::bit_array:
+      this->~KeyValue(); return *new(this) KeyValue(variable.toBitArray().move());
+    case binom::VarTypeClass::buffer_array:
+      this->~KeyValue(); return *new(this) KeyValue(variable.toBufferArray().move());
+    default: return *this;
+    }
+  }
 };
 
 }

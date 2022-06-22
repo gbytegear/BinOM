@@ -10,6 +10,7 @@ using namespace type_alias;
 
 class AVLTree {
 public:
+
   class Node {
     friend class AVLTree;
     i64 depth = 1;
@@ -17,6 +18,19 @@ public:
     Node* right = nullptr;
     Node* parent;
     KeyValue key;
+
+    void swapPosition(Node& other) {
+      std::swap(parent, other.parent);
+      std::swap(left, other.left);
+      std::swap(right, other.right);
+      std::swap(depth, other.depth);
+    }
+
+    void unpin() {
+      if(isLeft()) parent->left = nullptr;
+      elif(isRight()) parent->right = nullptr;
+      parent = nullptr;
+    }
 
   public:
 
@@ -37,6 +51,14 @@ public:
         key(std::move(other.key)) {}
 
     Node& operator=(Node other) { this->~Node(); return *new(this) Node(std::move(other)); }
+
+    bool isRoot() const {return !parent;}
+    bool isLeft() const {return isRoot() ? false : parent->left == this;}
+    bool isRight() const {return isRoot() ? false : parent->right == this;}
+
+    bool hasLeft() const {return left;}
+    bool hasRight() const {return right;}
+    bool hasChild() const {return left || right;}
 
   };
 
@@ -84,12 +106,13 @@ private:
 
   static i64 getBalance(Node* node) { return node ? depth(node->left) - depth(node->right) : 0; }
 
-  Node* minKeyNode() {
-    if(!root) return nullptr;
-    Node* node = root;
+  static Node* minKeyNode(Node* node) {
+    if(!node) return nullptr;
     while(node->left) node = node->left;
     return node;
   }
+
+  Node* minKeyNode() const {return minKeyNode(root);}
 
 public:
 
@@ -144,7 +167,33 @@ public:
   }
 
   Node* deleteKey(KeyValue key) {
-    if(!root) return nullptr;
+    Node* result = nullptr;
+    Node* node = root;
+
+    forever {
+      if(!node) return nullptr;
+      auto cmp = key.getCompare(node->key);
+      if(cmp == KeyValue::lower) {node = node->left; continue;}
+      elif(cmp == KeyValue::highter) {node = node->left; continue;}
+      else {
+        if(!node->left || !node->right) {
+          Node* tmp = node->left ? node->left : node->right;
+          if(!tmp) { // If node hasn't child
+            tmp = node;
+            node = nullptr;
+            tmp->unpin();
+            result = tmp;
+          } else { // If node has child
+            node->swapPosition(*tmp);
+            node->unpin();
+            result = node;
+          }
+        } else {
+          Node* tmp = minKeyNode(node->right);
+          // TODO ...
+        }
+      }
+    }
     // TODO ...
   }
 

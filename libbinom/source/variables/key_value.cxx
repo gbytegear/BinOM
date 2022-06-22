@@ -28,7 +28,9 @@ KeyValue::KeyValue(const literals::bitarr bit_array)
 KeyValue::KeyValue(const BitArray& value) noexcept
   : type(VarKeyType::bit_array), data{.bit_array_implementation = priv::BitArrayImplementation::copy(value.getData())} {}
 KeyValue::KeyValue(BitArray&& value) noexcept
-  : type(VarKeyType::bit_array), data{.bit_array_implementation = priv::BitArrayImplementation::copy(value.getData())} {}
+  : type(VarKeyType::bit_array), data{.bit_array_implementation = value.resource_link->data.bit_array_implementation} {
+  value.resource_link->data.pointer = nullptr;
+}
 
 KeyValue::KeyValue(const literals::ui8arr ui8_array)
   : type(VarKeyType::ui8_array), data{.buffer_array_implementation = priv::BufferArrayImplementation::create(ui8_array)} {}
@@ -53,7 +55,11 @@ KeyValue::KeyValue(const literals::f64arr f64_array)
 KeyValue::KeyValue(const BufferArray& value) noexcept
   : type(toKeyType(value.getValType())), data{.buffer_array_implementation = priv::BufferArrayImplementation::copy(value.getData())} {}
 KeyValue::KeyValue(BufferArray&& value) noexcept
-  : type(toKeyType(value.getValType())), data{.buffer_array_implementation = priv::BufferArrayImplementation::copy(value.getData())} {}
+  : type(toKeyType(value.getValType())), data{.buffer_array_implementation = value.resource_link->data.buffer_array_implementation} {
+  value.resource_link->data.pointer = nullptr;
+}
+
+KeyValue::KeyValue(Variable variable) noexcept {*this = variable.move();}
 
 KeyValue::KeyValue(const KeyValue& value) noexcept : type(value.type) {
   switch (toTypeClass(type)) {
@@ -71,7 +77,7 @@ KeyValue::KeyValue(const KeyValue& value) noexcept : type(value.type) {
   }
 }
 
-KeyValue::KeyValue(const KeyValue&& value) noexcept : type(value.type) {
+KeyValue::KeyValue(KeyValue&& value) noexcept : type(value.type) {
   switch (toTypeClass(type)) {
   case binom::VarTypeClass::null: return;
   case binom::VarTypeClass::number:
@@ -79,13 +85,23 @@ KeyValue::KeyValue(const KeyValue&& value) noexcept : type(value.type) {
   return;
   case binom::VarTypeClass::bit_array:
     data.bit_array_implementation = value.data.bit_array_implementation;
-    const_cast<KeyValue&>(value).data.bit_array_implementation = nullptr;
+    value.data.bit_array_implementation = nullptr;
   return;
   case binom::VarTypeClass::buffer_array:
     data.buffer_array_implementation = value.data.buffer_array_implementation;
-    const_cast<KeyValue&>(value).data.buffer_array_implementation = nullptr;
+    value.data.buffer_array_implementation = nullptr;
   return;
   case binom::VarTypeClass::invalid_type: default:  return;
+  }
+}
+
+KeyValue::~KeyValue() {
+  switch (getTypeClass()) {
+  case binom::VarTypeClass::null:
+  case binom::VarTypeClass::number: return;
+  case binom::VarTypeClass::bit_array: delete data.bit_array_implementation; return;
+  case binom::VarTypeClass::buffer_array: delete data.buffer_array_implementation; return;
+  default: return;
   }
 }
 
