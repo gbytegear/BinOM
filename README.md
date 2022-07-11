@@ -16,9 +16,17 @@
   * [x] `binom::SinglyLinkedList`
   * [x] `binom::DoublyLinkedList`
   * [ ] `binom::Map`
-    * [ ] `binom::KeyValue`
+    * [x] `binom::KeyValue`
+    * [x] `binom::AVLTree`
+      * [x] `binom::AVLTree::Node`
+      * [ ] `binom::AVLTree::Iterator`
+    * [ ] `binom::Map::Iterator`
   * [ ] `binom::Table`
     * [ ] `binom::TableDescriptor`
+    * [ ] `binom::RowDescriptor`
+    * [ ] `binom::Table::Header`
+    * [ ] `binom::Table::Row`
+    * [ ] `binom::Table::Iterator`
 * [ ] Implement serialization of BinOM containers
 * [ ] Implement file storage
   * [ ] File memory manager
