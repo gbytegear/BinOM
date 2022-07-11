@@ -52,6 +52,12 @@ public:
 
     Node& operator=(Node other) { this->~Node(); return *new(this) Node(std::move(other)); }
 
+    enum class NodePosition : i8 {
+      root = 0,
+      left = -1,
+      right = 1
+    };
+
     bool isRoot() const {return !parent;}
     bool isLeft() const {return isRoot() ? false : parent->left == this;}
     bool isRight() const {return isRoot() ? false : parent->right == this;}
@@ -60,17 +66,24 @@ public:
     bool hasRight() const {return right;}
     bool hasChild() const {return left || right;}
 
+    NodePosition getPosition() {
+      if(isLeft()) return NodePosition::left;
+      elif(isRight()) return NodePosition::right;
+      else return NodePosition::root;
+    }
+
   };
 
 private:
 
-  Node* root;
+  Node* root = nullptr;
 
   static inline i64 max(i64 a, i64 b) {return (a > b) ? a : b;}
 
   static inline i64 depth(Node* node) {return node ? node->depth : 0;}
 
-  static Node* rotateRight(Node* y) {
+  Node* rotateRight(Node* y) {
+    auto y_position = y->getPosition();
     Node* x = y->left;
     Node* T2 = x->right;
 
@@ -80,14 +93,21 @@ private:
     y->depth = max(depth(y->left), depth(y->right)) + 1;
     x->depth = max(depth(x->left), depth(x->right)) + 1;
 
+    // Update parent poionters
     x->parent = y->parent;
     y->parent = x;
     if(T2) T2->parent = y;
 
+    // Update parent's child poionter
+    if(y_position == Node::NodePosition::left) x->parent->left = x;
+    elif(y_position == Node::NodePosition::right) x->parent->right = x;
+    else root = x;
+
     return x;
   }
 
-  static Node* rotateLeft(Node* x) {
+  Node* rotateLeft(Node* x) {
+    auto x_position = x->getPosition();
     Node* y = x->right;
     Node* T2 = y->left;
 
@@ -97,9 +117,15 @@ private:
     y->depth = max(depth(y->left), depth(y->right)) + 1;
     x->depth = max(depth(x->left), depth(x->right)) + 1;
 
+    // Update parent poionters
     y->parent = x->parent;
     x->parent = y;
     if(T2) T2->parent = x;
+
+    // Update parent's child poionter
+    if(x_position == Node::NodePosition::left) y->parent->left = y;
+    elif(x_position == Node::NodePosition::right) y->parent->right = y;
+    else root = y;
 
     return y;
   }
@@ -141,7 +167,7 @@ public:
         node = node->parent;
         continue;
       } elif(balance > 1 && cmp == KeyValue::highter) {
-        node->left = rotateLeft(node->left);
+        rotateLeft(node->left);
         rotateRight(node);
         node = node->parent;
         continue;
@@ -154,7 +180,7 @@ public:
         node = node->parent;
         continue;
       } elif(balance < -1 && cmp == KeyValue::lower) {
-        node->left = rotateRight(node->left);
+        rotateRight(node->left);
         rotateLeft(node);
         node = node->parent;
         continue;
@@ -166,41 +192,140 @@ public:
     return new_node;
   }
 
-  Node* deleteKey(KeyValue key) {
+  Node* extract(KeyValue key) {
     Node* result = nullptr;
     Node* node = root;
 
     forever {
+      // If node isn't finded
       if(!node) return nullptr;
+
+      // Searching key...
       auto cmp = key.getCompare(node->key);
       if(cmp == KeyValue::lower) {node = node->left; continue;}
       elif(cmp == KeyValue::highter) {node = node->left; continue;}
-      else {
-        if(!node->left || !node->right) {
+      else { // Node is finded
+        forever if(!node->left || !node->right) {
           Node* tmp = node->left ? node->left : node->right;
           if(!tmp) { // If node hasn't child
             tmp = node;
             node = nullptr;
             tmp->unpin();
             result = tmp;
-          } else { // If node has child
+          } else { // If node has 1 child
             node->swapPosition(*tmp);
             node->unpin();
             result = node;
+            node = tmp; // For balancing
           }
-        } else {
+          break;
+        } else { // If node has 2 childs (Test it!!!)
+
+          // Change the position of the node
+          // to be deleted whith the position
+          // of the leftmost node in th right branch
+
           Node* tmp = minKeyNode(node->right);
-          // TODO ...
+          node->swapPosition(*tmp);
+          continue;
         }
+        break;
       }
     }
-    // TODO ...
+
+    while(node) { // Balancing
+
+      node->depth = 1 + max(depth(node->left), depth(node->right));
+
+      i64 balance = getBalance(node);
+
+      if (balance > 1 && getBalance(root->left) >= 0) {
+        rotateRight(node);
+      } elif (balance > 1  && getBalance(root->left) < 0) {
+        rotateLeft(node->left);
+        rotateRight(node);
+      } elif (balance < -1 && getBalance(node->right) <= 0) {
+        rotateLeft(node);
+      } elif (balance < -1 && getBalance(node->right) > 0) {
+        rotateRight(node->right);
+        rotateLeft(node);
+      }
+
+      node = node->parent;
+    }
+
+    return result;
   }
 
+  Node* extract(Node* node) {
+    Node* result = node;
+    forever if(!node->left || !node->right) {
+      Node* tmp = node->left ? node->left : node->right;
+      if(!tmp) { // If node hasn't child
+        tmp = node;
+        node = nullptr;
+        tmp->unpin();
+        result = tmp;
+      } else { // If node has 1 child
+        node->swapPosition(*tmp);
+        node->unpin();
+        result = node;
+        node = tmp; // For balancing
+      }
+      break;
+    } else { // If node has 2 childs (Test it!!!)
+
+      // Change the position of the node
+      // to be deleted whith the position
+      // of the leftmost node in th right branch
+
+      Node* tmp = minKeyNode(node->right);
+      node->swapPosition(*tmp);
+      continue;
+    }
+
+    while(node) { // Balancing
+
+      node->depth = 1 + max(depth(node->left), depth(node->right));
+
+      i64 balance = getBalance(node);
+
+      if (balance > 1 && getBalance(root->left) >= 0) {
+        rotateRight(node);
+      } elif (balance > 1  && getBalance(root->left) < 0) {
+        rotateLeft(node->left);
+        rotateRight(node);
+      } elif (balance < -1 && getBalance(node->right) <= 0) {
+        rotateLeft(node);
+      } elif (balance < -1 && getBalance(node->right) > 0) {
+        rotateRight(node->right);
+        rotateLeft(node);
+      }
+
+      node = node->parent;
+    }
+
+    return result;
+  }
+
+  Node* get(KeyValue key) {
+    Node* node = root;
+    forever {
+      // If node isn't finded
+      if(!node) return nullptr;
+
+      // Searching key...
+      auto cmp = key.getCompare(node->key);
+      if(cmp == KeyValue::lower) {node = node->left; continue;}
+      elif(cmp == KeyValue::highter) {node = node->left; continue;}
+      else return node; // Node is finded
+    }
+  }
 
 };
 
 }
+
 
 
 
