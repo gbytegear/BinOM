@@ -12,6 +12,15 @@ class AVLTree {
 public:
 
   class Node {
+  public:
+
+    enum class NodePosition : i8 {
+      root = 0,
+      left = -1,
+      right = 1
+    };
+
+  private:
     friend class AVLTree;
     i64 depth = 1;
     Node* left = nullptr;
@@ -19,11 +28,25 @@ public:
     Node* parent;
     KeyValue key;
 
-    void swapPosition(Node& other) {
+    void swapPosition(Node& other, AVLTree& avl_tree) {
+      auto this_position = getPosition();
+      auto other_position = getPosition();
       std::swap(parent, other.parent);
       std::swap(left, other.left);
       std::swap(right, other.right);
       std::swap(depth, other.depth);
+      switch (other_position) {
+      case NodePosition::left: parent->left = this; break;
+      case NodePosition::right: parent->right = this; break;
+      case NodePosition::root: avl_tree.root = this; break;
+      }
+
+      switch (this_position) {
+      case NodePosition::left: other.parent->left = &other; break;
+      case NodePosition::right: other.parent->right = &other; break;
+      case NodePosition::root: avl_tree.root = &other; break;
+      }
+
     }
 
     void unpin() {
@@ -51,12 +74,6 @@ public:
         key(std::move(other.key)) {}
 
     Node& operator=(Node other) { this->~Node(); return *new(this) Node(std::move(other)); }
-
-    enum class NodePosition : i8 {
-      root = 0,
-      left = -1,
-      right = 1
-    };
 
     bool isRoot() const {return !parent;}
     bool isLeft() const {return isRoot() ? false : parent->left == this;}
@@ -325,8 +342,6 @@ public:
 };
 
 }
-
-
 
 
 #endif // AVL_TREE_HXX
