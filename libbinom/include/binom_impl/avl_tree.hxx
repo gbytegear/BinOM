@@ -230,7 +230,7 @@ public:
             tmp->unpin();
             result = tmp;
           } else { // If node has 1 child
-            node->swapPosition(*tmp);
+            node->swapPosition(*tmp, self);
             node->unpin();
             result = node;
             node = tmp; // For balancing
@@ -243,7 +243,7 @@ public:
           // of the leftmost node in th right branch
 
           Node* tmp = minKeyNode(node->right);
-          node->swapPosition(*tmp);
+          node->swapPosition(*tmp, self);
           continue;
         }
         break;
@@ -284,7 +284,7 @@ public:
         tmp->unpin();
         result = tmp;
       } else { // If node has 1 child
-        node->swapPosition(*tmp);
+        node->swapPosition(*tmp, self);
         node->unpin();
         result = node;
         node = tmp; // For balancing
@@ -297,7 +297,7 @@ public:
       // of the leftmost node in th right branch
 
       Node* tmp = minKeyNode(node->right);
-      node->swapPosition(*tmp);
+      node->swapPosition(*tmp, self);
       continue;
     }
 
