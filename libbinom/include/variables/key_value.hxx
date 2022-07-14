@@ -97,11 +97,12 @@ public:
   size_t getElementCount() const noexcept;
   size_t getElementSize() const noexcept;
 
-
+  Variable toVariable() const;
   Number toNumber() const;
   BitArray toBitArray() const;
   BufferArray toBufferArray() const;
 
+  inline operator Variable () const {return toVariable();}
   inline operator Number () const {return toNumber();}
   inline operator BitArray () const {return toBitArray();}
   inline operator BufferArray () const {return toBufferArray();}
@@ -111,6 +112,7 @@ public:
   KeyValue& operator=(BitArray bit_array) {this->~KeyValue(); return *new(this) KeyValue(bit_array.move());}
   KeyValue& operator=(BufferArray buffer_array) {this->~KeyValue(); return *new(this) KeyValue(buffer_array.move());}
   KeyValue& operator=(Variable variable) {
+    this->~KeyValue();
     switch (variable.getTypeClass()) {
     case binom::VarTypeClass::null:
       this->~KeyValue(); return *new(this) KeyValue();
@@ -120,7 +122,7 @@ public:
       this->~KeyValue(); return *new(this) KeyValue(variable.toBitArray().move());
     case binom::VarTypeClass::buffer_array:
       this->~KeyValue(); return *new(this) KeyValue(variable.toBufferArray().move());
-    default: return *this;
+    default: return *new(this) KeyValue();
     }
   }
 };

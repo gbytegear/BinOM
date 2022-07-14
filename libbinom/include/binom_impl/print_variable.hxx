@@ -113,7 +113,9 @@ class {
     case binom::VarType::invalid_type: std::cout << "unexpected type\n\r"; break;
     }
   }
-public: void operator()(const Variable& var) {print(var);}
+public:
+  void operator()(const Variable& var) {print(var);}
+  void operator()(Variable&& var) {print(var);}
 } printVariable;
 
 }

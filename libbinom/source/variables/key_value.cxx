@@ -59,7 +59,21 @@ KeyValue::KeyValue(BufferArray&& value) noexcept
   value.resource_link->data.pointer = nullptr;
 }
 
-KeyValue::KeyValue(Variable variable) noexcept {*this = variable.move();}
+KeyValue::KeyValue(Variable variable) noexcept {
+  switch (variable.getTypeClass()) {
+  case binom::VarTypeClass::null: return;
+  case binom::VarTypeClass::number:
+    new(this) KeyValue(variable.toNumber().move());
+  return;
+  case binom::VarTypeClass::bit_array:
+    new(this) KeyValue(variable.toBitArray().move());
+  return;
+  case binom::VarTypeClass::buffer_array:
+    new(this) KeyValue(variable.toBufferArray().move());
+  return;
+  default: return;
+  }
+}
 
 KeyValue::KeyValue(const KeyValue& value) noexcept : type(value.type) {
   switch (toTypeClass(type)) {
@@ -133,8 +147,8 @@ size_t KeyValue::getElementSize() const noexcept {
 }
 
 KeyValue::CompareResult KeyValue::getCompare(KeyValue& other) const {
-  if(type > other.type) return CompareResult::highter;
-  elif(type < other.type) return CompareResult::lower;
+  if(toTypeClass(type) > toTypeClass(other.type)) return CompareResult::highter;
+  elif(toTypeClass(type) < toTypeClass(other.type)) return CompareResult::lower;
 
   switch (getTypeClass()) {
 
@@ -143,6 +157,8 @@ KeyValue::CompareResult KeyValue::getCompare(KeyValue& other) const {
                  other_value(other.getValType(), arithmetic::ArithmeticData{.ui64_val = other.data.ui64_val});
     if(this_value > other_value) return CompareResult::highter;
     elif(this_value < other_value) return CompareResult::lower;
+    elif(type > other.type) return CompareResult::highter;
+    elif(type < other.type) return CompareResult::lower;
     else return CompareResult::equal;
   }
 
@@ -152,7 +168,11 @@ KeyValue::CompareResult KeyValue::getCompare(KeyValue& other) const {
          other_it = other.data.bit_array_implementation->begin(),
          other_end = other.data.bit_array_implementation->end();
     forever {
-      if(this_it == this_end && other_it == other_end) return CompareResult::equal;
+      if(this_it == this_end && other_it == other_end) {
+        if(type > other.type) return CompareResult::highter;
+        elif(type < other.type) return CompareResult::lower;
+        else return CompareResult::equal;
+      }
       elif(other_it == other_end) return CompareResult::highter;
       elif(this_it == other_end) return CompareResult::lower;
 
@@ -170,7 +190,11 @@ KeyValue::CompareResult KeyValue::getCompare(KeyValue& other) const {
          other_it = other.data.buffer_array_implementation->begin(other.getValType()),
          other_end = other.data.buffer_array_implementation->end(other.getValType());
     forever {
-      if(this_it == this_end && other_it == other_end) return CompareResult::equal;
+      if(this_it == this_end && other_it == other_end) {
+        if(type > other.type) return CompareResult::highter;
+        elif(type < other.type) return CompareResult::lower;
+        else return CompareResult::equal;
+      }
       elif(other_it == other_end) return CompareResult::highter;
       elif(this_it == other_end) return CompareResult::lower;
 
@@ -186,6 +210,16 @@ KeyValue::CompareResult KeyValue::getCompare(KeyValue& other) const {
   case binom::VarTypeClass::invalid_type: default:
   return CompareResult::equal;
 
+  }
+}
+
+Variable KeyValue::toVariable() const {
+  switch (getTypeClass()) {
+  default:
+  case binom::VarTypeClass::null: return nullptr;
+  case binom::VarTypeClass::number: return toNumber();
+  case binom::VarTypeClass::bit_array: return toBitArray();
+  case binom::VarTypeClass::buffer_array: return toBufferArray();
   }
 }
 

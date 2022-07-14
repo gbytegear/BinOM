@@ -30,11 +30,13 @@ public:
 
     void swapPosition(Node& other, AVLTree& avl_tree) {
       auto this_position = getPosition();
-      auto other_position = getPosition();
+      auto other_position = other.getPosition();
+
       std::swap(parent, other.parent);
       std::swap(left, other.left);
       std::swap(right, other.right);
       std::swap(depth, other.depth);
+
       switch (other_position) {
       case NodePosition::left: parent->left = this; break;
       case NodePosition::right: parent->right = this; break;
@@ -75,13 +77,15 @@ public:
 
     Node& operator=(Node other) { this->~Node(); return *new(this) Node(std::move(other)); }
 
-    bool isRoot() const {return !parent;}
-    bool isLeft() const {return isRoot() ? false : parent->left == this;}
-    bool isRight() const {return isRoot() ? false : parent->right == this;}
+    bool isRoot() const noexcept {return !parent;}
+    bool isLeft() const noexcept {return isRoot() ? false : parent->left == this;}
+    bool isRight() const noexcept {return isRoot() ? false : parent->right == this;}
 
-    bool hasLeft() const {return left;}
-    bool hasRight() const {return right;}
-    bool hasChild() const {return left || right;}
+    bool hasLeft() const noexcept {return left;}
+    bool hasRight() const noexcept {return right;}
+    bool hasChild() const noexcept {return left || right;}
+
+    KeyValue getKey() const {return key;}
 
     NodePosition getPosition() {
       if(isLeft()) return NodePosition::left;
@@ -91,13 +95,54 @@ public:
 
   };
 
+  class Iterator {
+    Node* node = nullptr;
+  public:
+    Iterator(Node* node = nullptr) : node(node) {}
+    Iterator(Iterator& other) : node(other.node) {}
+    Iterator(Iterator&& other) : node(other.node) {}
+    Iterator& operator=(Iterator& other) noexcept {return *new(this) Iterator(other);}
+    Iterator& operator=(Iterator&& other) noexcept {return *new(this) Iterator(std::move(other));}
+    Iterator& operator=(Node* node) noexcept {return *new(this) Iterator(node);}
+    Iterator& operator=(Node& node) noexcept {return *new(this) Iterator(&node);}
+
+    Iterator& operator++() {
+      if(node->hasRight()) node = AVLTree::minKeyNode(node->right);
+      elif(node->isLeft()) node = node->parent;
+      elif(node->isRight()) {
+        Node* tmp = node->parent;
+        node = node->parent->parent;
+        while (tmp->isRight()) {tmp = node; node = node->parent;}
+      }
+      return *this;
+    }
+
+    Iterator& operator--() {
+      if(node->hasLeft()) node = AVLTree::maxKeyNode(node->left);
+      elif(node->isRight()) node = node->parent;
+      elif(node->isLeft()) {
+        Node* tmp = node->parent;
+        node = node->parent->parent;
+        while (tmp->isLeft()) {tmp = node; node = node->parent;}
+      }
+      return *this;
+    }
+
+    bool operator==(Iterator other) noexcept {return node == other.node;}
+    bool operator!=(Iterator other) noexcept {return node != other.node;}
+
+    Node& operator*() {return *node;}
+    Node* operator->() {return node;}
+
+  };
+
 private:
 
   Node* root = nullptr;
 
-  static inline i64 max(i64 a, i64 b) {return (a > b) ? a : b;}
+  static inline i64 max(i64 a, i64 b) noexcept {return (a > b) ? a : b;}
 
-  static inline i64 depth(Node* node) {return node ? node->depth : 0;}
+  static inline i64 depth(Node* node) noexcept {return node ? node->depth : 0;}
 
   Node* rotateRight(Node* y) {
     auto y_position = y->getPosition();
@@ -149,13 +194,21 @@ private:
 
   static i64 getBalance(Node* node) { return node ? depth(node->left) - depth(node->right) : 0; }
 
-  static Node* minKeyNode(Node* node) {
+  static Node* minKeyNode(Node* node) noexcept {
     if(!node) return nullptr;
     while(node->left) node = node->left;
     return node;
   }
 
-  Node* minKeyNode() const {return minKeyNode(root);}
+  Node* minKeyNode() const noexcept {return minKeyNode(root);}
+
+  static Node* maxKeyNode(Node* node) noexcept {
+    if(!node) return nullptr;
+    while (node->right) node = node->right;
+    return node;
+  }
+
+  Node* maxKeyNode() const noexcept {return maxKeyNode(root);}
 
 public:
 
@@ -174,33 +227,21 @@ public:
       } else return nullptr;
     }
 
-    while(node) {
+    while(node) { // Balancing
+      node->depth = 1 + max(depth(node->left), depth(node->right));
+
       i64 balance = getBalance(node);
 
-      auto cmp = new_node->key.getCompare(node->left->key);
-
-      if(balance > 1 && cmp == KeyValue::lower) {
+      if (balance > 1 && getBalance(root->left) >= 0) {
         rotateRight(node);
-        node = node->parent;
-        continue;
-      } elif(balance > 1 && cmp == KeyValue::highter) {
+      } elif (balance > 1  && getBalance(root->left) < 0) {
         rotateLeft(node->left);
         rotateRight(node);
-        node = node->parent;
-        continue;
-      }
-
-      cmp = new_node->key.getCompare(node->right->key);
-
-      if(balance < -1 && cmp == KeyValue::highter) {
+      } elif (balance < -1 && getBalance(node->right) <= 0) {
         rotateLeft(node);
-        node = node->parent;
-        continue;
-      } elif(balance < -1 && cmp == KeyValue::lower) {
-        rotateRight(node->left);
+      } elif (balance < -1 && getBalance(node->right) > 0) {
+        rotateRight(node->right);
         rotateLeft(node);
-        node = node->parent;
-        continue;
       }
 
       node = node->parent;
@@ -209,7 +250,7 @@ public:
     return new_node;
   }
 
-  Node* extract(KeyValue key) {
+  [[nodiscard]] Node* extract(KeyValue key) {
     Node* result = nullptr;
     Node* node = root;
 
@@ -220,13 +261,13 @@ public:
       // Searching key...
       auto cmp = key.getCompare(node->key);
       if(cmp == KeyValue::lower) {node = node->left; continue;}
-      elif(cmp == KeyValue::highter) {node = node->left; continue;}
+      elif(cmp == KeyValue::highter) {node = node->right; continue;}
       else { // Node is finded
         forever if(!node->left || !node->right) {
           Node* tmp = node->left ? node->left : node->right;
           if(!tmp) { // If node hasn't child
             tmp = node;
-            node = nullptr;
+            node = node->parent;
             tmp->unpin();
             result = tmp;
           } else { // If node has 1 child
@@ -338,6 +379,9 @@ public:
       else return node; // Node is finded
     }
   }
+
+  Iterator begin() noexcept {return minKeyNode();}
+  Iterator end() {return nullptr;}
 
 };
 
