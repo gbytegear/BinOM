@@ -5,7 +5,7 @@ namespace reverse_iterator {
 
 template<class IteratorType>
 class ReverseIterator {
-  IteratorType iterator;
+  mutable IteratorType iterator;
 public:
   ReverseIterator(IteratorType iterator)
     : iterator(iterator) {}

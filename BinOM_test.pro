@@ -7,6 +7,7 @@ LIBS += -lpthread
 QMAKE_CXXFLAGS += -Wextra
 
 SOURCES += test/test.cxx \
+    libbinom/source/binom_impl/avl_tree.cxx \
     libbinom/source/binom_impl/ram_storage_implementation.cxx \
     libbinom/source/binom_impl/resource_control.cxx \
     libbinom/source/variables/array.cxx \

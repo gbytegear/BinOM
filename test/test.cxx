@@ -39,12 +39,12 @@ int main() {
   avl_tree.insert(new AVLTree::Node(KeyValue(.5)));
   avl_tree.insert(new AVLTree::Node(KeyValue(literals::ui8arr{1,2,3,4,5,6,7,8,9,10})));
 
-  for(auto& element : avl_tree) {
+  for(auto& element : reverse_iterator::ReverseRange(avl_tree)) {
     binom::utils::printVariable(element.getKey());
   }
 
   delete avl_tree.extract(KeyValue(5));
-  delete avl_tree.extract(KeyValue(.125)); // BUG
+  delete avl_tree.extract(KeyValue(.125));
   delete avl_tree.extract(KeyValue(20));
   delete avl_tree.extract(KeyValue(1));
   delete avl_tree.extract(KeyValue(.25));
@@ -59,7 +59,7 @@ int main() {
 
   delete avl_tree.extract(KeyValue(256_ui64));
   delete avl_tree.extract(KeyValue(74));
-  delete avl_tree.extract(KeyValue(-.0));
+  delete avl_tree.extract(KeyValue(-.0)); // BUG
   delete avl_tree.extract(KeyValue(.125_f32));
   delete avl_tree.extract(KeyValue(83));
   delete avl_tree.extract(KeyValue(.0_f32));
