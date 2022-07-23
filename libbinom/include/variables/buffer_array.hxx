@@ -61,6 +61,7 @@ public:
   size_t getCapacity() const noexcept;
 
   ValueRef operator[](size_t index) noexcept;
+  const ValueRef operator[](size_t index) const noexcept;
 
   template<typename T>
   ValueRef pushBack(T value) noexcept {
@@ -96,11 +97,17 @@ public:
     else return Iterator(ValType::invalid_type, nullptr);
   }
 
-  Iterator begin() const;
-  Iterator end() const;
+  Iterator begin();
+  Iterator end();
 
-  ReverseIterator rbegin() const;
-  ReverseIterator rend() const;
+  const Iterator cbegin() const;
+  const Iterator cend() const;
+
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+
+  const ReverseIterator crbegin() const;
+  const ReverseIterator crend() const;
 
   BufferArray& operator=(const BufferArray& other);
   BufferArray& operator=(BufferArray&& other);

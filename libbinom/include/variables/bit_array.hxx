@@ -63,7 +63,8 @@ public:
   size_t getSize() const noexcept;
   size_t getCapacity() const noexcept;
 
-  ValueRef operator[] (size_t index) const;
+  ValueRef operator[] (size_t index);
+  const ValueRef operator[] (size_t index) const;
 
   ValueRef operator+=(bool value);
   Iterator operator+=(const literals::bitarr value_list);
@@ -82,11 +83,11 @@ public:
   void popFront(size_t size = 1);
   void remove(size_t at, size_t size = 1);
 
-  Iterator begin() const;
-  Iterator end() const;
+  Iterator begin();
+  Iterator end();
 
-  ReverseIterator rbegin() const;
-  ReverseIterator rend() const;
+  ReverseIterator rbegin();
+  ReverseIterator rend();
 
   ConstIterator cbegin() const;
   ConstIterator cend() const;

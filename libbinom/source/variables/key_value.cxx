@@ -1,5 +1,9 @@
 #include "libbinom/include/variables/key_value.hxx"
 
+#include "libbinom/include/variables/number.hxx"
+#include "libbinom/include/variables/bit_array.hxx"
+#include "libbinom/include/variables/buffer_array.hxx"
+
 using namespace binom;
 using namespace binom::priv;
 
@@ -96,14 +100,18 @@ KeyValue::KeyValue(KeyValue&& value) noexcept : type(value.type) {
   case binom::VarTypeClass::null: return;
   case binom::VarTypeClass::number:
     data.ui64_val = value.data.ui64_val;
+    value.data.pointer = nullptr;
+    value.type = VarKeyType::null;
   return;
   case binom::VarTypeClass::bit_array:
     data.bit_array_implementation = value.data.bit_array_implementation;
-    value.data.bit_array_implementation = nullptr;
+    value.data.pointer = nullptr;
+    value.type = VarKeyType::null;
   return;
   case binom::VarTypeClass::buffer_array:
     data.buffer_array_implementation = value.data.buffer_array_implementation;
-    value.data.buffer_array_implementation = nullptr;
+    value.data.pointer = nullptr;
+    value.type = VarKeyType::null;
   return;
   case binom::VarTypeClass::invalid_type: default:  return;
   }
@@ -111,10 +119,21 @@ KeyValue::KeyValue(KeyValue&& value) noexcept : type(value.type) {
 
 KeyValue::~KeyValue() {
   switch (getTypeClass()) {
-  case binom::VarTypeClass::null:
-  case binom::VarTypeClass::number: return;
-  case binom::VarTypeClass::bit_array: delete data.bit_array_implementation; return;
-  case binom::VarTypeClass::buffer_array: delete data.buffer_array_implementation; return;
+  case binom::VarTypeClass::null: return;
+  case binom::VarTypeClass::number:
+    data.pointer = nullptr;
+    type = VarKeyType::null;
+  return;
+  case binom::VarTypeClass::bit_array:
+    delete data.bit_array_implementation;
+    data.pointer = nullptr;
+    type = VarKeyType::null;
+  return;
+  case binom::VarTypeClass::buffer_array:
+    delete data.buffer_array_implementation;
+    data.pointer = nullptr;
+    type = VarKeyType::null;
+  return;
   default: return;
   }
 }
@@ -239,4 +258,35 @@ BufferArray KeyValue::toBufferArray() const {
   if(getTypeClass() == VarTypeClass::buffer_array)
     return BufferArray(priv::Link(ResourceData{getVarType(), {.buffer_array_implementation = priv::BufferArrayImplementation::copy(data.buffer_array_implementation)}}));
   else return BufferArray();
+}
+
+KeyValue::operator Variable() const {return toVariable();}
+
+KeyValue::operator Number() const {return toNumber();}
+
+KeyValue::operator BitArray() const {return toBitArray();}
+
+KeyValue::operator BufferArray() const {return toBufferArray();}
+
+KeyValue& KeyValue::operator=(KeyValue key) {this->~KeyValue(); return *new(this) KeyValue(std::move(key));}
+
+KeyValue& KeyValue::operator=(Number number) {this->~KeyValue(); return *new(this) KeyValue(number.move());}
+
+KeyValue& KeyValue::operator=(BitArray bit_array) {this->~KeyValue(); return *new(this) KeyValue(bit_array.move());}
+
+KeyValue& KeyValue::operator=(BufferArray buffer_array) {this->~KeyValue(); return *new(this) KeyValue(buffer_array.move());}
+
+KeyValue& KeyValue::operator=(Variable variable) {
+  this->~KeyValue();
+  switch (variable.getTypeClass()) {
+  case binom::VarTypeClass::null:
+    this->~KeyValue(); return *new(this) KeyValue();
+  case binom::VarTypeClass::number:
+    this->~KeyValue(); return *new(this) KeyValue(variable.toNumber().move());
+  case binom::VarTypeClass::bit_array:
+    this->~KeyValue(); return *new(this) KeyValue(variable.toBitArray().move());
+  case binom::VarTypeClass::buffer_array:
+    this->~KeyValue(); return *new(this) KeyValue(variable.toBufferArray().move());
+  default: return *new(this) KeyValue();
+  }
 }

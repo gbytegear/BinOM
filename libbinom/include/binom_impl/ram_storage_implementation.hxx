@@ -7,7 +7,7 @@
 #include "../utils/extended_type_traits.hxx"
 #include "../utils/reverse_iterator.hxx"
 #include "../variables/generic_value.hxx"
-//#include "avl_tree.hxx"
+#include "avl_tree.hxx"
 
 namespace binom::priv {
 
@@ -233,7 +233,9 @@ public:
 class ArrayImplementation {
 public:
   typedef Variable* Iterator;
+  typedef const Variable* ConstIterator;
   typedef reverse_iterator::ReverseIterator<Variable*> ReverseIterator;
+  typedef const reverse_iterator::ReverseIterator<Variable*> ConstReverseIterator;
 private:
   size_t count;
   size_t capacity;
@@ -275,10 +277,14 @@ public:
 
   Variable operator[](size_t index);
 
-  Iterator begin() const;
-  Iterator end() const;
-  ReverseIterator rbegin() const;
-  ReverseIterator rend() const;
+  Iterator begin();
+  Iterator end();
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
+  ConstReverseIterator crbegin() const;
+  ConstReverseIterator crend() const;
 
   void operator delete(void* ptr);
 };
@@ -349,104 +355,102 @@ public:
 };
 
 
-/*
+
 class MapImplementation {
-public:
-
-  class NamedVariable {
-    friend class MapImplementation;
-    AVLTree::Node node;
-    Variable variable;
-  public:
-    NamedVariable(KeyValue key, Variable variable)
-      : node(std::move(key)), variable(variable.move()) {}
-
-    Variable& operator*() noexcept {return variable;}
-    Variable* operator->() noexcept {return &variable;}
-
-    const Variable& operator*() const noexcept {return variable;}
-    const Variable* operator->() const noexcept {return &variable;}
-
-    Variable& getVariable() const noexcept {return variable;}
-    Variable getKey() const noexcept {return node.getKey();}
-  };
-
-private:
   size_t size;
   AVLTree avl_tree;
 
-  static NamedVariable* convert(Node* node) {
-    return reinterpret_cast<NamedVariable*>(
-          reinterpret_cast<byte*>(node + offsetof(NamedVariable, node)
-        );
-  }
+  static NamedVariable* convert(AVLNode* node);
+  static const NamedVariable* convert(const AVLNode* node);
 
 public:
 
   class Iterator {
+    friend class priv::MapImplementation;
     AVLTree::Iterator iterator;
-    Iterator(AVLTree::Iterator iterator) : iterator(std::move(iterator)) {}
+    Iterator(AVLTree::Iterator iterator);
   public:
-    Iterator(const Iterator& iterator) : iterator(std::move(iterator.iterator)) {}
-    Iterator(Iterator&& iterator) : iterator(std::move(iterator.iterator)) {}
+    Iterator(const Iterator& iterator);
+    Iterator(Iterator&& iterator);
 
-    Iterator& operator=(Iterator& other) noexcept {return *new(this) Iterator(other);}
-    Iterator& operator=(Iterator&& other) noexcept {return *new(this) Iterator(std::move(other));}
-    Iterator& operator=(Node* node) noexcept {return *new(this) Iterator(node);}
-    Iterator& operator=(Node& node) noexcept {return *new(this) Iterator(&node);}
+    Iterator& operator=(Iterator& other) noexcept;
+    Iterator& operator=(Iterator&& other) noexcept;
+    Iterator& operator=(AVLNode* node) noexcept;
+    Iterator& operator=(AVLNode& node) noexcept;
 
-    Iterator& operator++() { ++iterator; return self; }
+    Iterator& operator++();
+    Iterator& operator--();
 
-    Iterator& operator--() { --iterator; return self; }
+    Iterator operator++(int);
+    Iterator operator--(int);
 
-    Iterator operator++(int) {Iterator tmp(self); ++self; return tmp;}
-    Iterator operator--(int) {Iterator tmp(self); --self; return tmp;}
+    const Iterator& operator++() const;
+    const Iterator& operator--() const;
 
-    bool operator==(Iterator other) noexcept {return iterator == other.iterator;}
-    bool operator!=(Iterator other) noexcept {return iterator != other.iterator;}
+    const Iterator operator++(int) const;
+    const Iterator operator--(int) const;
 
-    NamedVariable& operator*() {return *convert(&*iterator);}
-    NamedVariable* operator->() {return convert(&*iterator);}
+    bool operator==(const Iterator other) const noexcept;
+    bool operator!=(const Iterator other) const noexcept;
+
+    NamedVariable& operator*();
+    NamedVariable* operator->();
+
+    const NamedVariable& operator*() const;
+    const NamedVariable* operator->() const;
+  };
+
+  class ReverseIterator {
+    friend class priv::MapImplementation;
+    AVLTree::ReverseIterator iterator;
+    ReverseIterator(AVLTree::ReverseIterator iterator);
+  public:
+    ReverseIterator(const ReverseIterator& iterator);
+    ReverseIterator(ReverseIterator&& iterator);
+
+    ReverseIterator& operator=(ReverseIterator& other) noexcept;
+    ReverseIterator& operator=(ReverseIterator&& other) noexcept;
+    ReverseIterator& operator=(AVLNode* node) noexcept;
+    ReverseIterator& operator=(AVLNode& node) noexcept;
+
+    ReverseIterator& operator++();
+    ReverseIterator& operator--();
+
+    ReverseIterator operator++(int);
+    ReverseIterator operator--(int);
+
+    const ReverseIterator& operator++() const;
+    const ReverseIterator& operator--() const;
+
+    const ReverseIterator operator++(int) const;
+    const ReverseIterator operator--(int) const;
+
+    bool operator==(ReverseIterator other) const noexcept;
+    bool operator!=(ReverseIterator other) const noexcept;
+
+    NamedVariable& operator*();
+    NamedVariable* operator->();
+
+    const NamedVariable& operator*() const;
+    const NamedVariable* operator->() const;
   };
 
   MapImplementation(const literals::map& map);
   MapImplementation(const MapImplementation& other);
   ~MapImplementation();
 
-  bool isEmpty() const noexcept {return avl_tree.isEmpty();}
-  size_t getSize() const noexcept {return size;}
-
+  bool isEmpty() const noexcept;
+  size_t getSize() const noexcept;
   bool contains(KeyValue value) const;
 
-  bool insert(KeyValue key, Variable variable) {
-    NamedVariable* named_variable = new NamedVariable(std::move(key), variable.move());
-    if(!avl_tree.insert(&named_variable->node)) return false;
-    ++size;
-    return true;
-  }
+  bool insert(KeyValue key, Variable variable);
+  bool remove(KeyValue key);
+  bool rename(KeyValue old_key, KeyValue new_key);
 
-  bool remove(KeyValue key) {
-    NamedVariable* named_variable = convert(avl_tree.extract(std::move(old_key)));
-    if(!named_variable) return false;
-    delete named_variable;
-    --size;
-    return true;
-  }
-
-  bool rename(KeyValue old_key, KeyValue new_key) {
-    NamedVariable* named_variable = convert(avl_tree.extract(std::move(old_key)));
-    if(!named_variable) return false;
-    named_variable->node.getKey() = std::move(new_key);
-    if(!avl_tree.insert(&named_variable->node)) return false;
-    return true;
-  }
-
-  NamedVariable& getNamedVariable(KeyValue key) const {
-    return convert(avl_tree.get(std::move(key))));
-  }
+  NamedVariable& getNamedVariable(KeyValue key);
 
 };
-*/
+
 
 
 }

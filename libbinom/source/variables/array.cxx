@@ -110,13 +110,21 @@ Array& Array::operator+=(Variable variable) {pushBack(std::move(variable)); retu
 Array& Array::operator+=(literals::arr variable_list) {pushBack(std::move(variable_list)); return self;}
 Array& Array::operator+=(const Array variable_array) {pushBack(std::move(variable_array)); return self;}
 
-Array::Iterator Array::begin() const {return getData()->begin();}
+Array::Iterator Array::begin() {return getData()->begin();}
 
-Array::Iterator Array::end() const {return getData()->end();}
+Array::Iterator Array::end() {return getData()->end();}
 
-Array::ReverseIterator Array::rbegin() const {return getData()->rbegin();}
+Array::ReverseIterator Array::rbegin() {return getData()->rbegin();}
 
-Array::ReverseIterator Array::rend() const {return getData()->rend();}
+Array::ReverseIterator Array::rend() {return getData()->rend();}
+
+Array::ConstIterator Array::cbegin() const {return getData()->cbegin();}
+
+Array::ConstIterator Array::cend() const {return getData()->cend();}
+
+Array::ConstReverseIterator Array::crbegin() const {return getData()->crbegin();}
+
+Array::ConstReverseIterator Array::crend() const {return getData()->crend();}
 
 Array& Array::operator=(const Array& other) {
   if(this == &other) return self;

@@ -1,11 +1,12 @@
 #include "libbinom/include/binom_impl/avl_tree.hxx"
 
 using namespace binom;
+using namespace binom::priv;
 
-// ============================================================ AVLTree::Node
+// ============================================================ Node
 
 
-void AVLTree::Node::swapPosition(Node& other, AVLTree& avl_tree) {
+void AVLNode::swapPosition(AVLNode& other, AVLTree& avl_tree) {
   auto this_position = getPosition();
   auto other_position = other.getPosition();
 
@@ -62,46 +63,48 @@ void AVLTree::Node::swapPosition(Node& other, AVLTree& avl_tree) {
 
 }
 
-void AVLTree::Node::unpin(AVLTree& avl_tree) {
+void AVLNode::unpin(AVLTree& avl_tree) {
   if(isLeft()) parent->left = nullptr;
   elif(isRight()) parent->right = nullptr;
   else avl_tree.root = nullptr;
   parent = nullptr;
 }
 
-AVLTree::Node::Node(KeyValue key, Node* parent) : parent(parent), key(std::move(key)) {}
+AVLNode::AVLNode(KeyValue key, AVLNode* parent) : parent(parent), key(std::move(key)) {}
 
-AVLTree::Node::Node(Node& other)
+AVLNode::AVLNode(AVLNode& other)
   : depth(other.depth),
     left(other.left),
     right(other.right),
     parent(other.parent),
     key(other.key) {}
 
-AVLTree::Node::Node(Node&& other)
+AVLNode::AVLNode(AVLNode&& other)
   : depth(other.depth),
     left(other.left),
     right(other.right),
     parent(other.parent),
     key(std::move(other.key)) {}
 
-AVLTree::Node& AVLTree::Node::operator=(Node other) { this->~Node(); return *new(this) Node(std::move(other)); }
+AVLNode& AVLNode::operator=(AVLNode other) { this->~AVLNode(); return *new(this) AVLNode(std::move(other)); }
 
-bool AVLTree::Node::isRoot() const noexcept {return !parent;}
+bool AVLNode::isRoot() const noexcept {return !parent;}
 
-bool AVLTree::Node::isLeft() const noexcept {return isRoot() ? false : parent->left == this;}
+bool AVLNode::isLeft() const noexcept {return isRoot() ? false : parent->left == this;}
 
-bool AVLTree::Node::isRight() const noexcept {return isRoot() ? false : parent->right == this;}
+bool AVLNode::isRight() const noexcept {return isRoot() ? false : parent->right == this;}
 
-bool AVLTree::Node::hasLeft() const noexcept {return left;}
+bool AVLNode::hasLeft() const noexcept {return left;}
 
-bool AVLTree::Node::hasRight() const noexcept {return right;}
+bool AVLNode::hasRight() const noexcept {return right;}
 
-bool AVLTree::Node::hasChild() const noexcept {return left || right;}
+bool AVLNode::hasChild() const noexcept {return left || right;}
 
-KeyValue& AVLTree::Node::getKey() {return key;}
+KeyValue& AVLNode::getKey() {return key;}
 
-AVLTree::Node::NodePosition AVLTree::Node::getPosition() {
+const KeyValue& AVLNode::getKey() const {return key;}
+
+AVLNode::NodePosition AVLNode::getPosition() const {
   if(isLeft()) return NodePosition::left;
   elif(isRight()) return NodePosition::right;
   else return NodePosition::root;
@@ -112,12 +115,12 @@ AVLTree::Node::NodePosition AVLTree::Node::getPosition() {
 
 i64 AVLTree::max(i64 a, i64 b) noexcept {return (a > b) ? a : b;}
 
-i64 AVLTree::depth(Node* node) noexcept {return node ? node->depth : 0;}
+i64 AVLTree::depth(AVLNode* node) noexcept {return node ? node->depth : 0;}
 
-AVLTree::Node* AVLTree::rotateRight(Node* y) {
+AVLNode* AVLTree::rotateRight(AVLNode* y) {
   auto y_position = y->getPosition();
-  Node* x = y->left;
-  Node* T2 = x->right;
+  AVLNode* x = y->left;
+  AVLNode* T2 = x->right;
 
   x->right = y;
   y->left = T2;
@@ -131,17 +134,17 @@ AVLTree::Node* AVLTree::rotateRight(Node* y) {
   if(T2) T2->parent = y;
 
   // Update parent's child poionter
-  if(y_position == Node::NodePosition::left) x->parent->left = x;
-  elif(y_position == Node::NodePosition::right) x->parent->right = x;
+  if(y_position == AVLNode::NodePosition::left) x->parent->left = x;
+  elif(y_position == AVLNode::NodePosition::right) x->parent->right = x;
   else root = x;
 
   return x;
 }
 
-AVLTree::Node* AVLTree::rotateLeft(Node* x) {
+AVLNode* AVLTree::rotateLeft(AVLNode* x) {
   auto x_position = x->getPosition();
-  Node* y = x->right;
-  Node* T2 = y->left;
+  AVLNode* y = x->right;
+  AVLNode* T2 = y->left;
 
   y->left = x;
   x->right = T2;
@@ -155,33 +158,33 @@ AVLTree::Node* AVLTree::rotateLeft(Node* x) {
   if(T2) T2->parent = x;
 
   // Update parent's child poionter
-  if(x_position == Node::NodePosition::left) y->parent->left = y;
-  elif(x_position == Node::NodePosition::right) y->parent->right = y;
+  if(x_position == AVLNode::NodePosition::left) y->parent->left = y;
+  elif(x_position == AVLNode::NodePosition::right) y->parent->right = y;
   else root = y;
 
   return y;
 }
 
-i64 AVLTree::getBalance(Node* node) { return node ? depth(node->left) - depth(node->right) : 0; }
+i64 AVLTree::getBalance(AVLNode* node) { return node ? depth(node->left) - depth(node->right) : 0; }
 
-AVLTree::Node* AVLTree::minKeyNode(Node* node) noexcept {
+AVLNode* AVLTree::minKeyNode(AVLNode* node) noexcept {
   if(!node) return nullptr;
   while(node->left) node = node->left;
   return node;
 }
 
-AVLTree::Node* AVLTree::minKeyNode() const noexcept {return minKeyNode(root);}
+AVLNode* AVLTree::minKeyNode() const noexcept {return minKeyNode(root);}
 
-AVLTree::Node* AVLTree::maxKeyNode(Node* node) noexcept {
+AVLNode* AVLTree::maxKeyNode(AVLNode* node) noexcept {
   if(!node) return nullptr;
   while (node->right) node = node->right;
   return node;
 }
 
-AVLTree::Node* AVLTree::maxKeyNode() const noexcept {return maxKeyNode(root);}
+AVLNode* AVLTree::maxKeyNode() const noexcept {return maxKeyNode(root);}
 
-AVLTree::Node* AVLTree::insert(Node* new_node) {
-  Node* node = root;
+AVLNode* AVLTree::insert(AVLNode* new_node) {
+  AVLNode* node = root;
   if(!node) return root = new_node;
 
   forever {
@@ -218,9 +221,9 @@ AVLTree::Node* AVLTree::insert(Node* new_node) {
   return new_node;
 }
 
-AVLTree::Node* AVLTree::extract(KeyValue key) {
-  Node* result = nullptr;
-  Node* node = root;
+AVLNode* AVLTree::extract(KeyValue key) {
+  AVLNode* result = nullptr;
+  AVLNode* node = root;
 
   forever {
     // If node isn't finded
@@ -232,7 +235,7 @@ AVLTree::Node* AVLTree::extract(KeyValue key) {
     elif(cmp == KeyValue::highter) {node = node->right; continue;}
     else { // Node is finded
       forever if(!node->left || !node->right) {
-        Node* tmp = node->left ? node->left : node->right;
+        AVLNode* tmp = node->left ? node->left : node->right;
         if(!tmp) { // If node hasn't child
           tmp = node;
           node = node->parent;
@@ -251,7 +254,7 @@ AVLTree::Node* AVLTree::extract(KeyValue key) {
         // to be deleted whith the position
         // of the leftmost node in th right branch
 
-        Node* tmp = minKeyNode(node->right);
+        AVLNode* tmp = minKeyNode(node->right);
         node->swapPosition(*tmp, self);
         continue;
       }
@@ -283,10 +286,10 @@ AVLTree::Node* AVLTree::extract(KeyValue key) {
   return result;
 }
 
-AVLTree::Node* AVLTree::extract(Node* node) {
-  Node* result = node;
+AVLNode* AVLTree::extract(AVLNode* node) {
+  AVLNode* result = node;
   forever if(!node->left || !node->right) {
-    Node* tmp = node->left ? node->left : node->right;
+    AVLNode* tmp = node->left ? node->left : node->right;
     if(!tmp) { // If node hasn't child
       tmp = node;
       node = nullptr;
@@ -305,7 +308,7 @@ AVLTree::Node* AVLTree::extract(Node* node) {
     // to be deleted whith the position
     // of the leftmost node in th right branch
 
-    Node* tmp = minKeyNode(node->right);
+    AVLNode* tmp = minKeyNode(node->right);
     node->swapPosition(*tmp, self);
     continue;
   }
@@ -334,8 +337,8 @@ AVLTree::Node* AVLTree::extract(Node* node) {
   return result;
 }
 
-AVLTree::Node* AVLTree::get(KeyValue key) const {
-  Node* node = root;
+AVLNode* AVLTree::get(KeyValue key) const {
+  AVLNode* node = root;
   forever {
     // If node isn't finded
     if(!node) return nullptr;
@@ -355,3 +358,167 @@ AVLTree::Iterator AVLTree::end() {return nullptr;}
 AVLTree::ReverseIterator AVLTree::rbegin() noexcept {return maxKeyNode();}
 
 AVLTree::ReverseIterator AVLTree::rend() {return nullptr;}
+
+
+
+
+
+AVLTree::Iterator::Iterator(AVLNode* node) : node(node) {}
+
+AVLTree::Iterator::Iterator(const Iterator& other) : node(other.node) {}
+
+AVLTree::Iterator::Iterator(Iterator&& other) : node(other.node) {}
+
+AVLTree::Iterator& AVLTree::Iterator::operator=(Iterator& other) noexcept {return *new(this) Iterator(other);}
+
+AVLTree::Iterator& AVLTree::Iterator::operator=(Iterator&& other) noexcept {return *new(this) Iterator(std::move(other));}
+
+AVLTree::Iterator& AVLTree::Iterator::operator=(AVLNode* node) noexcept {return *new(this) Iterator(node);}
+
+AVLTree::Iterator& AVLTree::Iterator::operator=(AVLNode& node) noexcept {return *new(this) Iterator(&node);}
+
+AVLTree::Iterator& AVLTree::Iterator::operator++() {
+  if(node->hasRight()) node = AVLTree::minKeyNode(node->right);
+  elif(node->isLeft()) node = node->parent;
+  elif(node->isRight()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isRight()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+AVLTree::Iterator& AVLTree::Iterator::operator--() {
+  if(node->hasLeft()) node = AVLTree::maxKeyNode(node->left);
+  elif(node->isRight()) node = node->parent;
+  elif(node->isLeft()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isLeft()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+AVLTree::Iterator AVLTree::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
+
+AVLTree::Iterator AVLTree::Iterator::operator--(int) {Iterator tmp(self); --self; return tmp;}
+
+const AVLTree::Iterator& AVLTree::Iterator::operator++() const {
+  if(node->hasRight()) node = AVLTree::minKeyNode(node->right);
+  elif(node->isLeft()) node = node->parent;
+  elif(node->isRight()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isRight()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+const AVLTree::Iterator& AVLTree::Iterator::operator--() const {
+  if(node->hasLeft()) node = AVLTree::maxKeyNode(node->left);
+  elif(node->isRight()) node = node->parent;
+  elif(node->isLeft()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isLeft()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+const AVLTree::Iterator AVLTree::Iterator::operator++(int) const {Iterator tmp(self); ++self; return tmp;}
+
+const AVLTree::Iterator AVLTree::Iterator::operator--(int) const {Iterator tmp(self); --self; return tmp;}
+
+bool AVLTree::Iterator::operator==(Iterator other) const noexcept {return node == other.node;}
+
+bool AVLTree::Iterator::operator!=(Iterator other) const noexcept {return node != other.node;}
+
+AVLNode& AVLTree::Iterator::operator*() {return *node;}
+
+AVLNode* AVLTree::Iterator::operator->() {return node;}
+
+const AVLNode& AVLTree::Iterator::operator*() const {return *node;}
+
+const AVLNode* AVLTree::Iterator::operator->() const {return node;}
+
+
+
+
+
+AVLTree::ReverseIterator::ReverseIterator(AVLNode* node) : node(node) {}
+
+AVLTree::ReverseIterator::ReverseIterator(const ReverseIterator& other) : node(other.node) {}
+
+AVLTree::ReverseIterator::ReverseIterator(ReverseIterator&& other) : node(other.node) {}
+
+AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator=(ReverseIterator& other) noexcept {return *new(this) ReverseIterator(other);}
+
+AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator=(ReverseIterator&& other) noexcept {return *new(this) ReverseIterator(std::move(other));}
+
+AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator=(AVLNode* node) noexcept {return *new(this) ReverseIterator(node);}
+
+AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator=(AVLNode& node) noexcept {return *new(this) ReverseIterator(&node);}
+
+AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator++() {
+  if(node->hasLeft()) node = AVLTree::maxKeyNode(node->left);
+  elif(node->isRight()) node = node->parent;
+  elif(node->isLeft()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isLeft()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator--() {
+  if(node->hasRight()) node = AVLTree::minKeyNode(node->right);
+  elif(node->isLeft()) node = node->parent;
+  elif(node->isRight()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isRight()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+AVLTree::ReverseIterator AVLTree::ReverseIterator::operator++(int) {ReverseIterator tmp(self); ++self; return tmp;}
+
+AVLTree::ReverseIterator AVLTree::ReverseIterator::operator--(int) {ReverseIterator tmp(self); --self; return tmp;}
+
+const AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator++() const {
+  if(node->hasLeft()) node = AVLTree::maxKeyNode(node->left);
+  elif(node->isRight()) node = node->parent;
+  elif(node->isLeft()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isLeft()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+const AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator--() const {
+  if(node->hasRight()) node = AVLTree::minKeyNode(node->right);
+  elif(node->isLeft()) node = node->parent;
+  elif(node->isRight()) {
+    AVLNode* tmp = node->parent;
+    node = node->parent->parent;
+    while (tmp->isRight()) {tmp = node; node = node->parent;}
+  }
+  return *this;
+}
+
+const AVLTree::ReverseIterator AVLTree::ReverseIterator::operator++(int) const {ReverseIterator tmp(self); ++self; return tmp;}
+
+const AVLTree::ReverseIterator AVLTree::ReverseIterator::operator--(int) const {ReverseIterator tmp(self); --self; return tmp;}
+
+bool AVLTree::ReverseIterator::operator==(ReverseIterator other) const noexcept {return node == other.node;}
+
+bool AVLTree::ReverseIterator::operator!=(ReverseIterator other) const noexcept {return node != other.node;}
+
+AVLNode& AVLTree::ReverseIterator::operator*() {return *node;}
+
+AVLNode* AVLTree::ReverseIterator::operator->() {return node;}
+
+const AVLNode& AVLTree::ReverseIterator::operator*() const {return *node;}
+
+const AVLNode* AVLTree::ReverseIterator::operator->() const {return node;}

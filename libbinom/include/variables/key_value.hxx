@@ -2,10 +2,7 @@
 #define KEY_VALUE_HXX
 
 #include "../binom_impl/types.hxx"
-#include "../binom_impl/ram_storage_implementation.hxx"
-#include "number.hxx"
-#include "bit_array.hxx"
-#include "buffer_array.hxx"
+#include "generic_value.hxx"
 
 namespace binom {
 
@@ -20,7 +17,8 @@ public:
 
 private:
 
-  friend class AVLTree;
+  friend class binom::priv::AVLTree;
+  friend class binom::priv::AVLNode;
   CompareResult getCompare(KeyValue& other) const;
 
   union Data {
@@ -102,29 +100,16 @@ public:
   BitArray toBitArray() const;
   BufferArray toBufferArray() const;
 
-  inline operator Variable () const {return toVariable();}
-  inline operator Number () const {return toNumber();}
-  inline operator BitArray () const {return toBitArray();}
-  inline operator BufferArray () const {return toBufferArray();}
+  operator Variable () const;
+  operator Number () const;
+  operator BitArray () const;
+  operator BufferArray () const;
 
-  KeyValue& operator=(KeyValue key) {this->~KeyValue(); return *new(this) KeyValue(std::move(key));}
-  KeyValue& operator=(Number number) {this->~KeyValue(); return *new(this) KeyValue(number.move());}
-  KeyValue& operator=(BitArray bit_array) {this->~KeyValue(); return *new(this) KeyValue(bit_array.move());}
-  KeyValue& operator=(BufferArray buffer_array) {this->~KeyValue(); return *new(this) KeyValue(buffer_array.move());}
-  KeyValue& operator=(Variable variable) {
-    this->~KeyValue();
-    switch (variable.getTypeClass()) {
-    case binom::VarTypeClass::null:
-      this->~KeyValue(); return *new(this) KeyValue();
-    case binom::VarTypeClass::number:
-      this->~KeyValue(); return *new(this) KeyValue(variable.toNumber().move());
-    case binom::VarTypeClass::bit_array:
-      this->~KeyValue(); return *new(this) KeyValue(variable.toBitArray().move());
-    case binom::VarTypeClass::buffer_array:
-      this->~KeyValue(); return *new(this) KeyValue(variable.toBufferArray().move());
-    default: return *new(this) KeyValue();
-    }
-  }
+  KeyValue& operator=(KeyValue key);
+  KeyValue& operator=(Number number);
+  KeyValue& operator=(BitArray bit_array);
+  KeyValue& operator=(BufferArray buffer_array);
+  KeyValue& operator=(Variable variable);
 };
 
 }

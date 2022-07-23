@@ -4,7 +4,8 @@
 #include "../binom_impl/resource_control.hxx"
 #include "../binom_impl/ram_storage_implementation.hxx"
 #include "generic_value.hxx"
-#include "mutex"
+#include "../binom_impl/avl_tree.hxx"
+//#include "mutex"
 
 namespace binom {
 
@@ -74,12 +75,12 @@ public:
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
-  template<class... Var>
-  static void transaction(Var&... vars) {
-    static_assert ((std::is_same_v<Variable, std::remove_reference_t<Var>> && ...) ||
-                   (std::is_base_of_v<Variable, std::remove_reference_t<Var>> && ...));
-    std::lock((vars.getMutex())...);
-  }
+//  template<class... Var>
+//  static void transaction(Var&... vars) {
+//    static_assert ((std::is_same_v<Variable, std::remove_reference_t<Var>> && ...) ||
+//                   (std::is_base_of_v<Variable, std::remove_reference_t<Var>> && ...));
+//    std::lock((vars.getMutex())...);
+//  }
 
 //  template<class... Var>
 //  class Transaction {
@@ -151,6 +152,31 @@ public:
 
   Variable& changeLink(const Variable& other);
   Variable& changeLink(Variable&& other);
+};
+
+class NamedVariable {
+  friend class priv::MapImplementation;
+  priv::AVLNode node;
+  Variable variable;
+public:
+  NamedVariable(KeyValue key, Variable variable)
+    : node(std::move(key)), variable(variable.move()) {}
+//  NamedVariable(const NamedVariable& named_variable) = delete;
+  NamedVariable(const NamedVariable&& named_variable)
+    : node(std::move(const_cast<NamedVariable&&>(named_variable).node)), variable(const_cast<NamedVariable&&>(named_variable).variable.move()) {}
+
+  Variable& operator*() noexcept {return variable;}
+  Variable* operator->() noexcept {return &variable;}
+
+  const Variable& operator*() const noexcept {return variable;}
+  const Variable* operator->() const noexcept {return &variable;}
+
+  Variable& getVariable() noexcept {return variable;}
+  Variable getKey() noexcept {return node.getKey();}
+
+  const Variable& getVariable() const noexcept {return variable;}
+  const Variable getKey() const noexcept {return node.getKey();}
+
 };
 
 }

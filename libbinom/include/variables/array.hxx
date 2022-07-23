@@ -44,7 +44,9 @@ class Array : public Variable {
 
 public:
   typedef Variable* Iterator;
+  typedef const Variable* ConstIterator;
   typedef reverse_iterator::ReverseIterator<Variable*> ReverseIterator;
+  typedef const reverse_iterator::ReverseIterator<Variable*> ConstReverseIterator;
 
   Array();
   Array(const literals::arr array);
@@ -78,11 +80,17 @@ public:
   Array& operator+=(literals::arr variable_list);
   Array& operator+=(const Array variable_array);
 
-  Iterator begin() const;
-  Iterator end() const;
+  Iterator begin();
+  Iterator end();
 
-  ReverseIterator rbegin() const;
-  ReverseIterator rend() const;
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
+
+  ConstReverseIterator crbegin() const;
+  ConstReverseIterator crend() const;
 
   Array& operator=(const Array& other);
   Array& operator=(Array&& other);

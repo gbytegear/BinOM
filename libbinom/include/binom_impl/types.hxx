@@ -516,6 +516,9 @@ class MapImplementation;
 class TableImplementation;
 class KeyValueImplementation;
 
+class AVLNode;
+class AVLTree;
+
 }
 
 class Variable;
@@ -530,13 +533,15 @@ class Map;
 class Table;
 class KeyValue;
 
+class NamedVariable;
+
 namespace literals {
 namespace priv {
 
 struct ArrayLiteral : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct SinglyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct DoublyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct MapLiteral;
+struct MapLiteral : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
 struct TableLiteral;
 
 }

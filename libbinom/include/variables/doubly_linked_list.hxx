@@ -15,7 +15,7 @@ struct DoublyLinkedListImplementation::Node {
 }
 
 class priv::DoublyLinkedListImplementation::Iterator {
-  Node* node;
+  mutable Node* node;
 
   friend class binom::priv::DoublyLinkedListImplementation;
   friend class binom::DoublyLinkedList;
@@ -32,8 +32,16 @@ public:
   Iterator& operator--();
   Iterator operator--(int);
 
+  const Iterator& operator++() const;
+  const Iterator operator++(int) const;
+  const Iterator& operator--() const;
+  const Iterator operator--(int) const;
+
   Variable operator*();
   Variable* operator->();
+
+  const Variable operator*() const;
+  const Variable* operator->() const;
 
   bool operator==(const Iterator& other) const noexcept;
   bool operator==(const Iterator&& other) const noexcept;
@@ -83,6 +91,8 @@ class DoublyLinkedList : public Variable {
 public:
   typedef priv::DoublyLinkedListImplementation::Iterator Iterator;
   typedef priv::DoublyLinkedListImplementation::ReverseIterator ReverseIterator;
+  typedef const priv::DoublyLinkedListImplementation::Iterator ConstIterator;
+  typedef const priv::DoublyLinkedListImplementation::ReverseIterator ConstReverseIterator;
 
   DoublyLinkedList();
   DoublyLinkedList(const literals::dllist doubly_linked_list);
@@ -105,11 +115,17 @@ public:
   void remove(Iterator it);
   void clear();
 
-  Iterator begin() const;
-  static Iterator end();
+  Iterator begin();
+  Iterator end();
 
-  ReverseIterator rbegin() const;
-  static ReverseIterator rend();
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
+
+  ConstReverseIterator crbegin() const;
+  ConstReverseIterator crend() const;
 };
 
 }

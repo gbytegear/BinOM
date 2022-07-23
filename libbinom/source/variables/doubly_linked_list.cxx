@@ -23,8 +23,25 @@ binom::priv::DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementa
   return tmp;
 }
 
+const binom::priv::DoublyLinkedListImplementation::Iterator& DoublyLinkedListImplementation::Iterator::operator++() const {if(node) node = node->next; return self;}
+const binom::priv::DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::Iterator::operator++(int) const {
+  auto tmp = self;
+  if(node) node = node->next;
+  return tmp;
+}
+
+const binom::priv::DoublyLinkedListImplementation::Iterator& DoublyLinkedListImplementation::Iterator::operator--() const {if(node) node = node->prev; return self;}
+const binom::priv::DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::Iterator::operator--(int) const {
+  auto tmp = self;
+  if(node) node = node->prev;
+  return tmp;
+}
+
 Variable DoublyLinkedListImplementation::Iterator::operator*() {return node->value.move();}
 Variable* DoublyLinkedListImplementation::Iterator::operator->() {return &node->value;}
+
+const Variable DoublyLinkedListImplementation::Iterator::operator*() const {return node->value.move();}
+const Variable* DoublyLinkedListImplementation::Iterator::operator->() const {return &node->value;}
 
 bool DoublyLinkedListImplementation::Iterator::operator==(const Iterator& other) const noexcept {return node == other.node;}
 bool DoublyLinkedListImplementation::Iterator::operator==(const Iterator&& other) const noexcept {return node == other.node;}
@@ -95,7 +112,7 @@ void DoublyLinkedList::clear() {
   else return;
 }
 
-DoublyLinkedList::Iterator DoublyLinkedList::begin() const {
+DoublyLinkedList::Iterator DoublyLinkedList::begin() {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
     return getData()->begin();
   else return Iterator(nullptr);
@@ -103,10 +120,26 @@ DoublyLinkedList::Iterator DoublyLinkedList::begin() const {
 
 DoublyLinkedList::Iterator DoublyLinkedList::end() {return Iterator(nullptr);}
 
-DoublyLinkedList::ReverseIterator DoublyLinkedList::rbegin() const {
+DoublyLinkedList::ReverseIterator DoublyLinkedList::rbegin() {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
     return getData()->rbegin();
   else return ReverseIterator(nullptr);
 }
 
 DoublyLinkedList::ReverseIterator DoublyLinkedList::rend() {return ReverseIterator(nullptr);}
+
+DoublyLinkedList::ConstIterator DoublyLinkedList::cbegin() const {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->begin();
+  else return Iterator(nullptr);
+}
+
+DoublyLinkedList::ConstIterator DoublyLinkedList::cend() const {return Iterator(nullptr);}
+
+DoublyLinkedList::ConstReverseIterator DoublyLinkedList::crbegin() const {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->rbegin();
+  else return ReverseIterator(nullptr);
+}
+
+DoublyLinkedList::ConstReverseIterator DoublyLinkedList::crend() const {return ReverseIterator(nullptr);}

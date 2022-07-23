@@ -31,6 +31,7 @@ struct ResourceData {
     ArrayImplementation* array_implementation;
     SinglyLinkedListImplementation* single_linked_list_implementation;
     DoublyLinkedListImplementation* doubly_linked_list_implementation;
+    MapImplementation* map_implementation;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };

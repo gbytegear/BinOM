@@ -38,25 +38,55 @@ BufferArray::ValueRef BufferArray::operator[](size_t index) noexcept {
   return getData()->get(getValType(), index);
 }
 
-BufferArray::Iterator BufferArray::begin() const {
+const BufferArray::ValueRef BufferArray::operator[](size_t index) const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ValueRef(ValType::invalid_type, nullptr);
+  return getData()->get(getValType(), index);
+}
+
+BufferArray::Iterator BufferArray::begin() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return Iterator(ValType::invalid_type, nullptr);
   return getData()->begin(getValType());
 }
 
-BufferArray::Iterator BufferArray::end() const {
+BufferArray::Iterator BufferArray::end() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return Iterator(ValType::invalid_type, nullptr);
   return getData()->end(getValType());
 }
 
-BufferArray::ReverseIterator BufferArray::rbegin() const {
+BufferArray::ReverseIterator BufferArray::rbegin() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ReverseIterator(ValType::invalid_type, nullptr);
   return getData()->rbegin(getValType());
 }
 
-BufferArray::ReverseIterator BufferArray::rend() const {
+BufferArray::ReverseIterator BufferArray::rend() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator(ValType::invalid_type, nullptr);
+  return getData()->rend(getValType());
+}
+
+const BufferArray::Iterator BufferArray::cbegin() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator(ValType::invalid_type, nullptr);
+  return getData()->begin(getValType());
+}
+
+const BufferArray::Iterator BufferArray::cend() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator(ValType::invalid_type, nullptr);
+  return getData()->end(getValType());
+}
+
+const BufferArray::ReverseIterator BufferArray::crbegin() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator(ValType::invalid_type, nullptr);
+  return getData()->rbegin(getValType());
+}
+
+const BufferArray::ReverseIterator BufferArray::crend() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ReverseIterator(ValType::invalid_type, nullptr);
   return getData()->rend(getValType());

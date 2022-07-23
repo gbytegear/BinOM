@@ -63,13 +63,25 @@ void SinglyLinkedList::clear() {
   else return;
 }
 
-SinglyLinkedList::Iterator SinglyLinkedList::begin() const {
+SinglyLinkedList::Iterator SinglyLinkedList::begin() {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
     return getData()->begin();
   else return Iterator(nullptr, nullptr);
 }
 
-SinglyLinkedList::Iterator SinglyLinkedList::end() const {
+SinglyLinkedList::Iterator SinglyLinkedList::end() {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->end();
+  else return Iterator(nullptr, nullptr);
+}
+
+SinglyLinkedList::ConstIterator SinglyLinkedList::cbegin() const {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->begin();
+  else return Iterator(nullptr, nullptr);
+}
+
+SinglyLinkedList::ConstIterator SinglyLinkedList::cend() const {
   if(auto lk = getLock(MtxLockType::shared_locked); lk)
     return getData()->end();
   else return Iterator(nullptr, nullptr);
@@ -82,8 +94,14 @@ SinglyLinkedListImplementation::Iterator::Iterator(const Iterator&& other) : pre
 binom::priv::SinglyLinkedListImplementation::Iterator& SinglyLinkedListImplementation::Iterator::operator++() {if(node) { prev = node; node = node->next;} return self;}
 binom::priv::SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
 
+const binom::priv::SinglyLinkedListImplementation::Iterator& SinglyLinkedListImplementation::Iterator::operator++() const {if(node) { prev = node; node = node->next;} return self;}
+const binom::priv::SinglyLinkedListImplementation::Iterator SinglyLinkedListImplementation::Iterator::operator++(int) const {Iterator tmp(self); ++self; return tmp;}
+
 Variable SinglyLinkedListImplementation::Iterator::operator*() {if(node) return node->value.move(); else return nullptr;}
 Variable* SinglyLinkedListImplementation::Iterator::operator->() {if(node) return &node->value; else return nullptr;}
+
+const Variable SinglyLinkedListImplementation::Iterator::operator*() const {if(node) return node->value.move(); else return nullptr;}
+const Variable* SinglyLinkedListImplementation::Iterator::operator->() const {if(node) return &node->value; else return nullptr;}
 
 bool SinglyLinkedListImplementation::Iterator::operator==(const Iterator& other) const noexcept {return node == other.node;}
 bool SinglyLinkedListImplementation::Iterator::operator==(const Iterator&& other) const noexcept {return node == other.node;}

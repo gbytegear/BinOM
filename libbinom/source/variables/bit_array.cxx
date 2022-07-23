@@ -31,7 +31,13 @@ size_t BitArray::getCapacity() const noexcept {
   return getData()->getCapacity();
 }
 
-BitArray::ValueRef BitArray::operator[](size_t index) const {
+BitArray::ValueRef BitArray::operator [](size_t index) {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return priv::Bits::getNullValue();
+  return (*getData())[index];
+}
+
+const BitArray::ValueRef BitArray::operator [](size_t index) const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return priv::Bits::getNullValue();
   return (*getData())[index];
@@ -94,25 +100,50 @@ void BitArray::remove(size_t at, size_t size) {
   priv::BitArrayImplementation::removeBits(getData(), at, size);
 }
 
-BitArray::Iterator BitArray::begin() const {
+BitArray::Iterator BitArray::begin() {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
   return getData()->begin();
 }
 
-BitArray::Iterator BitArray::end() const {
+BitArray::Iterator BitArray::end() {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();
   return getData()->end();
 }
 
-BitArray::ReverseIterator BitArray::rbegin() const {
+BitArray::ReverseIterator BitArray::rbegin() {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullReverseIterator();
   return getData()->rbegin();
 }
 
-BitArray::ReverseIterator BitArray::rend() const {
+BitArray::ReverseIterator BitArray::rend() {
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return priv::Bits::getNullReverseIterator();
+  return getData()->rend();
+}
+
+
+const BitArray::Iterator BitArray::cbegin() const {
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return priv::Bits::getNullIterator();
+  return getData()->begin();
+}
+
+const BitArray::Iterator BitArray::cend() const {
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return priv::Bits::getNullIterator();
+  return getData()->end();
+}
+
+const BitArray::ReverseIterator BitArray::crbegin() const {
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return priv::Bits::getNullReverseIterator();
+  return getData()->rbegin();
+}
+
+const BitArray::ReverseIterator BitArray::crend() const {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullReverseIterator();
   return getData()->rend();

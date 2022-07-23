@@ -11,8 +11,8 @@ struct priv::SinglyLinkedListImplementation::Node {
 };
 
 class priv::SinglyLinkedListImplementation::Iterator {
-  Node* prev = nullptr; //!< Required for insert
-  Node* node;
+  mutable Node* prev = nullptr; //!< Required for insert
+  mutable Node* node;
 
   friend class binom::priv::SinglyLinkedListImplementation;
   friend class binom::SinglyLinkedList;
@@ -25,8 +25,14 @@ public:
   Iterator& operator++();
   Iterator operator++(int);
 
+  const Iterator& operator++() const;
+  const Iterator operator++(int) const;
+
   Variable operator*();
   Variable* operator->();
+
+  const Variable operator*() const;
+  const Variable* operator->() const;
 
   bool operator==(const Iterator& other) const noexcept;
   bool operator==(const Iterator&& other) const noexcept;
@@ -71,6 +77,7 @@ class SinglyLinkedList : public Variable {
   SinglyLinkedList(priv::Link&& link);
 public:
   typedef priv::SinglyLinkedListImplementation::Iterator Iterator;
+  typedef const priv::SinglyLinkedListImplementation::Iterator ConstIterator;
 
   SinglyLinkedList();
   SinglyLinkedList(const literals::sllist singly_linked_list);
@@ -93,8 +100,11 @@ public:
   void remove(Iterator it);
   void clear();
 
-  Iterator begin() const;
-  Iterator end() const;
+  Iterator begin();
+  Iterator end();
+
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
 
   SinglyLinkedList& operator=(const SinglyLinkedList& other);
   SinglyLinkedList& operator=(SinglyLinkedList&& other);
