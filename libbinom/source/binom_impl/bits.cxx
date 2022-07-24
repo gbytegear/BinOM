@@ -3,16 +3,16 @@
 using namespace binom;
 using namespace binom::priv;
 
-inline Bits::ValueRef Bits::getNullValue() noexcept {return ValueRef();}
-inline Bits::Iterator Bits::getNullIterator() noexcept {return Iterator();}
-inline Bits::ReverseIterator Bits::getNullReverseIterator() noexcept {return ReverseIterator();}
-inline Bits::ValueRef Bits::operator[](ui8 index) const noexcept { return ValueRef(this, index); }
-inline Bits::Iterator Bits::begin() const noexcept {return Iterator(this, 0);}
-inline Bits::Iterator Bits::end() const noexcept {return Iterator(this + 1, 0);}
-inline Bits::ReverseIterator Bits::rbegin() const noexcept {return ReverseIterator(this, 7);}
-inline Bits::ReverseIterator Bits::rend() const noexcept {return ReverseIterator(this - 1, 7);}
-inline Bits::Iterator Bits::getItearatorAt(ui8 index) const noexcept {return Iterator(this, index);}
-inline Bits::ReverseIterator Bits::getReverseIteratorAt(ui8 index) noexcept {return ReverseIterator(this, index);}
+Bits::ValueRef Bits::getNullValue() noexcept {return ValueRef();}
+Bits::Iterator Bits::getNullIterator() noexcept {return Iterator();}
+Bits::ReverseIterator Bits::getNullReverseIterator() noexcept {return ReverseIterator();}
+Bits::ValueRef Bits::operator[](ui8 index) const noexcept { return ValueRef(this, index); }
+Bits::Iterator Bits::begin() const noexcept {return Iterator(this, 0);}
+Bits::Iterator Bits::end() const noexcept {return Iterator(this + 1, 0);}
+Bits::ReverseIterator Bits::rbegin() const noexcept {return ReverseIterator(this, 7);}
+Bits::ReverseIterator Bits::rend() const noexcept {return ReverseIterator(this - 1, 7);}
+Bits::Iterator Bits::getItearatorAt(ui8 index) const noexcept {return Iterator(this, index);}
+Bits::ReverseIterator Bits::getReverseIteratorAt(ui8 index) noexcept {return ReverseIterator(this, index);}
 
 
 

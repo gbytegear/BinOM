@@ -279,8 +279,16 @@ public:
 
   Iterator begin();
   Iterator end();
+
   ReverseIterator rbegin();
   ReverseIterator rend();
+
+  inline ConstIterator begin() const {return cbegin();}
+  inline ConstIterator end() const {return cend();}
+
+  inline ConstReverseIterator rbegin() const {return crbegin();}
+  inline ConstReverseIterator rend() const {return crend();}
+
   ConstIterator cbegin() const;
   ConstIterator cend() const;
   ConstReverseIterator crbegin() const;
@@ -435,6 +443,9 @@ public:
     const NamedVariable* operator->() const;
   };
 
+  typedef const Iterator ConstIterator;
+  typedef const ReverseIterator ConstReverseIterator;
+
   MapImplementation(const literals::map& map);
   MapImplementation(const MapImplementation& other);
   ~MapImplementation();
@@ -443,11 +454,30 @@ public:
   size_t getSize() const noexcept;
   bool contains(KeyValue value) const;
 
-  bool insert(KeyValue key, Variable variable);
-  bool remove(KeyValue key);
-  bool rename(KeyValue old_key, KeyValue new_key);
+  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable);
+  err::Error remove(KeyValue key);
+  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
 
-  NamedVariable& getNamedVariable(KeyValue key);
+  NamedVariable& getOrInsertNamedVariable(KeyValue key);
+  Variable getVariable(KeyValue key);
+
+  inline Iterator begin() noexcept {return avl_tree.begin();}
+  inline Iterator end() noexcept {return avl_tree.end();}
+
+  inline ReverseIterator rbegin() noexcept {return avl_tree.rbegin();}
+  inline ReverseIterator rend() noexcept {return avl_tree.rend();}
+
+  inline ConstIterator begin() const noexcept {return cbegin();}
+  inline ConstIterator end() const noexcept {return cend();}
+
+  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
+  inline ConstReverseIterator rend() const noexcept {return crend();}
+
+  inline ConstIterator cbegin() const noexcept {return avl_tree.cbegin();}
+  inline ConstIterator cend() const noexcept {return avl_tree.cend();}
+
+  inline ConstReverseIterator crbegin() const noexcept {return avl_tree.crbegin();}
+  inline ConstReverseIterator crend() const noexcept {return avl_tree.crend();}
 
 };
 

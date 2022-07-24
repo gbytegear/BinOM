@@ -121,6 +121,12 @@ public:
   ReverseIterator rbegin();
   ReverseIterator rend();
 
+  inline ConstIterator begin() const noexcept {return cbegin();}
+  inline ConstIterator end() const noexcept {return cend();}
+
+  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
+  inline ConstReverseIterator rend() const noexcept {return crend();}
+
   ConstIterator cbegin() const;
   ConstIterator cend() const;
 

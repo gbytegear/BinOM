@@ -1,9 +1,8 @@
 // TEST FLAGS:
-#define FULL_TEST
+//#define FULL_TEST
 #define TEST_FULL_INFO
 
 #include "test/all_test.hxx"
-#include "libbinom/include/binom_impl/avl_tree.hxx"
 
 int main() {
   testTypesConversions();
@@ -12,6 +11,7 @@ int main() {
   testBits();
   testBufferArray();
   testAVLTree();
+  testMap();
 
 #ifdef FULL_TEST // Questionable or incompletely implemented tests
   testRecursiveSharedMutex();

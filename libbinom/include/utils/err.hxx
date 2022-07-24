@@ -21,19 +21,7 @@ enum class ErrorType : ui8 {
   binom_invalid_type,
   binom_resource_not_available,
   binom_out_of_range,
-  binom_unique_error,
-  binom_query_invalid_field,
-  binom_invalid_visitor,
-
-  // BinOM FileStorage Exceptions
-  binomfs_invalid_file,
-  binomfs_invalid_storage_version,
-  binomfs_memory_management_error,
-  binomfs_page_isnt_exist,
-  binomfs_block_isnt_exist,
-
-  // BinOM Lexer
-  unexpected_expression
+  binom_key_unique_error,
 };
 
 class Error {
@@ -58,27 +46,38 @@ inline const char* Error::what() const noexcept {
   case ErrorType::binom_resource_not_available:
   return                                            "BinOM: Variable resource isn't available\n\r";
   case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range\n\r";
-  case ErrorType::binom_unique_error: return        "BinOM: Non-unique key\n\r";
-  case ErrorType::binom_invalid_visitor: return     "BinOM: Invalide visitor\n\r";
-
-  case ErrorType::binomfs_invalid_file: return      "BinOM FileStorage: Invalid file\n\r";
-  case ErrorType::binomfs_invalid_storage_version:
-  return                                            "BinOM FileStorage: Invalid file storage version\n\r";
-  case ErrorType::binomfs_memory_management_error:
-  return                                            "BinOM FileStorage: Memory management error\n\r";
-  case ErrorType::binomfs_page_isnt_exist:
-  return                                            "BinOM FileStorage: Page isn't exist\n\r";
-  case ErrorType::binomfs_block_isnt_exist:
-  return                                            "BinOM FileStorage: Block isn't exist\n\r";
-  case ErrorType::binom_query_invalid_field:
-  return                                            "BinOM: Invalid Query field\n\r";
-
-  case ErrorType::unexpected_expression: return     "Unexpected expression\n\r";
+  case ErrorType::binom_key_unique_error: return    "BinOM: Non-unique key\n\r";
 
   case ErrorType::any: return                       "Unknown exception\n\r";
   default: return                                   "Invalid error codes\n\r";
   }
 }
+
+template<typename T>
+class ProgressReport {
+  Error error;
+  T* answer = nullptr;
+public:
+  ProgressReport(T* answer_ptr) : error(ErrorType::no_error), answer(answer_ptr) {}
+  ProgressReport(T& answer) : error(ErrorType::no_error), answer(&answer) {}
+  ProgressReport(ErrorType error_type, T* answer_ptr = nullptr) : error(error_type), answer(answer_ptr) {}
+  ProgressReport(ErrorType error_type, T& answer) : error(error_type), answer(&answer) {}
+  ProgressReport(const ProgressReport<T>& other) : error(other.error), answer(other.answer) {}
+  ProgressReport(ProgressReport<T>&& other) : error(other.error), answer(other.answer) {}
+
+  inline operator bool () const noexcept {return error;}
+  inline operator ErrorType () const noexcept {return error;}
+  inline ErrorType getErrorCode() const noexcept {return error;}
+  const char* what() const noexcept {return error.what();}
+
+  T* getAnswer() noexcept {return answer;}
+  T& operator*() {return *answer;}
+  T* operator->() noexcept {return answer;}
+
+  const T* getAnswer() const noexcept {return answer;}
+  const T& operator*() const {return *answer;}
+  const T* operator->() const noexcept {return answer;}
+};
 
 }
 

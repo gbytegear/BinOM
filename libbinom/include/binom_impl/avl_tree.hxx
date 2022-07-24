@@ -124,6 +124,9 @@ public:
 
   };
 
+  typedef const Iterator ConstIterator;
+  typedef const ReverseIterator ConstReverseIterator;
+
 private:
   friend class AVLNode;
 
@@ -154,10 +157,23 @@ public:
   AVLNode* get(KeyValue key) const;
 
   Iterator begin() noexcept;
-  Iterator end();
+  Iterator end() noexcept;
 
   ReverseIterator rbegin() noexcept;
-  ReverseIterator rend();
+  ReverseIterator rend() noexcept;
+
+  inline ConstIterator begin() const noexcept {return cbegin();}
+  inline ConstIterator end() const noexcept {return cend();}
+
+  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
+  inline ConstReverseIterator rend() const noexcept {return crend();}
+
+  ConstIterator cbegin() const noexcept;
+  ConstIterator cend() const noexcept;
+
+  ConstReverseIterator crbegin() const noexcept;
+  ConstReverseIterator crend() const noexcept;
+
 
 };
 

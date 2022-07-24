@@ -5,7 +5,7 @@
 #include "libbinom/include/binom_impl/avl_tree.hxx"
 #include "libbinom/include/variables/key_value.hxx"
 #include "libbinom/include/utils/reverse_iterator.hxx"
-#include "libbinom/include/binom_impl/print_variable.hxx"
+#include "print_variable.hxx"
 
 void printAVLTree(binom::priv::AVLTree& avl_tree) {
   TEST_ANNOUNCE(AVL Tree print:)

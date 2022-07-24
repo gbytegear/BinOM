@@ -2,7 +2,7 @@
 #define VARIABLE_TEST_HXX
 
 #include "tester.hxx"
-#include "libbinom/include/binom_impl/print_variable.hxx"
+#include "print_variable.hxx"
 
 using namespace binom;
 

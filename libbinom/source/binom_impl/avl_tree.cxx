@@ -353,11 +353,19 @@ AVLNode* AVLTree::get(KeyValue key) const {
 
 AVLTree::Iterator AVLTree::begin() noexcept {return minKeyNode();}
 
-AVLTree::Iterator AVLTree::end() {return nullptr;}
+AVLTree::Iterator AVLTree::end() noexcept {return nullptr;}
 
 AVLTree::ReverseIterator AVLTree::rbegin() noexcept {return maxKeyNode();}
 
-AVLTree::ReverseIterator AVLTree::rend() {return nullptr;}
+AVLTree::ReverseIterator AVLTree::rend() noexcept {return nullptr;}
+
+AVLTree::ConstIterator AVLTree::cbegin() const noexcept {return minKeyNode();}
+
+AVLTree::ConstIterator AVLTree::cend() const noexcept {return nullptr;}
+
+AVLTree::ConstReverseIterator AVLTree::crbegin() const noexcept {return maxKeyNode();}
+
+AVLTree::ConstReverseIterator AVLTree::crend() const noexcept {return nullptr;}
 
 
 

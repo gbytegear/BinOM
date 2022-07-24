@@ -66,6 +66,9 @@ public:
   // DoublyLinkedList
   Variable(const literals::dllist doubly_linked_list);
 
+  // Map
+  Variable(const literals::map map);
+
   // Move & Copy
   Variable(const Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
@@ -161,20 +164,19 @@ class NamedVariable {
 public:
   NamedVariable(KeyValue key, Variable variable)
     : node(std::move(key)), variable(variable.move()) {}
-//  NamedVariable(const NamedVariable& named_variable) = delete;
   NamedVariable(const NamedVariable&& named_variable)
     : node(std::move(const_cast<NamedVariable&&>(named_variable).node)), variable(const_cast<NamedVariable&&>(named_variable).variable.move()) {}
 
-  Variable& operator*() noexcept {return variable;}
+  Variable operator*() noexcept {return variable.move();}
   Variable* operator->() noexcept {return &variable;}
 
-  const Variable& operator*() const noexcept {return variable;}
+  const Variable operator*() const noexcept {return variable.move();}
   const Variable* operator->() const noexcept {return &variable;}
 
-  Variable& getVariable() noexcept {return variable;}
+  Variable getVariable() noexcept {return variable.move();}
   Variable getKey() noexcept {return node.getKey();}
 
-  const Variable& getVariable() const noexcept {return variable;}
+  const Variable getVariable() const noexcept {return variable.move();}
   const Variable getKey() const noexcept {return node.getKey();}
 
 };

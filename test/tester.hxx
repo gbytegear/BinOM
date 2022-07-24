@@ -100,7 +100,7 @@
 #define INFO
 #endif
 
-thread_local size_t log_depth = 0;
+extern thread_local size_t log_depth = 0;
 
 #define GRP_PUSH ++log_depth;
 #define GRP_POP std::cout << std::string(log_depth - 1, '|') << "+---\n\r"; std::cout.flush(); --log_depth;

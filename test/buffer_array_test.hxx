@@ -3,7 +3,7 @@
 
 #include "tester.hxx"
 #include "libbinom/include/variables/buffer_array.hxx"
-#include "libbinom/include/binom_impl/print_variable.hxx"
+#include "print_variable.hxx"
 
 
 void testBufferArray() {

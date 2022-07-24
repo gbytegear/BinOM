@@ -103,6 +103,9 @@ public:
   Iterator begin();
   Iterator end();
 
+  inline ConstIterator begin() const noexcept {return cbegin();}
+  inline ConstIterator end() const noexcept {return cend();}
+
   ConstIterator cbegin() const;
   ConstIterator cend() const;
 

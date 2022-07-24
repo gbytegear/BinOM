@@ -60,6 +60,9 @@ Variable::Variable(const literals::sllist singly_linked_list)
 Variable::Variable(const literals::dllist doubly_linked_list)
   : Variable(ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_implementation = new priv::DoublyLinkedListImplementation(doubly_linked_list)}}) {}
 
+Variable::Variable(const literals::map map)
+  : Variable(ResourceData{VarType::map, {.map_implementation = new priv::MapImplementation(map)}}) {}
+
 Variable::Variable(const Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 

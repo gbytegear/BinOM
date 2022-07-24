@@ -8,6 +8,7 @@
 #include "bits_test.hxx"
 #include "buffer_array_test.hxx"
 #include "avl_tree_test.hxx"
+#include "map_test.hxx"
 #include "variable_test.hxx"
 
 #include "bugs.hxx"

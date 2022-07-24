@@ -774,39 +774,58 @@ MapImplementation::MapImplementation(const literals::map& map) {
   }
 }
 
+MapImplementation::MapImplementation(const MapImplementation& other) {
+  const AVLTree& tree = other.avl_tree;
+
+//  NamedVariable*
+
+//  for (const AVLNode& node : tree) {
+
+//  }
+
+}
+
 bool MapImplementation::isEmpty() const noexcept {return avl_tree.isEmpty();}
 
 size_t MapImplementation::getSize() const noexcept {return size;}
 
-bool MapImplementation::insert(KeyValue key, Variable variable) {
+err::ProgressReport<NamedVariable> MapImplementation::insert(KeyValue key, Variable variable) {
   NamedVariable* named_variable = new NamedVariable(std::move(key), variable.move());
-  if(!avl_tree.insert(&named_variable->node)) return false;
+  if(!avl_tree.insert(&named_variable->node)) return err::ErrorType::binom_key_unique_error;
   ++size;
-  return true;
+  return named_variable;
 }
 
-bool MapImplementation::remove(KeyValue key) {
+err::Error MapImplementation::remove(KeyValue key) {
   NamedVariable* named_variable = convert(avl_tree.extract(std::move(key)));
-  if(!named_variable) return false;
+  if(!named_variable) return err::ErrorType::binom_out_of_range;
   delete named_variable;
   --size;
-  return true;
+  return err::ErrorType::no_error;
 }
 
-bool MapImplementation::rename(KeyValue old_key, KeyValue new_key) {
+err::ProgressReport<NamedVariable> MapImplementation::rename(KeyValue old_key, KeyValue new_key) {
   NamedVariable* named_variable = convert(avl_tree.extract(old_key));
-  if(!named_variable) return false;
+  if(!named_variable) return err::ErrorType::binom_out_of_range;
   named_variable->node.getKey() = std::move(new_key);
   if(!avl_tree.insert(&named_variable->node)){
     named_variable->node.getKey() = std::move(old_key);
     avl_tree.insert(&named_variable->node);
-    return false;
+    return err::ProgressReport(err::ErrorType::binom_key_unique_error, named_variable);
   }
-  return true;
+  return named_variable;
 }
 
-NamedVariable& MapImplementation::getNamedVariable(KeyValue key) {
-  return *convert(avl_tree.get(std::move(key)));
+NamedVariable& MapImplementation::getOrInsertNamedVariable(KeyValue key) {
+  NamedVariable* named_variable = convert(avl_tree.get(key));
+  if(!named_variable) return *insert(std::move(key), nullptr);
+  return *named_variable;
+}
+
+Variable MapImplementation::getVariable(KeyValue key) {
+  NamedVariable* named_variable = convert(avl_tree.get(key));
+  if(!named_variable) return nullptr;
+  return named_variable->getVariable();
 }
 
 MapImplementation::Iterator::Iterator(AVLTree::Iterator iterator) : iterator(std::move(iterator)) {}

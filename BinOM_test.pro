@@ -25,7 +25,6 @@ HEADERS += \
     libbinom/include/binom.hxx \
     libbinom/include/binom_impl/bits.hxx \
     libbinom/include/binom_impl/file_storage_implementation.hxx \
-    libbinom/include/binom_impl/print_variable.hxx \
     libbinom/include/binom_impl/ram_storage_implementation.hxx \
     libbinom/include/binom_impl/resource_control.hxx \
     libbinom/include/binom_impl/types.hxx \
@@ -57,7 +56,9 @@ HEADERS += \
     test/buffer_array_test.hxx \
     test/bugs.hxx \
     test/generic_value_test.hxx \
+    test/map_test.hxx \
     test/number_test.hxx \
+    test/print_variable.hxx \
     test/recursive_shared_mutex_test.hxx \
     test/types_test.hxx \
     test/tester.hxx \
