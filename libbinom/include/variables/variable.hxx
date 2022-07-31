@@ -70,7 +70,7 @@ public:
   Variable(const literals::map map);
 
   // Move & Copy
-  Variable(const Variable&& other) noexcept;
+  Variable(Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
 
   Variable move() noexcept;

@@ -367,6 +367,22 @@ AVLTree::ConstReverseIterator AVLTree::crbegin() const noexcept {return maxKeyNo
 
 AVLTree::ConstReverseIterator AVLTree::crend() const noexcept {return nullptr;}
 
+void AVLTree::traverseBottom2Top(std::function<void (AVLNode*)> func) {
+  AVLNode* node = minKeyNode();
+  if(node->hasRight()) node = node->right;
+  while(node) {
+    AVLNode* last = node;
+    if(!!node->parent) {
+      if(node->isLeft() && node->parent->hasRight()) {
+        node = minKeyNode(node->parent->right);
+        if(node->hasRight()) node = node->right;
+      } elif(node->isLeft() || node->isRight())
+          node = node->parent;
+    } else node = nullptr;
+    func(last);
+  }
+}
+
 
 
 

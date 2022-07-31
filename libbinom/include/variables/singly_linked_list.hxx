@@ -109,6 +109,9 @@ public:
   ConstIterator cbegin() const;
   ConstIterator cend() const;
 
+  SinglyLinkedList& operator+=(Variable var);
+  SinglyLinkedList& operator+=(const SinglyLinkedList& sl_list);
+
   SinglyLinkedList& operator=(const SinglyLinkedList& other);
   SinglyLinkedList& operator=(SinglyLinkedList&& other);
 

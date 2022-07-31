@@ -87,6 +87,13 @@ SinglyLinkedList::ConstIterator SinglyLinkedList::cend() const {
   else return Iterator(nullptr, nullptr);
 }
 
+SinglyLinkedList& SinglyLinkedList::operator+=(Variable var) {pushBack(var.move()); return self;}
+
+SinglyLinkedList& SinglyLinkedList::operator+=(const SinglyLinkedList& sl_list) {
+  for(const Variable& var : sl_list) pushBack(var);
+  return self;
+}
+
 SinglyLinkedListImplementation::Iterator::Iterator(Node* node, Node* prev) : prev(prev), node(node) {}
 SinglyLinkedListImplementation::Iterator::Iterator(const Iterator& other) : prev(other.prev), node(other.node) {}
 SinglyLinkedListImplementation::Iterator::Iterator(const Iterator&& other) : prev(other.prev), node(other.node) {}

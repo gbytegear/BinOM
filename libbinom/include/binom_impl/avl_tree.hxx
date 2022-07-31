@@ -2,6 +2,7 @@
 #define AVL_TREE_HXX
 
 #include "../variables/key_value.hxx"
+#include <functional>
 
 namespace binom::priv {
 
@@ -129,6 +130,7 @@ public:
 
 private:
   friend class AVLNode;
+  friend class MapImplementation;
 
   AVLNode* root = nullptr;
 
@@ -174,6 +176,7 @@ public:
   ConstReverseIterator crbegin() const noexcept;
   ConstReverseIterator crend() const noexcept;
 
+  void traverseBottom2Top(std::function<void(AVLNode*)> func);
 
 };
 

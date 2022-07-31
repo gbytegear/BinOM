@@ -775,15 +775,17 @@ MapImplementation::MapImplementation(const literals::map& map) {
 }
 
 MapImplementation::MapImplementation(const MapImplementation& other) {
-  const AVLTree& tree = other.avl_tree;
-
-//  NamedVariable*
-
-//  for (const AVLNode& node : tree) {
-
-//  }
-
+  // Yeah, that's damn stupid way
+  // TODO: Think of a better way
+  for (const AVLNode& node : other.avl_tree) {
+    const NamedVariable& other_named_variable = *convert(&node);
+    NamedVariable* named_variable = new NamedVariable(other_named_variable.getKey(),
+                                                      other_named_variable.getVariable());
+    avl_tree.insert(&named_variable->node);
+  }
 }
+
+MapImplementation::~MapImplementation() { clear(); }
 
 bool MapImplementation::isEmpty() const noexcept {return avl_tree.isEmpty();}
 
@@ -826,6 +828,11 @@ Variable MapImplementation::getVariable(KeyValue key) {
   NamedVariable* named_variable = convert(avl_tree.get(key));
   if(!named_variable) return nullptr;
   return named_variable->getVariable();
+}
+
+void MapImplementation::clear() {
+  avl_tree.traverseBottom2Top([](AVLNode* node) { delete convert(node); });
+  avl_tree.root = nullptr;
 }
 
 MapImplementation::Iterator::Iterator(AVLTree::Iterator iterator) : iterator(std::move(iterator)) {}

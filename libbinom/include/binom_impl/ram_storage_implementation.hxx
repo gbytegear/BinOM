@@ -408,6 +408,7 @@ public:
     const NamedVariable* operator->() const;
   };
 
+
   class ReverseIterator {
     friend class priv::MapImplementation;
     AVLTree::ReverseIterator iterator;
@@ -460,6 +461,8 @@ public:
 
   NamedVariable& getOrInsertNamedVariable(KeyValue key);
   Variable getVariable(KeyValue key);
+
+  void clear();
 
   inline Iterator begin() noexcept {return avl_tree.begin();}
   inline Iterator end() noexcept {return avl_tree.end();}

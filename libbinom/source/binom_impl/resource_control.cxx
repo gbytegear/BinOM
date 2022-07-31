@@ -44,7 +44,12 @@ void SharedResource::destroy() {
     resource_data.data.pointer = nullptr;
   return;
 
-  case VarTypeClass::map: return; // TODO
+  case VarTypeClass::map:
+    if(resource_data.data.pointer)
+      delete resource_data.data.map_implementation;
+    resource_data.data.pointer = nullptr;
+  return;
+
   case VarTypeClass::table: return; // TODO
   case VarTypeClass::invalid_type: default:
   return;
@@ -113,7 +118,10 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
     resource->resource_data.data.doubly_linked_list_implementation = new DoublyLinkedListImplementation(*resource_data.data.doubly_linked_list_implementation);
   return;
 
-  case VarTypeClass::map: // TODO
+  case VarTypeClass::map:
+    resource->resource_data.data.map_implementation = new MapImplementation(*resource_data.data.map_implementation);
+  return;
+
   case VarTypeClass::table: // TODO
   default:
   case VarTypeClass::invalid_type:
@@ -143,7 +151,9 @@ Link Link::cloneResource(Link resource_link) noexcept {
   case VarTypeClass::doubly_linked_list:
   return ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_implementation = new DoublyLinkedListImplementation(*resource_link->data.doubly_linked_list_implementation)}};
 
-  case VarTypeClass::map: // TODO
+  case VarTypeClass::map:
+  return ResourceData{VarType::map, {.map_implementation = new MapImplementation(*resource_link->data.map_implementation)}};
+
   case VarTypeClass::table: // TODO
   default:
   case VarTypeClass::invalid_type:

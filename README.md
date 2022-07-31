@@ -15,12 +15,12 @@
   * [x] `binom::Array`
   * [x] `binom::SinglyLinkedList`
   * [x] `binom::DoublyLinkedList`
-  * [ ] `binom::Map`
+  * [x] `binom::Map`
     * [x] `binom::KeyValue`
     * [x] `binom::AVLTree`
       * [x] `binom::AVLTree::Node`
-      * [ ] `binom::AVLTree::Iterator`
-    * [ ] `binom::Map::Iterator`
+      * [x] `binom::AVLTree::Iterator`
+    * [x] `binom::Map::Iterator`
   * [ ] `binom::Table`
     * [ ] `binom::TableDescriptor`
     * [ ] `binom::RowDescriptor`

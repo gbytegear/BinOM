@@ -6,6 +6,27 @@
 namespace binom {
 
 class Map : public Variable {
+  operator Number& () = delete;
+  operator BitArray& () = delete;
+  operator BufferArray& () = delete;
+  operator Array& () = delete;
+  operator SinglyLinkedList& () = delete;
+  operator DoublyLinkedList& () = delete;
+
+  Number& toNumber() = delete;
+  BitArray& toBitArray() = delete;
+  BufferArray& toBufferArray() = delete;
+  Array& toArray() = delete;
+  SinglyLinkedList& toSinglyLinkedList() = delete;
+  DoublyLinkedList& toDoublyLinkedList() = delete;
+  Map& toMap() = delete;
+
+  operator const Number& () const = delete;
+  operator const BitArray& () const = delete;
+  operator const BufferArray& () const = delete;
+  operator const Array& () const = delete;
+  operator const SinglyLinkedList& () const = delete;
+  operator const DoublyLinkedList& () const = delete;
 
   priv::MapImplementation* getData() const { return resource_link->data.map_implementation; }
 
@@ -15,12 +36,13 @@ public:
   typedef priv::MapImplementation::ConstIterator        ConstIterator;
   typedef priv::MapImplementation::ConstReverseIterator ConstReverseIterator;
 
-
   Map() : Variable(literals::map{}) {}
   Map(literals::map element_list)
     : Variable(std::move(element_list)) {}
-  Map(const Map& other); // TODO
-  Map(Map&& other); // TODO
+  Map(const Map& other)
+    : Variable(other) {}
+  Map(Map&& other)
+    : Variable(std::move(other)) {}
 
   bool isEmpty() const noexcept {
     auto lk = getLock(MtxLockType::shared_locked);
@@ -38,6 +60,12 @@ public:
     auto lk = getLock(MtxLockType::shared_locked);
     if(!lk) return false;
     return getData()->contains(std::move(value));
+  }
+
+  void clear() {
+    auto lk = getLock(MtxLockType::unique_locked);
+    if(!lk) return;
+    return getData()->clear();
   }
 
   err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable) {

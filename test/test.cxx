@@ -1,6 +1,6 @@
 // TEST FLAGS:
 //#define FULL_TEST
-#define TEST_FULL_INFO
+//#define TEST_FULL_INFO
 
 #include "test/all_test.hxx"
 
