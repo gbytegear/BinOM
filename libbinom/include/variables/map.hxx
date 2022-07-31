@@ -28,7 +28,7 @@ class Map : public Variable {
   operator const SinglyLinkedList& () const = delete;
   operator const DoublyLinkedList& () const = delete;
 
-  priv::MapImplementation* getData() const { return resource_link->data.map_implementation; }
+  priv::MapImplementation* getData() const;
 
 public:
   typedef priv::MapImplementation::Iterator             Iterator;
@@ -36,97 +36,44 @@ public:
   typedef priv::MapImplementation::ConstIterator        ConstIterator;
   typedef priv::MapImplementation::ConstReverseIterator ConstReverseIterator;
 
-  Map() : Variable(literals::map{}) {}
-  Map(literals::map element_list)
-    : Variable(std::move(element_list)) {}
-  Map(const Map& other)
-    : Variable(other) {}
-  Map(Map&& other)
-    : Variable(std::move(other)) {}
+  Map();
+  Map(literals::map element_list);
+  Map(const Map& other);
+  Map(Map&& other);
 
-  bool isEmpty() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return 0;
-    return getData()->isEmpty();
-  }
+  bool isEmpty() const noexcept;
 
-  size_t getSize() const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return 0;
-    return getData()->getSize();
-  }
+  size_t getSize() const noexcept;
 
-  bool contains(KeyValue value) const noexcept {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return false;
-    return getData()->contains(std::move(value));
-  }
+  bool contains(KeyValue value) const noexcept;
 
-  void clear() {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return;
-    return getData()->clear();
-  }
+  void clear();
+  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable);
+  err::Error remove(KeyValue key);
+  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
 
-  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable) {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return err::ErrorType::binom_resource_not_available;
-    return getData()->insert(std::move(key), variable.move());
-  }
+  Variable getVariable(KeyValue key);
+  Variable operator[] (KeyValue key);
+  const Variable getVariable(KeyValue key) const;
+  const Variable operator[] (KeyValue key) const;
 
-  err::Error remove(KeyValue key) {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return err::ErrorType::binom_resource_not_available;
-    return getData()->remove(std::move(key));
-  }
+  Iterator begin();
+  Iterator end();
 
-  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key) {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return err::ErrorType::binom_resource_not_available;
-    return getData()->rename(std::move(old_key), std::move(new_key));
-  }
+  ReverseIterator rbegin();
+  ReverseIterator rend();
 
-  Variable getVariable(KeyValue key) {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return nullptr;
-    return getData()->getVariable(std::move(key));
-  }
+  ConstIterator begin() const noexcept;
+  ConstIterator end() const noexcept;
 
-  Variable operator[] (KeyValue key) {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return nullptr;
-    return getData()->getOrInsertNamedVariable(std::move(key)).getVariable();
-  }
+  ConstReverseIterator rbegin() const noexcept;
+  ConstReverseIterator rend() const noexcept;
 
-  const Variable getVariable(KeyValue key) const {
-    auto lk = getLock(MtxLockType::shared_locked);
-    if(!lk) return nullptr;
-    return getData()->getVariable(std::move(key));
-  }
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
 
-  const Variable operator[] (KeyValue key) const {
-    auto lk = getLock(MtxLockType::unique_locked);
-    if(!lk) return nullptr;
-    return getData()->getOrInsertNamedVariable(std::move(key)).getVariable();
-  }
-
-  Iterator begin() {return getData()->begin();}
-  Iterator end() {return getData()->end();}
-
-  ReverseIterator rbegin() {return getData()->rbegin();}
-  ReverseIterator rend() {return getData()->rend();}
-
-  inline ConstIterator begin() const noexcept {return cbegin();}
-  inline ConstIterator end() const noexcept {return cend();}
-
-  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
-  inline ConstReverseIterator rend() const noexcept {return crend();}
-
-  ConstIterator cbegin() const {return getData()->cbegin();}
-  ConstIterator cend() const {return getData()->cend();}
-
-  ConstReverseIterator crbegin() const {return getData()->crbegin();}
-  ConstReverseIterator crend() const {return getData()->crend();}
+  ConstReverseIterator crbegin() const;
+  ConstReverseIterator crend() const;
 
 };
 

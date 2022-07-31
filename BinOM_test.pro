@@ -17,6 +17,7 @@ SOURCES += test/test.cxx \
     libbinom/source/variables/doubly_linked_list.cxx \
     libbinom/source/variables/generic_value.cxx \
     libbinom/source/variables/key_value.cxx \
+    libbinom/source/variables/map.cxx \
     libbinom/source/variables/number.cxx \
     libbinom/source/variables/singly_linked_list.cxx \
     libbinom/source/variables/variable.cxx

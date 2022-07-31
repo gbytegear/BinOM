@@ -5,7 +5,7 @@ using namespace binom::priv;
 
 BufferArrayImplementation*& BufferArray::getData() const noexcept {return resource_link->data.buffer_array_implementation;}
 
-BufferArray::BufferArray(priv::Link&& link) : Variable(std::move(link)) {}
+BufferArray::BufferArray(Link&& link) : Variable(std::move(link)) {}
 
 BufferArray::BufferArray() noexcept : Variable(literals::ui8arr{}) {}
 BufferArray::BufferArray(const BufferArray& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
@@ -36,6 +36,26 @@ BufferArray::ValueRef BufferArray::operator[](size_t index) noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ValueRef(ValType::invalid_type, nullptr);
   return getData()->get(getValType(), index);
+}
+
+void BufferArray::remove(size_t at, size_t count) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk)
+    BufferArrayImplementation::remove(getData(), getBitWidth(), at, count);
+}
+
+void BufferArray::popBack(size_t count) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk)
+    BufferArrayImplementation::popBack(getData(), getBitWidth(), count);
+}
+
+void BufferArray::popFront(size_t count) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk)
+    BufferArrayImplementation::popFront(getData(), getBitWidth(), count);
+}
+
+void BufferArray::clear() {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk)
+    BufferArrayImplementation::clear(getData(), getBitWidth());
 }
 
 const BufferArray::ValueRef BufferArray::operator[](size_t index) const noexcept {

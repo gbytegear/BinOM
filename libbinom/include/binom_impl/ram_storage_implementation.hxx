@@ -39,7 +39,8 @@ public:
 
   static void popBack(BitArrayImplementation*& implementation, size_t size);
   static void popFront(BitArrayImplementation*& implementation, size_t size);
-  static void removeBits(priv::BitArrayImplementation*& implementation, size_t at, size_t count);
+  static void removeBits(BitArrayImplementation*& implementation, size_t at, size_t count);
+  static void clear(BitArrayImplementation*& implementation);
 
   static void shrinkToFit(BitArrayImplementation*& implementation);
 
@@ -203,7 +204,10 @@ public:
     return GenericValueIterator(type, data);
   }
 
+  static void popBack(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count);
+  static void popFront(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count);
   static void remove(BufferArrayImplementation*& implementation, VarBitWidth type, size_t at, size_t count);
+  static void clear(BufferArrayImplementation*& implementation, VarBitWidth type);
 
   void* getData() const;
 

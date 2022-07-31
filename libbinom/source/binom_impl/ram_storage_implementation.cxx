@@ -176,6 +176,11 @@ void BitArrayImplementation::removeBits(BitArrayImplementation*& implementation,
   }
 }
 
+void BitArrayImplementation::clear(BitArrayImplementation*& implementation) {
+  reduceSize(implementation, implementation->bit_size);
+  shrinkToFit(implementation);
+}
+
 void BitArrayImplementation::shrinkToFit(BitArrayImplementation*& implementation) {
   if(implementation->getByteSize() == implementation->capacity) return;
   implementation->capacity = sizeof(BitArrayImplementation) + implementation->getByteSize();
@@ -278,6 +283,14 @@ BufferArrayImplementation* BufferArrayImplementation::copy(const BufferArrayImpl
   return new(new byte[ sizeof(BufferArrayImplementation) + other->capacity ]) BufferArrayImplementation(*other);
 }
 
+void BufferArrayImplementation::popBack(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count) {
+  return remove(implementation, type, implementation->size - count, count);
+}
+
+void BufferArrayImplementation::popFront(BufferArrayImplementation*& implementation, VarBitWidth type, size_t count) {
+  return remove(implementation, type, 0, count);
+}
+
 void* BufferArrayImplementation::getData() const { return const_cast<void*>(reinterpret_cast<const void*>(this + 1)); }
 
 size_t BufferArrayImplementation::getSize() const noexcept {return size;}
@@ -343,6 +356,10 @@ void BufferArrayImplementation::remove(BufferArrayImplementation*& implementatio
           implementation->getDataAs<byte>() + from + rm_size,
           old_size - from - rm_size);
   return reduceSize(implementation, type, count);
+}
+
+void BufferArrayImplementation::clear(BufferArrayImplementation*& implementation, VarBitWidth type) {
+  return remove(implementation, type, 0, implementation->size);
 }
 
 void* BufferArrayImplementation::get(VarBitWidth type, size_t at) const {

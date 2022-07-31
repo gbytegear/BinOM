@@ -82,6 +82,7 @@ public:
   void popBack(size_t size = 1);
   void popFront(size_t size = 1);
   void remove(size_t at, size_t size = 1);
+  void clear();
 
   Iterator begin();
   Iterator end();

@@ -100,6 +100,12 @@ void BitArray::remove(size_t at, size_t size) {
   priv::BitArrayImplementation::removeBits(getData(), at, size);
 }
 
+void BitArray::clear() {
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return;
+  priv::BitArrayImplementation::clear(getData());
+}
+
 BitArray::Iterator BitArray::begin() {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return priv::Bits::getNullIterator();

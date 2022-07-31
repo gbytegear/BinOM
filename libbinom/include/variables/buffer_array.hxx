@@ -99,6 +99,12 @@ public:
     else return Iterator(ValType::invalid_type, nullptr);
   }
 
+  void remove(size_t at, size_t count = 1);
+  void popBack(size_t count = 1);
+  void popFront(size_t count = 1);
+  void clear();
+
+
   Iterator begin();
   Iterator end();
 
