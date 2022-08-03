@@ -44,6 +44,13 @@ class Number :
   const Map& toMap() const = delete;
 
 
+  Variable& operator=(const Variable& other) = delete;
+  Variable& operator=(Variable&& other) = delete;
+
+  Variable& changeLink(const Variable& other) = delete;
+  Variable& changeLink(Variable&& other) = delete;
+
+
   arithmetic::ArithmeticData& getArithmeticDataImpl() const;
   ValType getValTypeImpl() const;
 
