@@ -37,6 +37,12 @@ class Array : public Variable {
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
 
+  Variable& operator=(const Variable& other) = delete;
+  Variable& operator=(Variable&& other) = delete;
+
+  Variable& changeLink(const Variable& other) = delete;
+  Variable& changeLink(Variable&& other) = delete;
+
   priv::ArrayImplementation*& getData() const noexcept;
 
   friend class Variable;
@@ -54,6 +60,8 @@ public:
   Array(const Array&& other) noexcept;
 
   Array move() noexcept;
+  const Array move() const noexcept;
+
   size_t getElementCount() const noexcept;
   size_t getCapacity() const noexcept;
   size_t getSize() const noexcept;

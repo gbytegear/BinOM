@@ -71,6 +71,12 @@ class SinglyLinkedList : public Variable {
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
 
+  Variable& operator=(const Variable& other) = delete;
+  Variable& operator=(Variable&& other) = delete;
+
+  Variable& changeLink(const Variable& other) = delete;
+  Variable& changeLink(Variable&& other) = delete;
+
   priv::SinglyLinkedListImplementation*& getData() const noexcept;
 
   friend class Variable;

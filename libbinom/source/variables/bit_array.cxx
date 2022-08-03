@@ -4,6 +4,14 @@ using namespace binom;
 using namespace binom::priv;
 
 BitArrayImplementation*& BitArray::getData() const noexcept {return resource_link->data.bit_array_implementation;}
+
+const void* BitArray::getDataPointer() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return nullptr;
+  return getData()->getDataPointer();
+}
+
+
 BitArray::BitArray(priv::Link&& link) : Variable(std::move(link)) {}
 BitArray::BitArray() : Variable(literals::bitarr{}) {}
 BitArray::BitArray(const literals::bitarr bit_array) : Variable(bit_array) {}

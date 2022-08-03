@@ -48,6 +48,7 @@ public:
   size_t getBitSize() const noexcept;
   size_t getByteSize() const noexcept;
   Bits* getData() const noexcept;
+  const void* getDataPointer() const noexcept;
 
   template<typename T>
   inline T* getDataAs() const noexcept {
@@ -314,6 +315,7 @@ public:
   ~SinglyLinkedListImplementation();
 
   bool isEmpty();
+  bool isOwnIterator(Iterator it) const;
 
   void clear();
 
@@ -336,6 +338,8 @@ class DoublyLinkedListImplementation {
   size_t size = 0;
   Node* first = nullptr;
   Node* last = nullptr;
+
+
 public:
   class Iterator;
   typedef reverse_iterator::ReverseIterator<Iterator> ReverseIterator;
@@ -344,6 +348,7 @@ public:
   ~DoublyLinkedListImplementation();
 
   bool isEmpty();
+  bool isOwnIterator(Iterator it) const;
 
   void clear();
 

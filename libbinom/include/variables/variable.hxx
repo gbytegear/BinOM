@@ -5,7 +5,7 @@
 #include "../binom_impl/ram_storage_implementation.hxx"
 #include "generic_value.hxx"
 #include "../binom_impl/avl_tree.hxx"
-//#include "mutex"
+#include "../utils/memctrl.hxx"
 
 namespace binom {
 
@@ -20,6 +20,16 @@ protected:
 
   Variable(ResourceData data);
   Variable(Link&& link);
+
+  static void serializeImpl(const Variable& variable, BufferController& buffer);
+  static void serializeImpl(const Number& number, BufferController& buffer);
+  static void serializeImpl(const BitArray& bit_array, BufferController& buffer);
+  static void serializeImpl(const BufferArray& buffer_array, BufferController& buffer);
+  static void serializeImpl(const Array& array, BufferController& buffer);
+  static void serializeImpl(const SinglyLinkedList& sl_list, BufferController& buffer);
+  static void serializeImpl(const DoublyLinkedList& dl_list, BufferController& buffer);
+  static void serializeImpl(const Map& map, BufferController& buffer);
+  static void serializeImpl(const Table& bit_array, BufferController& buffer);
 
 public:
 
@@ -155,6 +165,11 @@ public:
 
   Variable& changeLink(const Variable& other);
   Variable& changeLink(Variable&& other);
+
+  BufferController serialize() const;
+
+  inline Variable& upcast() {return self;}
+  inline const Variable& upcast() const {return self;}
 };
 
 class NamedVariable {

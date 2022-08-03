@@ -11,6 +11,7 @@ using namespace binom::priv;
 
 Variable::Variable(ResourceData data) : resource_link(data) {}
 Variable::Variable(Link&& link) : resource_link(std::move(link)) {}
+
 Variable::Variable() noexcept : Variable(ResourceData{VarType::null, {.pointer = nullptr}}) {}
 Variable::Variable(decltype(nullptr)) noexcept : Variable(ResourceData{VarType::null, {.pointer = nullptr}}) {}
 Variable::Variable(bool value) noexcept : Variable(ResourceData{VarType::boolean, {.bool_val = value}}) {}

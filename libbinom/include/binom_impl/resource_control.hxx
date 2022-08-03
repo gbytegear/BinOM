@@ -40,8 +40,17 @@ struct ResourceData {
   Data data;
 };
 
+// File storage resource
+struct FileResourceIndex {
+  // Union of binom::file_storage::<TypeClass>Implementation (inherit from Base<TypeClass>Implementation)
+  union Index {/*TODO*/};
+  VarType type = VarType::null;
+  Index index;
+};
+
 struct SharedResource {
   ResourceData resource_data;
+
   std::atomic_uint64_t link_counter = 1;
   std::shared_mutex mtx;
 

@@ -18,6 +18,8 @@ Array::Array(const Array&& other) noexcept : Variable(dynamic_cast<const Variabl
 
 Array Array::move() noexcept {return Link(resource_link);}
 
+const Array Array::move() const noexcept {return Link(resource_link);}
+
 size_t Array::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return 0;

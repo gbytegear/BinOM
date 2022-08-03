@@ -28,7 +28,16 @@ class Map : public Variable {
   operator const SinglyLinkedList& () const = delete;
   operator const DoublyLinkedList& () const = delete;
 
+  Variable& operator=(const Variable& other) = delete;
+  Variable& operator=(Variable&& other) = delete;
+
+  Variable& changeLink(const Variable& other) = delete;
+  Variable& changeLink(Variable&& other) = delete;
+
   priv::MapImplementation* getData() const;
+
+  friend class Variable;
+  Map(priv::Link&& link);
 
 public:
   typedef priv::MapImplementation::Iterator             Iterator;
@@ -41,10 +50,11 @@ public:
   Map(const Map& other);
   Map(Map&& other);
 
+  Map move() noexcept;
+  const Map move() const noexcept;
+
   bool isEmpty() const noexcept;
-
-  size_t getSize() const noexcept;
-
+  size_t getElementCount() const noexcept;
   bool contains(KeyValue value) const noexcept;
 
   void clear();
@@ -74,6 +84,12 @@ public:
 
   ConstReverseIterator crbegin() const;
   ConstReverseIterator crend() const;
+
+  Map& operator=(const Map& other);
+  Map& operator=(Map&& other);
+
+  Map& changeLink(const Map& other);
+  Map& changeLink(Map&& other);
 
 };
 

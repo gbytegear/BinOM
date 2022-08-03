@@ -5,6 +5,8 @@ using namespace binom::priv;
 
 MapImplementation* Map::getData() const { return resource_link->data.map_implementation; }
 
+Map::Map(priv::Link&& link) : Variable(std::move(link)) {}
+
 Map::Map() : Variable(literals::map{}) {}
 
 Map::Map(literals::map element_list)
@@ -16,13 +18,16 @@ Map::Map(const Map& other)
 Map::Map(Map&& other)
   : Variable(std::move(other)) {}
 
+Map Map::move() noexcept {return Link(resource_link);}
+const Map Map::move() const noexcept {return Link(resource_link);}
+
 bool Map::isEmpty() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return 0;
   return getData()->isEmpty();
 }
 
-size_t Map::getSize() const noexcept {
+size_t Map::getElementCount() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return 0;
   return getData()->getSize();
@@ -105,3 +110,32 @@ Map::ConstIterator Map::cend() const {return getData()->cend();}
 Map::ConstReverseIterator Map::crbegin() const {return getData()->crbegin();}
 
 Map::ConstReverseIterator Map::crend() const {return getData()->crend();}
+
+
+Map& Map::operator=(const Map& other) {
+  if(this == &other) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+Map& Map::operator=(Map&& other) {
+  if(this == &other) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+Map& Map::changeLink(const Map& other) {
+  if(this == &other) return self;
+  this->~Map();
+  return *new(this) Map(other);
+}
+
+Map& Map::changeLink(Map&& other) {
+  if(this == &other) return self;
+  this->~Map();
+  return *new(this) Map(std::move(other));
+}

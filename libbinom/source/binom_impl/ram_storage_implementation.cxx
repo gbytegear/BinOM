@@ -2,7 +2,6 @@
 
 #include "libbinom/include/variables/variable.hxx"
 #include "libbinom/include/utils/util_functions.hxx"
-#include "libbinom/include/binom_impl/avl_tree.hxx"
 #include <cmath>
 
 using namespace binom;
@@ -251,6 +250,10 @@ size_t BitArrayImplementation::getByteSize() const noexcept {return calculateByt
 
 Bits* BitArrayImplementation::getData() const noexcept {
   return reinterpret_cast<Bits*>(const_cast<BitArrayImplementation*>(this)) + sizeof(BitArrayImplementation);
+}
+
+const void* BitArrayImplementation::getDataPointer() const noexcept {
+  return this + 1;
 }
 
 void BitArrayImplementation::operator delete(void* ptr) {return ::delete [] reinterpret_cast<byte*>(ptr);}
@@ -573,6 +576,13 @@ SinglyLinkedListImplementation::~SinglyLinkedListImplementation() {clear();}
 
 bool SinglyLinkedListImplementation::isEmpty() {return !first;}
 
+bool SinglyLinkedListImplementation::isOwnIterator(Iterator it) const {
+  if(it.node == first || it.node == last ||
+     it.prev == first || it.prev == last) return true;
+  for (++it;it.node;++it) if(it.node == last) return true;
+  return false;
+}
+
 void SinglyLinkedListImplementation::clear() {
   auto it = begin(), _end = end();
   while(it != _end) {
@@ -667,6 +677,19 @@ DoublyLinkedListImplementation::~DoublyLinkedListImplementation() {clear();}
 
 bool DoublyLinkedListImplementation::isEmpty() {return !first;}
 
+bool DoublyLinkedListImplementation::isOwnIterator(Iterator it) const {
+  /* WARNING:
+   * O(1) without this chek, but can have troubles;
+   * In current implementation way - checking complicaticity is O(n), but much secure;
+   * Second way - add pointer at list in every list nodes for this checking, but that way have O(n) memory overhead;
+   * TODO: Third way(best choice) - add pointer at list in every iterators for this checking,
+   * but that way have O(1) memory overhead.
+  */
+  if(it.node == first || it.node == last) return true;
+  for (++it;it.node;++it) if(it.node == last) return true;
+  return false;
+}
+
 void DoublyLinkedListImplementation::clear() {
   auto it = begin(), _end = end();
   while(it != _end) {
@@ -759,6 +782,12 @@ void DoublyLinkedListImplementation::popFront() {
 void DoublyLinkedListImplementation::remove(Iterator it) {
   if(it.node == first) return popFront();
   elif(it.node == last) return popBack();
+
+  if(!isOwnIterator(it)) return;
+
+  if(it.node->prev) it.node->prev->next = it.node->next;
+  if(it.node->next) it.node->next->prev = it.node->prev;
+  delete it.node;
 }
 
 DoublyLinkedListImplementation::Iterator DoublyLinkedListImplementation::begin() const {return Iterator(first);}
