@@ -17,9 +17,6 @@ public:
 
 private:
 
-  friend class binom::priv::AVLTree;
-  friend class binom::priv::AVLNode;
-  CompareResult getCompare(KeyValue& other) const;
 
   union Data {
     void* pointer = nullptr;
@@ -94,6 +91,8 @@ public:
   VarNumberType getNumberType() const noexcept;
   size_t getElementCount() const noexcept;
   size_t getElementSize() const noexcept;
+
+  CompareResult getCompare(KeyValue& other) const;
 
   Variable toVariable() const;
   Number toNumber() const;

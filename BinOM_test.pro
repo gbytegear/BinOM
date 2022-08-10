@@ -9,6 +9,7 @@ QMAKE_CXXFLAGS += -Wextra
 SOURCES += test/test.cxx \
     libbinom/source/binom_impl/avl_tree.cxx \
     libbinom/source/binom_impl/bits.cxx \
+    libbinom/source/binom_impl/multi_avl_tree.cxx \
     libbinom/source/binom_impl/ram_storage_implementation.cxx \
     libbinom/source/binom_impl/resource_control.cxx \
     libbinom/source/variables/array.cxx \
@@ -27,6 +28,7 @@ HEADERS += \
     libbinom/include/binom.hxx \
     libbinom/include/binom_impl/bits.hxx \
     libbinom/include/binom_impl/file_storage_implementation.hxx \
+    libbinom/include/binom_impl/multi_avl_tree.hxx \
     libbinom/include/binom_impl/ram_storage_implementation.hxx \
     libbinom/include/binom_impl/resource_control.hxx \
     libbinom/include/binom_impl/types.hxx \

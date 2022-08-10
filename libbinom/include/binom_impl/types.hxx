@@ -41,7 +41,8 @@ enum class VarType : ui8 {
   singly_linked_list      = 0x19, ///< Heterogeneous singly linked list
   doubly_linked_list      = 0x1A, ///< Heterogeneous doubly linked list
   map                     = 0x1B, ///< Associative heterogeneous container with key-sorted
-  table                   = 0x1C, ///< Multiple key-sorted associative heterogeneous container
+  multimap                = 0x1C, ///< Associative heterogeneous container with key-sorted
+  table                   = 0x1D, ///< Multiple key-sorted associative heterogeneous container
 
   separator               = 0x00, ///< End code
   invalid_type            = 0xFF  ///< Invalid type code
@@ -85,7 +86,8 @@ enum class VarTypeClass : ui8 {
   singly_linked_list      = 0x06,
   doubly_linked_list      = 0x07,
   map                     = 0x08,
-  table                   = 0x09,
+  multimap                = 0x09,
+  table                   = 0x0A,
 
   invalid_type            = int(VarType::invalid_type)
 };
@@ -164,6 +166,8 @@ inline VarTypeClass toTypeClass(VarType type) noexcept {
   case VarType::doubly_linked_list: return VarTypeClass::doubly_linked_list;
 
   case VarType::map: return VarTypeClass::map;
+
+  case VarType::multimap: return VarTypeClass::multimap;
 
   case VarType::table: return VarTypeClass::table;
 
@@ -530,6 +534,7 @@ class Array;
 class SinglyLinkedList;
 class DoublyLinkedList;
 class Map;
+class MultiMap;
 class Table;
 class KeyValue;
 

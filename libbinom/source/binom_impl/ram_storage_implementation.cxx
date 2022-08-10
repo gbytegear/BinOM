@@ -837,6 +837,8 @@ bool MapImplementation::isEmpty() const noexcept {return avl_tree.isEmpty();}
 
 size_t MapImplementation::getSize() const noexcept {return size;}
 
+bool MapImplementation::contains(KeyValue value) const {return avl_tree.get(value);}
+
 err::ProgressReport<NamedVariable> MapImplementation::insert(KeyValue key, Variable variable) {
   NamedVariable* named_variable = new NamedVariable(std::move(key), variable.move());
   if(!avl_tree.insert(&named_variable->node)) return err::ErrorType::binom_key_unique_error;

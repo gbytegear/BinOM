@@ -11,24 +11,46 @@
 * [ ] Implement container classes
   * [x] `binom::Number`
   * [x] `binom::BitArray`
+    * [x] `binom::BitArray::Value`
+    * [x] `binom::BitArray::Iterator`
+    * [x] `binom::BitArray::ReverseIterator`
   * [x] `binom::BufferArray`
+    * [x] `binom::BufferArray::GenericValueRef`
+    * [x] `binom::BufferArray::Iterator`
+    * [x] `binom::BufferArray::ReverseIterator`
   * [x] `binom::Array`
+    * [x] `binom::Array::Iterator`
+    * [x] `binom::Array::ReverseIterator`
   * [x] `binom::SinglyLinkedList`
+    * [x] `binom::SinglyLinkedList::Iterator`
   * [x] `binom::DoublyLinkedList`
+    * [x] `binom::DoublyLinkedList::Iterator`
+    * [x] `binom::DoublyLinkedList::ReverseIterator`
   * [x] `binom::Map`
     * [x] `binom::KeyValue`
     * [x] `binom::AVLTree`
       * [x] `binom::AVLTree::Node`
       * [x] `binom::AVLTree::Iterator`
     * [x] `binom::Map::Iterator`
+    * [x] `binom::Map::ReverseIterator`
+  * [ ] `binom::MultiMap`
+      * [x] `binom::MultiAVLTree`
+        * [x] `binom::MultiAVLTree::AVLKeyNode`
+            * [x] `binom::MultiAVLTree::AVLKeyNode::Iterator`
+            * [x] `binom::MultiAVLTree::AVLKeyNode::ReverseIterator`
+        * [x] `binom::MultiAVLTree::AVLNode`
+        * [x] `binom::MultiAVLTree::Iterator`
+        * [x] `binom::MultiAVLTree::ReverseIterator`
+    * [ ] `binom::MultiMap::Iterator`
+    * [ ] `binom::MultiMap::ReverseIterator`
   * [ ] `binom::Table`
     * [ ] `binom::TableDescriptor`
     * [ ] `binom::RowDescriptor`
     * [ ] `binom::Table::Header`
     * [ ] `binom::Table::Row`
-    * [ ] `binom::Table::Iterator`
-* [ ] Implement serialization of BinOM containers
-* [ ] Implement file storage
+    * [ ] `binom::Table::RowIterator`
+* [ ] Implement serialization/deserialization methods of BinOM containers
+* [ ] Implement file storage (DBMS)
   * [ ] File memory manager
   * [ ] File node accessor
 
@@ -83,7 +105,8 @@ make test -j
 * array - Heterogeneous array
 * singly_linked_list - Heterogeneous singly linked list
 * doubly_linked_list - Heterogeneous doubly linked list
-* map - Key-sorted associative heterogeneous container
+* map - Key-sorted associative heterogeneous container with unique key
+* multimap - Key-sorted associative heterogeneous container with non-unique key
 * table - Multiple key-sorted associative heterogeneous container
 
 ### KeyType:
@@ -120,7 +143,8 @@ make test -j
 * array - `binom::Array` - heterogeneous array;
 * singly_linked_list - `binom::SinglyLinkedList` - heterogeneous singly linked list;
 * doubly_linked_list - `binom::DoublyLinkedList` - heterogeneous doubly linked list;
-* map - `binom::Map` - Key-sorted associative heterogeneous containe;
+* map - `binom::Map` - Key-sorted associative heterogeneous containe with unique key;
+* multimap - `binom::MultiMap` - Key-sorted associative heterogeneous container with non-unique key;
 * table - `binom::Table` - Multiple key-sorted associative heterogeneous container
 
 #### Number value widths:
