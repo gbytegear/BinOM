@@ -45,7 +45,7 @@ void Map::clear() {
   return getData()->clear();
 }
 
-err::ProgressReport<NamedVariable> Map::insert(KeyValue key, Variable variable) {
+err::ProgressReport<Map::NamedVariable> Map::insert(KeyValue key, Variable variable) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return err::ErrorType::binom_resource_not_available;
   return getData()->insert(std::move(key), variable.move());
@@ -57,7 +57,7 @@ Error Map::remove(KeyValue key) {
   return getData()->remove(std::move(key));
 }
 
-err::ProgressReport<NamedVariable> Map::rename(KeyValue old_key, KeyValue new_key) {
+err::ProgressReport<Map::NamedVariable> Map::rename(KeyValue old_key, KeyValue new_key) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return err::ErrorType::binom_resource_not_available;
   return getData()->rename(std::move(old_key), std::move(new_key));

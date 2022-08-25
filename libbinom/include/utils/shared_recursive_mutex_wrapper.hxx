@@ -4,6 +4,7 @@
 #include "type_aliases.hxx"
 #include <shared_mutex>
 #include <map>
+#include <optional>
 
 namespace shared_recursive_mtx {
 using namespace type_alias;

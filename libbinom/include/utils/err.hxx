@@ -2,6 +2,7 @@
 #define ERR_HXX
 
 #include "type_aliases.hxx"
+#include <exception>
 
 namespace binom::err {
 
@@ -24,11 +25,17 @@ enum class ErrorType : ui8 {
   binom_key_unique_error,
 };
 
-class Error {
+class Error : public std::exception {
   ErrorType err_type;
 public:
-  constexpr Error(ErrorType code = ErrorType::no_error) : err_type(code) {}
-  const char* what() const noexcept;
+  Error(ErrorType code = ErrorType::no_error) : err_type(code) {}
+  Error(const Error& other) : err_type(other.err_type) {}
+  Error(Error&& other) : err_type(other.err_type) {}
+
+  Error& operator=(const Error& other) noexcept {err_type = other.err_type; return self;}
+  Error& operator=(Error&& other) noexcept {err_type = other.err_type; return self;}
+
+  const char* what() const noexcept override;
   inline ErrorType code() const noexcept {return err_type;}
   inline operator ErrorType() const noexcept {return err_type;}
   inline operator bool () const noexcept {return err_type != ErrorType::no_error;}
@@ -36,20 +43,20 @@ public:
 
 inline const char* Error::what() const noexcept {
   switch (err_type) {
-  case ErrorType::no_error: return                  "\n\r";
-  case ErrorType::out_of_range: return              "Out of range\n\r";
-  case ErrorType::file_open_error: return           "File open error\n\r";
-  case ErrorType::invalid_data: return              "Invalid data\n\r";
-  case ErrorType::null_ponter_dereference: return   "Trying to dereference null-pointer\n\r";
+  case ErrorType::no_error: return                  "";
+  case ErrorType::out_of_range: return              "Out of range";
+  case ErrorType::file_open_error: return           "File open error";
+  case ErrorType::invalid_data: return              "Invalid data";
+  case ErrorType::null_ponter_dereference: return   "Trying to dereference null-pointer";
 
-  case ErrorType::binom_invalid_type: return        "BinOM: Invalid BinOM type\n\r";
+  case ErrorType::binom_invalid_type: return        "BinOM: Invalid BinOM type";
   case ErrorType::binom_resource_not_available:
-  return                                            "BinOM: Variable resource isn't available\n\r";
-  case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range\n\r";
-  case ErrorType::binom_key_unique_error: return    "BinOM: Non-unique key\n\r";
+  return                                            "BinOM: Variable resource isn't available";
+  case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range";
+  case ErrorType::binom_key_unique_error: return    "BinOM: Non-unique key";
 
-  case ErrorType::any: return                       "Unknown exception\n\r";
-  default: return                                   "Invalid error codes\n\r";
+  case ErrorType::any: return                       "Unknown exception";
+  default: return                                   "Invalid error codes";
   }
 }
 
@@ -64,6 +71,9 @@ public:
   ProgressReport(ErrorType error_type, T& answer) : error(error_type), answer(&answer) {}
   ProgressReport(const ProgressReport<T>& other) : error(other.error), answer(other.answer) {}
   ProgressReport(ProgressReport<T>&& other) : error(other.error), answer(other.answer) {}
+
+  ProgressReport<T>& operator=(const ProgressReport<T>& other) noexcept { new(this) ProgressReport<T>(other); return self; }
+  ProgressReport<T>& operator=(ProgressReport<T>&& other) noexcept { new(this) ProgressReport<T>(other); return self; }
 
   inline operator bool () const noexcept {return error;}
   inline operator ErrorType () const noexcept {return error;}

@@ -121,23 +121,17 @@ private:
     AVLKeyNode& operator=(AVLKeyNode other);
 
     void pushBack(AVLNode* node);
-
     void pushFront(AVLNode* node);
-
     AVLNode& extract(Iterator it);
 
     size_t getElementCount() const noexcept;
+    bool isEmpty() const noexcept;
 
     bool isRoot() const noexcept;
-
     bool isLeft() const noexcept;
-
     bool isRight() const noexcept;
-
     bool hasLeft() const noexcept;
-
     bool hasRight() const noexcept;
-
     bool hasChild() const noexcept;
 
     KeyValue& getKey();
@@ -192,6 +186,8 @@ public:
     const AVLKeyNode& getKeyNode() const;
     AVLKeyNode::Iterator getKeyNodeIterator();
     const AVLKeyNode::Iterator getKeyNodeIterator() const;
+    KeyValue& getKey();
+    const KeyValue& getKey() const;
 
     bool operator==(Iterator other) const noexcept;
     bool operator!=(Iterator other) const noexcept;
@@ -232,6 +228,8 @@ public:
     const AVLKeyNode& getKeyNode() const;
     AVLKeyNode::ReverseIterator getKeyNodeIterator();
     const AVLKeyNode::ReverseIterator getKeyNodeIterator() const;
+    KeyValue& getKey();
+    const KeyValue& getKey() const;
 
     bool operator==(ReverseIterator other) const noexcept;
     bool operator!=(ReverseIterator other) const noexcept;
@@ -275,11 +273,16 @@ private:
 
 public:
 
+  struct NodePair {
+    AVLKeyNode* key_node;
+    AVLNode* node;
+  };
+
   enum class NewNodePosition : i8 {front = -1, back = 1};
 
   bool isEmpty() const noexcept;
 
-  AVLNode* insert(KeyValue key, AVLNode* new_node, NewNodePosition position = NewNodePosition::back);
+  NodePair insert(KeyValue key, AVLNode* new_node, NewNodePosition position = NewNodePosition::back);
 
   AVLNode* extract(Iterator it);
 
@@ -307,6 +310,7 @@ public:
   ConstReverseIterator crbegin() const noexcept;
   ConstReverseIterator crend() const noexcept;
 
+  void clear(std::function<void(AVLNode* deletable_element)> destructor = [](AVLNode* n){delete n;});
 
 };
 

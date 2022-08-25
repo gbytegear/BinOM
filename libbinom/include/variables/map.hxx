@@ -1,7 +1,7 @@
 #ifndef MAP_HXX
 #define MAP_HXX
 
-#include "variable.hxx"
+#include "named_variable.hxx"
 
 namespace binom {
 
@@ -40,6 +40,7 @@ class Map : public Variable {
   Map(priv::Link&& link);
 
 public:
+  using NamedVariable = binom::priv::MapImplementation::NamedVariable;
   typedef priv::MapImplementation::Iterator             Iterator;
   typedef priv::MapImplementation::ReverseIterator      ReverseIterator;
   typedef priv::MapImplementation::ConstIterator        ConstIterator;

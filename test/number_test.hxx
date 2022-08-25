@@ -15,13 +15,13 @@ void testNumber() {
   GRP_PUSH
 
       PRINT_RUN(Number _ui8_max = 255_ui8; Number _ui8_min = 0_ui8;)
-      PRINT_RUN(Number _i8_max = 127_i8; Number _i8_min = i8(-128_i8);)
+      PRINT_RUN(Number _i8_max = 127_i8; Number _i8_min = 128_ni8;)
       PRINT_RUN(Number _ui16_max = 65535_ui16; Number _ui16_min = 0_ui16;)
-      PRINT_RUN(Number _i16_max = 32767_i16; Number _i16_min = i16(-32768_i16);)
+      PRINT_RUN(Number _i16_max = 32767_i16; Number _i16_min = 32768_ni16;)
       PRINT_RUN(Number _ui32_max = 4294967295_ui32; Number _ui32_min = 0_ui32;)
-      PRINT_RUN(Number _i32_max = 2147483647_i32; Number _i32_min = i32(-2147483648_i32);)
+      PRINT_RUN(Number _i32_max = 2147483647_i32; Number _i32_min = 2147483648_ni32;)
       PRINT_RUN(Number _ui64_max = 18446744073709551615_ui64; Number _ui64_min = 0_ui64;)
-      PRINT_RUN(Number _i64_max = 9223372036854775807_i64; Number _i64_min = i64(-9223372036854775808_i64);)
+      PRINT_RUN(Number _i64_max = 9223372036854775807_i64; Number _i64_min = 9223372036854775808_ni64;)
 
     GRP_PUSH
       LOG("_ui8_min: " << int(_ui8_min) << " _ui8_max: " << int(_ui8_max))

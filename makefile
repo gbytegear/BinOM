@@ -1,9 +1,12 @@
-CC = gcc
-CXX = g++
+CC = gcc-11
+CXX = g++-11
 RM = rm -rf
 MKDIR = mkdir -p
-C_FLAGS = -O3 -fPIC -w
-CXX_FLAGS = -O3 -fPIC -w -std=c++17
+DEBUG_FLAGS = -g -Wall -Wextra
+# -Wshadow -Wformat=2 -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2
+NO_DEBUG_FLAGS = -w
+C_FLAGS = -O3 -fPIC $(DEBUG_FLAGS)
+CXX_FLAGS = -O3 -fPIC $(DEBUG_FLAGS) -std=c++20
 LD_FLAGS =
 LD_SHARED_FLAGS = -fPIC -shared
 LD_LIBS  = -lpthread
@@ -24,7 +27,9 @@ OBJECTS_CLEAN = $(shell find $(BUILD_DIR) -name "*.o")
 TEST_SOURCES = $(shell find $(TEST_SOURCES_PATH) -name "*.cxx")
 TEST_OBJECTS = $(addprefix $(BUILD_DIR)/test/, $(notdir $(TEST_SOURCES:.cxx=.o)))
 
-all: test lib
+all: lib build_test
+
+build_test: $(TEST_DIR)/$(TEST_EXEC)
 
 test: $(TEST_DIR)/$(TEST_EXEC)
 	$(TEST_DIR)/$(TEST_EXEC)

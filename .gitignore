@@ -33,6 +33,7 @@
 
 # Qt Profiles
 *.pro.*
+*.creator.user
 
 # Builded library
 build/*

@@ -5,7 +5,6 @@ using namespace binom::priv;
 
 // ============================================================ Node
 
-
 void AVLNode::swapPosition(AVLNode& other, AVLTree& avl_tree) {
   auto this_position = getPosition();
   auto other_position = other.getPosition();
@@ -367,7 +366,7 @@ AVLTree::ConstReverseIterator AVLTree::crbegin() const noexcept {return maxKeyNo
 
 AVLTree::ConstReverseIterator AVLTree::crend() const noexcept {return nullptr;}
 
-void AVLTree::traverseBottom2Top(std::function<void (AVLNode*)> func) {
+void AVLTree::clear(std::function<void(AVLNode*)> destructor) {
   AVLNode* node = minKeyNode();
   if(node->hasRight()) node = node->right;
   while(node) {
@@ -379,8 +378,9 @@ void AVLTree::traverseBottom2Top(std::function<void (AVLNode*)> func) {
       } elif(node->isLeft() || node->isRight())
           node = node->parent;
     } else node = nullptr;
-    func(last);
+    destructor(last);
   }
+  root = nullptr;
 }
 
 

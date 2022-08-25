@@ -20,9 +20,9 @@ void testGenericValue() {
       PRINT_RUN(GenericValue _ui16_max = 65535_ui16; GenericValue _ui16_min = 0_ui16;)
       PRINT_RUN(GenericValue _i16_max = 32767_i16; GenericValue _i16_min = i16(-32768_i16);)
       PRINT_RUN(GenericValue _ui32_max = 4294967295_ui32; GenericValue _ui32_min = 0_ui32;)
-      PRINT_RUN(GenericValue _i32_max = 2147483647_i32; GenericValue _i32_min = i32(-2147483648_i32);)
+      PRINT_RUN(GenericValue _i32_max = 2147483647_i32; GenericValue _i32_min = 2147483648_ni32;)
       PRINT_RUN(GenericValue _ui64_max = 18446744073709551615_ui64; GenericValue _ui64_min = 0_ui64;)
-      PRINT_RUN(GenericValue _i64_max = 9223372036854775807_i64; GenericValue _i64_min = i64(-9223372036854775808_i64);)
+      PRINT_RUN(GenericValue _i64_max = 9223372036854775807_i64; GenericValue _i64_min = 9223372036854775808_ni64;)
 
     GRP_PUSH
       LOG("_ui8_min: " << int(_ui8_min) << " _ui8_max: " << int(_ui8_max))

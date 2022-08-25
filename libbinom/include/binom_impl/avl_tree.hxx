@@ -176,7 +176,7 @@ public:
   ConstReverseIterator crbegin() const noexcept;
   ConstReverseIterator crend() const noexcept;
 
-  void traverseBottom2Top(std::function<void(AVLNode*)> func);
+  void clear(std::function<void(AVLNode* deletable_element)> destructor = [](AVLNode* n){delete n;});
 
 };
 

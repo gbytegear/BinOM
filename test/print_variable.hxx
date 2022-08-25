@@ -3,7 +3,7 @@
 
 #include "libbinom/include/variables/key_value.hxx"
 
-#include "libbinom/include/variables/variable.hxx"
+#include "libbinom/include/variables/named_variable.hxx"
 #include "libbinom/include/variables/number.hxx"
 #include "libbinom/include/variables/bit_array.hxx"
 #include "libbinom/include/variables/buffer_array.hxx"
@@ -41,52 +41,42 @@ class {
     case binom::VarKeyType::ui8_array:
       std::cout << "[ui8_array] ";
       for(auto value : value.toBufferArray()) std::cout << ui16(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::si8_array:
       std::cout << "[si8_array] ";
       for(auto value : value.toBufferArray()) std::cout << i16(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::ui16_array:
       std::cout << "[ui16_array] ";
       for(auto value : value.toBufferArray()) std::cout << ui16(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::si16_array:
       std::cout << "[si16_array] ";
       for(auto value : value.toBufferArray()) std::cout << i16(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::ui32_array:
       std::cout << "[ui32_array] ";
       for(auto value : value.toBufferArray()) std::cout << ui32(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::si32_array:
       std::cout << "[si32_array] ";
       for(auto value : value.toBufferArray()) std::cout << i32(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::f32_array:
       std::cout << "[f32_array] ";
       for(auto value : value.toBufferArray()) std::cout << f32(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::ui64_array:
       std::cout << "[ui64_array] ";
       for(auto value : value.toBufferArray()) std::cout << ui64(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::si64_array:
       std::cout << "[si64_array] ";
       for(auto value : value.toBufferArray()) std::cout << i64(value) << ' ';
-      std::cout;
     break;
     case binom::VarKeyType::f64_array:
       std::cout << "[f64_array] ";
       for(auto value : value.toBufferArray()) std::cout << f64(value) << ' ';
-      std::cout;
     break;
     default: std::cout << "<unexpected type>"; break;
     }

@@ -44,7 +44,7 @@ void testBufferArray() {
   BufferArray ui64_array = ui64arr{0,1,18446744073709551615ull};
   PRINT_RUN(printVariable(ui64_array));
   LOG("(bug in [r]): BufferArray i64_array = i64arr{0,1,9223372036854775807,-9223372036854775808_i64,-1};");
-  BufferArray i64_array = i64arr{0,1,9223372036854775807,-9223372036854775808_i64,-1};
+  BufferArray i64_array = i64arr{0,1,9223372036854775807,9223372036854775808_ni64,-1};
   PRINT_RUN(printVariable(i64_array));
   LOG("(bug in [r]): BufferArray f64_array = f64arr{0,1.7E-308,-1.7E-308};");
   BufferArray f64_array = f64arr{0,1.7E-308,-1.7E-308};

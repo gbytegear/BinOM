@@ -4,6 +4,8 @@
 
 #include "test/all_test.hxx"
 
+#include "libbinom/include/binom_impl/ram_storage_implementation/multi_map_impl.hxx"
+
 int main() {
   testTypesConversions();
   testGenericValue();
@@ -17,6 +19,15 @@ int main() {
   testRecursiveSharedMutex();
   testVariable(); // Not ended!
 #endif
+
+  enum class A {
+    a = 1,
+    b = 1,
+    c = 3
+  };
+
+  constexpr bool test = A::a == A::b;
+  UNUSED(test);
 
   testAllBugs();
 

@@ -4,6 +4,7 @@
 #include "../utils/memctrl.hxx"
 #include "../utils/heritable_initializer_list.hxx"
 
+#include <type_traits>
 #include <initializer_list>
 
 /// Binary Object Model
@@ -14,6 +15,9 @@ using namespace memctrl;
 
 /// BinOM Variable type codes
 enum class VarType : ui8 {
+  separator               = 0x00, ///< End code
+  invalid_type            = 0xFF, ///< Invalid type code
+
   null                    = 0x01, ///< NULL
   boolean                 = 0x02, ///< Boolean value
   ui8                     = 0x03, ///< Unsigned 8-bit integer number
@@ -44,11 +48,75 @@ enum class VarType : ui8 {
   multimap                = 0x1C, ///< Associative heterogeneous container with key-sorted
   table                   = 0x1D, ///< Multiple key-sorted associative heterogeneous container
 
-  separator               = 0x00, ///< End code
-  invalid_type            = 0xFF  ///< Invalid type code
+// Compile time defined C++ data types
+
+  char_t                  = std::is_signed_v<char> ? VarType::si8 : VarType::ui8,
+  uchar_t                 = VarType::ui8,
+  schar_t                 = VarType::si8,
+
+  int_t                   = sizeof (int) == 2 ? VarType::si16
+                          : sizeof (int) == 4 ? VarType::si32
+                          : sizeof (int) == 8 ? VarType::si64
+                          : VarType::invalid_type,
+  uint_t                  = sizeof (unsigned int) == 2 ? VarType::ui16
+                          : sizeof (unsigned int) == 4 ? VarType::ui32
+                          : sizeof (unsigned int) == 8 ? VarType::ui64
+                          : VarType::invalid_type,
+
+  short_t                 = sizeof (short) == 2 ? VarType::si16
+                          : sizeof (short) == 4 ? VarType::si32
+                          : sizeof (short) == 8 ? VarType::si64
+                          : VarType::invalid_type,
+  ushort_t                = sizeof (unsigned short) == 2 ? VarType::ui16
+                          : sizeof (unsigned short) == 4 ? VarType::ui32
+                          : sizeof (unsigned short) == 8 ? VarType::ui64
+                          : VarType::invalid_type,
+
+  long_t                  = sizeof (long) == 2 ? VarType::si16
+                          : sizeof (long) == 4 ? VarType::si32
+                          : sizeof (long) == 8 ? VarType::si64
+                          : VarType::invalid_type,
+  ulong_t                 = sizeof (unsigned long) == 2 ? VarType::ui16
+                          : sizeof (unsigned long) == 4 ? VarType::ui32
+                          : sizeof (unsigned long) == 8 ? VarType::ui64
+                          : VarType::invalid_type,
+
+  long_long_t             = sizeof (long long) == 2 ? VarType::si16
+                          : sizeof (long long) == 4 ? VarType::si32
+                          : sizeof (long long) == 8 ? VarType::si64
+                          : VarType::invalid_type,
+  ulong_long_t            = sizeof (unsigned long long) == 2 ? VarType::ui16
+                          : sizeof (unsigned long long) == 4 ? VarType::ui32
+                          : sizeof (unsigned long long) == 8 ? VarType::ui64
+                          : VarType::invalid_type,
+  float_t                 = VarType::f32,
+  long_float_t            = VarType::f64,
+  long_long_float_t       = sizeof (double) == sizeof (long double) ? VarType::f64
+                            : VarType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+
+  char_array              = int(int(VarType::char_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  uchar_array             = int(int(VarType::uchar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  schar_array             = int(int(VarType::schar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  int_array               = int(int(VarType::int_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  uint_array              = int(int(VarType::uint_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  short_array             = int(int(VarType::short_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  ushort_array            = int(int(VarType::ushort_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_array              = int(int(VarType::long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  ulong_array             = int(int(VarType::ulong_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_long_array         = int(int(VarType::long_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  ulong_long_array        = int(int(VarType::ulong_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  float_array             = int(int(VarType::float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_float_array        = int(int(VarType::long_float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_long_float_array   = sizeof (double) == sizeof (long double) ? VarType::f64_array
+                          : VarType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+
+  list                    = doubly_linked_list
 };
 
 enum class VarKeyType : ui8 {
+  separator               = int(VarType::separator),    ///< End code
+  invalid_type            = int(VarType::invalid_type), ///< Invalid type code
+
   null                    = int(VarType::null),       ///< NULL
   boolean                 = int(VarType::boolean),    ///< Boolean value
   ui8                     = int(VarType::ui8),        ///< Unsigned 8-bit integer number
@@ -73,8 +141,67 @@ enum class VarKeyType : ui8 {
   si64_array              = int(VarType::si64_array), ///< Array of signed 64-bit integer numbers
   f64_array               = int(VarType::f64_array),  ///< Array of 64-bit numbers with floating point
 
-  separator               = int(VarType::separator),    ///< End code
-  invalid_type            = int(VarType::invalid_type)  ///< Invalid type code
+// Compile time defined C++ data types
+
+  char_t                  = std::is_signed_v<char> ? VarKeyType::si8 : VarKeyType::ui8,
+  uchar_t                 = VarKeyType::ui8,
+  schar_t                 = VarKeyType::si8,
+
+  int_t                   = sizeof (int) == 2 ? VarKeyType::si16
+                          : sizeof (int) == 4 ? VarKeyType::si32
+                          : sizeof (int) == 8 ? VarKeyType::si64
+                          : VarKeyType::invalid_type,
+  uint_t                  = sizeof (unsigned int) == 2 ? VarKeyType::ui16
+                          : sizeof (unsigned int) == 4 ? VarKeyType::ui32
+                          : sizeof (unsigned int) == 8 ? VarKeyType::ui64
+                          : VarKeyType::invalid_type,
+
+  short_t                 = sizeof (short) == 2 ? VarKeyType::si16
+                          : sizeof (short) == 4 ? VarKeyType::si32
+                          : sizeof (short) == 8 ? VarKeyType::si64
+                          : VarKeyType::invalid_type,
+  ushort_t                = sizeof (unsigned short) == 2 ? VarKeyType::ui16
+                          : sizeof (unsigned short) == 4 ? VarKeyType::ui32
+                          : sizeof (unsigned short) == 8 ? VarKeyType::ui64
+                          : VarKeyType::invalid_type,
+
+  long_t                  = sizeof (long) == 2 ? VarKeyType::si16
+                          : sizeof (long) == 4 ? VarKeyType::si32
+                          : sizeof (long) == 8 ? VarKeyType::si64
+                          : VarKeyType::invalid_type,
+  ulong_t                 = sizeof (unsigned long) == 2 ? VarKeyType::ui16
+                          : sizeof (unsigned long) == 4 ? VarKeyType::ui32
+                          : sizeof (unsigned long) == 8 ? VarKeyType::ui64
+                          : VarKeyType::invalid_type,
+
+  long_long_t             = sizeof (long long) == 2 ? VarKeyType::si16
+                          : sizeof (long long) == 4 ? VarKeyType::si32
+                          : sizeof (long long) == 8 ? VarKeyType::si64
+                          : VarKeyType::invalid_type,
+  ulong_long_t            = sizeof (unsigned long long) == 2 ? VarKeyType::ui16
+                          : sizeof (unsigned long long) == 4 ? VarKeyType::ui32
+                          : sizeof (unsigned long long) == 8 ? VarKeyType::ui64
+                          : VarKeyType::invalid_type,
+  float_t                 = VarKeyType::f32,
+  long_float_t            = VarKeyType::f64,
+  long_long_float_t       = sizeof (double) == sizeof (long double) ? VarKeyType::f64
+                            : VarKeyType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+
+  char_array              = int(int(VarType::char_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  uchar_array             = int(int(VarType::uchar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  schar_array             = int(int(VarType::schar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  int_array               = int(int(VarType::int_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  uint_array              = int(int(VarType::uint_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  short_array             = int(int(VarType::short_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  ushort_array            = int(int(VarType::ushort_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_array              = int(int(VarType::long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  ulong_array             = int(int(VarType::ulong_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_long_array         = int(int(VarType::long_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  ulong_long_array        = int(int(VarType::ulong_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  float_array             = int(int(VarType::float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_float_array        = int(int(VarType::long_float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  long_long_float_array   = sizeof (double) == sizeof (long double) ? VarKeyType::f64_array
+                          : VarKeyType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
 };
 
 enum class VarTypeClass : ui8 {
@@ -110,6 +237,7 @@ enum class VarNumberType : ui8 {
 };
 
 enum class ValType : ui8 {
+  invalid_type            = int(VarType::invalid_type),
   boolean                 = int(VarType::boolean),
   ui8                     = int(VarType::ui8),
   si8                     = int(VarType::si8),
@@ -122,7 +250,51 @@ enum class ValType : ui8 {
   si64                    = int(VarType::si64),
   f64                     = int(VarType::f64),
 
-  invalid_type            = int(VarType::invalid_type)
+// Compile time defined C++ data types
+
+  char_t                  = std::is_signed_v<char> ? ValType::si8 : ValType::ui8,
+  uchar_t                 = ValType::ui8,
+  schar_t                 = ValType::si8,
+
+  int_t                   = sizeof (int) == 2 ? ValType::si16
+                          : sizeof (int) == 4 ? ValType::si32
+                          : sizeof (int) == 8 ? ValType::si64
+                          : ValType::invalid_type,
+  uint_t                  = sizeof (unsigned int) == 2 ? ValType::ui16
+                          : sizeof (unsigned int) == 4 ? ValType::ui32
+                          : sizeof (unsigned int) == 8 ? ValType::ui64
+                          : ValType::invalid_type,
+
+  short_t                 = sizeof (short) == 2 ? ValType::si16
+                          : sizeof (short) == 4 ? ValType::si32
+                          : sizeof (short) == 8 ? ValType::si64
+                          : ValType::invalid_type,
+  ushort_t                = sizeof (unsigned short) == 2 ? ValType::ui16
+                          : sizeof (unsigned short) == 4 ? ValType::ui32
+                          : sizeof (unsigned short) == 8 ? ValType::ui64
+                          : ValType::invalid_type,
+
+  long_t                  = sizeof (long) == 2 ? ValType::si16
+                          : sizeof (long) == 4 ? ValType::si32
+                          : sizeof (long) == 8 ? ValType::si64
+                          : ValType::invalid_type,
+  ulong_t                 = sizeof (unsigned long) == 2 ? ValType::ui16
+                          : sizeof (unsigned long) == 4 ? ValType::ui32
+                          : sizeof (unsigned long) == 8 ? ValType::ui64
+                          : ValType::invalid_type,
+
+  long_long_t             = sizeof (long long) == 2 ? ValType::si16
+                          : sizeof (long long) == 4 ? ValType::si32
+                          : sizeof (long long) == 8 ? ValType::si64
+                          : ValType::invalid_type,
+  ulong_long_t            = sizeof (unsigned long long) == 2 ? ValType::ui16
+                          : sizeof (unsigned long long) == 4 ? ValType::ui32
+                          : sizeof (unsigned long long) == 8 ? ValType::ui64
+                          : ValType::invalid_type,
+  float_t                 = ValType::f32,
+  long_float_t            = ValType::f64,
+  long_long_float_t       = sizeof (double) == sizeof (long double) ? ValType::f64
+                            : ValType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
 };
 
 
@@ -547,6 +719,7 @@ struct ArrayLiteral : public heritable_initializer_list::HeritableInitializerLis
 struct SinglyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct DoublyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
 struct MapLiteral : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
+struct MultiMapLiteral : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
 struct TableLiteral;
 
 }
@@ -566,6 +739,7 @@ typedef priv::ArrayLiteral                      arr;
 typedef priv::SinglyLinkedListLiteral           sllist;
 typedef priv::DoublyLinkedListLiteral           dllist;
 typedef priv::MapLiteral                        map;
+typedef priv::MultiMapLiteral                   multimap;
 typedef priv::TableLiteral                      table;
 
 }
