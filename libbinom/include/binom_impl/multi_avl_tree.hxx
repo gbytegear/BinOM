@@ -67,6 +67,8 @@ private:
       const Iterator& operator--() const;
       const Iterator operator--(int) const;
 
+      bool operator<=>(const Iterator&) const noexcept = default;
+
       bool operator==(Iterator other) const noexcept;
       bool operator!=(Iterator other) const noexcept;
 
@@ -98,6 +100,8 @@ private:
       const ReverseIterator operator++(int) const;
       const ReverseIterator& operator--() const;
       const ReverseIterator operator--(int) const;
+
+      bool operator<=>(const ReverseIterator&) const noexcept = default;
 
       bool operator==(ReverseIterator other) const noexcept;
       bool operator!=(ReverseIterator other) const noexcept;
@@ -168,6 +172,7 @@ public:
     Iterator(AVLKeyNode* key_node);
     Iterator(AVLKeyNode* key_node, AVLKeyNode::Iterator iterator);
   public:
+
     Iterator(const Iterator& other);
     Iterator(Iterator&& other);
 
@@ -189,6 +194,8 @@ public:
     KeyValue& getKey();
     const KeyValue& getKey() const;
 
+    bool operator<=>(const Iterator&) const noexcept = default;
+
     bool operator==(Iterator other) const noexcept;
     bool operator!=(Iterator other) const noexcept;
 
@@ -200,6 +207,27 @@ public:
 
     operator ReverseIterator();
     operator const ReverseIterator() const;
+
+    Iterator begin() noexcept;
+    Iterator end() noexcept;
+
+    ReverseIterator rbegin() noexcept;
+    ReverseIterator rend() noexcept;
+
+    const Iterator begin() const noexcept;
+    const Iterator end() const noexcept;
+
+    const ReverseIterator rbegin() const noexcept;
+    const ReverseIterator rend() const noexcept;
+
+    const Iterator cbegin() const noexcept;
+    const Iterator cend() const noexcept;
+
+    const ReverseIterator crbegin() const noexcept;
+    const ReverseIterator crend() const noexcept;
+
+    static Iterator nulliterator() noexcept {return {nullptr, nullptr};}
+
 
   };
 
@@ -231,6 +259,8 @@ public:
     KeyValue& getKey();
     const KeyValue& getKey() const;
 
+    bool operator<=>(const ReverseIterator&) const noexcept = default;
+
     bool operator==(ReverseIterator other) const noexcept;
     bool operator!=(ReverseIterator other) const noexcept;
 
@@ -242,6 +272,26 @@ public:
 
     operator Iterator();
     operator const Iterator() const;
+
+    Iterator rbegin() noexcept;
+    Iterator rend() noexcept;
+
+    ReverseIterator begin() noexcept;
+    ReverseIterator end() noexcept;
+
+    const Iterator rbegin() const noexcept;
+    const Iterator rend() const noexcept;
+
+    const ReverseIterator begin() const noexcept;
+    const ReverseIterator end() const noexcept;
+
+    const Iterator crbegin() const noexcept;
+    const Iterator crend() const noexcept;
+
+    const ReverseIterator cbegin() const noexcept;
+    const ReverseIterator cend() const noexcept;
+
+    static ReverseIterator nulliterator() noexcept {return {nullptr, nullptr};}
 
   };
 
@@ -291,6 +341,10 @@ public:
   Iterator find(KeyValue key) const;
 
   Iterator findLast(KeyValue key) const;
+
+  ReverseIterator rfind(KeyValue key) const;
+
+  ReverseIterator rfindLast(KeyValue key) const;
 
   Iterator begin() noexcept;
   Iterator end() noexcept;

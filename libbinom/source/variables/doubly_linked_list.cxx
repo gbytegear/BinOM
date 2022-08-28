@@ -67,6 +67,12 @@ bool DoublyLinkedList::isEmpty() const {
   else return true;
 }
 
+size_t DoublyLinkedList::getElementCount() const {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->getElementCount();
+  else return 0;
+}
+
 DoublyLinkedList DoublyLinkedList::move() noexcept {return Link(resource_link);}
 const DoublyLinkedList DoublyLinkedList::move() const noexcept {return Link(resource_link);}
 

@@ -83,6 +83,14 @@ Variable MapImplementation::getVariable(KeyValue key) {
   return named_variable->getVariable();
 }
 
+MapImplementation::Iterator MapImplementation::find(KeyValue key) { return Iterator(avl_tree.get(std::move(key))); }
+
+MapImplementation::ReverseIterator MapImplementation::rfind(KeyValue key) { return ReverseIterator(avl_tree.get(std::move(key))); }
+
+MapImplementation::ConstIterator MapImplementation::find(KeyValue key) const { return ConstIterator(avl_tree.get(std::move(key))); }
+
+MapImplementation::ConstReverseIterator MapImplementation::rfind(KeyValue key) const { return ConstReverseIterator(avl_tree.get(std::move(key))); }
+
 void MapImplementation::clear() {
   avl_tree.clear([](AVLNode* node) { delete convert(node); });
 }

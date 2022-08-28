@@ -14,6 +14,8 @@ SinglyLinkedListImplementation::~SinglyLinkedListImplementation() {clear();}
 
 bool SinglyLinkedListImplementation::isEmpty() {return !first;}
 
+size_t SinglyLinkedListImplementation::getElementCount() const noexcept {return size;}
+
 bool SinglyLinkedListImplementation::isOwnIterator(Iterator it) const {
   if(it.node == first || it.node == last ||
      it.prev == first || it.prev == last) return true;

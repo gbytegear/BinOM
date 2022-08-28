@@ -12,6 +12,7 @@ class BufferArray : public Variable {
   operator SinglyLinkedList& () = delete;
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
+  operator MultiMap& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -20,6 +21,7 @@ class BufferArray : public Variable {
   SinglyLinkedList& toSinglyLinkedList() = delete;
   DoublyLinkedList& toDoublyLinkedList() = delete;
   Map& toMap() = delete;
+  MultiMap& toMultiMap() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -27,6 +29,7 @@ class BufferArray : public Variable {
   operator const SinglyLinkedList& () const = delete;
   operator const DoublyLinkedList& () const = delete;
   operator const Map& () const = delete;
+  operator const MultiMap& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -35,6 +38,7 @@ class BufferArray : public Variable {
   const SinglyLinkedList& toSinglyLinkedList() const = delete;
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
+  const MultiMap& toMultiMap() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;
@@ -57,7 +61,8 @@ public:
 
   BufferArray() noexcept;
   template<typename T>
-  BufferArray(const std::initializer_list<T> init_list) noexcept : Variable(init_list) {static_assert (std::is_arithmetic_v<T>);}
+  requires std::is_arithmetic_v<T>
+  BufferArray(const std::initializer_list<T> init_list) noexcept : Variable(init_list) {}
   BufferArray(const BufferArray& other) noexcept;
   BufferArray(const BufferArray&& other) noexcept;
 

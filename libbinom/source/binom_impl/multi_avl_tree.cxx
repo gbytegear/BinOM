@@ -480,6 +480,30 @@ MultiAVLTree::Iterator MultiAVLTree::findLast(KeyValue key) const {
   }
 }
 
+MultiAVLTree::ReverseIterator MultiAVLTree::rfind(KeyValue key) const {
+  AVLKeyNode* key_node = root;
+  forever {
+    if(!key_node) return nullptr;
+
+    auto cmp = key.getCompare(key_node->key);
+    if(cmp == KeyValue::lower) {key_node = key_node->left; continue;}
+    elif(cmp == KeyValue::highter) {key_node = key_node->left; continue;}
+    else return Iterator(key_node); // Node is finded
+  }
+}
+
+MultiAVLTree::ReverseIterator MultiAVLTree::rfindLast(KeyValue key) const {
+  AVLKeyNode* key_node = root;
+  forever {
+    if(!key_node) return nullptr;
+
+    auto cmp = key.getCompare(key_node->key);
+    if(cmp == KeyValue::lower) {key_node = key_node->left; continue;}
+    elif(cmp == KeyValue::highter) {key_node = key_node->left; continue;}
+    else return Iterator(key_node, key_node->rbegin()); // Node is finded
+  }
+}
+
 MultiAVLTree::Iterator MultiAVLTree::begin() noexcept {return minKeyNode();}
 
 MultiAVLTree::Iterator MultiAVLTree::end() noexcept {return nullptr;}
@@ -646,6 +670,30 @@ MultiAVLTree::Iterator::operator ReverseIterator() {return ReverseIterator(key_n
 
 MultiAVLTree::Iterator::operator const ReverseIterator() const {return ReverseIterator(key_node, iterator);}
 
+MultiAVLTree::Iterator MultiAVLTree::Iterator::begin() noexcept {return key_node;}
+
+MultiAVLTree::Iterator MultiAVLTree::Iterator::end() noexcept {return Iterator(key_node, --key_node->rbegin());}
+
+MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rbegin() noexcept {return key_node;}
+
+MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rend() noexcept {return ReverseIterator(key_node, --key_node->begin());}
+
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::begin() const noexcept {return key_node;}
+
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::end() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rbegin() const noexcept {return key_node;}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rend() const noexcept {return ReverseIterator(key_node, --key_node->begin());}
+
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::cbegin() const noexcept {return key_node;}
+
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::cend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::crbegin() const noexcept {return key_node;}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::crend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+
 
 // ======================================================== MultiAVLTree::ReverseIterator
 
@@ -762,3 +810,27 @@ const MultiAVLTree::AVLNode* MultiAVLTree::ReverseIterator::operator->() const n
 MultiAVLTree::ReverseIterator::operator Iterator() {return Iterator(key_node, reverse_iterator);}
 
 MultiAVLTree::ReverseIterator::operator const Iterator() const {return Iterator(key_node, reverse_iterator);}
+
+MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rbegin() noexcept {return key_node;}
+
+MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rend() noexcept {return Iterator(key_node, --key_node->rbegin());}
+
+MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::begin() noexcept {return key_node;}
+
+MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::end() noexcept {return ReverseIterator(key_node, --key_node->begin());}
+
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rbegin() const noexcept {return key_node;}
+
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::begin() const noexcept {return key_node;}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::end() const noexcept {return ReverseIterator(key_node, --key_node->begin());}
+
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::crbegin() const noexcept {return key_node;}
+
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::crend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::cbegin() const noexcept {return key_node;}
+
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::cend() const noexcept {return Iterator(key_node, --key_node->rbegin());}

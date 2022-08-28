@@ -70,9 +70,33 @@ Variable Map::getVariable(KeyValue key) {
 }
 
 Variable Map::operator[](KeyValue key) {
-  auto lk = getLock(MtxLockType::unique_locked);
+  auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return nullptr;
   return getData()->getOrInsertNamedVariable(std::move(key)).getVariable();
+}
+
+Map::Iterator Map::find(KeyValue key) {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator(priv::AVLTree::Iterator(nullptr));
+  return getData()->find(std::move(key));
+}
+
+Map::ReverseIterator Map::rfind(KeyValue key) {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator(priv::AVLTree::ReverseIterator(nullptr));
+  return getData()->rfind(std::move(key));
+}
+
+Map::ConstIterator Map::find(KeyValue key) const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator(priv::AVLTree::Iterator(nullptr));
+  return getData()->find(std::move(key));
+}
+
+Map::ConstReverseIterator Map::rfind(KeyValue key) const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator(priv::AVLTree::ReverseIterator(nullptr));
+  return getData()->rfind(std::move(key));
 }
 
 const Variable Map::getVariable(KeyValue key) const {
@@ -87,29 +111,53 @@ const Variable Map::operator[](KeyValue key) const {
   return getData()->getOrInsertNamedVariable(std::move(key)).getVariable();
 }
 
-Map::Iterator Map::begin() {return getData()->begin();}
+Map::Iterator Map::begin() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->begin();
+}
 
-Map::Iterator Map::end() {return getData()->end();}
+Map::Iterator Map::end() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->end();
+}
 
-Map::ReverseIterator Map::rbegin() {return getData()->rbegin();}
+Map::ReverseIterator Map::rbegin() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator::nulliterator();
+  return getData()->rbegin();
+}
 
-Map::ReverseIterator Map::rend() {return getData()->rend();}
+Map::ReverseIterator Map::rend() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator::nulliterator();
+  return getData()->rend();
+}
 
-Map::ConstIterator Map::begin() const noexcept {return cbegin();}
+Map::ConstIterator Map::begin() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->begin();
+}
 
-Map::ConstIterator Map::end() const noexcept {return cend();}
+Map::ConstIterator Map::end() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->end();
+}
 
-Map::ConstReverseIterator Map::rbegin() const noexcept {return crbegin();}
+Map::ConstReverseIterator Map::rbegin() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator::nulliterator();
+  return getData()->rbegin();
+}
 
-Map::ConstReverseIterator Map::rend() const noexcept {return crend();}
-
-Map::ConstIterator Map::cbegin() const {return getData()->cbegin();}
-
-Map::ConstIterator Map::cend() const {return getData()->cend();}
-
-Map::ConstReverseIterator Map::crbegin() const {return getData()->crbegin();}
-
-Map::ConstReverseIterator Map::crend() const {return getData()->crend();}
+Map::ConstReverseIterator Map::rend() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator::nulliterator();
+  return getData()->rend();
+}
 
 
 Map& Map::operator=(const Map& other) {

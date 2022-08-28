@@ -13,6 +13,8 @@ DoublyLinkedListImplementation::~DoublyLinkedListImplementation() {clear();}
 
 bool DoublyLinkedListImplementation::isEmpty() {return !first;}
 
+size_t DoublyLinkedListImplementation::getElementCount() const noexcept {return size;}
+
 bool DoublyLinkedListImplementation::isOwnIterator(Iterator it) const {
   /* WARNING:
    * O(1) without this chek, but can have troubles;

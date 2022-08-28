@@ -100,6 +100,11 @@ binom::GenericValueIterator& binom::GenericValueIterator::operator--() noexcept 
   return self;
 }
 
+binom::GenericValueIterator binom::GenericValueIterator::operator+(ssize_t shift) noexcept { return GenericValueIterator(self) += shift; }
+binom::GenericValueIterator binom::GenericValueIterator::operator-(ssize_t shift) noexcept { return GenericValueIterator(self) += shift; }
+const binom::GenericValueIterator binom::GenericValueIterator::operator+(ssize_t shift) const noexcept { return GenericValueIterator(self) += shift; }
+const binom::GenericValueIterator binom::GenericValueIterator::operator-(ssize_t shift) const noexcept { return GenericValueIterator(self) += shift; }
+
 const binom::GenericValueIterator& binom::GenericValueIterator::operator++() const noexcept {
   switch (toBitWidth(value_type)) {
   case binom::VarBitWidth::byte: ++ptr.ui8_ptr; break;
@@ -223,6 +228,9 @@ bool binom::GenericValueIterator::operator==(const GenericValueIterator& other) 
 bool binom::GenericValueIterator::operator!=(const GenericValueIterator& other) const noexcept {return ptr.ptr != other.ptr.ptr;}
 
 binom::GenericValueRef binom::GenericValueIterator::operator*() noexcept {return GenericValueRef(value_type, ptr.ptr);}
+
+binom::GenericValueRef binom::GenericValueIterator::operator[](ssize_t shift) noexcept {return *(self + shift);}
+const binom::GenericValueRef binom::GenericValueIterator::operator[](ssize_t shift) const noexcept {return *(self + shift);}
 
 const binom::GenericValueRef binom::GenericValueIterator::operator*() const noexcept {return GenericValueRef(value_type, ptr.ptr);}
 

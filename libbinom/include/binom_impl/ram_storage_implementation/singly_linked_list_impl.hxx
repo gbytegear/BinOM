@@ -17,6 +17,7 @@ public:
   ~SinglyLinkedListImplementation();
 
   bool isEmpty();
+  size_t getElementCount() const noexcept;
   bool isOwnIterator(Iterator it) const;
 
   void clear();

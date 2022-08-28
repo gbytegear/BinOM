@@ -17,6 +17,7 @@ class BitArrayImplementation {
   static BitIterator insertBits(priv::BitArrayImplementation*& implementation, size_t at, size_t count);
 public:
   static BitArrayImplementation* create(const literals::bitarr& bit_array_data);
+//  static BitArrayImplementation* create()
   static BitArrayImplementation* copy(const BitArrayImplementation* other);
 
   static size_t calculateByteSize(size_t bit_count) noexcept;

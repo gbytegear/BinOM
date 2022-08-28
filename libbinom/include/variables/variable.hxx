@@ -5,6 +5,7 @@
 #include "../binom_impl/ram_storage_implementation.hxx"
 #include "generic_value.hxx"
 #include "../binom_impl/avl_tree.hxx"
+#include "../binom_impl/multi_avl_tree.hxx"
 #include "../utils/memctrl.hxx"
 
 namespace binom {
@@ -21,17 +22,19 @@ protected:
   Variable(ResourceData data);
   Variable(Link&& link);
 
-  static void serializeImpl(const Variable& variable, BufferController& buffer);
-  static void serializeImpl(const Number& number, BufferController& buffer);
-  static void serializeImpl(const BitArray& bit_array, BufferController& buffer);
-  static void serializeImpl(const BufferArray& buffer_array, BufferController& buffer);
-  static void serializeImpl(const Array& array, BufferController& buffer);
-  static void serializeImpl(const SinglyLinkedList& sl_list, BufferController& buffer);
-  static void serializeImpl(const DoublyLinkedList& dl_list, BufferController& buffer);
-  static void serializeImpl(const Map& map, BufferController& buffer);
-  static void serializeImpl(const Table& bit_array, BufferController& buffer);
+//  static void serializeImpl(const Variable& variable, std::vector<byte>& buffer);
+//  static void serializeImpl(const Number& number, std::vector<byte>& buffer);
+//  static void serializeImpl(const BitArray& bit_array, std::vector<byte>& buffer);
+//  static void serializeImpl(const BufferArray& buffer_array, std::vector<byte>& buffer);
+//  static void serializeImpl(const Array& array, std::vector<byte>& buffer);
+//  static void serializeImpl(const SinglyLinkedList& sl_list, std::vector<byte>& buffer);
+//  static void serializeImpl(const DoublyLinkedList& dl_list, std::vector<byte>& buffer);
+//  static void serializeImpl(const Map& map, std::vector<byte>& buffer);
+//  static void serializeImpl(const Table& bit_array, std::vector<byte>& buffer);
 
 public:
+  using NewNodePosition = binom::priv::MultiAVLTree::NewNodePosition;
+//  using TransactionLock = shared_recursive_mtx::TransactionLock;
 
   // Null
   Variable() noexcept;
@@ -56,6 +59,10 @@ public:
   Variable(const literals::bitarr bit_array);
 
   // BufferArray
+  template<class CharT>
+  Variable(const std::basic_string_view<CharT> str) {
+
+  }
   Variable(const literals::ui8arr ui8_array);
   Variable(const literals::i8arr i8_array);
   Variable(const literals::ui16arr ui16_array);
@@ -79,6 +86,9 @@ public:
   // Map
   Variable(const literals::map map);
 
+  // MultiMap
+  Variable(const literals::multimap multimap, NewNodePosition pos = NewNodePosition::back);
+
   // Move & Copy
   Variable(Variable&& other) noexcept;
   Variable(const Variable& other) noexcept;
@@ -88,32 +98,7 @@ public:
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
-//  template<class... Var>
-//  static void transaction(Var&... vars) {
-//    static_assert ((std::is_same_v<Variable, std::remove_reference_t<Var>> && ...) ||
-//                   (std::is_base_of_v<Variable, std::remove_reference_t<Var>> && ...));
-//    std::lock((vars.getMutex())...);
-//  }
-
-//  template<class... Var>
-//  class Transaction {
-//    std::tuple<Var...> variables;
-//    bool locked = true;
-//  public:
-//    Transaction(Var&... vars) : variables(vars...) {
-//      static_assert ((std::is_same_v<Variable, std::remove_reference_t<Var>> && ...) ||
-//                     (std::is_base_of_v<Variable, std::remove_reference_t<Var>> && ...));
-//      std::lock((vars.getMutex())...);
-//    }
-
-//    void unlock() {
-//      if(locked)std::apply([](auto&... vars) {((vars.getMutex().unlock()),...);}, variables);
-//      locked = false;
-//    }
-
-//    ~Transaction() {unlock();}
-//  };
-
+//  static TransactionLock makeTransaction(std::list<Variable&> variables, MtxLockType lock_type = MtxLockType::unique_locked);
 
   // Properties
   bool isResourceExist() const noexcept;
@@ -134,6 +119,7 @@ public:
   operator SinglyLinkedList& ();
   operator DoublyLinkedList& ();
   operator Map& ();
+  operator MultiMap& ();
 
   operator const Number& () const;
   operator const BitArray& () const;
@@ -142,6 +128,7 @@ public:
   operator const SinglyLinkedList& () const;
   operator const DoublyLinkedList& () const;
   operator const Map& () const;
+  operator const MultiMap& () const;
 
   // Downcast methods
   Number& toNumber();
@@ -151,6 +138,7 @@ public:
   SinglyLinkedList& toSinglyLinkedList();
   DoublyLinkedList& toDoublyLinkedList();
   Map& toMap();
+  MultiMap& toMultiMap();
 
   const Number& toNumber() const;
   const BitArray& toBitArray() const;
@@ -159,6 +147,7 @@ public:
   const SinglyLinkedList& toSinglyLinkedList() const;
   const DoublyLinkedList& toDoublyLinkedList() const;
   const Map& toMap() const;
+  const MultiMap& toMultiMap() const;
 
   Variable& operator=(const Variable& other);
   Variable& operator=(Variable&& other);
@@ -166,7 +155,8 @@ public:
   Variable& changeLink(const Variable& other);
   Variable& changeLink(Variable&& other);
 
-  BufferController serialize() const;
+  std::vector<byte> serialize() const;
+  void serializeToStraem(std::ostream& os) const;
 
   inline Variable& upcast() {return self;}
   inline const Variable& upcast() const {return self;}

@@ -134,6 +134,11 @@ public:
   const GenericValueIterator& operator++() const noexcept;
   const GenericValueIterator& operator--() const noexcept;
 
+  GenericValueIterator operator+(ssize_t) noexcept;
+  GenericValueIterator operator-(ssize_t) noexcept;
+  const GenericValueIterator operator+(ssize_t) const noexcept;
+  const GenericValueIterator operator-(ssize_t) const noexcept;
+
   GenericValueIterator operator++(int) noexcept;
   GenericValueIterator operator--(int) noexcept;
 
@@ -153,6 +158,9 @@ public:
 
   GenericValueRef operator*() noexcept;
   const GenericValueRef operator*() const noexcept;
+
+  GenericValueRef operator[](ssize_t) noexcept;
+  const GenericValueRef operator[](ssize_t) const noexcept;
 
 };
 

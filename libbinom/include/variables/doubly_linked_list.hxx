@@ -60,6 +60,7 @@ class DoublyLinkedList : public Variable {
   operator Array& () = delete;
   operator SinglyLinkedList& () = delete;
   operator Map& () = delete;
+  operator MultiMap& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -68,6 +69,7 @@ class DoublyLinkedList : public Variable {
   SinglyLinkedList& toSinglyLinkedList() = delete;
   DoublyLinkedList& toDoublyLinkedList() = delete;
   Map& toMap() = delete;
+  MultiMap& toMultiMap() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -75,6 +77,7 @@ class DoublyLinkedList : public Variable {
   operator const Array& () const = delete;
   operator const SinglyLinkedList& () const = delete;
   operator const Map& () const = delete;
+  operator const MultiMap& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -83,6 +86,7 @@ class DoublyLinkedList : public Variable {
   const SinglyLinkedList& toSinglyLinkedList() const = delete;
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
+  const MultiMap& toMultiMap() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;
@@ -106,6 +110,7 @@ public:
   DoublyLinkedList(const DoublyLinkedList&& other) noexcept;
 
   bool isEmpty() const;
+  size_t getElementCount() const;
 
   DoublyLinkedList move() noexcept;
   const DoublyLinkedList move() const noexcept;

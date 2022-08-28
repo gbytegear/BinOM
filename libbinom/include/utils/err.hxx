@@ -63,18 +63,45 @@ inline const char* Error::what() const noexcept {
 template<typename T>
 class ProgressReport {
   Error error;
+  byte data[sizeof(T)] = {};
   T* answer = nullptr;
+
+  T* getData() noexcept {return reinterpret_cast<T*>(data);}
+  const T* getData() const noexcept {return reinterpret_cast<const T*>(data);}
+
 public:
   ProgressReport(T* answer_ptr) : error(ErrorType::no_error), answer(answer_ptr) {}
-  ProgressReport(T& answer) : error(ErrorType::no_error), answer(&answer) {}
+  ProgressReport(const T& answer) : error(ErrorType::no_error), answer(getData()) {new(getData()) T(answer);}
+  ProgressReport(T&& answer) : error(ErrorType::no_error), answer(getData()) {new(getData()) T(std::move(answer));}
   ProgressReport(ErrorType error_type, T* answer_ptr = nullptr) : error(error_type), answer(answer_ptr) {}
-  ProgressReport(ErrorType error_type, T& answer) : error(error_type), answer(&answer) {}
-  ProgressReport(const ProgressReport<T>& other) : error(other.error), answer(other.answer) {}
-  ProgressReport(ProgressReport<T>&& other) : error(other.error), answer(other.answer) {}
+  ProgressReport(ErrorType error_type, const T& answer) : error(error_type), answer(getData()) {new(getData()) T(answer);}
+  ProgressReport(ErrorType error_type, T&& answer) : error(error_type), answer(getData()) {new(getData()) T(std::move(answer));}
+
+  ProgressReport(const ProgressReport<T>& other) : error(other.error) {
+    if(other.isInThisLocated()) {
+      new(data.instance) T(other.data.instance);
+      answer = &data.instance;
+    } else {
+      answer = other.answer;
+    }
+  }
+
+  ProgressReport(ProgressReport<T>&& other) : error(other.error) {
+    if(other.isInThisLocated()) {
+      new(data.instance) T(std::move(other.data.instance));
+      answer = &data.instance;
+    } else {
+      answer = other.answer;
+    }
+  }
+
+  ~ProgressReport() { if(isInThisInstanceAnswerLocated()) delete answer; }
 
   ProgressReport<T>& operator=(const ProgressReport<T>& other) noexcept { new(this) ProgressReport<T>(other); return self; }
   ProgressReport<T>& operator=(ProgressReport<T>&& other) noexcept { new(this) ProgressReport<T>(other); return self; }
 
+  inline bool isInThisInstanceAnswerLocated() const noexcept { return answer == getData(); }
+  inline bool hasAnswer() const noexcept { return answer; }
   inline operator bool () const noexcept {return error;}
   inline operator ErrorType () const noexcept {return error;}
   inline ErrorType getErrorCode() const noexcept {return error;}

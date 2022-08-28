@@ -8,10 +8,7 @@ namespace binom::priv {
 
 class MultiMapImplementation {
 
-  struct MultiMapNode {
-    MultiAVLTree::AVLNode node;
-    Variable variable;
-  };
+  struct MultiMapNode;
 
 public:
 
@@ -22,7 +19,9 @@ public:
     const T& operator*() const noexcept {return value;}
     T* operator->() noexcept {return &value;}
     const T* operator->() const noexcept {return &value;}
-  }
+  };
+
+  class ReverseIterator;
 
   class NamedVariable;
 
@@ -57,6 +56,26 @@ public:
 
     const NamedVariable operator*() const;
     const PseudoPointer<NamedVariable> operator->() const;
+
+    inline Iterator begin() noexcept {return iterator.begin();}
+    inline Iterator end() noexcept {return iterator.end();}
+
+    inline ReverseIterator rbegin() noexcept {return iterator.rbegin();}
+    inline ReverseIterator rend() noexcept {return iterator.rend();}
+
+    inline Iterator begin() const noexcept {return cbegin();}
+    inline Iterator end() const noexcept {return cend();}
+
+    inline ReverseIterator rbegin() const noexcept {return crbegin();}
+    inline ReverseIterator rend() const noexcept {return crend();}
+
+    inline Iterator cbegin() const noexcept {return iterator.cbegin();}
+    inline Iterator cend() const noexcept {return iterator.cend();}
+
+    inline ReverseIterator crbegin() const noexcept {return iterator.crbegin();}
+    inline ReverseIterator crend() const noexcept {return iterator.crend();}
+
+    static Iterator nulliterator() noexcept {return MultiAVLTree::Iterator::nulliterator();}
   };
 
 
@@ -91,6 +110,26 @@ public:
 
     const NamedVariable operator*() const;
     const PseudoPointer<NamedVariable> operator->() const;
+
+    inline ReverseIterator begin() noexcept {return iterator.begin();}
+    inline ReverseIterator end() noexcept {return iterator.end();}
+
+    inline Iterator rbegin() noexcept {return iterator.rbegin();}
+    inline Iterator rend() noexcept {return iterator.rend();}
+
+    inline ReverseIterator begin() const noexcept {return cbegin();}
+    inline ReverseIterator end() const noexcept {return cend();}
+
+    inline Iterator rbegin() const noexcept {return crbegin();}
+    inline Iterator rend() const noexcept {return crend();}
+
+    inline ReverseIterator cbegin() const noexcept {return iterator.cbegin();}
+    inline ReverseIterator cend() const noexcept {return iterator.cend();}
+
+    inline Iterator crbegin() const noexcept {return iterator.crbegin();}
+    inline Iterator crend() const noexcept {return iterator.crend();}
+
+    static ReverseIterator nulliterator() noexcept {return MultiAVLTree::ReverseIterator::nulliterator();}
   };
 
   typedef const Iterator ConstIterator;
@@ -106,21 +145,30 @@ private:
 public:
   using NewNodePosition = MultiAVLTree::NewNodePosition;
 
-  MultiMapImplementation(const literals::multimap& map);
+  MultiMapImplementation(const literals::multimap& map, NewNodePosition pos = NewNodePosition::back);
   MultiMapImplementation(const MultiMapImplementation& other);
+  MultiMapImplementation(MultiMapImplementation&& other);
   ~MultiMapImplementation();
 
   bool isEmpty() const noexcept;
   size_t getSize() const noexcept;
-  bool contains(KeyValue value) const;
+  bool contains(KeyValue key) const;
 
   NamedVariable insert(KeyValue key, Variable variable, NewNodePosition position = NewNodePosition::back);
-  void remove(Iterator it);
-  void remove(ReverseIterator it);
+  Error remove(Iterator it);
+  Error remove(ReverseIterator it);
+  Error removeAll(KeyValue key);
   err::ProgressReport<NamedVariable> rename(Iterator it, KeyValue new_key);
 
-  NamedVariable& getOrInsertNamedVariable(KeyValue key);
-  Variable getVariable(KeyValue key);
+
+  Iterator find(KeyValue key);
+  ReverseIterator rfind(KeyValue key);
+  Iterator findLast(KeyValue key);
+  ReverseIterator rfindLast(KeyValue key);
+  ConstIterator find(KeyValue key) const;
+  ConstReverseIterator rfind(KeyValue key) const;
+  ConstIterator findLast(KeyValue key) const;
+  ConstReverseIterator rfindLast(KeyValue key) const;
 
   void clear();
 

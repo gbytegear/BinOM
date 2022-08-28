@@ -47,6 +47,7 @@ class SinglyLinkedList : public Variable {
   operator Array& () = delete;
   operator DoublyLinkedList& () = delete;
   operator Map& () = delete;
+  operator MultiMap& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -55,6 +56,7 @@ class SinglyLinkedList : public Variable {
   SinglyLinkedList& toSinglyLinkedList() = delete;
   DoublyLinkedList& toDoublyLinkedList() = delete;
   Map& toMap() = delete;
+  MultiMap& toMultiMap() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -62,6 +64,7 @@ class SinglyLinkedList : public Variable {
   operator const Array& () const = delete;
   operator const DoublyLinkedList& () const = delete;
   operator const Map& () const = delete;
+  operator const MultiMap& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -70,6 +73,7 @@ class SinglyLinkedList : public Variable {
   const SinglyLinkedList& toSinglyLinkedList() const = delete;
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
+  const MultiMap& toMultiMap() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;
@@ -94,6 +98,7 @@ public:
   const SinglyLinkedList move() const noexcept;
 
   bool isEmpty() const;
+  size_t getElementCount() const;
 
   Variable pushBack(Variable var);
   Iterator pushBack(const literals::sllist value_list);

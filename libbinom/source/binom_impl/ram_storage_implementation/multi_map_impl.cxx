@@ -6,7 +6,10 @@ using namespace binom;
 using namespace binom::priv;
 using namespace binom::literals;
 
-
+struct MultiMapImplementation::MultiMapNode {
+  MultiAVLTree::AVLNode node;
+  Variable variable;
+};
 
 MultiMapImplementation::MultiMapNode* MultiMapImplementation::convert(MultiAVLTree::AVLNode* node) {
   return reinterpret_cast<MultiMapNode*>(reinterpret_cast<byte*>(node) - offsetof(MultiMapNode, node));
@@ -16,17 +19,26 @@ const MultiMapImplementation::MultiMapNode* MultiMapImplementation::convert(cons
   return reinterpret_cast<const MultiMapNode*>(reinterpret_cast<const byte*>(node) - offsetof(MultiMapNode, node));
 }
 
-MultiMapImplementation::MultiMapImplementation(const literals::multimap& map) {
-
+MultiMapImplementation::MultiMapImplementation(const literals::multimap& map, NewNodePosition pos) {
+  for(auto& node : map) insert(std::move(node.getKeyRef()), node.getVariable().move(), pos);
 }
 
 MultiMapImplementation::MultiMapImplementation(const MultiMapImplementation& other) {
-
+  for(auto node : other) insert(node.getKeyRef(), node.getVariable());
 }
 
-MultiMapImplementation::~MultiMapImplementation() {
-
+MultiMapImplementation::MultiMapImplementation(MultiMapImplementation&& other) {
+  for(auto node : other) insert(std::move(node.getKeyRef()), node.getVariable().move());
+  other.clear();
 }
+
+MultiMapImplementation::~MultiMapImplementation() {clear();}
+
+bool MultiMapImplementation::isEmpty() const noexcept {return multi_avl_tree.isEmpty();}
+
+size_t MultiMapImplementation::getSize() const noexcept {return size;}
+
+bool MultiMapImplementation::contains(KeyValue key) const {return multi_avl_tree.find(std::move(key)) != multi_avl_tree.cend();}
 
 MultiMapImplementation::NamedVariable MultiMapImplementation::insert(KeyValue key, Variable variable, NewNodePosition position) {
   MultiMapNode* mm_node = new MultiMapNode{MultiAVLTree::AVLNode(), variable.move()};
@@ -35,17 +47,48 @@ MultiMapImplementation::NamedVariable MultiMapImplementation::insert(KeyValue ke
   return NamedVariable(node_pair.key_node->getKey(), convert(node_pair.node));
 }
 
-void MultiMapImplementation::remove(Iterator it) {
-  delete convert(multi_avl_tree.extract(it.iterator));
+Error MultiMapImplementation::remove(Iterator it) {
+  auto node = multi_avl_tree.extract(it.iterator);
+  if(node) {
+    delete convert(multi_avl_tree.extract(it.iterator));
+    return ErrorType::no_error;
+  } else return ErrorType::binom_out_of_range;
 }
 
-void MultiMapImplementation::remove(ReverseIterator it) {
-  delete convert(multi_avl_tree.extract(it.iterator));
+Error MultiMapImplementation::remove(ReverseIterator it) {
+  auto node = multi_avl_tree.extract(it.iterator);
+  if(node) {
+    delete convert(multi_avl_tree.extract(it.iterator));
+    return ErrorType::no_error;
+  } else return ErrorType::binom_out_of_range;
+}
+
+Error MultiMapImplementation::removeAll(KeyValue key) {
+  auto it = find(key);
+  if(it == cend()) return ErrorType::binom_out_of_range;
+  auto end = it.end();
+  while(it != end) delete convert(multi_avl_tree.extract(it++.iterator));
+  return ErrorType::no_error;
 }
 
 err::ProgressReport<MultiMapImplementation::NamedVariable> MultiMapImplementation::rename(Iterator it, KeyValue new_key) {
-
+  auto transferred_node = multi_avl_tree.extract(it.iterator);
+  if(!transferred_node) return ErrorType::binom_out_of_range;
+  auto node_pair = multi_avl_tree.insert(std::move(new_key), multi_avl_tree.extract(it.iterator));
+  return NamedVariable(node_pair.key_node->getKey(), convert(node_pair.node));
 }
+
+MultiMapImplementation::Iterator MultiMapImplementation::find(KeyValue key) {return multi_avl_tree.find(std::move(key));}
+MultiMapImplementation::ReverseIterator MultiMapImplementation::rfind(KeyValue key) {return multi_avl_tree.rfind(std::move(key));}
+MultiMapImplementation::Iterator MultiMapImplementation::findLast(KeyValue key) {return multi_avl_tree.findLast(std::move(key));}
+MultiMapImplementation::ReverseIterator MultiMapImplementation::rfindLast(KeyValue key) {return multi_avl_tree.rfindLast(std::move(key));}
+MultiMapImplementation::ConstIterator MultiMapImplementation::find(KeyValue key) const {return multi_avl_tree.find(std::move(key));}
+MultiMapImplementation::ConstReverseIterator MultiMapImplementation::rfind(KeyValue key) const {return multi_avl_tree.rfind(std::move(key));}
+MultiMapImplementation::ConstIterator MultiMapImplementation::findLast(KeyValue key) const {return multi_avl_tree.findLast(std::move(key));}
+MultiMapImplementation::ConstReverseIterator MultiMapImplementation::rfindLast(KeyValue key) const {return multi_avl_tree.rfindLast(std::move(key));}
+
+
+void MultiMapImplementation::clear() {multi_avl_tree.clear([](MultiAVLTree::AVLNode* node) {delete convert(node);});}
 
 
 

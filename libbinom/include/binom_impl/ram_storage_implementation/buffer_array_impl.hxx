@@ -13,11 +13,9 @@ class BufferArrayImplementation {
   size_t capacity = 0;
 
   template<typename T>
+  requires std::is_arithmetic_v<T>
   BufferArrayImplementation(const std::initializer_list<T>& value_list)
     : size(value_list.size() * sizeof(T)), capacity(calculateCapacity(size)) {
-    static_assert (std::is_arithmetic_v<T>, "T isn't arithmetic type:"
-                                            " as argument requires const std::initializer_list<T>&"
-                                            " where assertion std::is_arithmetic<T>::value is true");
     std::memcpy(getData(), value_list.begin(), size);
   }
 
@@ -93,19 +91,16 @@ class BufferArrayImplementation {
 
 public:
   template<typename T>
+  requires std::is_arithmetic_v<T>
   static BufferArrayImplementation* create(const std::initializer_list<T>& value_list) {
-    static_assert (std::is_arithmetic_v<T>, "T isn't arithmetic type:"
-                                            " as argument requires const std::initializer_list<T>&"
-                                            " where assertion std::is_arithmetic<T>::value is true");
     return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ]) BufferArrayImplementation(value_list);
   }
 
   static BufferArrayImplementation* copy(const BufferArrayImplementation* other);
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   static GenericValueRef pushBack(BufferArrayImplementation*& implementation, ValType type, T value) noexcept {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
-                   extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = increaseSize(implementation, bit_width, 1);
     set(type, data, value);
@@ -113,9 +108,8 @@ public:
   }
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   static GenericValueIterator pushBack(BufferArrayImplementation*& implementation, ValType type, const std::initializer_list<T>& value_list) {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
-                   extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = increaseSize(implementation, bit_width, value_list.size());
     setRange(type, data, value_list);
@@ -128,9 +122,8 @@ public:
   static GenericValueIterator pushFront(BufferArrayImplementation*& implementation, ValType type, std::initializer_list<T> value_list) {return insert<T>(implementation, type, 0, value_list);}
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   static GenericValueRef insert(BufferArrayImplementation*& implementation, ValType type, size_t at, T value) noexcept {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
-                   extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = insertBlock(implementation, bit_width, at, 1);
     set(type, data, value);
@@ -138,9 +131,8 @@ public:
   }
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   static GenericValueIterator insert(BufferArrayImplementation*& implementation, ValType type, size_t at, const std::initializer_list<T>& value_list) {
-    static_assert (extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> ||
-                   extended_type_traits::is_arithmetic_without_cvref_v<T>);
     VarBitWidth bit_width = toBitWidth(type);
     void* data = insertBlock(implementation, bit_width, at, 1);
     setRange(type, data, value_list);

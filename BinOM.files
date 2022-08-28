@@ -37,6 +37,7 @@ libbinom/include/variables/doubly_linked_list.hxx
 libbinom/include/variables/generic_value.hxx
 libbinom/include/variables/key_value.hxx
 libbinom/include/variables/map.hxx
+libbinom/include/variables/multi_map.hxx
 libbinom/include/variables/named_variable.hxx
 libbinom/include/variables/number.hxx
 libbinom/include/variables/singly_linked_list.hxx
@@ -59,6 +60,7 @@ libbinom/source/variables/doubly_linked_list.cxx
 libbinom/source/variables/generic_value.cxx
 libbinom/source/variables/key_value.cxx
 libbinom/source/variables/map.cxx
+libbinom/source/variables/multi_map.cxx
 libbinom/source/variables/number.cxx
 libbinom/source/variables/serializtion.cxx
 libbinom/source/variables/singly_linked_list.cxx

@@ -14,8 +14,8 @@ public:
   class Iterator {
     friend class priv::MapImplementation;
     AVLTree::Iterator iterator;
-    Iterator(AVLTree::Iterator iterator);
   public:
+    Iterator(AVLTree::Iterator iterator);
     Iterator(const Iterator& iterator);
     Iterator(Iterator&& iterator);
 
@@ -44,14 +44,16 @@ public:
 
     const NamedVariable& operator*() const;
     const NamedVariable* operator->() const;
+
+    static Iterator nulliterator() noexcept {return AVLTree::Iterator::nulliterator();}
   };
 
 
   class ReverseIterator {
     friend class priv::MapImplementation;
     AVLTree::ReverseIterator iterator;
-    ReverseIterator(AVLTree::ReverseIterator iterator);
   public:
+    ReverseIterator(AVLTree::ReverseIterator iterator);
     ReverseIterator(const ReverseIterator& iterator);
     ReverseIterator(ReverseIterator&& iterator);
 
@@ -80,6 +82,8 @@ public:
 
     const NamedVariable& operator*() const;
     const NamedVariable* operator->() const;
+
+    static ReverseIterator nulliterator() noexcept {return AVLTree::ReverseIterator::nulliterator();}
   };
 
   typedef const Iterator ConstIterator;
@@ -93,7 +97,6 @@ private:
   static const NamedVariable* convert(const AVLNode* node);
 
 public:
-
 
   MapImplementation(const literals::map& map);
   MapImplementation(const MapImplementation& other);
@@ -109,6 +112,11 @@ public:
 
   NamedVariable& getOrInsertNamedVariable(KeyValue key);
   Variable getVariable(KeyValue key);
+
+  Iterator find(KeyValue key);
+  ReverseIterator rfind(KeyValue key);
+  ConstIterator find(KeyValue key) const;
+  ConstReverseIterator rfind(KeyValue key) const;
 
   void clear();
 

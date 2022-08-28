@@ -50,6 +50,12 @@ void SharedResource::destroy() {
     resource_data.data.pointer = nullptr;
   return;
 
+  case VarTypeClass::multimap:
+    if(resource_data.data.pointer)
+      delete resource_data.data.multi_map_implementation;
+    resource_data.data.pointer = nullptr;
+  return;
+
   case VarTypeClass::table: return; // TODO
   case VarTypeClass::invalid_type: default:
   return;
@@ -122,9 +128,13 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
     resource->resource_data.data.map_implementation = new MapImplementation(*resource_data.data.map_implementation);
   return;
 
+  case VarTypeClass::multimap:
+    resource->resource_data.data.multi_map_implementation = new MultiMapImplementation(*resource_data.data.multi_map_implementation);
+  return;
+
   case VarTypeClass::table: // TODO
-  default:
   case VarTypeClass::invalid_type:
+  default:
   break;
   }
   resource->resource_data.type = VarType::null;
@@ -154,9 +164,12 @@ Link Link::cloneResource(Link resource_link) noexcept {
   case VarTypeClass::map:
   return ResourceData{VarType::map, {.map_implementation = new MapImplementation(*resource_link->data.map_implementation)}};
 
+  case VarTypeClass::multimap:
+  return ResourceData{VarType::map, {.multi_map_implementation = new MultiMapImplementation(*resource_link->data.multi_map_implementation)}};
+
   case VarTypeClass::table: // TODO
-  default:
   case VarTypeClass::invalid_type:
+  default:
   break;
   }
   return ResourceData{VarType::null, {.pointer = nullptr}};

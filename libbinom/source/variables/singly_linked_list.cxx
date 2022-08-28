@@ -21,6 +21,12 @@ bool SinglyLinkedList::isEmpty() const {
   else return true;
 }
 
+size_t SinglyLinkedList::getElementCount() const {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk)
+    return getData()->getElementCount();
+  else return 0;
+}
+
 Variable SinglyLinkedList::pushBack(Variable var) {
   if(auto lk = getLock(MtxLockType::unique_locked); lk)
     return getData()->pushBack(std::move(var));

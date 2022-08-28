@@ -1,18 +1,18 @@
-#ifndef MAP_HXX
-#define MAP_HXX
+#ifndef MULTI_MAP_HXX
+#define MULTI_MAP_HXX
 
 #include "named_variable.hxx"
 
 namespace binom {
 
-class Map : public Variable {
+class MultiMap : public Variable {
   operator Number& () = delete;
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
   operator SinglyLinkedList& () = delete;
   operator DoublyLinkedList& () = delete;
-  operator MultiMap& () = delete;
+  operator Map& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -21,7 +21,6 @@ class Map : public Variable {
   SinglyLinkedList& toSinglyLinkedList() = delete;
   DoublyLinkedList& toDoublyLinkedList() = delete;
   Map& toMap() = delete;
-  MultiMap& toMultiMap() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -29,7 +28,7 @@ class Map : public Variable {
   operator const Array& () const = delete;
   operator const SinglyLinkedList& () const = delete;
   operator const DoublyLinkedList& () const = delete;
-  operator const MultiMap& () const = delete;
+  operator const Map& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -38,7 +37,6 @@ class Map : public Variable {
   const SinglyLinkedList& toSinglyLinkedList() const = delete;
   const DoublyLinkedList& toDoublyLinkedList() const = delete;
   const Map& toMap() const = delete;
-  const MultiMap& toMultiMap() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;
@@ -46,44 +44,44 @@ class Map : public Variable {
   Variable& changeLink(const Variable& other) = delete;
   Variable& changeLink(Variable&& other) = delete;
 
-  priv::MapImplementation* getData() const;
+  priv::MultiMapImplementation* getData() const;
 
   friend class Variable;
-  Map(priv::Link&& link);
-
+  MultiMap(priv::Link&& link);
 public:
-  using NamedVariable = binom::priv::MapImplementation::NamedVariable;
-  typedef priv::MapImplementation::Iterator             Iterator;
-  typedef priv::MapImplementation::ReverseIterator      ReverseIterator;
-  typedef priv::MapImplementation::ConstIterator        ConstIterator;
-  typedef priv::MapImplementation::ConstReverseIterator ConstReverseIterator;
+  using NamedVariable = binom::priv::MultiMapImplementation::NamedVariable;
+  typedef priv::MultiMapImplementation::Iterator             Iterator;
+  typedef priv::MultiMapImplementation::ReverseIterator      ReverseIterator;
+  typedef priv::MultiMapImplementation::ConstIterator        ConstIterator;
+  typedef priv::MultiMapImplementation::ConstReverseIterator ConstReverseIterator;
 
-  Map();
-  Map(literals::map element_list);
-  Map(const Map& other);
-  Map(Map&& other);
+  MultiMap();
+  MultiMap(literals::multimap multimap_elements);
+  MultiMap(const MultiMap& other);
+  MultiMap(MultiMap&& other);
 
-  Map move() noexcept;
-  const Map move() const noexcept;
-
-  bool isEmpty() const noexcept;
-  size_t getElementCount() const noexcept;
-  bool contains(KeyValue value) const noexcept;
+  MultiMap move() noexcept;
+  const MultiMap move() const noexcept;
 
   void clear();
-  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable);
-  err::Error remove(KeyValue key);
-  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
+  bool isEmpty() const noexcept;
+  size_t getElementCount() const noexcept;
+  bool contains(KeyValue key) const noexcept;
 
-  Variable getVariable(KeyValue key);
-  Variable operator[] (KeyValue key);
-  const Variable getVariable(KeyValue key) const;
-  const Variable operator[] (KeyValue key) const;
+  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable, NewNodePosition position = NewNodePosition::back);
+  Error remove(Iterator it);
+  Error remove(ReverseIterator it);
+  Error removeAll(KeyValue key);
+  err::ProgressReport<NamedVariable> rename(Iterator it, KeyValue new_key);
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);
+  Iterator findLast(KeyValue key);
+  ReverseIterator rfindLast(KeyValue key);
   ConstIterator find(KeyValue key) const;
   ConstReverseIterator rfind(KeyValue key) const;
+  ConstIterator findLast(KeyValue key) const;
+  ConstReverseIterator rfindLast(KeyValue key) const;
 
   Iterator begin();
   Iterator end();
@@ -103,14 +101,13 @@ public:
   ConstReverseIterator crbegin() const;
   ConstReverseIterator crend() const;
 
-  Map& operator=(const Map& other);
-  Map& operator=(Map&& other);
+  MultiMap& operator=(const MultiMap& other);
+  MultiMap& operator=(MultiMap&& other);
 
-  Map& changeLink(const Map& other);
-  Map& changeLink(Map&& other);
-
+  MultiMap& changeLink(const MultiMap& other);
+  MultiMap& changeLink(MultiMap&& other);
 };
 
 }
 
-#endif // MAP_HXX
+#endif // MULTI_MAP_HXX

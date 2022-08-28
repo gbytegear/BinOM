@@ -31,6 +31,7 @@ public:
 class NamedVariable : public priv::NamedVariableBase<NamedVariable> {
   friend class NamedVariableBase;
   friend class priv::MapImplementation::NamedVariable;
+  friend class priv::MultiMapImplementation;
   KeyValue key;
   Variable variable;
 
@@ -45,21 +46,13 @@ public:
   NamedVariable(const NamedVariable&& named_variable)
     : key(std::move(const_cast<NamedVariable&&>(named_variable).key)), variable(const_cast<NamedVariable&&>(named_variable).variable.move()) {}
   template<class NamedVariableDriven>
+  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
   NamedVariable(const NamedVariableDriven& other)
-    : key(other.getKeyRef()), variable(other.getVariableRef()) {
-    static_assert (
-        extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>,
-        "NamedVariableDriven isn't CRTP-inherited from NamedVariableBase!"
-    );
-  }
+    : key(other.getKeyRef()), variable(other.getVariableRef()) {}
   template<class NamedVariableDriven>
+  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
   NamedVariable(NamedVariableDriven&& other)
-    : key(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {
-    static_assert (
-        extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>,
-        "NamedVariableDriven isn't CRTP-inherited from NamedVariableBase!"
-    );
-  }
+    : key(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
 };
 
 class priv::MapImplementation::NamedVariable
@@ -75,33 +68,28 @@ class priv::MapImplementation::NamedVariable
   inline const KeyValue& getKeyRef() const noexcept {return node.getKey();}
 
 public:
+  NamedVariable()
+    : node(KeyValue(nullptr)), variable(nullptr) {}
   NamedVariable(KeyValue key, Variable variable)
     : node(std::move(key)), variable(variable.move()) {}
   NamedVariable(const binom::NamedVariable&& named_variable)
     : node(std::move(const_cast<binom::NamedVariable&&>(named_variable).key)),
       variable(const_cast<binom::NamedVariable&&>(named_variable).variable.move()) {}
   template<class NamedVariableDriven>
+  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
   NamedVariable(const NamedVariableDriven& other)
-    : node(other.getKeyRef()), variable(other.getVariableRef()) {
-    static_assert (
-        extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>,
-        "NamedVariableDriven isn't CRTP-inherited from NamedVariableBase!"
-    );
-  }
+    : node(other.getKeyRef()), variable(other.getVariableRef()) {}
   template<class NamedVariableDriven>
+  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
   NamedVariable(NamedVariableDriven&& other)
-    : node(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {
-    static_assert (
-        extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>,
-        "NamedVariableDriven isn't CRTP-inherited from NamedVariableBase!"
-    );
-  }
+    : node(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
 };
 
 class priv::MultiMapImplementation::NamedVariable
     : public priv::NamedVariableBase<priv::MapImplementation::NamedVariable> {
   friend class NamedVariableBase;
   friend class priv::MultiMapImplementation;
+  friend class MultiMap;
   KeyValue* key;
   Variable variable;
 
@@ -113,16 +101,16 @@ class priv::MultiMapImplementation::NamedVariable
   NamedVariable(const KeyValue& key, const Variable variable)
     : key(const_cast<KeyValue*>(&key)), variable(variable.move()) {}
 public:
-  NamedVariable(NamedVariable& other)
+  NamedVariable()
+    : key(nullptr), variable(nullptr) {}
+  NamedVariable(const NamedVariable& other)
     : key(other.key),
       variable(other.variable.move()) {}
 
-  NamedVariable(const NamedVariable&& other)
+  NamedVariable(NamedVariable&& other)
     : key(other.key),
       variable(other.variable.move()) {}
 };
-
-/**/
 
 }
 

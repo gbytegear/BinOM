@@ -87,6 +87,8 @@ public:
     const AVLNode& operator*() const;
     const AVLNode* operator->() const;
 
+    static Iterator nulliterator() noexcept {return {nullptr};}
+
   };
 
   class ReverseIterator {
@@ -122,6 +124,8 @@ public:
 
     const AVLNode& operator*() const;
     const AVLNode* operator->() const;
+
+    static ReverseIterator nulliterator() noexcept {return {nullptr};}
 
   };
 

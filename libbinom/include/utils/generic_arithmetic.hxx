@@ -95,9 +95,9 @@ public:
   }
 
   template<typename T>
+  requires std::is_arithmetic_v<T> || is_crtp_base_of_v<ArithmeticTypeBase, T>
   operator T() const noexcept {
-    static_assert (std::is_arithmetic_v<T> || is_crtp_base_of_v<ArithmeticTypeBase, T>);
-    if constexpr (std::is_arithmetic<T>::value) {
+    if constexpr (std::is_arithmetic_v<T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
       switch (getValType()) {
@@ -137,8 +137,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   bool operator==(T&& value) const {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -195,8 +195,8 @@ public:
   bool operator!=(T&& value) const {return !(self == value);}
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   bool operator>(T&& value) const {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -250,8 +250,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   bool operator>=(T&& value) const {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -311,8 +311,8 @@ public:
   bool operator<=(T&& value) const {return !(self > value);}
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr(is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
@@ -375,8 +375,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator+=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
@@ -416,8 +416,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator-=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
@@ -457,8 +457,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator*=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
@@ -498,8 +498,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator/=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
@@ -540,8 +540,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator%=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return downcast();
@@ -601,8 +601,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator&=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -642,8 +642,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator|=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -683,8 +683,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator^=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -724,8 +724,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator<<=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -765,8 +765,8 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven& operator>>=(T&& value) noexcept {
-    static_assert (is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>);
     if constexpr (is_crtp_base_of_v<ArithmeticTypeBase, T>) {
       auto lk = downcast().getLock(MtxLockType::shared_locked);
       if(!downcast().checkLock(lk)) return false;
@@ -864,6 +864,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator+(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -873,6 +874,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator-(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -882,6 +884,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator*(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -891,6 +894,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator/(T&& value) const noexcept {
     auto lk = downcast().getLock(MtxLockType::unique_locked);
     if(!downcast().checkLock(lk)) return ArithmeticTypeDriven(downcast());
@@ -898,6 +902,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator%(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -907,6 +912,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator|(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -916,6 +922,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator^(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -925,6 +932,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator<<(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -934,6 +942,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator>>(T&& value) const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -943,6 +952,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator~() const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -965,6 +975,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator-() const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {
@@ -987,6 +998,7 @@ public:
   }
 
   template<typename T>
+  requires is_crtp_base_of_v<ArithmeticTypeBase, T> || is_arithmetic_without_cvref_v<T>
   ArithmeticTypeDriven operator+() const noexcept {
     static_assert (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>);
     if constexpr (is_base_of_v<EnableCopyableArithmetic, ArithmeticTypeDriven>) {

@@ -1,25 +1,52 @@
+# User-defined arguments
+
+## MODE:
+### Debug - enable debug flags, disable optimisation
+### Release - enable optimisation
+MODE := Release
+
+# Programms
 CC = gcc-11
 CXX = g++-11
 RM = rm -rf
 MKDIR = mkdir -p
-DEBUG_FLAGS = -g -Wall -Wextra
-# -Wshadow -Wformat=2 -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2
-NO_DEBUG_FLAGS = -w
-C_FLAGS = -O3 -fPIC $(DEBUG_FLAGS)
-CXX_FLAGS = -O3 -fPIC $(DEBUG_FLAGS) -std=c++20
+
+# Build flags
+## C
+C_FLAGS := -fPIC
+ifeq ($(MODE),Debug) # Debug
+	C_FLAGS = -O0 -g -Wall
+else ifeq($(MODE),Release) # Release
+	C_FLAGS = -O3 -w
+endif
+## C++
+CXX_VERSION := c++20
+CXX_FLAGS := -fPIC -std=$(CXX_VERSION)
+ifeq ($(MODE),Debug) # Debug
+	CXX_FLAGS += -O0 -g -Wall -fno-inline-small-functions
+else ifeq($(MODE),Release) # Release
+	CXX_FLAGS += -O3 -w
+endif
+## Linker flags
 LD_FLAGS =
 LD_SHARED_FLAGS = -fPIC -shared
-LD_LIBS  = -lpthread
+## Linker libs flags
+LD_LIBS  = -lpthread -lseccomp
 
-TEST_EXEC = binom_test
+# Targets
 LIB_TARGET = libbinom
+TEST_EXEC = binom_test
 
+# Directories
+## Build directories
 BUILD_DIR = build
 TEST_DIR = $(BUILD_DIR)/test
+## Source directories
 INCLUDE_PATH = -I./
 SOURCES_PATH = ./libbinom/source/
 TEST_SOURCES_PATH = ./test
 
+# Files find rules
 SOURCES = $(shell find $(SOURCES_PATH) -name "*.cxx")
 OBJECTS = $(addprefix $(BUILD_DIR)/, $(notdir $(SOURCES:.cxx=.o)))
 OBJECTS_CLEAN = $(shell find $(BUILD_DIR) -name "*.o")
@@ -27,9 +54,8 @@ OBJECTS_CLEAN = $(shell find $(BUILD_DIR) -name "*.o")
 TEST_SOURCES = $(shell find $(TEST_SOURCES_PATH) -name "*.cxx")
 TEST_OBJECTS = $(addprefix $(BUILD_DIR)/test/, $(notdir $(TEST_SOURCES:.cxx=.o)))
 
-all: lib build_test
-
-build_test: $(TEST_DIR)/$(TEST_EXEC)
+# Public make flags
+all: test lib
 
 test: $(TEST_DIR)/$(TEST_EXEC)
 	$(TEST_DIR)/$(TEST_EXEC)

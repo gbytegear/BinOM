@@ -48,7 +48,7 @@ enum class VarType : ui8 {
   multimap                = 0x1C, ///< Associative heterogeneous container with key-sorted
   table                   = 0x1D, ///< Multiple key-sorted associative heterogeneous container
 
-// Compile time defined C++ data types
+// Compile time defined C-like data types
 
   char_t                  = std::is_signed_v<char> ? VarType::si8 : VarType::ui8,
   uchar_t                 = VarType::ui8,
@@ -689,6 +689,7 @@ class ArrayImplementation;
 class SinglyLinkedListImplementation;
 class DoublyLinkedListImplementation;
 class MapImplementation;
+class MultiMapImplementation;
 class TableImplementation;
 class KeyValueImplementation;
 

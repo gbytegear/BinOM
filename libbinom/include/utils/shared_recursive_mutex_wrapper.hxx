@@ -2,9 +2,12 @@
 #define SHARED_RECURSIVE_MUTEX_WRAPPER_HXX
 
 #include "type_aliases.hxx"
+#include "reverse_iterator.hxx"
 #include <shared_mutex>
 #include <map>
+#include <list>
 #include <optional>
+#include <set>
 
 namespace shared_recursive_mtx {
 using namespace type_alias;
@@ -36,11 +39,11 @@ class SharedRecursiveMutexWrapper {
   static inline thread_local std::map<std::shared_mutex*, Counters> counter_storage;
   std::map<std::shared_mutex*, Counters>::iterator mtx_data = counter_storage.end();
 
-  static std::map<std::shared_mutex*, Counters>::iterator createCountersRef(std::shared_mutex* mtx) noexcept {
+  static std::map<std::shared_mutex*, Counters>::iterator createCountersRef(const std::shared_mutex* mtx) noexcept {
     if(!mtx) return counter_storage.end();
-    auto it = counter_storage.find(mtx);
+    auto it = counter_storage.find(const_cast<std::shared_mutex*>(mtx));
     if(it == counter_storage.cend())
-      return counter_storage.emplace(mtx, Counters{}).first;
+      return counter_storage.emplace(std::make_pair(const_cast<std::shared_mutex*>(mtx), Counters{})).first;
     ++it->second.wrapper_count;
     return it;
   }
@@ -61,7 +64,7 @@ class SharedRecursiveMutexWrapper {
 public:
 
   SharedRecursiveMutexWrapper(
-      std::shared_mutex* mtx,
+      const std::shared_mutex* mtx,
       MtxLockType lock_type = MtxLockType::unlocked) noexcept
     : mtx_data(createCountersRef(mtx)) {
     if(!mtx) std::terminate();
@@ -240,6 +243,40 @@ inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(const SharedRecu
 
 inline SharedRecursiveMutexWrapper::SharedRecursiveMutexWrapper(SharedRecursiveLock&& lock, MtxLockType lock_type)
   : SharedRecursiveMutexWrapper(dynamic_cast<SharedRecursiveMutexWrapper&&>(lock), lock_type) {}
+
+//class TransactionLock {
+//  std::set<std::shared_mutex*> mtx_set;
+//  MtxLockType lock_type = MtxLockType::unique_locked;
+
+
+//public:
+//  TransactionLock(std::set<std::shared_mutex*> mtx_set, MtxLockType lock_type = MtxLockType::unique_locked)
+//    : mtx_set(std::move(mtx_set)), lock_type(lock_type) {
+//    switch (lock_type) {
+//    case shared_recursive_mtx::MtxLockType::unlocked: return;
+//    case shared_recursive_mtx::MtxLockType::shared_locked:
+//      for(SharedRecursiveMutexWrapper mtx_wr : self.mtx_set)
+//        mtx_wr.lockShared();
+//    break;
+//    case shared_recursive_mtx::MtxLockType::unique_locked:
+//      for(SharedRecursiveMutexWrapper mtx_wr : self.mtx_set)
+//        mtx_wr.lock();
+//    return;
+//    }
+//  }
+
+//  TransactionLock(TransactionLock&& other)
+//    : mtx_set(std::move(other.mtx_set)), lock_type(other.lock_type) {
+//    other.lock_type = MtxLockType::unlocked;
+//  }
+
+//  ~TransactionLock(){
+//    if(lock_type != MtxLockType::unlocked)
+//      for(SharedRecursiveMutexWrapper mtx_wr : reverse_iterator::ReverseRange(mtx_set))
+//        mtx_wr.unlock();
+//  }
+
+//};
 
 
 /// Use it in case we DON'T need multithreading

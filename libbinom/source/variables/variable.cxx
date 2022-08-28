@@ -4,7 +4,9 @@
 #include "libbinom/include/variables/buffer_array.hxx"
 #include "libbinom/include/variables/array.hxx"
 #include "libbinom/include/variables/singly_linked_list.hxx"
+#include "libbinom/include/variables/doubly_linked_list.hxx"
 #include "libbinom/include/variables/map.hxx"
+#include "libbinom/include/variables/multi_map.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -64,6 +66,9 @@ Variable::Variable(const literals::dllist doubly_linked_list)
 Variable::Variable(const literals::map map)
   : Variable(ResourceData{VarType::map, {.map_implementation = new priv::MapImplementation(map)}}) {}
 
+Variable::Variable(const literals::multimap multimap, NewNodePosition pos)
+  : Variable(ResourceData{VarType::multimap, {.multi_map_implementation = new priv::MultiMapImplementation(multimap, pos)}}) {}
+
 Variable::Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
 
@@ -122,17 +127,20 @@ size_t Variable::getElementCount() const noexcept {
   switch (getTypeClass()) {
   case VarTypeClass::null: return 0;
   case VarTypeClass::number: return 1;
-  case VarTypeClass::bit_array: return const_cast<Variable&>(self).toBitArray().getElementCount();
-  case VarTypeClass::buffer_array: return const_cast<Variable&>(self).toBufferArray().getElementCount();
-  case VarTypeClass::array: return const_cast<Variable&>(self).toArray().getElementCount();
-  case VarTypeClass::singly_linked_list: // TODO
+  case VarTypeClass::bit_array: return toBitArray().getElementCount();
+  case VarTypeClass::buffer_array: return toBufferArray().getElementCount();
+  case VarTypeClass::array: return toArray().getElementCount();
+  case VarTypeClass::singly_linked_list: return toSinglyLinkedList().getElementCount();
+  case VarTypeClass::doubly_linked_list: return toDoublyLinkedList().getElementCount();
+  case VarTypeClass::map: return toMap().getElementCount();
+  case VarTypeClass::multimap:
+    // TODO
   break;
-  case VarTypeClass::doubly_linked_list: // TODO
-  break;
-  case VarTypeClass::map:
+  case VarTypeClass::table:
+    // TODO
   break;
   case VarTypeClass::invalid_type:
-  break;
+  default: break;
   }
   return -1;
 }
@@ -209,6 +217,13 @@ Variable::operator Map&() {
   return reinterpret_cast<Map&>(self);
 }
 
+Variable::operator MultiMap&() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::multimap) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<MultiMap&>(self);
+}
+
 Variable::operator const Number&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
@@ -258,6 +273,13 @@ Variable::operator const Map&() const {
   return reinterpret_cast<const Map&>(self);
 }
 
+Variable::operator const MultiMap&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::multimap) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const MultiMap&>(self);
+}
+
 Number& Variable::toNumber() {return self;}
 BitArray& Variable::toBitArray() {return self;}
 BufferArray& Variable::toBufferArray() {return self;}
@@ -265,6 +287,7 @@ Array& Variable::toArray() {return self;}
 SinglyLinkedList& Variable::toSinglyLinkedList() {return self;}
 DoublyLinkedList& Variable::toDoublyLinkedList() {return self;}
 Map& Variable::toMap() {return self;}
+MultiMap& Variable::toMultiMap() {return self;}
 
 const Number& Variable::toNumber() const {return self;}
 const BitArray& Variable::toBitArray() const {return self;}
@@ -273,6 +296,7 @@ const Array& Variable::toArray() const {return self;}
 const SinglyLinkedList& Variable::toSinglyLinkedList() const {return self;}
 const DoublyLinkedList& Variable::toDoublyLinkedList() const {return self;}
 const Map& Variable::toMap() const {return self;}
+const MultiMap& Variable::toMultiMap() const {return self;}
 
 Variable& Variable::operator=(const Variable& other) {
   if(this == &other) return self;
