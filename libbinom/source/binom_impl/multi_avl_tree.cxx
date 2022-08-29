@@ -91,6 +91,7 @@ void MultiAVLTree::AVLKeyNode::pushBack(AVLNode* node) {
   if(!first) {
     first = last = node;
     node->next = node->prev = nullptr;
+    ++size;
     return;
   }
   node->prev = last;
@@ -102,6 +103,7 @@ void MultiAVLTree::AVLKeyNode::pushFront(AVLNode* node) {
   if(!first) {
     first = last = node;
     node->next = node->prev = nullptr;
+    ++size;
     return;
   }
   node->next = first;
@@ -339,6 +341,7 @@ bool MultiAVLTree::isEmpty() const noexcept {return !root;}
 
 MultiAVLTree::NodePair MultiAVLTree::insert(KeyValue key, AVLNode* new_node, NewNodePosition position) {
   AVLKeyNode* node = root;
+  NodePair result{.node = new_node};
   if(!node) {
     root = new AVLKeyNode(std::move(key));
     root->pushBack(new_node);
@@ -352,6 +355,7 @@ MultiAVLTree::NodePair MultiAVLTree::insert(KeyValue key, AVLNode* new_node, New
       else {
         node->left = new AVLKeyNode(std::move(key), node);
         node->left->pushBack(new_node);
+        result.key_node = node->left;
         break;
       }
     } elif(cmp == KeyValue::highter) {
@@ -359,6 +363,7 @@ MultiAVLTree::NodePair MultiAVLTree::insert(KeyValue key, AVLNode* new_node, New
       else {
         node->right = new AVLKeyNode(std::move(key), node);
         node->right->pushBack(new_node);
+        result.key_node = node->right;
         break;
       }
     } else { // KeyValue::equal
@@ -373,8 +378,6 @@ MultiAVLTree::NodePair MultiAVLTree::insert(KeyValue key, AVLNode* new_node, New
       return {node, new_node};
     }
   }
-
-  NodePair result{node, new_node};
 
   while(node) { // Balancing
     node->depth = 1 + max(depth(node->left), depth(node->right));
@@ -579,7 +582,10 @@ MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() {
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isRight()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    iterator = nullptr;
   }
   if(key_node) iterator = key_node->begin();
   else iterator = nullptr;
@@ -597,7 +603,10 @@ MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator--() {
   elif(key_node->isLeft()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isLeft()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    iterator = nullptr;
   }
   if(key_node) iterator = key_node->rbegin();
   else iterator = nullptr;
@@ -615,7 +624,10 @@ const MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() const {
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isRight()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    iterator = nullptr;
   }
   if(key_node) iterator = key_node->begin();
   else iterator = nullptr;
@@ -633,7 +645,10 @@ const MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator--() const {
   elif(key_node->isLeft()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isLeft()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    iterator = nullptr;
   }
   if(key_node) iterator = key_node->rbegin();
   else iterator = nullptr;
@@ -720,7 +735,10 @@ MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++() {
   elif(key_node->isLeft()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isLeft()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    reverse_iterator = nullptr;
   }
   if(key_node) reverse_iterator = key_node->rbegin();
   else reverse_iterator = nullptr;
@@ -738,7 +756,10 @@ MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator--() {
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isRight()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    reverse_iterator = nullptr;
   }
   if(key_node) reverse_iterator = key_node->begin();
   else reverse_iterator = nullptr;
@@ -756,7 +777,10 @@ const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++()
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isRight()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    reverse_iterator = nullptr;
   }
   if(key_node) reverse_iterator = key_node->begin();
   else reverse_iterator = nullptr;
@@ -774,7 +798,10 @@ const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator--()
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
-    while (tmp->isRight()) {tmp = key_node; key_node = key_node->parent;}
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    key_node = nullptr;
+    reverse_iterator = nullptr;
   }
   if(key_node) reverse_iterator = key_node->begin();
   else reverse_iterator = nullptr;

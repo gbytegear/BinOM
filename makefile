@@ -4,6 +4,7 @@
 ### Debug - enable debug flags, disable optimisation
 ### Release - enable optimisation
 MODE := Release
+TEST_AUTORUN := Yes
 
 # Programms
 CC = gcc-11
@@ -58,7 +59,9 @@ TEST_OBJECTS = $(addprefix $(BUILD_DIR)/test/, $(notdir $(TEST_SOURCES:.cxx=.o))
 all: test lib
 
 test: $(TEST_DIR)/$(TEST_EXEC)
+ifeq ($(TEST_AUTORUN),Yes)
 	$(TEST_DIR)/$(TEST_EXEC)
+endif
 
 lib: $(OBJECTS) $(BUILD_DIR)/$(LIB_TARGET).a $(BUILD_DIR)/$(LIB_TARGET).so
 

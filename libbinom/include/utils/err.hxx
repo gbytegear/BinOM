@@ -95,7 +95,7 @@ public:
     }
   }
 
-  ~ProgressReport() { if(isInThisInstanceAnswerLocated()) delete answer; }
+  ~ProgressReport() { if(isInThisInstanceAnswerLocated()) answer->~T(); }
 
   ProgressReport<T>& operator=(const ProgressReport<T>& other) noexcept { new(this) ProgressReport<T>(other); return self; }
   ProgressReport<T>& operator=(ProgressReport<T>&& other) noexcept { new(this) ProgressReport<T>(other); return self; }

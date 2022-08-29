@@ -3,14 +3,7 @@
 
 #include "libbinom/include/variables/key_value.hxx"
 
-#include "libbinom/include/variables/named_variable.hxx"
-#include "libbinom/include/variables/number.hxx"
-#include "libbinom/include/variables/bit_array.hxx"
-#include "libbinom/include/variables/buffer_array.hxx"
-#include "libbinom/include/variables/array.hxx"
-#include "libbinom/include/variables/singly_linked_list.hxx"
-#include "libbinom/include/variables/doubly_linked_list.hxx"
-#include "libbinom/include/variables/map.hxx"
+#include "libbinom/include/binom.hxx"
 
 #include "tester.hxx"
 
@@ -183,6 +176,17 @@ class {
         return;
       }
       for(const auto& named_var : variable.toMap()) {
+        std::cout << std::string(shift, '|'); printKey(named_var.getKey()); std::cout << ":" << std::endl;
+        print(named_var.getVariable(), shift + 1);
+      }
+    break;
+    case binom::VarType::multimap:
+      std::cout << std::string(shift, '|') << "[multimap]\n\r";
+      if(shift >= 100) {
+        std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n\r";
+        return;
+      }
+      for(const auto& named_var : variable.toMultiMap()) {
         std::cout << std::string(shift, '|'); printKey(named_var.getKey()); std::cout << ":" << std::endl;
         print(named_var.getVariable(), shift + 1);
       }

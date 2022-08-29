@@ -74,6 +74,7 @@ test/buffer_array_test.hxx
 test/bugs.hxx
 test/generic_value_test.hxx
 test/map_test.hxx
+test/multi_map_test.hxx
 test/number_test.hxx
 test/print_variable.hxx
 test/recursive_shared_mutex_test.hxx

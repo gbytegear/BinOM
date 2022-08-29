@@ -12,9 +12,7 @@ int main() {
   testBufferArray();
   testAVLTree();
   testMap();
-
-  using namespace binom;
-  using namespace binom::literals;
+  testMultiMap();
 
 #ifdef FULL_TEST // Questionable or incompletely implemented tests
   testRecursiveSharedMutex();

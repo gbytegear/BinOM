@@ -86,7 +86,7 @@ public:
 };
 
 class priv::MultiMapImplementation::NamedVariable
-    : public priv::NamedVariableBase<priv::MapImplementation::NamedVariable> {
+    : public priv::NamedVariableBase<priv::MultiMapImplementation::NamedVariable> {
   friend class NamedVariableBase;
   friend class priv::MultiMapImplementation;
   friend class MultiMap;

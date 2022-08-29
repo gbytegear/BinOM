@@ -407,8 +407,8 @@ AVLTree::Iterator& AVLTree::Iterator::operator++() {
   elif(node->isRight()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isRight()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isRight() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -418,8 +418,8 @@ AVLTree::Iterator& AVLTree::Iterator::operator--() {
   elif(node->isLeft()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isLeft()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isLeft() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -433,8 +433,8 @@ const AVLTree::Iterator& AVLTree::Iterator::operator++() const {
   elif(node->isRight()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isRight()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isRight() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -444,8 +444,8 @@ const AVLTree::Iterator& AVLTree::Iterator::operator--() const {
   elif(node->isLeft()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isLeft()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isLeft() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -489,8 +489,8 @@ AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator++() {
   elif(node->isLeft()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isLeft()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isLeft() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -500,8 +500,8 @@ AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator--() {
   elif(node->isRight()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isRight()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isRight() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -515,8 +515,8 @@ const AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator++() const {
   elif(node->isLeft()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isLeft()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isLeft() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 
@@ -526,8 +526,8 @@ const AVLTree::ReverseIterator& AVLTree::ReverseIterator::operator--() const {
   elif(node->isRight()) {
     AVLNode* tmp = node->parent;
     node = node->parent->parent;
-    while (tmp->isRight()) {tmp = node; node = node->parent;}
-  }
+    while (tmp->isRight() && node) {tmp = node; node = node->parent;}
+  } elif(node->isRoot()) node = nullptr;
   return *this;
 }
 

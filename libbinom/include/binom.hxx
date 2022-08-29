@@ -8,5 +8,6 @@
 #include "variables/singly_linked_list.hxx"
 #include "variables/doubly_linked_list.hxx"
 #include "variables/map.hxx"
+#include "variables/multi_map.hxx"
 
 #endif // BINOM_HXX
