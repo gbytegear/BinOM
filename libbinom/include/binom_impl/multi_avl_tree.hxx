@@ -338,6 +338,8 @@ public:
 
   AVLNode* extract(ReverseIterator r_it);
 
+  bool removeKey(KeyValue key, std::function<void(AVLNode* deletable_element)> destructor = [](AVLNode* n){delete n;});
+
   Iterator find(KeyValue key) const;
 
   Iterator findLast(KeyValue key) const;

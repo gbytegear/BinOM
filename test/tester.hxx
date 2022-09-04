@@ -178,7 +178,12 @@ public:
   RAIIPerfomanceTest(const char* msg = "") : start_time(clock()), msg(msg) {}
   RAIIPerfomanceTest(const RAIIPerfomanceTest&) = delete;
   RAIIPerfomanceTest(RAIIPerfomanceTest&& other) : start_time(other.start_time), msg(other.msg) {}
-  ~RAIIPerfomanceTest() {std::cout << msg << double( clock() - start_time ) / (double)CLOCKS_PER_SEC << " second(s)." << std::endl; std::cout.flush();}
+  ~RAIIPerfomanceTest() {
+    double time = double( clock() - start_time ) / (double)CLOCKS_PER_SEC;
+    if(!start_time) return;
+    std::cout << "\033[102;30m" << std::string(log_depth, '|') << msg << time << " second(s).\033[0m" << std::endl;
+    std::cout.flush();
+  }
 } __test_perf("Test perfomance: ");
 
 void __signal_handler(int signum) {

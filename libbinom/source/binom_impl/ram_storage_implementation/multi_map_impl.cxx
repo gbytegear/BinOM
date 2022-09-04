@@ -51,6 +51,7 @@ Error MultiMapImplementation::remove(Iterator it) {
   auto node = multi_avl_tree.extract(it.iterator);
   if(node) {
     delete convert(multi_avl_tree.extract(it.iterator));
+    --size;
     return ErrorType::no_error;
   } else return ErrorType::binom_out_of_range;
 }
@@ -59,16 +60,15 @@ Error MultiMapImplementation::remove(ReverseIterator it) {
   auto node = multi_avl_tree.extract(it.iterator);
   if(node) {
     delete convert(multi_avl_tree.extract(it.iterator));
+    --size;
     return ErrorType::no_error;
   } else return ErrorType::binom_out_of_range;
 }
 
 Error MultiMapImplementation::removeAll(KeyValue key) {
-  auto it = find(key);
-  if(it == cend()) return ErrorType::binom_out_of_range;
-  auto end = it.end();
-  while(it != end) delete convert(multi_avl_tree.extract(it++.iterator));
-  return ErrorType::no_error;
+  return multi_avl_tree.removeKey(std::move(key), [this](MultiAVLTree::AVLNode* node) {delete convert(node);--size;})
+    ? ErrorType::no_error
+    : ErrorType::binom_out_of_range;
 }
 
 err::ProgressReport<MultiMapImplementation::NamedVariable> MultiMapImplementation::rename(Iterator it, KeyValue new_key) {
@@ -88,7 +88,10 @@ MultiMapImplementation::ConstIterator MultiMapImplementation::findLast(KeyValue 
 MultiMapImplementation::ConstReverseIterator MultiMapImplementation::rfindLast(KeyValue key) const {return multi_avl_tree.rfindLast(std::move(key));}
 
 
-void MultiMapImplementation::clear() {multi_avl_tree.clear([](MultiAVLTree::AVLNode* node) {delete convert(node);});}
+void MultiMapImplementation::clear() {
+  multi_avl_tree.clear([](MultiAVLTree::AVLNode* node) {delete convert(node);});
+  size = 0;
+}
 
 
 

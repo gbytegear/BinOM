@@ -24,6 +24,27 @@ void testMultiMap() {
 
   utils::printVariable(_map.move());
 
+  PRINT_RUN(_map.removeAll(1);)
+
+  utils::printVariable(_map.move());
+
+  LOG("Key values iterating:");
+  for(auto named_variable : _map.find(2)) {
+    // BUG: After iterating over all elements of the key, a signal SIGSEGV(Invalid access to storage) is recived
+    LOG("Key:");
+    utils::printVariable(named_variable.getKey());
+    LOG("Value:")
+    utils::printVariable(named_variable.getVariable());
+  }
+
+  PRINT_RUN(_map.remove(++_map.find(2));)
+
+  utils::printVariable(_map.move());
+
+  PRINT_RUN(_map.clear();)
+
+  utils::printVariable(_map.move());
+
   GRP_POP
 }
 

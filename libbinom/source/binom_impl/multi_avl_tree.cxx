@@ -191,19 +191,19 @@ MultiAVLTree::AVLKeyNode::Iterator& MultiAVLTree::AVLKeyNode::Iterator::operator
 
 MultiAVLTree::AVLKeyNode::Iterator& MultiAVLTree::AVLKeyNode::Iterator::operator++() {if(node) node = node->next; return self;}
 
-MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator++(int) {++self; return node->prev;}
+MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
 
 MultiAVLTree::AVLKeyNode::Iterator& MultiAVLTree::AVLKeyNode::Iterator::operator--() {if(node) node = node->prev; return self;}
 
-MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator--(int) {--self; return node->next;}
+MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator--(int) {Iterator tmp(self); --self; return tmp;}
 
 const MultiAVLTree::AVLKeyNode::Iterator& MultiAVLTree::AVLKeyNode::Iterator::operator++() const {if(node) node = node->next; return self;}
 
-const MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator++(int) const {++self; return node->prev;}
+const MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator++(int) const {Iterator tmp(self); ++self; return tmp;}
 
 const MultiAVLTree::AVLKeyNode::Iterator& MultiAVLTree::AVLKeyNode::Iterator::operator--() const {if(node) node = node->prev; return self;}
 
-const MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator--(int) const {--self; return node->next;}
+const MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::AVLKeyNode::Iterator::operator--(int) const {Iterator tmp(self); --self; return tmp;}
 
 bool MultiAVLTree::AVLKeyNode::Iterator::operator==(Iterator other) const noexcept {return node == other.node;}
 
@@ -234,19 +234,19 @@ MultiAVLTree::AVLKeyNode::ReverseIterator& MultiAVLTree::AVLKeyNode::ReverseIter
 
 MultiAVLTree::AVLKeyNode::ReverseIterator& MultiAVLTree::AVLKeyNode::ReverseIterator::operator++() {if(node) node = node->prev; return self;}
 
-MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator++(int) {++self; return node->next;}
+MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator++(int) {ReverseIterator tmp(self); ++self; return tmp;}
 
 MultiAVLTree::AVLKeyNode::ReverseIterator& MultiAVLTree::AVLKeyNode::ReverseIterator::operator--() {if(node) node = node->next; return self;}
 
-MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator--(int) {--self; return node->prev;}
+MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator--(int) {ReverseIterator tmp(self); --self; return tmp;}
 
 const MultiAVLTree::AVLKeyNode::ReverseIterator& MultiAVLTree::AVLKeyNode::ReverseIterator::operator++() const {if(node) node = node->prev; return self;}
 
-const MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator++(int) const {++self; return node->next;}
+const MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator++(int) const {ReverseIterator tmp(self); ++self; return tmp;}
 
 const MultiAVLTree::AVLKeyNode::ReverseIterator& MultiAVLTree::AVLKeyNode::ReverseIterator::operator--() const {if(node) node = node->next; return self;}
 
-const MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator--(int) const {--self; return node->prev;}
+const MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::AVLKeyNode::ReverseIterator::operator--(int) const {ReverseIterator tmp(self); --self; return tmp;}
 
 bool MultiAVLTree::AVLKeyNode::ReverseIterator::operator==(ReverseIterator other) const noexcept {return node == other.node;}
 
@@ -459,6 +459,74 @@ MultiAVLTree::AVLNode* MultiAVLTree::extract(Iterator it) {
 
 MultiAVLTree::AVLNode* MultiAVLTree::extract(ReverseIterator r_it) {return extract(Iterator(r_it));}
 
+bool MultiAVLTree::removeKey(KeyValue key, std::function<void (AVLNode*)> destructor) {
+  AVLKeyNode* node = root;
+
+  // Find key node by key
+  forever {
+    if(!node) return false;
+
+    auto cmp = key.getCompare(node->key);
+    if(cmp == KeyValue::lower) {node = node->left; continue;}
+    elif(cmp == KeyValue::highter) {node = node->left; continue;}
+    else break;
+  }
+
+  AVLKeyNode* deletable_node = node;
+
+  // Delete value-nodes
+  for(auto it = node->begin(), end = node->end(); it != end; destructor(&*it++));
+
+  // Extract key-node
+  forever if(!node->left || !node->right) {
+    AVLKeyNode* tmp = node->left ? node->left : node->right;
+    if(!tmp) { // If node hasn't child
+      tmp = node;
+      node = nullptr;
+      tmp->unpin(self);
+    } else { // If node has 1 child
+      node->swapPosition(*tmp, self);
+      node->unpin(self);
+      node = tmp; // For balancing
+    }
+    break;
+  } else { // If node has 2 childs (Test it!!!)
+
+    // Change the position of the node
+    // to be deleted whith the position
+    // of the leftmost node in th right branch
+
+    AVLKeyNode* tmp = minKeyNode(node->right);
+    node->swapPosition(*tmp, self);
+    continue;
+  }
+
+  while(node) { // Balancing
+
+    node->depth = 1 + max(depth(node->left), depth(node->right));
+
+    i64 balance = getBalance(node);
+
+    if (balance > 1 && getBalance(root->left) >= 0) {
+      rotateRight(node);
+    } elif (balance > 1  && getBalance(root->left) < 0) {
+      rotateLeft(node->left);
+      rotateRight(node);
+    } elif (balance < -1 && getBalance(node->right) <= 0) {
+      rotateLeft(node);
+    } elif (balance < -1 && getBalance(node->right) > 0) {
+      rotateRight(node->right);
+      rotateLeft(node);
+    }
+
+    node = node->parent;
+  }
+
+  // Delete key-node
+  delete deletable_node;
+  return true;
+}
+
 MultiAVLTree::Iterator MultiAVLTree::find(KeyValue key) const {
   AVLKeyNode* key_node = root;
   forever {
@@ -532,6 +600,7 @@ MultiAVLTree::ConstReverseIterator MultiAVLTree::crbegin() const noexcept {retur
 MultiAVLTree::ConstReverseIterator MultiAVLTree::crend() const noexcept {return nullptr;}
 
 void MultiAVLTree::clear(std::function<void (AVLNode*)> destructor) {
+  if(!root) return;
   AVLKeyNode* key_node = minKeyNode();
   if(key_node->hasRight()) key_node = key_node->right;
   while(key_node) {
