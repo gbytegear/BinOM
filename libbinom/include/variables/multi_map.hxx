@@ -83,6 +83,9 @@ public:
   ConstIterator findLast(KeyValue key) const;
   ConstReverseIterator rfindLast(KeyValue key) const;
 
+  Iterator operator[](KeyValue key) noexcept;
+  ConstIterator operator[](KeyValue key) const noexcept;
+
   Iterator begin();
   Iterator end();
 
@@ -95,11 +98,11 @@ public:
   ConstReverseIterator rbegin() const noexcept;
   ConstReverseIterator rend() const noexcept;
 
-  ConstIterator cbegin() const;
-  ConstIterator cend() const;
+  ConstIterator cbegin() const noexcept;
+  ConstIterator cend() const noexcept;
 
-  ConstReverseIterator crbegin() const;
-  ConstReverseIterator crend() const;
+  ConstReverseIterator crbegin() const noexcept;
+  ConstReverseIterator crend() const noexcept;
 
   MultiMap& operator=(const MultiMap& other);
   MultiMap& operator=(MultiMap&& other);

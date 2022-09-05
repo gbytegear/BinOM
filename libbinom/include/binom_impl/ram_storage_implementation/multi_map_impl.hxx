@@ -36,6 +36,13 @@ public:
     Iterator& operator=(Iterator& other) noexcept;
     Iterator& operator=(Iterator&& other) noexcept;
 
+    inline Iterator& goToNextKey() {iterator.goToNextKey(); return self;}
+    inline Iterator& goToPrevKey() {iterator.goToPrevKey(); return self;}
+    inline const Iterator& goToNextKey() const {iterator.goToNextKey(); return self;}
+    inline const Iterator& goToPrevKey() const {iterator.goToPrevKey(); return self;}
+
+    inline size_t getElementCount() const noexcept {return iterator.getElementCount();}
+
     Iterator& operator++();
     Iterator& operator--();
 
@@ -75,7 +82,7 @@ public:
     inline ReverseIterator crbegin() const noexcept {return iterator.crbegin();}
     inline ReverseIterator crend() const noexcept {return iterator.crend();}
 
-    static Iterator nulliterator() noexcept {return MultiAVLTree::Iterator::nulliterator();}
+    static Iterator nulliterator() noexcept {return MultiAVLTree::Iterator(nullptr);}
   };
 
 
@@ -89,6 +96,13 @@ public:
 
     ReverseIterator& operator=(ReverseIterator& other) noexcept;
     ReverseIterator& operator=(ReverseIterator&& other) noexcept;
+
+    inline ReverseIterator& goToNextKey() {iterator.goToNextKey(); return self;}
+    inline ReverseIterator& goToPrevKey() {iterator.goToPrevKey(); return self;}
+    inline const ReverseIterator& goToNextKey() const {iterator.goToNextKey(); return self;}
+    inline const ReverseIterator& goToPrevKey() const {iterator.goToPrevKey(); return self;}
+
+    inline size_t getElementCount() const noexcept {return iterator.getElementCount();}
 
     ReverseIterator& operator++();
     ReverseIterator& operator--();
@@ -129,7 +143,7 @@ public:
     inline Iterator crbegin() const noexcept {return iterator.crbegin();}
     inline Iterator crend() const noexcept {return iterator.crend();}
 
-    static ReverseIterator nulliterator() noexcept {return MultiAVLTree::ReverseIterator::nulliterator();}
+    static ReverseIterator nulliterator() noexcept {return MultiAVLTree::ReverseIterator(nullptr);}
   };
 
   typedef const Iterator ConstIterator;
@@ -159,7 +173,6 @@ public:
   Error remove(ReverseIterator it);
   Error removeAll(KeyValue key);
   err::ProgressReport<NamedVariable> rename(Iterator it, KeyValue new_key);
-
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);

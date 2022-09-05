@@ -50,7 +50,7 @@ MultiMapImplementation::NamedVariable MultiMapImplementation::insert(KeyValue ke
 Error MultiMapImplementation::remove(Iterator it) {
   auto node = multi_avl_tree.extract(it.iterator);
   if(node) {
-    delete convert(multi_avl_tree.extract(it.iterator));
+    delete convert(node);
     --size;
     return ErrorType::no_error;
   } else return ErrorType::binom_out_of_range;
@@ -59,7 +59,7 @@ Error MultiMapImplementation::remove(Iterator it) {
 Error MultiMapImplementation::remove(ReverseIterator it) {
   auto node = multi_avl_tree.extract(it.iterator);
   if(node) {
-    delete convert(multi_avl_tree.extract(it.iterator));
+    delete convert(node);
     --size;
     return ErrorType::no_error;
   } else return ErrorType::binom_out_of_range;

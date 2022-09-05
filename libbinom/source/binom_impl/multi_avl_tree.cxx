@@ -88,6 +88,7 @@ MultiAVLTree::AVLKeyNode::AVLKeyNode(AVLKeyNode&& other)
 MultiAVLTree::AVLKeyNode& MultiAVLTree::AVLKeyNode::operator=(AVLKeyNode other) { this->~AVLKeyNode(); return *new(this) AVLKeyNode(std::move(other)); }
 
 void MultiAVLTree::AVLKeyNode::pushBack(AVLNode* node) {
+  node->key_node = this;
   if(!first) {
     first = last = node;
     node->next = node->prev = nullptr;
@@ -100,6 +101,7 @@ void MultiAVLTree::AVLKeyNode::pushBack(AVLNode* node) {
 }
 
 void MultiAVLTree::AVLKeyNode::pushFront(AVLNode* node) {
+  node->key_node = this;
   if(!first) {
     first = last = node;
     node->next = node->prev = nullptr;
@@ -121,6 +123,7 @@ MultiAVLTree::AVLNode& MultiAVLTree::AVLKeyNode::extract(Iterator it) {
   else if(&node == first) {
     first = node.next;
   }
+  node.key_node = nullptr;
   node.next = nullptr;
   node.prev = nullptr;
   --size;
@@ -547,7 +550,7 @@ MultiAVLTree::Iterator MultiAVLTree::findLast(KeyValue key) const {
     auto cmp = key.getCompare(key_node->key);
     if(cmp == KeyValue::lower) {key_node = key_node->left; continue;}
     elif(cmp == KeyValue::highter) {key_node = key_node->left; continue;}
-    else return Iterator(key_node, key_node->rbegin()); // Node is finded
+    else return Iterator(key_node->rbegin()); // Node is finded
   }
 }
 
@@ -571,7 +574,7 @@ MultiAVLTree::ReverseIterator MultiAVLTree::rfindLast(KeyValue key) const {
     auto cmp = key.getCompare(key_node->key);
     if(cmp == KeyValue::lower) {key_node = key_node->left; continue;}
     elif(cmp == KeyValue::highter) {key_node = key_node->left; continue;}
-    else return Iterator(key_node, key_node->rbegin()); // Node is finded
+    else return Iterator(key_node->rbegin()); // Node is finded
   }
 }
 
@@ -629,32 +632,125 @@ void MultiAVLTree::clear(std::function<void (AVLNode*)> destructor) {
 // ======================================================== MultiAVLTree::Iterator
 
 MultiAVLTree::Iterator::Iterator(AVLKeyNode* key_node)
-  : key_node(key_node), iterator(key_node ? key_node->begin() : nullptr) {}
+  : iterator(key_node ? key_node->begin() : nullptr) {}
 
-MultiAVLTree::Iterator::Iterator(AVLKeyNode* key_node, AVLKeyNode::Iterator iterator)
-  : key_node(key_node), iterator(iterator) {}
+MultiAVLTree::Iterator::Iterator(AVLKeyNode::Iterator iterator)
+  : iterator(iterator) {}
 
 MultiAVLTree::Iterator::Iterator(const Iterator& other)
-  : key_node(other.key_node), iterator(other.iterator) {}
+  : iterator(other.iterator) {}
 
 MultiAVLTree::Iterator::Iterator(Iterator&& other)
-  : key_node(other.key_node), iterator(other.iterator) {}
+  : iterator(other.iterator) {}
 
-MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator=(Iterator other) {key_node = other.key_node; iterator = other.iterator; return self;}
-
-MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() {
-  ++iterator;
-  if(iterator != nullptr) return self;
-
-  if(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+MultiAVLTree::Iterator& MultiAVLTree::Iterator::goToNextKey() {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
+  if(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
   elif(key_node->isLeft()) key_node = key_node->parent;
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
     while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     iterator = nullptr;
+    return self;
+  }
+  if(key_node) iterator = key_node->begin();
+  else iterator = nullptr;
+  return self;
+}
+
+MultiAVLTree::Iterator& MultiAVLTree::Iterator::goToPrevKey() {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
+  if(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+  elif(key_node->isRight()) key_node = key_node->parent;
+  elif(key_node->isLeft()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    iterator = nullptr;
+    return self;
+  }
+  if(key_node) iterator = key_node->rbegin();
+  else iterator = nullptr;
+  return *this;
+}
+
+const MultiAVLTree::Iterator& MultiAVLTree::Iterator::goToNextKey() const {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
+  if(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+  elif(key_node->isLeft()) key_node = key_node->parent;
+  elif(key_node->isRight()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    iterator = nullptr;
+    return self;
+  }
+  if(key_node) iterator = key_node->begin();
+  else iterator = nullptr;
+  return self;
+}
+
+const MultiAVLTree::Iterator& MultiAVLTree::Iterator::goToPrevKey() const {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
+  if(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+  elif(key_node->isRight()) key_node = key_node->parent;
+  elif(key_node->isLeft()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    iterator = nullptr;
+    return self;
+  }
+  if(key_node) iterator = key_node->rbegin();
+  else iterator = nullptr;
+  return *this;
+}
+
+MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator=(Iterator other) {iterator = other.iterator; return self;}
+
+MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
+  ++iterator;
+  if(iterator != nullptr) return self;
+  elif(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+  elif(key_node->isLeft()) key_node = key_node->parent;
+  elif(key_node->isRight()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    iterator = nullptr;
+    return self;
   }
   if(key_node) iterator = key_node->begin();
   else iterator = nullptr;
@@ -664,30 +760,45 @@ MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() {
 MultiAVLTree::Iterator MultiAVLTree::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
 
 MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator--() {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
   --iterator;
   if(iterator != nullptr) return self;
-
-  if(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+  elif(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
   elif(key_node->isRight()) key_node = key_node->parent;
   elif(key_node->isLeft()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
     while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     iterator = nullptr;
+    return self;
   }
   if(key_node) iterator = key_node->rbegin();
   else iterator = nullptr;
   return *this;
 }
 
+size_t MultiAVLTree::Iterator::getElementCount() const noexcept {
+  if(iterator->key_node) return iterator->key_node->getElementCount();
+  else return 0;
+}
+
 MultiAVLTree::Iterator MultiAVLTree::Iterator::operator--(int) {Iterator tmp(self); --self; return tmp;}
 
 const MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() const {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
   ++iterator;
   if(iterator != nullptr) return self;
-
+  elif(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
   if(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
   elif(key_node->isLeft()) key_node = key_node->parent;
   elif(key_node->isRight()) {
@@ -695,8 +806,8 @@ const MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() const {
     key_node = key_node->parent->parent;
     while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     iterator = nullptr;
+    return self;
   }
   if(key_node) iterator = key_node->begin();
   else iterator = nullptr;
@@ -706,41 +817,46 @@ const MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator++() const {
 const MultiAVLTree::Iterator MultiAVLTree::Iterator::operator++(int) const {Iterator tmp(self); ++self; return tmp;}
 
 const MultiAVLTree::Iterator& MultiAVLTree::Iterator::operator--() const {
+  if(!iterator) return self;
+  AVLKeyNode* key_node = iterator->key_node;
   --iterator;
   if(iterator != nullptr) return self;
-
-  if(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+  elif(!key_node) {
+    iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
   elif(key_node->isRight()) key_node = key_node->parent;
   elif(key_node->isLeft()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
     while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     iterator = nullptr;
+    return self;
   }
   if(key_node) iterator = key_node->rbegin();
   else iterator = nullptr;
   return *this;
 }
 
-MultiAVLTree::AVLKeyNode& MultiAVLTree::Iterator::getKeyNode() {return *key_node;}
+MultiAVLTree::AVLKeyNode& MultiAVLTree::Iterator::getKeyNode() {return *iterator->key_node;}
 
-const MultiAVLTree::AVLKeyNode& MultiAVLTree::Iterator::getKeyNode() const {return *key_node;}
+const MultiAVLTree::AVLKeyNode& MultiAVLTree::Iterator::getKeyNode() const {return *iterator->key_node;}
 
 MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::Iterator::getKeyNodeIterator() {return iterator;}
 
 const MultiAVLTree::AVLKeyNode::Iterator MultiAVLTree::Iterator::getKeyNodeIterator() const {return iterator;}
 
-KeyValue& MultiAVLTree::Iterator::getKey() {return key_node->getKey();}
+KeyValue& MultiAVLTree::Iterator::getKey() {return iterator->key_node->getKey();}
 
-const KeyValue& MultiAVLTree::Iterator::getKey() const {return key_node->getKey();}
+const KeyValue& MultiAVLTree::Iterator::getKey() const {return iterator->key_node->getKey();}
 
 const MultiAVLTree::Iterator MultiAVLTree::Iterator::operator--(int) const {Iterator tmp(self); --self; return tmp;}
 
-bool MultiAVLTree::Iterator::operator==(Iterator other) const noexcept {return key_node == other.key_node && iterator == other.iterator;}
+bool MultiAVLTree::Iterator::operator==(Iterator other) const noexcept {return iterator == other.iterator;}
 
-bool MultiAVLTree::Iterator::operator!=(Iterator other) const noexcept {return key_node != other.key_node || iterator != other.iterator;}
+bool MultiAVLTree::Iterator::operator!=(Iterator other) const noexcept {return iterator != other.iterator;}
 
 MultiAVLTree::AVLNode& MultiAVLTree::Iterator::operator*() {return *iterator;}
 
@@ -750,64 +866,157 @@ const MultiAVLTree::AVLNode& MultiAVLTree::Iterator::operator*() const {return *
 
 const MultiAVLTree::AVLNode* MultiAVLTree::Iterator::operator->() const noexcept {return iterator.operator->();}
 
-MultiAVLTree::Iterator::operator ReverseIterator() {return ReverseIterator(key_node, iterator);}
+MultiAVLTree::Iterator::operator ReverseIterator() {return ReverseIterator(iterator);}
 
-MultiAVLTree::Iterator::operator const ReverseIterator() const {return ReverseIterator(key_node, iterator);}
+MultiAVLTree::Iterator::operator const ReverseIterator() const {return ReverseIterator(iterator);}
 
-MultiAVLTree::Iterator MultiAVLTree::Iterator::begin() noexcept {return key_node;}
+MultiAVLTree::Iterator MultiAVLTree::Iterator::begin() noexcept {return (iterator)? iterator->key_node->begin() : nullptr;}
 
-MultiAVLTree::Iterator MultiAVLTree::Iterator::end() noexcept {return Iterator(key_node, --key_node->rbegin());}
+MultiAVLTree::Iterator MultiAVLTree::Iterator::end() noexcept {return Iterator(self).goToNextKey();}
 
-MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rbegin() noexcept {return key_node;}
+MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rbegin() noexcept {return (iterator)? iterator->key_node->rbegin() : nullptr;}
 
-MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rend() noexcept {return ReverseIterator(key_node, --key_node->begin());}
+MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rend() noexcept {return ReverseIterator(self).goToNextKey();}
 
-const MultiAVLTree::Iterator MultiAVLTree::Iterator::begin() const noexcept {return key_node;}
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::begin() const noexcept {return (iterator)? iterator->key_node->begin() : nullptr;}
 
-const MultiAVLTree::Iterator MultiAVLTree::Iterator::end() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::end() const noexcept {return Iterator(self).goToNextKey();}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rbegin() const noexcept {return key_node;}
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rbegin() const noexcept {return (iterator)? iterator->key_node->rbegin() : nullptr;}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rend() const noexcept {return ReverseIterator(key_node, --key_node->begin());}
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::rend() const noexcept {return ReverseIterator(self).goToNextKey();}
 
-const MultiAVLTree::Iterator MultiAVLTree::Iterator::cbegin() const noexcept {return key_node;}
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::cbegin() const noexcept {return (iterator)? iterator->key_node->begin() : nullptr;}
 
-const MultiAVLTree::Iterator MultiAVLTree::Iterator::cend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+const MultiAVLTree::Iterator MultiAVLTree::Iterator::cend() const noexcept {return Iterator(self).goToNextKey();}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::crbegin() const noexcept {return key_node;}
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::crbegin() const noexcept {return (iterator)? iterator->key_node->rbegin() : nullptr;}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::crend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+const MultiAVLTree::ReverseIterator MultiAVLTree::Iterator::crend() const noexcept {return ReverseIterator(self).goToNextKey();}
 
 
 // ======================================================== MultiAVLTree::ReverseIterator
 
 MultiAVLTree::ReverseIterator::ReverseIterator(AVLKeyNode* key_node)
-  : key_node(key_node), reverse_iterator(key_node ? key_node->rbegin() : nullptr) {}
+  : reverse_iterator(key_node ? key_node->rbegin() : nullptr) {}
 
-MultiAVLTree::ReverseIterator::ReverseIterator(AVLKeyNode* key_node, AVLKeyNode::ReverseIterator reverse_iterator)
-  : key_node(key_node), reverse_iterator(reverse_iterator) {}
+MultiAVLTree::ReverseIterator::ReverseIterator(AVLKeyNode::ReverseIterator reverse_iterator)
+  : reverse_iterator(reverse_iterator) {}
 
 MultiAVLTree::ReverseIterator::ReverseIterator(const ReverseIterator& other)
-  : key_node(other.key_node), reverse_iterator(other.reverse_iterator) {}
+  : reverse_iterator(other.reverse_iterator) {}
 
 MultiAVLTree::ReverseIterator::ReverseIterator(ReverseIterator&& other)
-  : key_node(other.key_node), reverse_iterator(other.reverse_iterator) {}
+  : reverse_iterator(other.reverse_iterator) {}
 
-MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator=(ReverseIterator other) {key_node = other.key_node; reverse_iterator = other.reverse_iterator; return self;}
-
-MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++() {
-  ++reverse_iterator;
-  if(reverse_iterator != nullptr) return self;
-
-  if(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::goToNextKey() {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
+  if(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
   elif(key_node->isRight()) key_node = key_node->parent;
   elif(key_node->isLeft()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
     while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     reverse_iterator = nullptr;
+    return self;
+  }
+  if(key_node) reverse_iterator = key_node->rbegin();
+  else reverse_iterator = nullptr;
+  return self;
+}
+
+MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::goToPrevKey() {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
+  if(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+  elif(key_node->isLeft()) key_node = key_node->parent;
+  elif(key_node->isRight()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  if(key_node) reverse_iterator = key_node->begin();
+  else reverse_iterator = nullptr;
+  return *this;
+}
+
+const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::goToNextKey() const {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
+  if(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+  elif(key_node->isRight()) key_node = key_node->parent;
+  elif(key_node->isLeft()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  if(key_node) reverse_iterator = key_node->rbegin();
+  else reverse_iterator = nullptr;
+  return self;
+}
+
+const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::goToPrevKey() const {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
+  if(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+  elif(key_node->isLeft()) key_node = key_node->parent;
+  elif(key_node->isRight()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  if(key_node) reverse_iterator = key_node->begin();
+  else reverse_iterator = nullptr;
+  return *this;
+}
+
+MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator=(ReverseIterator other) {reverse_iterator = other.reverse_iterator; return self;}
+
+MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++() {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
+  ++reverse_iterator;
+  if(reverse_iterator != nullptr) return self;
+  elif(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasLeft()) key_node = MultiAVLTree::maxKeyNode(key_node->left);
+  elif(key_node->isRight()) key_node = key_node->parent;
+  elif(key_node->isLeft()) {
+    AVLKeyNode* tmp = key_node->parent;
+    key_node = key_node->parent->parent;
+    while (tmp->isLeft() && key_node) {tmp = key_node; key_node = key_node->parent;}
+  } elif(key_node->isRoot()) {
+    reverse_iterator = nullptr;
+    return self;
   }
   if(key_node) reverse_iterator = key_node->rbegin();
   else reverse_iterator = nullptr;
@@ -817,39 +1026,54 @@ MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++() {
 MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::operator++(int) {ReverseIterator tmp(self); ++self; return tmp;}
 
 MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator--() {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
   --reverse_iterator;
   if(reverse_iterator != nullptr) return self;
-
-  if(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+  elif(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
   elif(key_node->isLeft()) key_node = key_node->parent;
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
     while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     reverse_iterator = nullptr;
+    return self;
   }
   if(key_node) reverse_iterator = key_node->begin();
   else reverse_iterator = nullptr;
   return *this;
 }
 
+size_t MultiAVLTree::ReverseIterator::getElementCount() const noexcept {
+  if(reverse_iterator->key_node) return reverse_iterator->key_node->getElementCount();
+  else return 0;
+}
+
 MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::operator--(int) {ReverseIterator tmp(self); --self; return tmp;}
 
 const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++() const {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
   ++reverse_iterator;
   if(reverse_iterator != nullptr) return self;
-
-  if(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
+  elif(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
+  elif(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
   elif(key_node->isLeft()) key_node = key_node->parent;
   elif(key_node->isRight()) {
     AVLKeyNode* tmp = key_node->parent;
     key_node = key_node->parent->parent;
     while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     reverse_iterator = nullptr;
+    return self;
   }
   if(key_node) reverse_iterator = key_node->begin();
   else reverse_iterator = nullptr;
@@ -859,9 +1083,14 @@ const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator++()
 const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::operator++(int) const {ReverseIterator tmp(self); ++self; return tmp;}
 
 const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator--() const {
+  if(!reverse_iterator) return self;
+  AVLKeyNode* key_node = reverse_iterator->key_node;
   --reverse_iterator;
   if(reverse_iterator != nullptr) return self;
-
+  elif(!key_node) {
+    reverse_iterator = nullptr;
+    return self;
+  }
   if(key_node->hasRight()) key_node = MultiAVLTree::minKeyNode(key_node->right);
   elif(key_node->isLeft()) key_node = key_node->parent;
   elif(key_node->isRight()) {
@@ -869,31 +1098,31 @@ const MultiAVLTree::ReverseIterator& MultiAVLTree::ReverseIterator::operator--()
     key_node = key_node->parent->parent;
     while (tmp->isRight() && key_node) {tmp = key_node; key_node = key_node->parent;}
   } elif(key_node->isRoot()) {
-    key_node = nullptr;
     reverse_iterator = nullptr;
+    return self;
   }
   if(key_node) reverse_iterator = key_node->begin();
   else reverse_iterator = nullptr;
   return *this;
 }
 
-MultiAVLTree::AVLKeyNode& MultiAVLTree::ReverseIterator::getKeyNode() {return *key_node;}
+MultiAVLTree::AVLKeyNode& MultiAVLTree::ReverseIterator::getKeyNode() {return *reverse_iterator->key_node;}
 
-const MultiAVLTree::AVLKeyNode& MultiAVLTree::ReverseIterator::getKeyNode() const {return *key_node;}
+const MultiAVLTree::AVLKeyNode& MultiAVLTree::ReverseIterator::getKeyNode() const {return *reverse_iterator->key_node;}
 
 MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::ReverseIterator::getKeyNodeIterator() {return reverse_iterator;}
 
 const MultiAVLTree::AVLKeyNode::ReverseIterator MultiAVLTree::ReverseIterator::getKeyNodeIterator() const {return reverse_iterator;}
 
-KeyValue& MultiAVLTree::ReverseIterator::getKey() {return key_node->getKey();}
+KeyValue& MultiAVLTree::ReverseIterator::getKey() {return reverse_iterator->key_node->getKey();}
 
-const KeyValue& MultiAVLTree::ReverseIterator::getKey() const {return key_node->getKey();}
+const KeyValue& MultiAVLTree::ReverseIterator::getKey() const {return reverse_iterator->key_node->getKey();}
 
 const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::operator--(int) const {ReverseIterator tmp(self); --self; return tmp;}
 
-bool MultiAVLTree::ReverseIterator::operator==(ReverseIterator other) const noexcept {return key_node == other.key_node && reverse_iterator == other.reverse_iterator;}
+bool MultiAVLTree::ReverseIterator::operator==(ReverseIterator other) const noexcept {return reverse_iterator == other.reverse_iterator;}
 
-bool MultiAVLTree::ReverseIterator::operator!=(ReverseIterator other) const noexcept {return key_node != other.key_node || reverse_iterator != other.reverse_iterator;}
+bool MultiAVLTree::ReverseIterator::operator!=(ReverseIterator other) const noexcept {return reverse_iterator != other.reverse_iterator;}
 
 MultiAVLTree::AVLNode& MultiAVLTree::ReverseIterator::operator*() {return *reverse_iterator;}
 
@@ -903,30 +1132,30 @@ const MultiAVLTree::AVLNode& MultiAVLTree::ReverseIterator::operator*() const {r
 
 const MultiAVLTree::AVLNode* MultiAVLTree::ReverseIterator::operator->() const noexcept {return reverse_iterator.operator->();}
 
-MultiAVLTree::ReverseIterator::operator Iterator() {return Iterator(key_node, reverse_iterator);}
+MultiAVLTree::ReverseIterator::operator Iterator() {return Iterator(reverse_iterator);}
 
-MultiAVLTree::ReverseIterator::operator const Iterator() const {return Iterator(key_node, reverse_iterator);}
+MultiAVLTree::ReverseIterator::operator const Iterator() const {return Iterator(reverse_iterator);}
 
-MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rbegin() noexcept {return key_node;}
+MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rbegin() noexcept {return (reverse_iterator)? reverse_iterator->key_node->begin() : nullptr;}
 
-MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rend() noexcept {return Iterator(key_node, --key_node->rbegin());}
+MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rend() noexcept {return Iterator(self).goToNextKey();}
 
-MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::begin() noexcept {return key_node;}
+MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::begin() noexcept {return (reverse_iterator)? reverse_iterator->key_node->rbegin() : nullptr;}
 
-MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::end() noexcept {return ReverseIterator(key_node, --key_node->begin());}
+MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::end() noexcept {return ReverseIterator(self).goToNextKey();}
 
-const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rbegin() const noexcept {return key_node;}
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rbegin() const noexcept {return (reverse_iterator)? reverse_iterator->key_node->begin() : nullptr;}
 
-const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::rend() const noexcept {return Iterator(self).goToNextKey();}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::begin() const noexcept {return key_node;}
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::begin() const noexcept {return (reverse_iterator)? reverse_iterator->key_node->rbegin() : nullptr;}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::end() const noexcept {return ReverseIterator(key_node, --key_node->begin());}
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::end() const noexcept {return ReverseIterator(self).goToNextKey();}
 
-const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::crbegin() const noexcept {return key_node;}
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::crbegin() const noexcept {return (reverse_iterator)? reverse_iterator->key_node->begin() : nullptr;}
 
-const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::crend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+const MultiAVLTree::Iterator MultiAVLTree::ReverseIterator::crend() const noexcept {return Iterator(self).goToNextKey();}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::cbegin() const noexcept {return key_node;}
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::cbegin() const noexcept {return (reverse_iterator)? reverse_iterator->key_node->rbegin() : nullptr;}
 
-const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::cend() const noexcept {return Iterator(key_node, --key_node->rbegin());}
+const MultiAVLTree::ReverseIterator MultiAVLTree::ReverseIterator::cend() const noexcept {return ReverseIterator(self).goToNextKey();}

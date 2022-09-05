@@ -123,6 +123,18 @@ MultiMap::ConstReverseIterator MultiMap::rfindLast(KeyValue key) const {
   return getData()->rfindLast(std::move(key));
 }
 
+MultiMap::Iterator MultiMap::operator[](KeyValue key) noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->find(std::move(key));
+}
+
+MultiMap::ConstIterator MultiMap::operator[](KeyValue key) const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->find(std::move(key));
+}
+
 MultiMap::Iterator MultiMap::begin() {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return Iterator::nulliterator();
@@ -159,6 +171,18 @@ MultiMap::ConstIterator MultiMap::end() const noexcept {
   return getData()->end();
 }
 
+MultiMap::ConstIterator MultiMap::cbegin() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->begin();
+}
+
+MultiMap::ConstIterator MultiMap::cend() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return Iterator::nulliterator();
+  return getData()->end();
+}
+
 MultiMap::ConstReverseIterator MultiMap::rbegin() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ReverseIterator::nulliterator();
@@ -166,6 +190,18 @@ MultiMap::ConstReverseIterator MultiMap::rbegin() const noexcept {
 }
 
 MultiMap::ConstReverseIterator MultiMap::rend() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator::nulliterator();
+  return getData()->rend();
+}
+
+MultiMap::ConstReverseIterator MultiMap::crbegin() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ReverseIterator::nulliterator();
+  return getData()->rbegin();
+}
+
+MultiMap::ConstReverseIterator MultiMap::crend() const noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ReverseIterator::nulliterator();
   return getData()->rend();

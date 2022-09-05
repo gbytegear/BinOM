@@ -10,13 +10,18 @@ namespace binom::priv {
 class MultiAVLTree {
   class AVLKeyNode;
 public:
+  class ReverseIterator;
+  class Iterator;
 
   class AVLNode {
     friend class MultiAVLTree::AVLKeyNode;
+    friend class MultiAVLTree::Iterator;
+    friend class MultiAVLTree::ReverseIterator;
+    AVLKeyNode* key_node = nullptr;
     AVLNode* next = nullptr;
     AVLNode* prev = nullptr;
   public:
-    inline bool isIndexed() {return next || prev;}
+    inline bool isIndexed() {return key_node;}
   };
 
 private:
@@ -51,6 +56,7 @@ private:
     class Iterator {
       mutable AVLNode* node = nullptr;
     public:
+      Iterator() = default;
       Iterator(AVLNode* node) noexcept;
       Iterator(const Iterator& other) noexcept;
       Iterator(Iterator&& other) noexcept;
@@ -66,6 +72,8 @@ private:
       const Iterator operator++(int) const;
       const Iterator& operator--() const;
       const Iterator operator--(int) const;
+
+      operator bool() const noexcept {return node;}
 
       bool operator<=>(const Iterator&) const noexcept = default;
 
@@ -85,6 +93,7 @@ private:
     class ReverseIterator {
       mutable AVLNode* node = nullptr;
     public:
+      ReverseIterator() = default;
       ReverseIterator(AVLNode* node) noexcept;
       ReverseIterator(const ReverseIterator& other) noexcept;
       ReverseIterator(ReverseIterator&& other) noexcept;
@@ -100,6 +109,8 @@ private:
       const ReverseIterator operator++(int) const;
       const ReverseIterator& operator--() const;
       const ReverseIterator operator--(int) const;
+
+      operator bool() const noexcept {return node;}
 
       bool operator<=>(const ReverseIterator&) const noexcept = default;
 
@@ -163,18 +174,19 @@ private:
 
 public:
 
-  class ReverseIterator;
-
   class Iterator {
     friend class MultiAVLTree;
-    mutable AVLKeyNode* key_node = nullptr;
-    mutable AVLKeyNode::Iterator iterator = nullptr;
-    Iterator(AVLKeyNode* key_node);
-    Iterator(AVLKeyNode* key_node, AVLKeyNode::Iterator iterator);
+    mutable AVLKeyNode::Iterator iterator;
   public:
-
+    Iterator(AVLKeyNode* key_node);
+    Iterator(AVLKeyNode::Iterator iterator);
     Iterator(const Iterator& other);
     Iterator(Iterator&& other);
+
+    Iterator& goToNextKey();
+    Iterator& goToPrevKey();
+    const Iterator& goToNextKey() const;
+    const Iterator& goToPrevKey() const;
 
     Iterator& operator=(Iterator other);
     Iterator& operator++();
@@ -186,6 +198,10 @@ public:
     const Iterator operator++(int) const;
     const Iterator& operator--() const;
     const Iterator operator--(int) const;
+
+    operator bool() const {return iterator;}
+
+    size_t getElementCount() const noexcept;
 
     AVLKeyNode& getKeyNode();
     const AVLKeyNode& getKeyNode() const;
@@ -226,20 +242,22 @@ public:
     const ReverseIterator crbegin() const noexcept;
     const ReverseIterator crend() const noexcept;
 
-    static Iterator nulliterator() noexcept {return {nullptr, nullptr};}
-
 
   };
 
   class ReverseIterator {
     friend class MultiAVLTree;
-    mutable AVLKeyNode* key_node = nullptr;
     mutable AVLKeyNode::ReverseIterator reverse_iterator = nullptr;
-    ReverseIterator(AVLKeyNode* key_node);
-    ReverseIterator(AVLKeyNode* key_node, AVLKeyNode::ReverseIterator reverse_iterator);
   public:
+    ReverseIterator(AVLKeyNode* key_node);
+    ReverseIterator(AVLKeyNode::ReverseIterator iterator);
     ReverseIterator(const ReverseIterator& other);
     ReverseIterator(ReverseIterator&& other);
+
+    ReverseIterator& goToNextKey();
+    ReverseIterator& goToPrevKey();
+    const ReverseIterator& goToNextKey() const;
+    const ReverseIterator& goToPrevKey() const;
 
     ReverseIterator& operator=(ReverseIterator other);
     ReverseIterator& operator++();
@@ -247,10 +265,14 @@ public:
     ReverseIterator& operator--();
     ReverseIterator operator--(int);
 
+    operator bool() const {return reverse_iterator;}
+
     const ReverseIterator& operator++() const;
     const ReverseIterator operator++(int) const;
     const ReverseIterator& operator--() const;
     const ReverseIterator operator--(int) const;
+
+    size_t getElementCount() const noexcept;
 
     AVLKeyNode& getKeyNode();
     const AVLKeyNode& getKeyNode() const;
@@ -290,8 +312,6 @@ public:
 
     const ReverseIterator cbegin() const noexcept;
     const ReverseIterator cend() const noexcept;
-
-    static ReverseIterator nulliterator() noexcept {return {nullptr, nullptr};}
 
   };
 
