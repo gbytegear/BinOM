@@ -33,7 +33,7 @@
       * [x] `binom::AVLTree::Iterator`
     * [x] `binom::Map::Iterator`
     * [x] `binom::Map::ReverseIterator`
-  * [ ] `binom::MultiMap`
+  * [x] `binom::MultiMap`
       * [x] `binom::MultiAVLTree`
         * [x] `binom::MultiAVLTree::AVLKeyNode`
             * [x] `binom::MultiAVLTree::AVLKeyNode::Iterator`
@@ -41,8 +41,8 @@
         * [x] `binom::MultiAVLTree::AVLNode`
         * [x] `binom::MultiAVLTree::Iterator`
         * [x] `binom::MultiAVLTree::ReverseIterator`
-    * [ ] `binom::MultiMap::Iterator`
-    * [ ] `binom::MultiMap::ReverseIterator`
+    * [x] `binom::MultiMap::Iterator`
+    * [x] `binom::MultiMap::ReverseIterator`
   * [ ] `binom::Table`
     * [ ] `binom::TableDescriptor`
     * [ ] `binom::RowDescriptor`
