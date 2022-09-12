@@ -3,6 +3,8 @@
 using namespace binom;
 using namespace binom::priv;
 
+using AVLNode = AVLTree::AVLNode;
+
 // ============================================================ Node
 
 void AVLNode::swapPosition(AVLNode& other, AVLTree& avl_tree) {
@@ -368,6 +370,7 @@ AVLTree::ConstReverseIterator AVLTree::crend() const noexcept {return nullptr;}
 
 void AVLTree::clear(std::function<void(AVLNode*)> destructor) {
   AVLNode* node = minKeyNode();
+  if(!node) return;
   if(node->hasRight()) node = node->right;
   while(node) {
     AVLNode* last = node;

@@ -17,6 +17,7 @@ libbinom/include/binom_impl/ram_storage_implementation/doubly_linked_list_impl.h
 libbinom/include/binom_impl/ram_storage_implementation/map_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/multi_map_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/singly_linked_list_impl.hxx
+libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx
 libbinom/include/binom_impl/resource_control.hxx
 libbinom/include/binom_impl/types.hxx
 libbinom/include/utils/bit_map64.hxx
@@ -26,6 +27,7 @@ libbinom/include/utils/extended_type_traits.hxx
 libbinom/include/utils/generic_arithmetic.hxx
 libbinom/include/utils/heritable_initializer_list.hxx
 libbinom/include/utils/memctrl.hxx
+libbinom/include/utils/pseudo_pointer.hxx
 libbinom/include/utils/reverse_iterator.hxx
 libbinom/include/utils/shared_recursive_mutex_wrapper.hxx
 libbinom/include/utils/type_aliases.hxx

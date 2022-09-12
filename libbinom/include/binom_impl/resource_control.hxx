@@ -26,13 +26,13 @@ struct ResourceData {
     f32   f32_val;
     f64   f64_val;
 
-    BitArrayImplementation* bit_array_implementation;
-    BufferArrayImplementation* buffer_array_implementation;
-    ArrayImplementation* array_implementation;
+    BitArrayImplementation*         bit_array_implementation;
+    BufferArrayImplementation*      buffer_array_implementation;
+    ArrayImplementation*            array_implementation;
     SinglyLinkedListImplementation* single_linked_list_implementation;
     DoublyLinkedListImplementation* doubly_linked_list_implementation;
-    MapImplementation* map_implementation;
-    MultiMapImplementation* multi_map_implementation;
+    MapImplementation*              map_implementation;
+    MultiMapImplementation*         multi_map_implementation;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };

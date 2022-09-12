@@ -61,7 +61,7 @@ class Number :
 
   void setTypeImpl(ValType new_type) noexcept;
 
-  Number(priv::Link&& link);
+  Number(priv::Link&& link) noexcept;
 
   friend class Variable;
   friend class KeyValue;

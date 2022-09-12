@@ -72,7 +72,7 @@ Variable Map::getVariable(KeyValue key) {
 Variable Map::operator[](KeyValue key) {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return nullptr;
-  return getData()->getOrInsertNamedVariable(std::move(key)).getVariable();
+  return getData()->getOrInsertNamedVariable(std::move(key)).getVariable().move();
 }
 
 Map::Iterator Map::find(KeyValue key) {

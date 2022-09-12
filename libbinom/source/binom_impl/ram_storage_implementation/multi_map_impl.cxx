@@ -132,11 +132,11 @@ bool MultiMapImplementation::Iterator::operator!=(const Iterator other) const no
 
 MultiMapImplementation::NamedVariable MultiMapImplementation::Iterator::operator*() {return NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move());}
 
-MultiMapImplementation::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::Iterator::operator ->() {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
+pseudo_ptr::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::Iterator::operator ->() {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
 
 const MultiMapImplementation::NamedVariable MultiMapImplementation::Iterator::operator*() const {return NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move());}
 
-const MultiMapImplementation::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::Iterator::operator->() const {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
+const pseudo_ptr::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::Iterator::operator->() const {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
 
 
 
@@ -173,9 +173,9 @@ bool MultiMapImplementation::ReverseIterator::operator!=(const ReverseIterator o
 
 MultiMapImplementation::NamedVariable MultiMapImplementation::ReverseIterator::operator*() {return NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move());}
 
-MultiMapImplementation::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::ReverseIterator::operator->() {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
+pseudo_ptr::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::ReverseIterator::operator->() {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
 
 const MultiMapImplementation::NamedVariable MultiMapImplementation::ReverseIterator::operator*() const {return NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move());}
 
-const MultiMapImplementation::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::ReverseIterator::operator->() const {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
+const pseudo_ptr::PseudoPointer<MultiMapImplementation::NamedVariable> MultiMapImplementation::ReverseIterator::operator->() const {return {NamedVariable(iterator.getKey(), convert(&*iterator)->variable.move())};}
 

@@ -3,10 +3,8 @@
 
 #include "../binom_impl/resource_control.hxx"
 #include "../binom_impl/ram_storage_implementation.hxx"
-#include "generic_value.hxx"
-#include "../binom_impl/avl_tree.hxx"
 #include "../binom_impl/multi_avl_tree.hxx"
-#include "../utils/memctrl.hxx"
+#include "generic_value.hxx"
 
 namespace binom {
 
@@ -59,10 +57,18 @@ public:
   Variable(const literals::bitarr bit_array);
 
   // BufferArray
-  template<class CharT>
-  Variable(const std::basic_string_view<CharT> str) {
+//  template<class CharT>
+//  Variable(const std::basic_string_view<CharT> string_view)
+//    : Variable(ResourceData{
+//                 sizeof(CharT) == 1
+//                 ? VarType::char_t
+//                 : sizeof(CharT) == 2
+//                 ? VarType::char16
 
-  }
+//                  ,
+//  {.buffer_array_implementation = priv::BufferArrayImplementation::create(string_view)}}) {}
+
+
   Variable(const literals::ui8arr ui8_array);
   Variable(const literals::i8arr i8_array);
   Variable(const literals::ui16arr ui16_array);

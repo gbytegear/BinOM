@@ -55,34 +55,22 @@ public:
     : key(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
 };
 
-class priv::MapImplementation::NamedVariable
-    : public priv::NamedVariableBase<priv::MapImplementation::NamedVariable> {
-  friend class NamedVariableBase;
-  friend class priv::MapImplementation;
-  priv::AVLNode node;
-  Variable variable;
+class priv::MapImplementation::NamedVariable : public priv::NamedVariableBase<priv::MapImplementation::NamedVariable> {
+  template<class Driven>
+  friend class priv::NamedVariableBase;
+  ValueStoringAVLNode* node;
 
-  inline Variable& getVariableRef() noexcept {return variable;}
-  inline KeyValue& getKeyRef() noexcept {return node.getKey();}
-  inline const Variable& getVariableRef() const noexcept {return variable;}
-  inline const KeyValue& getKeyRef() const noexcept {return node.getKey();}
+  inline Variable& getVariableRef() noexcept {return node->getValue();}
+  inline KeyValue& getKeyRef() noexcept {return node->getKey();}
+  inline const Variable& getVariableRef() const noexcept {return node->getValue();}
+  inline const KeyValue& getKeyRef() const noexcept {return node->getKey();}
 
+  friend class MapImplementation;
+  NamedVariable(const ValueStoringAVLNode& node) : node(&const_cast<ValueStoringAVLNode&>(node)) {}
+  NamedVariable(const ValueStoringAVLNode* node) : node(const_cast<ValueStoringAVLNode*>(node)) {}
 public:
-  NamedVariable()
-    : node(KeyValue(nullptr)), variable(nullptr) {}
-  NamedVariable(KeyValue key, Variable variable)
-    : node(std::move(key)), variable(variable.move()) {}
-  NamedVariable(const binom::NamedVariable&& named_variable)
-    : node(std::move(const_cast<binom::NamedVariable&&>(named_variable).key)),
-      variable(const_cast<binom::NamedVariable&&>(named_variable).variable.move()) {}
-  template<class NamedVariableDriven>
-  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
-  NamedVariable(const NamedVariableDriven& other)
-    : node(other.getKeyRef()), variable(other.getVariableRef()) {}
-  template<class NamedVariableDriven>
-  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
-  NamedVariable(NamedVariableDriven&& other)
-    : node(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
+  NamedVariable(const NamedVariable& other) : node(other.node) {}
+  NamedVariable(NamedVariable&& other) : node(other.node) {}
 };
 
 class priv::MultiMapImplementation::NamedVariable

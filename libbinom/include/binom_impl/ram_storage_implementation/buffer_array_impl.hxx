@@ -15,9 +15,11 @@ class BufferArrayImplementation {
   template<typename T>
   requires std::is_arithmetic_v<T>
   BufferArrayImplementation(const std::initializer_list<T>& value_list)
-    : size(value_list.size() * sizeof(T)), capacity(calculateCapacity(size)) {
-    std::memcpy(getData(), value_list.begin(), size);
-  }
+    : size(value_list.size() * sizeof(T)), capacity(calculateCapacity(size)) { std::memcpy(getData(), value_list.begin(), size); }
+
+  template<typename CharT>
+  BufferArrayImplementation(const std::basic_string_view<CharT>& string_view)
+    : size(string_view.size() * sizeof(CharT)), capacity(calculateCapacity(size)) { std::memcpy(getData(), string_view.data(), size); }
 
   BufferArrayImplementation(const BufferArrayImplementation& other);
   static size_t calculateCapacity(size_t size) noexcept;
@@ -93,7 +95,14 @@ public:
   template<typename T>
   requires std::is_arithmetic_v<T>
   static BufferArrayImplementation* create(const std::initializer_list<T>& value_list) {
-    return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ]) BufferArrayImplementation(value_list);
+    return new(new byte[ calculateCapacity(value_list.size() * sizeof(T)) ])
+           BufferArrayImplementation(value_list);
+  }
+
+  template<typename CharT>
+  static BufferArrayImplementation* create(const std::basic_string_view<CharT>& string_view) {
+    return new(new byte[ calculateCapacity(string_view.size() + sizeof(CharT)) ])
+           BufferArrayImplementation(string_view);
   }
 
   static BufferArrayImplementation* copy(const BufferArrayImplementation* other);

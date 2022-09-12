@@ -3,6 +3,7 @@
 
 #include "../../variables/variable.hxx"
 #include "../multi_avl_tree.hxx"
+#include "../../utils/pseudo_pointer.hxx"
 
 namespace binom::priv {
 
@@ -11,15 +12,6 @@ class MultiMapImplementation {
   struct MultiMapNode;
 
 public:
-
-  template<typename T>
-  struct PseudoPointer{
-    T value;
-    T& operator*() noexcept {return value;}
-    const T& operator*() const noexcept {return value;}
-    T* operator->() noexcept {return &value;}
-    const T* operator->() const noexcept {return &value;}
-  };
 
   class ReverseIterator;
 
@@ -59,10 +51,10 @@ public:
     bool operator!=(const Iterator other) const noexcept;
 
     NamedVariable operator*();
-    PseudoPointer<NamedVariable> operator->();
+    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
 
     const NamedVariable operator*() const;
-    const PseudoPointer<NamedVariable> operator->() const;
+    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
 
     inline Iterator begin() noexcept {return iterator.begin();}
     inline Iterator end() noexcept {return iterator.end();}
@@ -120,10 +112,10 @@ public:
     bool operator!=(ReverseIterator other) const noexcept;
 
     NamedVariable operator*();
-    PseudoPointer<NamedVariable> operator->();
+    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
 
     const NamedVariable operator*() const;
-    const PseudoPointer<NamedVariable> operator->() const;
+    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
 
     inline ReverseIterator begin() noexcept {return iterator.begin();}
     inline ReverseIterator end() noexcept {return iterator.end();}

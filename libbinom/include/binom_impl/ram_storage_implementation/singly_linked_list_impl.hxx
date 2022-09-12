@@ -10,6 +10,8 @@ class SinglyLinkedListImplementation {
   size_t size = 0;
   Node* first = nullptr;
   Node* last = nullptr;
+
+
 public:
   class Iterator;
   SinglyLinkedListImplementation(const literals::sllist& value_list);

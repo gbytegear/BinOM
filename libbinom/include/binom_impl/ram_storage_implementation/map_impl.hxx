@@ -3,26 +3,28 @@
 
 #include "../../variables/variable.hxx"
 #include "../avl_tree.hxx"
+#include "../../utils/pseudo_pointer.hxx"
 
 namespace binom::priv {
 
 class MapImplementation {
+  using AVLNode = AVLTree::AVLNode;
+  using ValueStoringAVLNode = ValueStoringAVLTree<Variable>::ValueStoringAVLNode;
+  typedef ValueStoringAVLTree<Variable> VariableAVLTree;
 public:
 
   class NamedVariable;
 
   class Iterator {
     friend class priv::MapImplementation;
-    AVLTree::Iterator iterator;
+    VariableAVLTree::Iterator iterator;
   public:
-    Iterator(AVLTree::Iterator iterator);
+    Iterator(VariableAVLTree::Iterator iterator);
     Iterator(const Iterator& iterator);
     Iterator(Iterator&& iterator);
 
     Iterator& operator=(Iterator& other) noexcept;
     Iterator& operator=(Iterator&& other) noexcept;
-    Iterator& operator=(AVLNode* node) noexcept;
-    Iterator& operator=(AVLNode& node) noexcept;
 
     Iterator& operator++();
     Iterator& operator--();
@@ -39,28 +41,26 @@ public:
     bool operator==(const Iterator other) const noexcept;
     bool operator!=(const Iterator other) const noexcept;
 
-    NamedVariable& operator*();
-    NamedVariable* operator->();
+    NamedVariable operator*();
+    pseudo_ptr::PseudoPointer<NamedVariable> operator ->();
 
-    const NamedVariable& operator*() const;
-    const NamedVariable* operator->() const;
+    const NamedVariable operator*() const;
+    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
 
-    static Iterator nulliterator() noexcept {return AVLTree::Iterator::nulliterator();}
+    static Iterator nulliterator() noexcept {return {nullptr};}
   };
 
 
   class ReverseIterator {
     friend class priv::MapImplementation;
-    AVLTree::ReverseIterator iterator;
+    VariableAVLTree::ReverseIterator iterator;
   public:
-    ReverseIterator(AVLTree::ReverseIterator iterator);
+    ReverseIterator(VariableAVLTree::ReverseIterator iterator);
     ReverseIterator(const ReverseIterator& iterator);
     ReverseIterator(ReverseIterator&& iterator);
 
     ReverseIterator& operator=(ReverseIterator& other) noexcept;
     ReverseIterator& operator=(ReverseIterator&& other) noexcept;
-    ReverseIterator& operator=(AVLNode* node) noexcept;
-    ReverseIterator& operator=(AVLNode& node) noexcept;
 
     ReverseIterator& operator++();
     ReverseIterator& operator--();
@@ -74,16 +74,16 @@ public:
     const ReverseIterator operator++(int) const;
     const ReverseIterator operator--(int) const;
 
-    bool operator==(ReverseIterator other) const noexcept;
-    bool operator!=(ReverseIterator other) const noexcept;
+    bool operator==(const ReverseIterator other) const noexcept;
+    bool operator!=(const ReverseIterator other) const noexcept;
 
-    NamedVariable& operator*();
-    NamedVariable* operator->();
+    NamedVariable operator*();
+    pseudo_ptr::PseudoPointer<NamedVariable> operator ->();
 
-    const NamedVariable& operator*() const;
-    const NamedVariable* operator->() const;
+    const NamedVariable operator*() const;
+    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
 
-    static ReverseIterator nulliterator() noexcept {return AVLTree::ReverseIterator::nulliterator();}
+    static ReverseIterator nulliterator() noexcept {return {nullptr};}
   };
 
   typedef const Iterator ConstIterator;
@@ -91,10 +91,7 @@ public:
 
 private:
   size_t size;
-  AVLTree avl_tree;
-
-  static NamedVariable* convert(AVLNode* node);
-  static const NamedVariable* convert(const AVLNode* node);
+  VariableAVLTree avl_tree;
 
 public:
 
@@ -110,7 +107,7 @@ public:
   err::Error remove(KeyValue key);
   err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
 
-  NamedVariable& getOrInsertNamedVariable(KeyValue key);
+  NamedVariable getOrInsertNamedVariable(KeyValue key);
   Variable getVariable(KeyValue key);
 
   Iterator find(KeyValue key);

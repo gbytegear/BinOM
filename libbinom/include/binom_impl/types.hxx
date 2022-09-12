@@ -13,6 +13,36 @@ namespace binom {
 using namespace type_alias;
 using namespace memctrl;
 
+#define getIntType(Enum, Type) \
+std::is_signed_v<Type> ? ( \
+    sizeof (Type) == 1 ? Enum::si8 \
+  : sizeof (Type) == 2 ? Enum::si16 \
+  : sizeof (Type) == 4 ? Enum::si32 \
+  : sizeof (Type) == 8 ? Enum::si64 \
+  : Enum::invalid_type \
+) : ( \
+    sizeof (Type) == 1 ? Enum::ui8 \
+  : sizeof (Type) == 2 ? Enum::ui16 \
+  : sizeof (Type) == 4 ? Enum::ui32 \
+  : sizeof (Type) == 8 ? Enum::ui64 \
+  : Enum::invalid_type \
+)
+
+#define getIntArrType(Enum, Type) \
+std::is_signed_v<Type> ? ( \
+    sizeof (Type) == 1 ? Enum::si8_array \
+  : sizeof (Type) == 2 ? Enum::si16_array \
+  : sizeof (Type) == 4 ? Enum::si32_array \
+  : sizeof (Type) == 8 ? Enum::si64_array \
+  : Enum::invalid_type \
+) : ( \
+    sizeof (Type) == 1 ? Enum::ui8_array \
+  : sizeof (Type) == 2 ? Enum::ui16_array \
+  : sizeof (Type) == 4 ? Enum::ui32_array \
+  : sizeof (Type) == 8 ? Enum::ui64_array \
+  : Enum::invalid_type \
+)
+
 /// BinOM Variable type codes
 enum class VarType : ui8 {
   separator               = 0x00, ///< End code
@@ -48,67 +78,46 @@ enum class VarType : ui8 {
   multimap                = 0x1C, ///< Associative heterogeneous container with key-sorted
   table                   = 0x1D, ///< Multiple key-sorted associative heterogeneous container
 
-// Compile time defined C-like data types
+// Compile-time defined C-like data types
 
-  char_t                  = std::is_signed_v<char> ? VarType::si8 : VarType::ui8,
+  char_t                  = getIntType(VarType, char),
   uchar_t                 = VarType::ui8,
   schar_t                 = VarType::si8,
 
-  int_t                   = sizeof (int) == 2 ? VarType::si16
-                          : sizeof (int) == 4 ? VarType::si32
-                          : sizeof (int) == 8 ? VarType::si64
-                          : VarType::invalid_type,
-  uint_t                  = sizeof (unsigned int) == 2 ? VarType::ui16
-                          : sizeof (unsigned int) == 4 ? VarType::ui32
-                          : sizeof (unsigned int) == 8 ? VarType::ui64
-                          : VarType::invalid_type,
+  char8                   = getIntType(VarType, char8_t),
+  char16                  = getIntType(VarType, char16_t),
+  char32                  = getIntType(VarType, char32_t),
+  wchar                   = getIntType(VarType, wchar_t),
 
-  short_t                 = sizeof (short) == 2 ? VarType::si16
-                          : sizeof (short) == 4 ? VarType::si32
-                          : sizeof (short) == 8 ? VarType::si64
-                          : VarType::invalid_type,
-  ushort_t                = sizeof (unsigned short) == 2 ? VarType::ui16
-                          : sizeof (unsigned short) == 4 ? VarType::ui32
-                          : sizeof (unsigned short) == 8 ? VarType::ui64
-                          : VarType::invalid_type,
+  int_t                   = getIntType(VarType, int),
+  uint_t                  = getIntType(VarType, unsigned int),
 
-  long_t                  = sizeof (long) == 2 ? VarType::si16
-                          : sizeof (long) == 4 ? VarType::si32
-                          : sizeof (long) == 8 ? VarType::si64
-                          : VarType::invalid_type,
-  ulong_t                 = sizeof (unsigned long) == 2 ? VarType::ui16
-                          : sizeof (unsigned long) == 4 ? VarType::ui32
-                          : sizeof (unsigned long) == 8 ? VarType::ui64
-                          : VarType::invalid_type,
+  short_t                 = getIntType(VarType, short),
+  ushort_t                = getIntType(VarType, unsigned short),
 
-  long_long_t             = sizeof (long long) == 2 ? VarType::si16
-                          : sizeof (long long) == 4 ? VarType::si32
-                          : sizeof (long long) == 8 ? VarType::si64
-                          : VarType::invalid_type,
-  ulong_long_t            = sizeof (unsigned long long) == 2 ? VarType::ui16
-                          : sizeof (unsigned long long) == 4 ? VarType::ui32
-                          : sizeof (unsigned long long) == 8 ? VarType::ui64
-                          : VarType::invalid_type,
+  long_t                  = getIntType(VarType, long),
+  ulong_t                 = getIntType(VarType, unsigned long),
+
+  long_long_t             = getIntType(VarType, long long),
+  ulong_long_t            = getIntType(VarType, unsigned long long),
   float_t                 = VarType::f32,
   long_float_t            = VarType::f64,
-  long_long_float_t       = sizeof (double) == sizeof (long double) ? VarType::f64
-                            : VarType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+  long_long_float_t       = sizeof (double) == sizeof (long double) ? VarType::f64 : VarType::invalid_type,
 
-  char_array              = int(int(VarType::char_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  uchar_array             = int(int(VarType::uchar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  schar_array             = int(int(VarType::schar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  int_array               = int(int(VarType::int_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  uint_array              = int(int(VarType::uint_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  short_array             = int(int(VarType::short_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  ushort_array            = int(int(VarType::ushort_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  long_array              = int(int(VarType::long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  ulong_array             = int(int(VarType::ulong_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  long_long_array         = int(int(VarType::long_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  ulong_long_array        = int(int(VarType::ulong_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  char_array              = getIntArrType(VarType, char),
+  uchar_array             = getIntArrType(VarType, unsigned char),
+  schar_array             = getIntArrType(VarType, signed char),
+  int_array               = getIntArrType(VarType, int),
+  uint_array              = getIntArrType(VarType, unsigned int),
+  short_array             = getIntArrType(VarType, short),
+  ushort_array            = getIntArrType(VarType, unsigned short),
+  long_array              = getIntArrType(VarType, long),
+  ulong_array             = getIntArrType(VarType, unsigned long),
+  long_long_array         = getIntArrType(VarType, long long),
+  ulong_long_array        = getIntArrType(VarType, unsigned long long),
   float_array             = int(int(VarType::float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
   long_float_array        = int(int(VarType::long_float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  long_long_float_array   = sizeof (double) == sizeof (long double) ? VarType::f64_array
-                          : VarType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+  long_long_float_array   = sizeof (double) == sizeof (long double) ? VarType::f64_array : VarType::invalid_type,
 
   list                    = doubly_linked_list
 };
@@ -143,65 +152,44 @@ enum class VarKeyType : ui8 {
 
 // Compile time defined C++ data types
 
-  char_t                  = std::is_signed_v<char> ? VarKeyType::si8 : VarKeyType::ui8,
+  char_t                  = getIntType(VarKeyType, char),
   uchar_t                 = VarKeyType::ui8,
   schar_t                 = VarKeyType::si8,
 
-  int_t                   = sizeof (int) == 2 ? VarKeyType::si16
-                          : sizeof (int) == 4 ? VarKeyType::si32
-                          : sizeof (int) == 8 ? VarKeyType::si64
-                          : VarKeyType::invalid_type,
-  uint_t                  = sizeof (unsigned int) == 2 ? VarKeyType::ui16
-                          : sizeof (unsigned int) == 4 ? VarKeyType::ui32
-                          : sizeof (unsigned int) == 8 ? VarKeyType::ui64
-                          : VarKeyType::invalid_type,
+  char8                   = getIntType(VarKeyType, char8_t),
+  char16                  = getIntType(VarKeyType, char16_t),
+  char32                  = getIntType(VarKeyType, char32_t),
+  wchar                   = getIntType(VarKeyType, wchar_t),
 
-  short_t                 = sizeof (short) == 2 ? VarKeyType::si16
-                          : sizeof (short) == 4 ? VarKeyType::si32
-                          : sizeof (short) == 8 ? VarKeyType::si64
-                          : VarKeyType::invalid_type,
-  ushort_t                = sizeof (unsigned short) == 2 ? VarKeyType::ui16
-                          : sizeof (unsigned short) == 4 ? VarKeyType::ui32
-                          : sizeof (unsigned short) == 8 ? VarKeyType::ui64
-                          : VarKeyType::invalid_type,
+  int_t                   = getIntType(VarKeyType, int),
+  uint_t                  = getIntType(VarKeyType, unsigned int),
 
-  long_t                  = sizeof (long) == 2 ? VarKeyType::si16
-                          : sizeof (long) == 4 ? VarKeyType::si32
-                          : sizeof (long) == 8 ? VarKeyType::si64
-                          : VarKeyType::invalid_type,
-  ulong_t                 = sizeof (unsigned long) == 2 ? VarKeyType::ui16
-                          : sizeof (unsigned long) == 4 ? VarKeyType::ui32
-                          : sizeof (unsigned long) == 8 ? VarKeyType::ui64
-                          : VarKeyType::invalid_type,
+  short_t                 = getIntType(VarKeyType, short),
+  ushort_t                = getIntType(VarKeyType, unsigned short),
 
-  long_long_t             = sizeof (long long) == 2 ? VarKeyType::si16
-                          : sizeof (long long) == 4 ? VarKeyType::si32
-                          : sizeof (long long) == 8 ? VarKeyType::si64
-                          : VarKeyType::invalid_type,
-  ulong_long_t            = sizeof (unsigned long long) == 2 ? VarKeyType::ui16
-                          : sizeof (unsigned long long) == 4 ? VarKeyType::ui32
-                          : sizeof (unsigned long long) == 8 ? VarKeyType::ui64
-                          : VarKeyType::invalid_type,
+  long_t                  = getIntType(VarKeyType, long),
+  ulong_t                 = getIntType(VarKeyType, unsigned long),
+
+  long_long_t             = getIntType(VarKeyType, long long),
+  ulong_long_t            = getIntType(VarKeyType, unsigned long long),
   float_t                 = VarKeyType::f32,
   long_float_t            = VarKeyType::f64,
-  long_long_float_t       = sizeof (double) == sizeof (long double) ? VarKeyType::f64
-                            : VarKeyType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+  long_long_float_t       = sizeof (double) == sizeof (long double) ? VarKeyType::f64 : VarKeyType::invalid_type,
 
-  char_array              = int(int(VarType::char_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  uchar_array             = int(int(VarType::uchar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  schar_array             = int(int(VarType::schar_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  int_array               = int(int(VarType::int_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  uint_array              = int(int(VarType::uint_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  short_array             = int(int(VarType::short_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  ushort_array            = int(int(VarType::ushort_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  long_array              = int(int(VarType::long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  ulong_array             = int(int(VarType::ulong_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  long_long_array         = int(int(VarType::long_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  ulong_long_array        = int(int(VarType::ulong_long_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
+  char_array              = getIntArrType(VarKeyType, char),
+  uchar_array             = getIntArrType(VarKeyType, unsigned char),
+  schar_array             = getIntArrType(VarKeyType, signed char),
+  int_array               = getIntArrType(VarKeyType, int),
+  uint_array              = getIntArrType(VarKeyType, unsigned int),
+  short_array             = getIntArrType(VarKeyType, short),
+  ushort_array            = getIntArrType(VarKeyType, unsigned short),
+  long_array              = getIntArrType(VarKeyType, long),
+  ulong_array             = getIntArrType(VarKeyType, unsigned long),
+  long_long_array         = getIntArrType(VarKeyType, long long),
+  ulong_long_array        = getIntArrType(VarKeyType, unsigned long long),
   float_array             = int(int(VarType::float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
   long_float_array        = int(int(VarType::long_float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
-  long_long_float_array   = sizeof (double) == sizeof (long double) ? VarKeyType::f64_array
-                          : VarKeyType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+  long_long_float_array   = sizeof (double) == sizeof (long double) ? VarKeyType::f64_array : VarKeyType::invalid_type
 };
 
 enum class VarTypeClass : ui8 {
@@ -250,55 +238,37 @@ enum class ValType : ui8 {
   si64                    = int(VarType::si64),
   f64                     = int(VarType::f64),
 
-// Compile time defined C++ data types
+// Compile-time defined C++ data types
 
-  char_t                  = std::is_signed_v<char> ? ValType::si8 : ValType::ui8,
+  char_t                  = getIntType(ValType, char),
   uchar_t                 = ValType::ui8,
   schar_t                 = ValType::si8,
 
-  int_t                   = sizeof (int) == 2 ? ValType::si16
-                          : sizeof (int) == 4 ? ValType::si32
-                          : sizeof (int) == 8 ? ValType::si64
-                          : ValType::invalid_type,
-  uint_t                  = sizeof (unsigned int) == 2 ? ValType::ui16
-                          : sizeof (unsigned int) == 4 ? ValType::ui32
-                          : sizeof (unsigned int) == 8 ? ValType::ui64
-                          : ValType::invalid_type,
+  char8                   = getIntType(ValType, char8_t),
+  char16                  = getIntType(ValType, char16_t),
+  char32                  = getIntType(ValType, char32_t),
+  wchar                   = getIntType(ValType, wchar_t),
 
-  short_t                 = sizeof (short) == 2 ? ValType::si16
-                          : sizeof (short) == 4 ? ValType::si32
-                          : sizeof (short) == 8 ? ValType::si64
-                          : ValType::invalid_type,
-  ushort_t                = sizeof (unsigned short) == 2 ? ValType::ui16
-                          : sizeof (unsigned short) == 4 ? ValType::ui32
-                          : sizeof (unsigned short) == 8 ? ValType::ui64
-                          : ValType::invalid_type,
+  int_t                   = getIntType(ValType, int),
+  uint_t                  = getIntType(ValType, unsigned int),
 
-  long_t                  = sizeof (long) == 2 ? ValType::si16
-                          : sizeof (long) == 4 ? ValType::si32
-                          : sizeof (long) == 8 ? ValType::si64
-                          : ValType::invalid_type,
-  ulong_t                 = sizeof (unsigned long) == 2 ? ValType::ui16
-                          : sizeof (unsigned long) == 4 ? ValType::ui32
-                          : sizeof (unsigned long) == 8 ? ValType::ui64
-                          : ValType::invalid_type,
+  short_t                 = getIntType(ValType, short),
+  ushort_t                = getIntType(ValType, unsigned short),
 
-  long_long_t             = sizeof (long long) == 2 ? ValType::si16
-                          : sizeof (long long) == 4 ? ValType::si32
-                          : sizeof (long long) == 8 ? ValType::si64
-                          : ValType::invalid_type,
-  ulong_long_t            = sizeof (unsigned long long) == 2 ? ValType::ui16
-                          : sizeof (unsigned long long) == 4 ? ValType::ui32
-                          : sizeof (unsigned long long) == 8 ? ValType::ui64
-                          : ValType::invalid_type,
+  long_t                  = getIntType(ValType, long),
+  ulong_t                 = getIntType(ValType, unsigned long),
+
+  long_long_t             = getIntType(ValType, long long),
+  ulong_long_t            = getIntType(ValType, unsigned long long),
   float_t                 = ValType::f32,
   long_float_t            = ValType::f64,
-  long_long_float_t       = sizeof (double) == sizeof (long double) ? ValType::f64
-                            : ValType::invalid_type, // Unsupported in BinOM storages, architecture-depends implementation!
+  long_long_float_t       = sizeof (double) == sizeof (long double) ? ValType::f64 : ValType::invalid_type
 };
 
+#undef getIntType
+#undef getIntArrType
 
-inline VarTypeClass toTypeClass(VarType type) noexcept {
+constexpr inline VarTypeClass toTypeClass(VarType type) noexcept {
   switch (type) {
   case VarType::null:
   return VarTypeClass::null;
@@ -351,7 +321,7 @@ inline VarTypeClass toTypeClass(VarType type) noexcept {
   }
 }
 
-inline VarTypeClass toTypeClass(VarKeyType type) noexcept {
+constexpr inline VarTypeClass toTypeClass(VarKeyType type) noexcept {
   switch (type) {
   case VarKeyType::null: return VarTypeClass::null;
   case VarKeyType::boolean:
@@ -389,17 +359,17 @@ inline VarTypeClass toTypeClass(VarKeyType type) noexcept {
   }
 }
 
-inline bool operator == (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) == type_class;}
-inline bool operator == (VarTypeClass type_class, VarType type) noexcept {return toTypeClass(type) == type_class;}
-inline bool operator != (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) != type_class;}
-inline bool operator != (VarTypeClass type_class, VarType type) noexcept {return toTypeClass(type) != type_class;}
+constexpr inline bool operator == (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) == type_class;}
+constexpr inline bool operator == (VarTypeClass type_class, VarType type) noexcept {return toTypeClass(type) == type_class;}
+constexpr inline bool operator != (VarType type, VarTypeClass type_class) noexcept {return toTypeClass(type) != type_class;}
+constexpr inline bool operator != (VarTypeClass type_class, VarType type) noexcept {return toTypeClass(type) != type_class;}
 
-inline VarKeyType toKeyType(VarType type) noexcept {
+constexpr inline VarKeyType toKeyType(VarType type) noexcept {
   if(type <= VarType::f64_array) return VarKeyType(type);
   else return VarKeyType::invalid_type;
 }
 
-inline VarKeyType toKeyType(ValType type) noexcept {
+constexpr inline VarKeyType toKeyType(ValType type) noexcept {
   switch (type) {
   case ValType::boolean:      return VarKeyType::boolean;
   case ValType::ui8:          return VarKeyType::ui8;
@@ -417,19 +387,19 @@ inline VarKeyType toKeyType(ValType type) noexcept {
   }
 }
 
-inline VarType toVarType(VarKeyType key_type) noexcept {return VarType(key_type);}
+constexpr inline VarType toVarType(VarKeyType key_type) noexcept {return VarType(key_type);}
 
-inline bool operator == (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
-inline bool operator == (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) == key_type;}
-inline bool operator != (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
-inline bool operator != (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) != key_type;}
+constexpr inline bool operator == (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
+constexpr inline bool operator == (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) == key_type;}
+constexpr inline bool operator != (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
+constexpr inline bool operator != (VarKeyType key_type, VarType type) noexcept {return toKeyType(type) != key_type;}
 
-inline bool operator == (ValType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
-inline bool operator == (VarKeyType key_type, ValType type) noexcept {return toKeyType(type) == key_type;}
-inline bool operator != (ValType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
-inline bool operator != (VarKeyType key_type, ValType type) noexcept {return toKeyType(type) != key_type;}
+constexpr inline bool operator == (ValType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
+constexpr inline bool operator == (VarKeyType key_type, ValType type) noexcept {return toKeyType(type) == key_type;}
+constexpr inline bool operator != (ValType type, VarKeyType key_type) noexcept {return toKeyType(type) != key_type;}
+constexpr inline bool operator != (VarKeyType key_type, ValType type) noexcept {return toKeyType(type) != key_type;}
 
-inline VarBitWidth toBitWidth(VarType type) noexcept {
+constexpr inline VarBitWidth toBitWidth(VarType type) noexcept {
   switch (type) {
   case VarType::boolean:
   case VarType::ui8:
@@ -464,12 +434,12 @@ inline VarBitWidth toBitWidth(VarType type) noexcept {
   }
 }
 
-inline bool operator == (VarType type, VarBitWidth bit_width) noexcept {return toBitWidth(type) == bit_width;}
-inline bool operator == (VarBitWidth bit_width, VarType type) noexcept {return toBitWidth(type) == bit_width;}
-inline bool operator != (VarType type, VarBitWidth bit_width) noexcept {return toBitWidth(type) != bit_width;}
-inline bool operator != (VarBitWidth bit_width, VarType type) noexcept {return toBitWidth(type) != bit_width;}
+constexpr inline bool operator == (VarType type, VarBitWidth bit_width) noexcept {return toBitWidth(type) == bit_width;}
+constexpr inline bool operator == (VarBitWidth bit_width, VarType type) noexcept {return toBitWidth(type) == bit_width;}
+constexpr inline bool operator != (VarType type, VarBitWidth bit_width) noexcept {return toBitWidth(type) != bit_width;}
+constexpr inline bool operator != (VarBitWidth bit_width, VarType type) noexcept {return toBitWidth(type) != bit_width;}
 
-inline VarBitWidth toBitWidth(ValType type) noexcept {
+constexpr inline VarBitWidth toBitWidth(ValType type) noexcept {
   switch (type) {
   case ValType::boolean:
   case ValType::ui8:
@@ -494,12 +464,12 @@ inline VarBitWidth toBitWidth(ValType type) noexcept {
   }
 }
 
-inline bool operator == (ValType val_type, VarBitWidth bit_width) noexcept {return toBitWidth(val_type) == bit_width;}
-inline bool operator == (VarBitWidth bit_width, ValType val_type) noexcept {return toBitWidth(val_type) == bit_width;}
-inline bool operator != (ValType val_type, VarBitWidth bit_width) noexcept {return toBitWidth(val_type) != bit_width;}
-inline bool operator != (VarBitWidth bit_width, ValType val_type) noexcept {return toBitWidth(val_type) != bit_width;}
+constexpr inline bool operator == (ValType val_type, VarBitWidth bit_width) noexcept {return toBitWidth(val_type) == bit_width;}
+constexpr inline bool operator == (VarBitWidth bit_width, ValType val_type) noexcept {return toBitWidth(val_type) == bit_width;}
+constexpr inline bool operator != (ValType val_type, VarBitWidth bit_width) noexcept {return toBitWidth(val_type) != bit_width;}
+constexpr inline bool operator != (VarBitWidth bit_width, ValType val_type) noexcept {return toBitWidth(val_type) != bit_width;}
 
-inline VarNumberType toNumberType(VarType type) noexcept {
+constexpr inline VarNumberType toNumberType(VarType type) noexcept {
   switch (type) {
   case VarType::bit_array:
   case VarType::boolean:
@@ -533,12 +503,12 @@ inline VarNumberType toNumberType(VarType type) noexcept {
   }
 }
 
-inline bool operator == (VarType type, VarNumberType number_type) noexcept {return toNumberType(type) == number_type;}
-inline bool operator == (VarNumberType number_type, VarType type) noexcept {return toNumberType(type) == number_type;}
-inline bool operator != (VarType type, VarNumberType number_type) noexcept {return toNumberType(type) != number_type;}
-inline bool operator != (VarNumberType number_type, VarType type) noexcept {return toNumberType(type) != number_type;}
+constexpr inline bool operator == (VarType type, VarNumberType number_type) noexcept {return toNumberType(type) == number_type;}
+constexpr inline bool operator == (VarNumberType number_type, VarType type) noexcept {return toNumberType(type) == number_type;}
+constexpr inline bool operator != (VarType type, VarNumberType number_type) noexcept {return toNumberType(type) != number_type;}
+constexpr inline bool operator != (VarNumberType number_type, VarType type) noexcept {return toNumberType(type) != number_type;}
 
-inline VarNumberType toNumberType(ValType type) noexcept {
+constexpr inline VarNumberType toNumberType(ValType type) noexcept {
   switch (type) {
   case ValType::boolean:
   case ValType::ui8:
@@ -561,12 +531,12 @@ inline VarNumberType toNumberType(ValType type) noexcept {
   }
 }
 
-inline bool operator == (ValType val_type, VarNumberType number_type) noexcept {return toNumberType(val_type) == number_type;}
-inline bool operator == (VarNumberType number_type, ValType val_type) noexcept {return toNumberType(val_type) == number_type;}
-inline bool operator != (ValType val_type, VarNumberType number_type) noexcept {return toNumberType(val_type) != number_type;}
-inline bool operator != (VarNumberType number_type, ValType val_type) noexcept {return toNumberType(val_type) != number_type;}
+constexpr inline bool operator == (ValType val_type, VarNumberType number_type) noexcept {return toNumberType(val_type) == number_type;}
+constexpr inline bool operator == (VarNumberType number_type, ValType val_type) noexcept {return toNumberType(val_type) == number_type;}
+constexpr inline bool operator != (ValType val_type, VarNumberType number_type) noexcept {return toNumberType(val_type) != number_type;}
+constexpr inline bool operator != (VarNumberType number_type, ValType val_type) noexcept {return toNumberType(val_type) != number_type;}
 
-inline ValType toValueType(VarType type) noexcept {
+constexpr inline ValType toValueType(VarType type) noexcept {
   switch (type) {
   case VarType::boolean:
   case VarType::bit_array:
@@ -617,7 +587,7 @@ inline ValType toValueType(VarType type) noexcept {
   }
 }
 
-inline ValType toValueType(VarKeyType type) noexcept {
+constexpr inline ValType toValueType(VarKeyType type) noexcept {
   switch (type) {
   case VarKeyType::boolean:
   case VarKeyType::bit_array:
@@ -668,18 +638,18 @@ inline ValType toValueType(VarKeyType type) noexcept {
   }
 }
 
-inline VarType toVarType(ValType type) {
+constexpr inline VarType toVarType(ValType type) {
   return VarType(type);
 }
 
-inline VarType toBufferVarType(ValType type) {
+constexpr inline VarType toBufferVarType(ValType type) {
   return VarType(ui8(type) + (ui8(VarType::ui8_array) - ui8(VarType::ui8)));
 }
 
-inline bool operator == (ValType val_type, VarType type) noexcept {return toVarType(val_type) == type || toBufferVarType(val_type) == type;}
-inline bool operator == (VarType type, ValType val_type) noexcept {return toVarType(val_type) == type || toBufferVarType(val_type) == type;}
-inline bool operator != (ValType val_type, VarType type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
-inline bool operator != (VarType type, ValType val_type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
+constexpr inline bool operator == (ValType val_type, VarType type) noexcept {return toVarType(val_type) == type || toBufferVarType(val_type) == type;}
+constexpr inline bool operator == (VarType type, ValType val_type) noexcept {return toVarType(val_type) == type || toBufferVarType(val_type) == type;}
+constexpr inline bool operator != (ValType val_type, VarType type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
+constexpr inline bool operator != (VarType type, ValType val_type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 
 namespace priv { // BinOM containers implementation
 
@@ -692,9 +662,6 @@ class MapImplementation;
 class MultiMapImplementation;
 class TableImplementation;
 class KeyValueImplementation;
-
-class AVLNode;
-class AVLTree;
 
 }
 
@@ -716,11 +683,13 @@ class NamedVariable;
 namespace literals {
 namespace priv {
 
-struct ArrayLiteral : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct SinglyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct DoublyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable> {using HeritableInitializerList::HeritableInitializerList;};
-struct MapLiteral : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
-struct MultiMapLiteral : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
+struct ArrayLiteral             : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
+struct SinglyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
+struct DoublyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
+struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
+struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
+struct ColumnDescriptor;
+struct TableDescriptor;
 struct TableLiteral;
 
 }

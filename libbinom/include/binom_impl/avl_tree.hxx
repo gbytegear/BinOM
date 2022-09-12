@@ -8,50 +8,52 @@ namespace binom::priv {
 
 using namespace type_alias;
 
-class AVLNode {
-public:
-
-  enum class NodePosition : i8 {
-    root = 0,
-    left = -1,
-    right = 1
-  };
-
-private:
-  friend class AVLTree;
-  i64 depth = 1;
-  AVLNode* left = nullptr;
-  AVLNode* right = nullptr;
-  AVLNode* parent;
-  KeyValue key;
-
-  void swapPosition(AVLNode& other, AVLTree& avl_tree);
-  void unpin(AVLTree& avl_tree);
-
-public:
-
-  AVLNode(KeyValue key, AVLNode* parent = nullptr);
-  AVLNode(AVLNode& other);
-  AVLNode(AVLNode&& other);
-
-  AVLNode& operator=(AVLNode other);
-
-  bool isRoot() const noexcept;
-  bool isLeft() const noexcept;
-  bool isRight() const noexcept;
-
-  bool hasLeft() const noexcept;
-  bool hasRight() const noexcept;
-  bool hasChild() const noexcept;
-
-  KeyValue& getKey();
-  const KeyValue& getKey() const;
-  NodePosition getPosition() const;
-
-};
-
 class AVLTree {
+  template<typename ValueType>
+  friend class ValueStoringAVLTree;
 public:
+
+  class AVLNode {
+  public:
+
+    enum class NodePosition : i8 {
+      root = 0,
+      left = -1,
+      right = 1
+    };
+
+  private:
+    friend class AVLTree;
+    i64 depth = 1;
+    AVLNode* left = nullptr;
+    AVLNode* right = nullptr;
+    AVLNode* parent;
+    KeyValue key;
+
+    void swapPosition(AVLNode& other, AVLTree& avl_tree);
+    void unpin(AVLTree& avl_tree);
+
+  public:
+
+    AVLNode(KeyValue key, AVLNode* parent = nullptr);
+    AVLNode(AVLNode& other);
+    AVLNode(AVLNode&& other);
+
+    AVLNode& operator=(AVLNode other);
+
+    bool isRoot() const noexcept;
+    bool isLeft() const noexcept;
+    bool isRight() const noexcept;
+
+    bool hasLeft() const noexcept;
+    bool hasRight() const noexcept;
+    bool hasChild() const noexcept;
+
+    KeyValue& getKey();
+    const KeyValue& getKey() const;
+    NodePosition getPosition() const;
+
+  };
 
   class Iterator {
     friend class AVLTree;
@@ -183,6 +185,179 @@ public:
   void clear(std::function<void(AVLNode* deletable_element)> destructor = [](AVLNode* n){delete n;});
 
 };
+
+template <typename ValueType>
+class ValueStoringAVLTree {
+public:
+  struct ValueStoringAVLNode;
+private:
+  AVLTree avl_tree;
+
+  static inline ValueStoringAVLNode& convert(AVLTree::AVLNode& node) noexcept {return reinterpret_cast<ValueStoringAVLNode&>(node);}
+  static inline const ValueStoringAVLNode& convert(const AVLTree::AVLNode& node) noexcept {return reinterpret_cast<const ValueStoringAVLNode&>(node);}
+  static inline AVLTree::AVLNode& convert(ValueStoringAVLNode& node) noexcept {return reinterpret_cast<AVLTree::AVLNode&>(node);}
+  static inline const AVLTree::AVLNode& convert(const ValueStoringAVLNode& node) noexcept {return reinterpret_cast<const AVLTree::AVLNode&>(node);}
+
+  static inline ValueStoringAVLNode* convert(AVLTree::AVLNode* node) noexcept {return reinterpret_cast<ValueStoringAVLNode*>(node);}
+  static inline const ValueStoringAVLNode* convert(const AVLTree::AVLNode* node) noexcept {return reinterpret_cast<const ValueStoringAVLNode*>(node);}
+  static inline AVLTree::AVLNode* convert(ValueStoringAVLNode* node) noexcept {return reinterpret_cast<AVLTree::AVLNode*>(node);}
+  static inline const AVLTree::AVLNode* convert(const ValueStoringAVLNode* node) noexcept {return reinterpret_cast<const AVLTree::AVLNode*>(node);}
+
+public:
+
+  class ValueStoringAVLNode {
+  protected:
+    AVLTree::AVLNode node;
+    ValueType value;
+  public:
+
+    ValueStoringAVLNode(KeyValue key, ValueType value)
+      : node(key), value(std::move(value)) {}
+    ValueStoringAVLNode(ValueStoringAVLNode& other)
+      : node(other.node), value(other.value) {}
+    ValueStoringAVLNode(ValueStoringAVLNode&& other)
+      : node(std::move(other.node)), value(std::move(other.value)) {}
+
+    inline ValueStoringAVLNode& operator=(ValueStoringAVLNode other) {
+      node = other.node;
+      value = std::move(other.value);
+      return self;
+    }
+
+    inline bool isRoot() const noexcept {return node.isRoot();}
+    inline bool isLeft() const noexcept {return node.isLeft();}
+    inline bool isRight() const noexcept {return node.isRight();}
+
+    inline bool hasLeft() const noexcept {return node.hasLeft();}
+    inline bool hasRight() const noexcept {return node.hasRight();}
+    inline bool hasChild() const noexcept {return node.hasChild();}
+
+    inline KeyValue& getKey() noexcept {return node.getKey();}
+    inline const KeyValue& getKey() const noexcept {return node.getKey();}
+    inline AVLTree::AVLNode::NodePosition getPosition() const noexcept {return node.getPosition();}
+
+    inline ValueType& getValue() noexcept {return value;}
+    inline const ValueType& getValue() const noexcept {return value;}
+  };
+
+  class Iterator {
+    AVLTree::Iterator iterator;
+  public:
+    Iterator(ValueStoringAVLNode* node) : iterator(AVLTree::Iterator(convert(node))) {}
+    Iterator(AVLTree::Iterator iterator) : iterator(iterator) {}
+    Iterator(const Iterator& other) : iterator(other.iterator) {}
+    Iterator(Iterator&& other) : iterator(std::move(other.iterator)) {}
+
+    inline Iterator& operator=(Iterator& other) noexcept {iterator = other.iterator; return self;}
+    inline Iterator& operator=(Iterator&& other) noexcept {iterator = std::move(other.iterator); return self;}
+
+    inline Iterator& operator++() {++iterator; return self;}
+    inline Iterator& operator--() {--iterator; return self;}
+
+    inline Iterator operator++(int) {Iterator tmp(self); ++iterator; return tmp;}
+    inline Iterator operator--(int) {Iterator tmp(self); --iterator; return tmp;}
+
+    inline const Iterator& operator++() const {++iterator; return self;}
+    inline const Iterator& operator--() const {--iterator; return self;}
+
+    inline const Iterator operator++(int) const {Iterator tmp(self); ++iterator; return tmp;}
+    inline const Iterator operator--(int) const {Iterator tmp(self); --iterator; return tmp;}
+
+    inline bool operator==(Iterator other) const noexcept {return iterator == other.iterator;}
+    inline bool operator!=(Iterator other) const noexcept {return iterator != other.iterator;}
+
+    inline ValueStoringAVLNode& operator*() {return convert(*iterator);}
+    inline ValueStoringAVLNode* operator->() {return &convert(*iterator);}
+
+    inline const ValueStoringAVLNode& operator*() const {return convert(*iterator);}
+    inline const ValueStoringAVLNode* operator->() const {return &convert(*iterator);}
+
+    inline KeyValue& getKey() noexcept {return iterator->getKey();}
+    inline const KeyValue& getKey() const noexcept {return iterator->getKey();}
+
+    inline ValueType& getValue() noexcept {return self->getValue();}
+    inline const ValueType& getValue() const noexcept {return self->getValue();}
+
+    static Iterator nulliterator() noexcept {return {nullptr};}
+  };
+
+  class ReverseIterator {
+    AVLTree::ReverseIterator iterator;
+  public:
+    ReverseIterator(ValueStoringAVLNode* node) : iterator(AVLTree::ReverseIterator(convert(node))) {}
+    ReverseIterator(AVLTree::ReverseIterator iterator) : iterator(iterator) {}
+    ReverseIterator(const ReverseIterator& other) : iterator(other.iterator) {}
+    ReverseIterator(ReverseIterator&& other) : iterator(std::move(other.iterator)) {}
+
+    inline ReverseIterator& operator=(ReverseIterator& other) noexcept {iterator = other.iterator; return self;}
+    inline ReverseIterator& operator=(ReverseIterator&& other) noexcept {iterator = std::move(other.iterator); return self;}
+
+    inline ReverseIterator& operator++() {++iterator; return self;}
+    inline ReverseIterator& operator--() {--iterator; return self;}
+
+    inline ReverseIterator operator++(int) {ReverseIterator tmp(self); ++iterator; return tmp;}
+    inline ReverseIterator operator--(int) {ReverseIterator tmp(self); --iterator; return tmp;}
+
+    inline const ReverseIterator& operator++() const {++iterator; return self;}
+    inline const ReverseIterator& operator--() const {--iterator; return self;}
+
+    inline const ReverseIterator operator++(int) const {ReverseIterator tmp(self); ++iterator; return tmp;}
+    inline const ReverseIterator operator--(int) const {ReverseIterator tmp(self); --iterator; return tmp;}
+
+    inline bool operator==(ReverseIterator other) const noexcept {return iterator == other.iterator;}
+    inline bool operator!=(ReverseIterator other) const noexcept {return iterator != other.iterator;}
+
+    inline ValueStoringAVLNode& operator*() {return convert(*iterator);}
+    inline ValueStoringAVLNode* operator->() {return &convert(*iterator);}
+
+    inline const ValueStoringAVLNode& operator*() const {return convert(*iterator);}
+    inline const ValueStoringAVLNode* operator->() const {return &convert(*iterator);}
+
+    inline KeyValue& getKey() noexcept {return iterator->getKey();}
+    inline const KeyValue& getKey() const noexcept {return iterator->getKey();}
+
+    inline ValueType& getValue() noexcept {return self->getValue();}
+    inline const ValueType& getValue() const noexcept {return self->getValue();}
+
+    static ReverseIterator nulliterator() noexcept {return {nullptr};}
+  };
+
+  typedef const Iterator ConstIterator;
+  typedef const ReverseIterator ConstReverseIterator;
+
+  inline void clear() { return avl_tree.clear([](AVLTree::AVLNode* node){delete convert(node);}); }
+  ~ValueStoringAVLTree() { clear(); }
+
+  inline bool isEmpty() const noexcept {return avl_tree.isEmpty();}
+
+  inline ValueStoringAVLNode* insert(ValueStoringAVLNode& new_node) {return convert(avl_tree.insert(&convert(new_node)));}
+  inline ValueStoringAVLNode* insert(KeyValue key, ValueType value) {return convert(avl_tree.insert(convert(new ValueStoringAVLNode(std::move(key), std::move(value)))));}
+
+  [[nodiscard]] inline ValueStoringAVLNode* extract(KeyValue key) {return &convert(*avl_tree.extract(std::move(key)));}
+  inline ValueStoringAVLNode* extract(ValueStoringAVLNode* node) {return &convert(*avl_tree.extract(&convert(node)));}
+
+  inline ValueStoringAVLNode* get(KeyValue key) const {return &convert(*avl_tree.get(std::move(key)));}
+
+  inline Iterator begin() noexcept {return avl_tree.begin();}
+  inline Iterator end() noexcept {return avl_tree.end();}
+
+  inline ReverseIterator rbegin() noexcept {return avl_tree.rbegin();}
+  inline ReverseIterator rend() noexcept {return avl_tree.rend();}
+
+  inline ConstIterator begin() const noexcept {return cbegin();}
+  inline ConstIterator end() const noexcept {return cend();}
+
+  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
+  inline ConstReverseIterator rend() const noexcept {return crend();}
+
+  inline ConstIterator cbegin() const noexcept {return avl_tree.cbegin();}
+  inline ConstIterator cend() const noexcept {return avl_tree.cend();}
+
+  inline ConstReverseIterator crbegin() const noexcept {return avl_tree.crbegin();}
+  inline ConstReverseIterator crend() const noexcept {return avl_tree.crbegin();}
+
+};
+
 
 }
 

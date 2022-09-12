@@ -11,22 +11,22 @@ void Number::setTypeImpl(ValType new_type) noexcept {
   resource_link->type = toVarType(new_type);
 }
 
-Number::Number(priv::Link&& link) : Variable(std::move(link)) {}
-Number::Number() noexcept :             Variable(FNaN) {}
-Number::Number(bool value) noexcept :   Variable(value) {}
-Number::Number(ui8 value) noexcept :    Variable(value) {}
-Number::Number(i8 value) noexcept :     Variable(value) {}
-Number::Number(ui16 value) noexcept :   Variable(value) {}
-Number::Number(i16 value) noexcept :    Variable(value) {}
-Number::Number(ui32 value) noexcept :   Variable(value) {}
-Number::Number(i32 value) noexcept :    Variable(value) {}
-Number::Number(f32 value) noexcept :    Variable(value) {}
-Number::Number(ui64 value) noexcept :   Variable(value) {}
-Number::Number(i64 value) noexcept :    Variable(value) {}
-Number::Number(f64 value) noexcept :    Variable(value) {}
-Number::Number(const Number& other) noexcept : Variable(dynamic_cast<const Variable&>(other)) {}
-Number::Number(const Number&& other) noexcept : Variable(dynamic_cast<const Variable&&>(other)) {}
-Number::Number(const GenericValue& value) noexcept : Variable(value) {}
+Number::Number(priv::Link&& link) noexcept :          Variable(std::move(link)) {}
+Number::Number()           noexcept :                 Variable(FNaN) {}
+Number::Number(bool value) noexcept :                 Variable(value) {}
+Number::Number(ui8 value)  noexcept :                 Variable(value) {}
+Number::Number(i8 value)   noexcept :                 Variable(value) {}
+Number::Number(ui16 value) noexcept :                 Variable(value) {}
+Number::Number(i16 value)  noexcept :                 Variable(value) {}
+Number::Number(ui32 value) noexcept :                 Variable(value) {}
+Number::Number(i32 value)  noexcept :                 Variable(value) {}
+Number::Number(f32 value)  noexcept :                 Variable(value) {}
+Number::Number(ui64 value) noexcept :                 Variable(value) {}
+Number::Number(i64 value)  noexcept :                 Variable(value) {}
+Number::Number(f64 value)  noexcept :                 Variable(value) {}
+Number::Number(const Number& other) noexcept :        Variable(dynamic_cast<const Variable&>(other)) {}
+Number::Number(const Number&& other) noexcept :       Variable(dynamic_cast<const Variable&&>(other)) {}
+Number::Number(const GenericValue& value) noexcept :  Variable(value) {}
 Number::Number(const GenericValue&& value) noexcept : Variable(std::move(value)) {}
 
 Number Number::move() noexcept {return Link(resource_link);}

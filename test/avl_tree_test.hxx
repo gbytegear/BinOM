@@ -19,6 +19,7 @@ void printAVLTree(binom::priv::AVLTree& avl_tree) {
 void testAVLTree() {
   using namespace binom;
   using namespace binom::priv;
+  using AVLNode = AVLTree::AVLNode;
 
   RAIIPerfomanceTest test_perf("AVLTree test: ");
   SEPARATOR
