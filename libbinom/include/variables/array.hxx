@@ -3,6 +3,7 @@
 
 #include "variable.hxx"
 #include "../utils/reverse_iterator.hxx"
+#include "../binom_impl/ram_storage_implementation/array_impl.hxx"
 
 namespace binom {
 

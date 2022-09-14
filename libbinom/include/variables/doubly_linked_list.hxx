@@ -2,6 +2,7 @@
 #define DOUBLY_LINKED_LIST_HXX
 
 #include "variable.hxx"
+#include "../binom_impl/ram_storage_implementation/doubly_linked_list_impl.hxx"
 
 namespace binom {
 namespace priv {

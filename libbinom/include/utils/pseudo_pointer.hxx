@@ -4,8 +4,11 @@
 namespace pseudo_ptr {
 
 template<typename T>
-struct PseudoPointer{
+class PseudoPointer{
   T value;
+public:
+  PseudoPointer(const T& value) : value(const_cast<T&>(value)) {}
+  PseudoPointer(T&& value) : value(value) {}
   T& operator*() noexcept {return value;}
   const T& operator*() const noexcept {return value;}
   T* operator->() noexcept {return &value;}

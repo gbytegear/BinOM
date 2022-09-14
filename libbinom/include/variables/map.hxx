@@ -46,7 +46,8 @@ class Map : public Variable {
   Variable& changeLink(const Variable& other) = delete;
   Variable& changeLink(Variable&& other) = delete;
 
-  priv::MapImplementation* getData() const;
+  priv::MapImplementation* getData();
+  const priv::MapImplementation* getData() const;
 
   friend class Variable;
   Map(priv::Link&& link);
@@ -76,8 +77,8 @@ public:
   err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
 
   Variable getVariable(KeyValue key);
-  Variable operator[] (KeyValue key);
   const Variable getVariable(KeyValue key) const;
+  Variable operator[] (KeyValue key);
   const Variable operator[] (KeyValue key) const;
 
   Iterator find(KeyValue key);

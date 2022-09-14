@@ -1,97 +1,68 @@
 #ifndef MAP_IMPL_HXX
 #define MAP_IMPL_HXX
 
-#include "../../variables/variable.hxx"
-#include "../avl_tree.hxx"
+//#include "../../variables/variable.hxx"
+//#include "../avl_tree.hxx"
+//#include "../../variables/named_variable.hxx"
+#include <map>
 #include "../../utils/pseudo_pointer.hxx"
+#include "../../variables/key_value.hxx"
+#include "../../variables/variable.hxx"
 
 namespace binom::priv {
 
 class MapImplementation {
-  using AVLNode = AVLTree::AVLNode;
-  using ValueStoringAVLNode = ValueStoringAVLTree<Variable>::ValueStoringAVLNode;
-  typedef ValueStoringAVLTree<Variable> VariableAVLTree;
 public:
+  typedef std::map<KeyValue, Variable> VariableMap;
 
   class NamedVariable;
 
-  class Iterator {
-    friend class priv::MapImplementation;
-    VariableAVLTree::Iterator iterator;
+  class Iterator : public VariableMap::iterator {
   public:
-    Iterator(VariableAVLTree::Iterator iterator);
-    Iterator(const Iterator& iterator);
-    Iterator(Iterator&& iterator);
-
-    Iterator& operator=(Iterator& other) noexcept;
-    Iterator& operator=(Iterator&& other) noexcept;
-
-    Iterator& operator++();
-    Iterator& operator--();
-
-    Iterator operator++(int);
-    Iterator operator--(int);
-
-    const Iterator& operator++() const;
-    const Iterator& operator--() const;
-
-    const Iterator operator++(int) const;
-    const Iterator operator--(int) const;
-
-    bool operator==(const Iterator other) const noexcept;
-    bool operator!=(const Iterator other) const noexcept;
-
+    Iterator(VariableMap::iterator map_it);
+    Iterator(const Iterator& other);
+    Iterator(Iterator&& other);
     NamedVariable operator*();
-    pseudo_ptr::PseudoPointer<NamedVariable> operator ->();
-
+    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
     const NamedVariable operator*() const;
-    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
-
-    static Iterator nulliterator() noexcept {return {nullptr};}
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static Iterator nullit() noexcept {return  VariableMap::iterator(nullptr);}
   };
 
-
-  class ReverseIterator {
-    friend class priv::MapImplementation;
-    VariableAVLTree::ReverseIterator iterator;
+  class ReverseIterator : public VariableMap::reverse_iterator {
   public:
-    ReverseIterator(VariableAVLTree::ReverseIterator iterator);
-    ReverseIterator(const ReverseIterator& iterator);
-    ReverseIterator(ReverseIterator&& iterator);
-
-    ReverseIterator& operator=(ReverseIterator& other) noexcept;
-    ReverseIterator& operator=(ReverseIterator&& other) noexcept;
-
-    ReverseIterator& operator++();
-    ReverseIterator& operator--();
-
-    ReverseIterator operator++(int);
-    ReverseIterator operator--(int);
-
-    const ReverseIterator& operator++() const;
-    const ReverseIterator& operator--() const;
-
-    const ReverseIterator operator++(int) const;
-    const ReverseIterator operator--(int) const;
-
-    bool operator==(const ReverseIterator other) const noexcept;
-    bool operator!=(const ReverseIterator other) const noexcept;
-
+    ReverseIterator(VariableMap::reverse_iterator map_rit);
+    ReverseIterator(const ReverseIterator& other);
+    ReverseIterator(ReverseIterator&& other);
     NamedVariable operator*();
-    pseudo_ptr::PseudoPointer<NamedVariable> operator ->();
-
+    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
     const NamedVariable operator*() const;
-    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
-
-    static ReverseIterator nulliterator() noexcept {return {nullptr};}
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static ReverseIterator nullit() noexcept {return  VariableMap::reverse_iterator(Iterator::nullit());}
   };
 
-  typedef const Iterator ConstIterator;
-  typedef const ReverseIterator ConstReverseIterator;
+  class ConstIterator : public VariableMap::const_iterator {
+  public:
+    ConstIterator(VariableMap::const_iterator map_it);
+    ConstIterator(const ConstIterator& other);
+    ConstIterator(ConstIterator&& other);
+    const NamedVariable operator*() const;
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static ConstIterator nullit() noexcept {return  VariableMap::const_iterator(nullptr);}
+  };
+
+  class ConstReverseIterator : public VariableMap::const_reverse_iterator {
+  public:
+    ConstReverseIterator(VariableMap::const_reverse_iterator map_rit);
+    ConstReverseIterator(const ConstReverseIterator& other);
+    ConstReverseIterator(ConstReverseIterator&& other);
+    const NamedVariable operator*() const;
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static ConstReverseIterator nullit() noexcept {return  VariableMap::const_reverse_iterator(ConstIterator::nullit());}
+  };
 
 private:
-  size_t size;
-  VariableAVLTree avl_tree;
+  VariableMap storage;
 
 public:
 
@@ -101,14 +72,17 @@ public:
 
   bool isEmpty() const noexcept;
   size_t getSize() const noexcept;
-  bool contains(KeyValue value) const;
+  bool contains(KeyValue value) const noexcept;
 
   err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable);
+
   err::Error remove(KeyValue key);
+
   err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
 
   NamedVariable getOrInsertNamedVariable(KeyValue key);
-  Variable getVariable(KeyValue key);
+
+  Variable getVariable(KeyValue key) const;
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);
@@ -117,23 +91,23 @@ public:
 
   void clear();
 
-  inline Iterator begin() noexcept {return avl_tree.begin();}
-  inline Iterator end() noexcept {return avl_tree.end();}
+  Iterator begin() noexcept;
+  Iterator end() noexcept;
 
-  inline ReverseIterator rbegin() noexcept {return avl_tree.rbegin();}
-  inline ReverseIterator rend() noexcept {return avl_tree.rend();}
+  ReverseIterator rbegin() noexcept;
+  ReverseIterator rend() noexcept;
 
-  inline ConstIterator begin() const noexcept {return cbegin();}
-  inline ConstIterator end() const noexcept {return cend();}
+  ConstIterator begin() const noexcept;
+  ConstIterator end() const noexcept;
 
-  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
-  inline ConstReverseIterator rend() const noexcept {return crend();}
+  ConstReverseIterator rbegin() const noexcept;
+  ConstReverseIterator rend() const noexcept;
 
-  inline ConstIterator cbegin() const noexcept {return avl_tree.cbegin();}
-  inline ConstIterator cend() const noexcept {return avl_tree.cend();}
+  ConstIterator cbegin() const noexcept;
+  ConstIterator cend() const noexcept;
 
-  inline ConstReverseIterator crbegin() const noexcept {return avl_tree.crbegin();}
-  inline ConstReverseIterator crend() const noexcept {return avl_tree.crend();}
+  ConstReverseIterator crbegin() const noexcept;
+  ConstReverseIterator crend() const noexcept;
 
 };
 

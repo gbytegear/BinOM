@@ -2,6 +2,7 @@
 #define NAMED_VARIABLE_HXX
 
 #include "variable.hxx"
+#include "../binom_impl/ram_storage_implementation.hxx"
 
 namespace binom {
 namespace priv {
@@ -55,22 +56,24 @@ public:
     : key(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
 };
 
-class priv::MapImplementation::NamedVariable : public priv::NamedVariableBase<priv::MapImplementation::NamedVariable> {
-  template<class Driven>
+class binom::priv::MapImplementation::NamedVariable
+    : public priv::NamedVariableBase<binom::priv::MapImplementation::NamedVariable> {
+  template<typename Driven>
   friend class priv::NamedVariableBase;
-  ValueStoringAVLNode* node;
-
-  inline Variable& getVariableRef() noexcept {return node->getValue();}
-  inline KeyValue& getKeyRef() noexcept {return node->getKey();}
-  inline const Variable& getVariableRef() const noexcept {return node->getValue();}
-  inline const KeyValue& getKeyRef() const noexcept {return node->getKey();}
+  typedef std::pair<const KeyValue, Variable> VariablePair;
+  VariablePair& pair;
+  inline Variable& getVariableRef() noexcept {return pair.second;}
+//  inline KeyValue& getKeyRef() noexcept {return pair.first;}
+  inline const Variable& getVariableRef() const noexcept {return pair.second;}
+  inline const KeyValue& getKeyRef() const noexcept {return pair.first;}
 
   friend class MapImplementation;
-  NamedVariable(const ValueStoringAVLNode& node) : node(&const_cast<ValueStoringAVLNode&>(node)) {}
-  NamedVariable(const ValueStoringAVLNode* node) : node(const_cast<ValueStoringAVLNode*>(node)) {}
+  friend class MapImplementation::Iterator;
+  friend class MapImplementation::ReverseIterator;
+  NamedVariable(const VariablePair& pair) : pair(const_cast<VariablePair&>(pair)) {}
 public:
-  NamedVariable(const NamedVariable& other) : node(other.node) {}
-  NamedVariable(NamedVariable&& other) : node(other.node) {}
+  NamedVariable(const NamedVariable& other) : pair(const_cast<VariablePair&>(other.pair)) {}
+  NamedVariable(NamedVariable& other) : pair(other.pair) {}
 };
 
 class priv::MultiMapImplementation::NamedVariable

@@ -2,7 +2,6 @@
 #define GENERIC_VALUE_HXX
 
 #include "../utils/generic_arithmetic.hxx"
-#include "../binom_impl/resource_control.hxx"
 #include <new>
 
 namespace binom {

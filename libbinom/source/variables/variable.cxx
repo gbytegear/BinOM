@@ -7,6 +7,7 @@
 #include "libbinom/include/variables/doubly_linked_list.hxx"
 #include "libbinom/include/variables/map.hxx"
 #include "libbinom/include/variables/multi_map.hxx"
+#include "libbinom/include/binom_impl/ram_storage_implementation.hxx"
 
 using namespace binom;
 using namespace binom::priv;

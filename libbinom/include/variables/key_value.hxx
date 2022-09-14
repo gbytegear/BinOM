@@ -93,6 +93,12 @@ public:
   size_t getElementSize() const noexcept;
 
   CompareResult getCompare(KeyValue& other) const;
+  inline bool operator == (KeyValue value) const {return getCompare(value) == CompareResult::equal;}
+  inline bool operator != (KeyValue value) const {return getCompare(value) != CompareResult::equal;}
+  inline bool operator < (KeyValue value) const {return getCompare(value) == CompareResult::lower;}
+  inline bool operator > (KeyValue value) const {return getCompare(value) == CompareResult::highter;}
+  inline bool operator <= (KeyValue value) const {auto cmp = getCompare(value); return cmp == CompareResult::lower || cmp == CompareResult::equal;}
+  inline bool operator >= (KeyValue value) const {auto cmp = getCompare(value); return cmp == CompareResult::highter || cmp == CompareResult::equal;}
 
   Variable toVariable() const;
   Number toNumber() const;

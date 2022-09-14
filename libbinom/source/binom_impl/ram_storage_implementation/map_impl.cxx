@@ -1,150 +1,149 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/map_impl.hxx"
 #include "libbinom/include/variables/named_variable.hxx"
-#include "libbinom/include/utils/util_functions.hxx"
 
 using namespace binom;
 using namespace binom::priv;
 using namespace binom::literals;
 
-MapImplementation::MapImplementation(const literals::map& map) {
-  for(auto& element : map)
-    avl_tree.insert(std::move(element.getKey()), std::move(element.getVariable()));
-}
+MapImplementation::MapImplementation(const literals::map& map) { for(auto& element : map) insert(std::move(element.getKey()), element.getVariable().move()); }
 
-MapImplementation::MapImplementation(const MapImplementation& other) {
-  // Yeah, that's damn stupid way
-  // TODO: Think of a better way
-  for (const auto& node : other.avl_tree) avl_tree.insert(node.getKey(), node.getValue());
-}
+MapImplementation::MapImplementation(const MapImplementation& other) { for(auto& element : other.storage) insert(element.first, element.second); }
 
 MapImplementation::~MapImplementation() { clear(); }
 
-bool MapImplementation::isEmpty() const noexcept {return avl_tree.isEmpty();}
+bool MapImplementation::isEmpty() const noexcept {return !storage.size();}
 
-size_t MapImplementation::getSize() const noexcept {return size;}
+size_t MapImplementation::getSize() const noexcept {return storage.size();}
 
-bool MapImplementation::contains(KeyValue value) const {return avl_tree.get(value);}
+bool MapImplementation::contains(KeyValue value) const noexcept {return storage.contains(value);}
 
 err::ProgressReport<MapImplementation::NamedVariable> MapImplementation::insert(KeyValue key, Variable variable) {
-  if(auto avl_node = avl_tree.insert(std::move(key), variable.move()); avl_node) {
-    ++size;
-    return NamedVariable(avl_node);
-  } else return err::ErrorType::binom_key_unique_error;
+  auto insert_result = storage.emplace(std::move(key), variable.move());
+  if(insert_result.second) return MapImplementation::NamedVariable(*insert_result.first);
+  return err::ErrorType::binom_key_unique_error;
 }
 
-err::Error MapImplementation::remove(KeyValue key) {
-  if(auto avl_node = avl_tree.extract(std::move(key)); avl_node) {
-    delete avl_node;
-    --size;
-    return err::ErrorType::no_error;
-  } else return err::ErrorType::binom_out_of_range;
+binom::err::Error MapImplementation::remove(KeyValue key) {
+  if(storage.erase(std::move(key))) return ErrorType::no_error;
+  else return ErrorType::binom_out_of_range;
 }
 
 err::ProgressReport<MapImplementation::NamedVariable> MapImplementation::rename(KeyValue old_key, KeyValue new_key) {
-  if(auto avl_node = avl_tree.extract(std::move(old_key)); avl_node) {
-    if(avl_tree.insert(*avl_node)) return NamedVariable(avl_node);
-    return err::ProgressReport(err::ErrorType::binom_key_unique_error, NamedVariable(avl_node));
-  } else return err::ErrorType::binom_out_of_range;
+  auto element = storage.extract(old_key);
+  if(element.empty()) return ErrorType::binom_out_of_range;
+  element.key() = new_key;
+  auto insert_result = storage.insert(std::move(element));
+  if(insert_result.inserted) return NamedVariable(*insert_result.position);
+  insert_result.node.key() = old_key;
+  insert_result = storage.insert(std::move(insert_result.node));
+  if(insert_result.inserted) return {ErrorType::binom_key_unique_error, NamedVariable(*insert_result.position)};
+  return ErrorType::binom_key_unique_error;
 }
 
 MapImplementation::NamedVariable MapImplementation::getOrInsertNamedVariable(KeyValue key) {
-  auto node = avl_tree.get(key);
-  if(!node) return avl_tree.insert(key, nullptr);
-  NamedVariable a = *node;
-  return *node;
+  auto it = storage.find(key);
+  if(it == storage.cend())
+    return *storage.emplace(std::move(key), nullptr).first;
+  return *it;
 }
 
-Variable MapImplementation::getVariable(KeyValue key) {
-  auto node = avl_tree.get(std::move(key));
-  if(!node) return nullptr;
-  return node->getValue().move();
+binom::Variable MapImplementation::getVariable(KeyValue key) const {
+  auto it = storage.find(key);
+  if(it == storage.cend())
+    return nullptr;
+  return it->second.move();
 }
 
-void MapImplementation::clear() { avl_tree.clear(); }
+MapImplementation::Iterator MapImplementation::find(KeyValue key) {return storage.find(std::move(key));}
 
-MapImplementation::Iterator MapImplementation::find(KeyValue key) { return Iterator(avl_tree.get(std::move(key))); }
+MapImplementation::ReverseIterator MapImplementation::rfind(KeyValue key) {return std::reverse_iterator(storage.find(std::move(key)));}
 
-MapImplementation::ReverseIterator MapImplementation::rfind(KeyValue key) { return ReverseIterator(avl_tree.get(std::move(key))); }
+MapImplementation::ConstIterator MapImplementation::find(KeyValue key) const {return storage.find(std::move(key));}
 
-MapImplementation::ConstIterator MapImplementation::find(KeyValue key) const { return ConstIterator(avl_tree.get(std::move(key))); }
+MapImplementation::ConstReverseIterator MapImplementation::rfind(KeyValue key) const {return std::reverse_iterator(storage.find(std::move(key)));}
 
-MapImplementation::ConstReverseIterator MapImplementation::rfind(KeyValue key) const { return ConstReverseIterator(avl_tree.get(std::move(key))); }
+void MapImplementation::clear() {storage.clear();}
 
-MapImplementation::Iterator::Iterator(VariableAVLTree::Iterator iterator) : iterator(std::move(iterator)) {}
+MapImplementation::Iterator MapImplementation::begin() noexcept {return storage.begin();}
 
-MapImplementation::Iterator::Iterator(const Iterator& iterator) : iterator(std::move(iterator.iterator)) {}
+MapImplementation::Iterator MapImplementation::end() noexcept {return storage.end();}
 
-MapImplementation::Iterator::Iterator(Iterator&& iterator) : iterator(std::move(iterator.iterator)) {}
+MapImplementation::ReverseIterator MapImplementation::rbegin() noexcept {return storage.rbegin();}
 
-MapImplementation::Iterator& MapImplementation::Iterator::operator=(Iterator& other) noexcept {return *new(this) Iterator(other);}
+MapImplementation::ReverseIterator MapImplementation::rend() noexcept {return storage.rend();}
 
-MapImplementation::Iterator& MapImplementation::Iterator::operator=(Iterator&& other) noexcept {return *new(this) Iterator(std::move(other));}
+MapImplementation::ConstIterator MapImplementation::begin() const noexcept {return cbegin();}
 
-MapImplementation::Iterator& MapImplementation::Iterator::operator++() { ++iterator; return self; }
+MapImplementation::ConstIterator MapImplementation::end() const noexcept {return cend();}
 
-MapImplementation::Iterator& MapImplementation::Iterator::operator--() { --iterator; return self; }
+MapImplementation::ConstReverseIterator MapImplementation::rbegin() const noexcept {return crbegin();}
 
-MapImplementation::Iterator MapImplementation::Iterator::operator++(int) {Iterator tmp(self); ++self; return tmp;}
+MapImplementation::ConstReverseIterator MapImplementation::rend() const noexcept {return crend();}
 
-MapImplementation::Iterator MapImplementation::Iterator::operator--(int) {Iterator tmp(self); --self; return tmp;}
+MapImplementation::ConstIterator MapImplementation::cbegin() const noexcept {return storage.cbegin();}
 
-const MapImplementation::Iterator& MapImplementation::Iterator::operator++() const { ++iterator; return self; }
+MapImplementation::ConstIterator MapImplementation::cend() const noexcept {return storage.cend();}
 
-const MapImplementation::Iterator& MapImplementation::Iterator::operator--() const { --iterator; return self; }
+MapImplementation::ConstReverseIterator MapImplementation::crbegin() const noexcept {return storage.crbegin();}
 
-const MapImplementation::Iterator MapImplementation::Iterator::operator++(int) const {Iterator tmp(self); ++self; return tmp;}
-
-const MapImplementation::Iterator MapImplementation::Iterator::operator--(int) const {Iterator tmp(self); --self; return tmp;}
-
-bool MapImplementation::Iterator::operator==(const Iterator other) const noexcept {return iterator == other.iterator;}
-
-bool MapImplementation::Iterator::operator!=(const Iterator other) const noexcept {return iterator != other.iterator;}
-
-MapImplementation::NamedVariable MapImplementation::Iterator::operator*() {return *iterator;}
-
-pseudo_ptr::PseudoPointer<MapImplementation::NamedVariable> MapImplementation::Iterator::operator->() {return {NamedVariable(*iterator)};}
-
-const MapImplementation::NamedVariable MapImplementation::Iterator::operator*() const {return *iterator;}
-
-const pseudo_ptr::PseudoPointer<MapImplementation::NamedVariable> MapImplementation::Iterator::operator->() const {return {NamedVariable(*iterator)};}
+MapImplementation::ConstReverseIterator MapImplementation::crend() const noexcept {return storage.crend();}
 
 
 
 
-MapImplementation::ReverseIterator::ReverseIterator(VariableAVLTree::ReverseIterator iterator) : iterator(std::move(iterator)) {}
+MapImplementation::Iterator::Iterator(VariableMap::iterator map_it) : VariableMap::iterator(map_it) {}
 
-MapImplementation::ReverseIterator::ReverseIterator(const ReverseIterator& iterator) : iterator(std::move(iterator.iterator)) {}
+MapImplementation::Iterator::Iterator(const Iterator& other) : VariableMap::iterator(dynamic_cast<const VariableMap::iterator&>(other)) {}
 
-MapImplementation::ReverseIterator::ReverseIterator(ReverseIterator&& iterator) : iterator(std::move(iterator.iterator)) {}
+MapImplementation::Iterator::Iterator(Iterator&& other) : VariableMap::iterator(dynamic_cast<VariableMap::iterator&&>(other)) {}
 
-MapImplementation::ReverseIterator& MapImplementation::ReverseIterator::operator=(ReverseIterator& other) noexcept {return *new(this) ReverseIterator(other);}
+MapImplementation::NamedVariable MapImplementation::Iterator::operator*() {return NamedVariable(*dynamic_cast<VariableMap::iterator&>(self));}
 
-MapImplementation::ReverseIterator& MapImplementation::ReverseIterator::operator=(ReverseIterator&& other) noexcept {return *new(this) ReverseIterator(std::move(other));}
+pseudo_ptr::PseudoPointer<MapImplementation::NamedVariable> MapImplementation::Iterator::operator->() {return *self;}
 
-MapImplementation::ReverseIterator& MapImplementation::ReverseIterator::operator++() { ++iterator; return self; }
+const MapImplementation::NamedVariable MapImplementation::Iterator::operator*() const {return *dynamic_cast<const VariableMap::iterator&>(self);}
 
-MapImplementation::ReverseIterator& MapImplementation::ReverseIterator::operator--() { --iterator; return self; }
+pseudo_ptr::PseudoPointer<const MapImplementation::NamedVariable> MapImplementation::Iterator::operator->() const {return *self;}
 
-MapImplementation::ReverseIterator MapImplementation::ReverseIterator::operator++(int) {ReverseIterator tmp(self); ++self; return tmp;}
 
-MapImplementation::ReverseIterator MapImplementation::ReverseIterator::operator--(int) {ReverseIterator tmp(self); --self; return tmp;}
 
-const MapImplementation::ReverseIterator& MapImplementation::ReverseIterator::operator++() const { ++iterator; return self; }
 
-const MapImplementation::ReverseIterator& MapImplementation::ReverseIterator::operator--() const { --iterator; return self; }
+MapImplementation::ReverseIterator::ReverseIterator(VariableMap::reverse_iterator map_rit) : VariableMap::reverse_iterator(map_rit) {}
 
-const MapImplementation::ReverseIterator MapImplementation::ReverseIterator::operator++(int) const {ReverseIterator tmp(self); ++self; return tmp;}
+MapImplementation::ReverseIterator::ReverseIterator(const ReverseIterator& other) : VariableMap::reverse_iterator(dynamic_cast<const VariableMap::reverse_iterator&>(other)) {}
 
-const MapImplementation::ReverseIterator MapImplementation::ReverseIterator::operator--(int) const {ReverseIterator tmp(self); --self; return tmp;}
+MapImplementation::ReverseIterator::ReverseIterator(ReverseIterator&& other) : VariableMap::reverse_iterator(dynamic_cast<VariableMap::reverse_iterator&&>(other)) {}
 
-bool MapImplementation::ReverseIterator::operator==(const ReverseIterator other) const noexcept {return iterator == other.iterator;}
+MapImplementation::NamedVariable MapImplementation::ReverseIterator::operator*() {return *dynamic_cast<VariableMap::reverse_iterator&>(self);}
 
-bool MapImplementation::ReverseIterator::operator!=(const ReverseIterator other) const noexcept {return iterator != other.iterator;}
+pseudo_ptr::PseudoPointer<MapImplementation::NamedVariable> MapImplementation::ReverseIterator::operator->() {return *self;}
 
-MapImplementation::NamedVariable MapImplementation::ReverseIterator::operator*() {return *iterator;}
+const MapImplementation::NamedVariable MapImplementation::ReverseIterator::operator*() const {return *dynamic_cast<const VariableMap::reverse_iterator&>(self);}
 
-pseudo_ptr::PseudoPointer<MapImplementation::NamedVariable> MapImplementation::ReverseIterator::operator->() {return {NamedVariable(*iterator)};}
+pseudo_ptr::PseudoPointer<const MapImplementation::NamedVariable> MapImplementation::ReverseIterator::operator->() const {return *self;}
 
-const MapImplementation::NamedVariable MapImplementation::ReverseIterator::operator*() const {return *iterator;}
 
-const pseudo_ptr::PseudoPointer<MapImplementation::NamedVariable> MapImplementation::ReverseIterator::operator->() const {return {NamedVariable(*iterator)};}
+
+
+MapImplementation::ConstIterator::ConstIterator(VariableMap::const_iterator map_it) : VariableMap::const_iterator(map_it) {}
+
+MapImplementation::ConstIterator::ConstIterator(const ConstIterator& other) : VariableMap::const_iterator(dynamic_cast<const VariableMap::const_iterator&>(other)) {}
+
+MapImplementation::ConstIterator::ConstIterator(ConstIterator&& other) : VariableMap::const_iterator(dynamic_cast<VariableMap::const_iterator&&>(other)) {}
+
+const MapImplementation::NamedVariable MapImplementation::ConstIterator::operator*() const {return *dynamic_cast<const VariableMap::const_iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<const MapImplementation::NamedVariable> MapImplementation::ConstIterator::operator->() const {return *self;}
+
+
+
+
+MapImplementation::ConstReverseIterator::ConstReverseIterator(VariableMap::const_reverse_iterator map_rit) : VariableMap::const_reverse_iterator(map_rit) {}
+
+MapImplementation::ConstReverseIterator::ConstReverseIterator(const ConstReverseIterator& other) : VariableMap::const_reverse_iterator(dynamic_cast<const VariableMap::const_reverse_iterator&>(other)) {}
+
+MapImplementation::ConstReverseIterator::ConstReverseIterator(ConstReverseIterator&& other) : VariableMap::const_reverse_iterator(dynamic_cast<VariableMap::const_reverse_iterator&&>(other)) {}
+
+const MapImplementation::NamedVariable MapImplementation::ConstReverseIterator::operator*() const {return *dynamic_cast<const VariableMap::const_reverse_iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<const MapImplementation::NamedVariable> MapImplementation::ConstReverseIterator::operator->() const {return *self;}

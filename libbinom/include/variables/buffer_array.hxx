@@ -2,6 +2,7 @@
 #define BUFFER_ARRAY_HXX
 
 #include "variable.hxx"
+#include "../binom_impl/ram_storage_implementation/buffer_array_impl.hxx"
 
 namespace binom {
 

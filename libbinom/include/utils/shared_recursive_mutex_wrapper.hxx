@@ -5,9 +5,7 @@
 #include "reverse_iterator.hxx"
 #include <shared_mutex>
 #include <map>
-#include <list>
 #include <optional>
-#include <set>
 
 namespace shared_recursive_mtx {
 using namespace type_alias;

@@ -653,6 +653,11 @@ constexpr inline bool operator != (VarType type, ValType val_type) noexcept {ret
 
 namespace priv { // BinOM containers implementation
 
+class Link;
+class SharedResource;
+class ResourceData;
+class FileResourceIndex;
+
 class BitArrayImplementation;
 class BufferArrayImplementation;
 class ArrayImplementation;

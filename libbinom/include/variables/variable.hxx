@@ -2,7 +2,6 @@
 #define VARIABLE_H
 
 #include "../binom_impl/resource_control.hxx"
-#include "../binom_impl/ram_storage_implementation.hxx"
 #include "../binom_impl/multi_avl_tree.hxx"
 #include "generic_value.hxx"
 

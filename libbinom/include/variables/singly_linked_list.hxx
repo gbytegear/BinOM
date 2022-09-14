@@ -2,6 +2,7 @@
 #define SINGLY_LINKED_LIST_H
 
 #include "variable.hxx"
+#include "../binom_impl/ram_storage_implementation/singly_linked_list_impl.hxx"
 
 namespace binom {
 
