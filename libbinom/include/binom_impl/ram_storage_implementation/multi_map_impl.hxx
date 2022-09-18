@@ -1,153 +1,68 @@
 #ifndef MULTIMAP_IMPL_HXX
 #define MULTIMAP_IMPL_HXX
 
-#include "../../variables/variable.hxx"
-#include "../multi_avl_tree.hxx"
+//#include "../multi_avl_tree.hxx"
+//#include "../../variables/variable.hxx"
+//#include "../../utils/pseudo_pointer.hxx"
+#include <map>
 #include "../../utils/pseudo_pointer.hxx"
-
+#include "../../variables/key_value.hxx"
+#include "../../variables/variable.hxx"
 
 namespace binom::priv {
 
 class MultiMapImplementation {
 
-  struct MultiMapNode;
-
 public:
+  typedef std::multimap<KeyValue, Variable> VariableMultiMap;
+  using NamedVariable = MapNodeRef;
 
-  class ReverseIterator;
-
-  class NamedVariable;
-
-  class Iterator {
-    friend class priv::MultiMapImplementation;
-    MultiAVLTree::Iterator iterator;
-    Iterator(MultiAVLTree::Iterator iterator);
+  class Iterator : public VariableMultiMap::iterator {
   public:
-    Iterator(const Iterator& iterator);
-    Iterator(Iterator&& iterator);
-
-    Iterator& operator=(Iterator& other) noexcept;
-    Iterator& operator=(Iterator&& other) noexcept;
-
-    inline Iterator& goToNextKey() {iterator.goToNextKey(); return self;}
-    inline Iterator& goToPrevKey() {iterator.goToPrevKey(); return self;}
-    inline const Iterator& goToNextKey() const {iterator.goToNextKey(); return self;}
-    inline const Iterator& goToPrevKey() const {iterator.goToPrevKey(); return self;}
-
-    inline size_t getElementCount() const noexcept {return iterator.getElementCount();}
-
-    Iterator& operator++();
-    Iterator& operator--();
-
-    Iterator operator++(int);
-    Iterator operator--(int);
-
-    const Iterator& operator++() const;
-    const Iterator& operator--() const;
-
-    const Iterator operator++(int) const;
-    const Iterator operator--(int) const;
-
-    bool operator==(const Iterator other) const noexcept;
-    bool operator!=(const Iterator other) const noexcept;
-
+    Iterator(VariableMultiMap::iterator map_it);
+    Iterator(const Iterator& other);
+    Iterator(Iterator&& other);
     NamedVariable operator*();
     pseudo_ptr::PseudoPointer<NamedVariable> operator->();
-
     const NamedVariable operator*() const;
-    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
-
-    inline Iterator begin() noexcept {return iterator.begin();}
-    inline Iterator end() noexcept {return iterator.end();}
-
-    inline ReverseIterator rbegin() noexcept {return iterator.rbegin();}
-    inline ReverseIterator rend() noexcept {return iterator.rend();}
-
-    inline Iterator begin() const noexcept {return cbegin();}
-    inline Iterator end() const noexcept {return cend();}
-
-    inline ReverseIterator rbegin() const noexcept {return crbegin();}
-    inline ReverseIterator rend() const noexcept {return crend();}
-
-    inline Iterator cbegin() const noexcept {return iterator.cbegin();}
-    inline Iterator cend() const noexcept {return iterator.cend();}
-
-    inline ReverseIterator crbegin() const noexcept {return iterator.crbegin();}
-    inline ReverseIterator crend() const noexcept {return iterator.crend();}
-
-    static Iterator nulliterator() noexcept {return MultiAVLTree::Iterator(nullptr);}
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static Iterator nullit() noexcept;
   };
 
-
-  class ReverseIterator {
-    friend class priv::MultiMapImplementation;
-    MultiAVLTree::ReverseIterator iterator;
-    ReverseIterator(MultiAVLTree::ReverseIterator iterator);
+  class ReverseIterator : public VariableMultiMap::reverse_iterator {
   public:
-    ReverseIterator(const ReverseIterator& iterator);
-    ReverseIterator(ReverseIterator&& iterator);
-
-    ReverseIterator& operator=(ReverseIterator& other) noexcept;
-    ReverseIterator& operator=(ReverseIterator&& other) noexcept;
-
-    inline ReverseIterator& goToNextKey() {iterator.goToNextKey(); return self;}
-    inline ReverseIterator& goToPrevKey() {iterator.goToPrevKey(); return self;}
-    inline const ReverseIterator& goToNextKey() const {iterator.goToNextKey(); return self;}
-    inline const ReverseIterator& goToPrevKey() const {iterator.goToPrevKey(); return self;}
-
-    inline size_t getElementCount() const noexcept {return iterator.getElementCount();}
-
-    ReverseIterator& operator++();
-    ReverseIterator& operator--();
-
-    ReverseIterator operator++(int);
-    ReverseIterator operator--(int);
-
-    const ReverseIterator& operator++() const;
-    const ReverseIterator& operator--() const;
-
-    const ReverseIterator operator++(int) const;
-    const ReverseIterator operator--(int) const;
-
-    bool operator==(ReverseIterator other) const noexcept;
-    bool operator!=(ReverseIterator other) const noexcept;
-
+    ReverseIterator(VariableMultiMap::reverse_iterator map_rit);
+    ReverseIterator(const ReverseIterator& other);
+    ReverseIterator(ReverseIterator&& other);
     NamedVariable operator*();
     pseudo_ptr::PseudoPointer<NamedVariable> operator->();
-
     const NamedVariable operator*() const;
-    const pseudo_ptr::PseudoPointer<NamedVariable> operator->() const;
-
-    inline ReverseIterator begin() noexcept {return iterator.begin();}
-    inline ReverseIterator end() noexcept {return iterator.end();}
-
-    inline Iterator rbegin() noexcept {return iterator.rbegin();}
-    inline Iterator rend() noexcept {return iterator.rend();}
-
-    inline ReverseIterator begin() const noexcept {return cbegin();}
-    inline ReverseIterator end() const noexcept {return cend();}
-
-    inline Iterator rbegin() const noexcept {return crbegin();}
-    inline Iterator rend() const noexcept {return crend();}
-
-    inline ReverseIterator cbegin() const noexcept {return iterator.cbegin();}
-    inline ReverseIterator cend() const noexcept {return iterator.cend();}
-
-    inline Iterator crbegin() const noexcept {return iterator.crbegin();}
-    inline Iterator crend() const noexcept {return iterator.crend();}
-
-    static ReverseIterator nulliterator() noexcept {return MultiAVLTree::ReverseIterator(nullptr);}
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static ReverseIterator nullit() noexcept;
   };
 
-  typedef const Iterator ConstIterator;
-  typedef const ReverseIterator ConstReverseIterator;
+  class ConstIterator : public VariableMultiMap::const_iterator {
+  public:
+    ConstIterator(VariableMultiMap::const_iterator map_it);
+    ConstIterator(const ConstIterator& other);
+    ConstIterator(ConstIterator&& other);
+    const NamedVariable operator*() const;
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static ConstIterator nullit() noexcept;
+  };
+
+  class ConstReverseIterator : public VariableMultiMap::const_reverse_iterator {
+  public:
+    ConstReverseIterator(VariableMultiMap::const_reverse_iterator map_rit);
+    ConstReverseIterator(const ConstReverseIterator& other);
+    ConstReverseIterator(ConstReverseIterator&& other);
+    const NamedVariable operator*() const;
+    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    static ConstReverseIterator nullit() noexcept;
+  };
 
 private:
-  size_t size;
-  MultiAVLTree multi_avl_tree;
-
-  static MultiMapNode* convert(MultiAVLTree::AVLNode* node);
-  static const MultiMapNode* convert(const MultiAVLTree::AVLNode* node);
+  VariableMultiMap storage;
 
 public:
   using NewNodePosition = MultiAVLTree::NewNodePosition;
@@ -155,22 +70,31 @@ public:
   MultiMapImplementation(const literals::multimap& map, NewNodePosition pos = NewNodePosition::back);
   MultiMapImplementation(const MultiMapImplementation& other);
   MultiMapImplementation(MultiMapImplementation&& other);
-  ~MultiMapImplementation();
+  ~MultiMapImplementation() = default;
 
   bool isEmpty() const noexcept;
   size_t getSize() const noexcept;
   bool contains(KeyValue key) const;
 
   NamedVariable insert(KeyValue key, Variable variable, NewNodePosition position = NewNodePosition::back);
-  Error remove(Iterator it);
-  Error remove(ReverseIterator it);
-  Error removeAll(KeyValue key);
+
+  void remove(Iterator it);
+  void remove(ReverseIterator it);
+  size_t removeAll(KeyValue key);
   err::ProgressReport<NamedVariable> rename(Iterator it, KeyValue new_key);
+
+
+  std::pair<Iterator, Iterator> getRange(KeyValue key);
+  std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key);
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);
   Iterator findLast(KeyValue key);
   ReverseIterator rfindLast(KeyValue key);
+
+  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const;
+
   ConstIterator find(KeyValue key) const;
   ConstReverseIterator rfind(KeyValue key) const;
   ConstIterator findLast(KeyValue key) const;
@@ -178,23 +102,23 @@ public:
 
   void clear();
 
-  inline Iterator begin() noexcept {return multi_avl_tree.begin();}
-  inline Iterator end() noexcept {return multi_avl_tree.end();}
+  Iterator begin() noexcept;
+  Iterator end() noexcept;
 
-  inline ReverseIterator rbegin() noexcept {return multi_avl_tree.rbegin();}
-  inline ReverseIterator rend() noexcept {return multi_avl_tree.rend();}
+  ReverseIterator rbegin() noexcept;
+  ReverseIterator rend() noexcept;
 
-  inline ConstIterator begin() const noexcept {return cbegin();}
-  inline ConstIterator end() const noexcept {return cend();}
+  ConstIterator begin() const noexcept;
+  ConstIterator end() const noexcept;
 
-  inline ConstReverseIterator rbegin() const noexcept {return crbegin();}
-  inline ConstReverseIterator rend() const noexcept {return crend();}
+  ConstReverseIterator rbegin() const noexcept;
+  ConstReverseIterator rend() const noexcept;
 
-  inline ConstIterator cbegin() const noexcept {return multi_avl_tree.cbegin();}
-  inline ConstIterator cend() const noexcept {return multi_avl_tree.cend();}
+  ConstIterator cbegin() const noexcept;
+  ConstIterator cend() const noexcept;
 
-  inline ConstReverseIterator crbegin() const noexcept {return multi_avl_tree.crbegin();}
-  inline ConstReverseIterator crend() const noexcept {return multi_avl_tree.crend();}
+  ConstReverseIterator crbegin() const noexcept;
+  ConstReverseIterator crend() const noexcept;
 
 };
 

@@ -7,7 +7,9 @@ using namespace binom::literals;
 
 MapImplementation::MapImplementation(const literals::map& map) { for(auto& element : map) insert(std::move(element.getKey()), element.getVariable().move()); }
 
-MapImplementation::MapImplementation(const MapImplementation& other) { for(auto& element : other.storage) insert(element.first, element.second); }
+MapImplementation::MapImplementation(const MapImplementation& other) : storage(other.storage) {}
+
+MapImplementation::MapImplementation(MapImplementation&& other) : storage(std::move(other.storage)) {}
 
 MapImplementation::~MapImplementation() { clear(); }
 

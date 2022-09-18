@@ -44,7 +44,8 @@ class MultiMap : public Variable {
   Variable& changeLink(const Variable& other) = delete;
   Variable& changeLink(Variable&& other) = delete;
 
-  priv::MultiMapImplementation* getData() const;
+  priv::MultiMapImplementation* getData();
+  const priv::MultiMapImplementation* getData() const;
 
   friend class Variable;
   MultiMap(priv::Link&& link);
@@ -73,6 +74,11 @@ public:
   Error remove(ReverseIterator it);
   Error removeAll(KeyValue key);
   err::ProgressReport<NamedVariable> rename(Iterator it, KeyValue new_key);
+
+  std::pair<Iterator, Iterator> getRange(KeyValue key);
+  std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key);
+  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const;
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);

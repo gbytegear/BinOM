@@ -684,6 +684,7 @@ class Table;
 class KeyValue;
 
 class NamedVariable;
+class MapNodeRef;
 
 namespace literals {
 namespace priv {

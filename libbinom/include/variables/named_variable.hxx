@@ -30,8 +30,8 @@ public:
 }
 
 class NamedVariable : public priv::NamedVariableBase<NamedVariable> {
-  friend class NamedVariableBase;
-  friend class priv::MapImplementation::NamedVariable;
+  template<typename Driven>
+  friend class priv::NamedVariableBase;
   friend class priv::MultiMapImplementation;
   KeyValue key;
   Variable variable;
@@ -56,51 +56,26 @@ public:
     : key(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
 };
 
-class binom::priv::MapImplementation::NamedVariable
-    : public priv::NamedVariableBase<binom::priv::MapImplementation::NamedVariable> {
+class MapNodeRef : public priv::NamedVariableBase<MapNodeRef> {
   template<typename Driven>
   friend class priv::NamedVariableBase;
-  typedef std::pair<const KeyValue, Variable> VariablePair;
-  VariablePair& pair;
+  friend class priv::MapImplementation;
+  friend class priv::MultiMapImplementation;
+  typedef std::pair<const KeyValue, Variable> KeyVariablePair;
+
+  KeyVariablePair& pair;
+
   inline Variable& getVariableRef() noexcept {return pair.second;}
-//  inline KeyValue& getKeyRef() noexcept {return pair.first;}
   inline const Variable& getVariableRef() const noexcept {return pair.second;}
   inline const KeyValue& getKeyRef() const noexcept {return pair.first;}
 
-  friend class MapImplementation;
-  friend class MapImplementation::Iterator;
-  friend class MapImplementation::ReverseIterator;
-  NamedVariable(const VariablePair& pair) : pair(const_cast<VariablePair&>(pair)) {}
+  friend class priv::MapImplementation;
+  friend class priv::MapImplementation::Iterator;
+  friend class priv::MapImplementation::ReverseIterator;
+  MapNodeRef(const KeyVariablePair& pair) : pair(const_cast<KeyVariablePair&>(pair)) {}
 public:
-  NamedVariable(const NamedVariable& other) : pair(const_cast<VariablePair&>(other.pair)) {}
-  NamedVariable(NamedVariable& other) : pair(other.pair) {}
-};
-
-class priv::MultiMapImplementation::NamedVariable
-    : public priv::NamedVariableBase<priv::MultiMapImplementation::NamedVariable> {
-  friend class NamedVariableBase;
-  friend class priv::MultiMapImplementation;
-  friend class MultiMap;
-  KeyValue* key;
-  Variable variable;
-
-  inline Variable& getVariableRef() noexcept {return variable;}
-  inline KeyValue& getKeyRef() noexcept {return *key;}
-  inline const Variable& getVariableRef() const noexcept {return variable;}
-  inline const KeyValue& getKeyRef() const noexcept {return *key;}
-
-  NamedVariable(const KeyValue& key, const Variable variable)
-    : key(const_cast<KeyValue*>(&key)), variable(variable.move()) {}
-public:
-  NamedVariable()
-    : key(nullptr), variable(nullptr) {}
-  NamedVariable(const NamedVariable& other)
-    : key(other.key),
-      variable(other.variable.move()) {}
-
-  NamedVariable(NamedVariable&& other)
-    : key(other.key),
-      variable(other.variable.move()) {}
+  MapNodeRef(const MapNodeRef& other) : pair(const_cast<KeyVariablePair&>(other.pair)) {}
+  MapNodeRef(MapNodeRef& other) : pair(other.pair) {}
 };
 
 }

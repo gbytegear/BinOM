@@ -6,6 +6,12 @@
 #include "libbinom/include/variables/multi_map.hxx"
 #include "print_variable.hxx"
 
+template <class IteratorType>
+struct IteratorRange : public std::pair<IteratorType, IteratorType> {
+  IteratorType begin() {return self.first;}
+  IteratorType end() {return self.second;}
+};
+
 void testMultiMap() {
   using namespace binom::literals;
   using namespace binom;
@@ -26,22 +32,24 @@ void testMultiMap() {
 
   utils::printVariable(_map.move());
 
+  IteratorRange<MultiMap::Iterator> range{_map.getRange(2)};
+
   PRINT_RUN(_map.removeAll(1);)
 
   utils::printVariable(_map.move());
 
   LOG("2 Key values iterating:");
-  for(auto named_variable : _map[2]) {
+  for(auto named_variable : IteratorRange<MultiMap::Iterator>{_map.getRange(2)}) {
     LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getVariable().toNumber()));
   }
 
   LOG("0 Key values iterating:");
-  for(auto named_variable : _map[0]) {
+  for(auto named_variable : IteratorRange<MultiMap::Iterator>{_map.getRange(0)}) {
     LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getVariable().toNumber()));
   }
 
   LOG("1 Key values iterating:");
-  for(auto named_variable : _map[1]) {
+  for(auto named_variable : IteratorRange<MultiMap::Iterator>{_map.getRange(1)}) {
     LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getVariable().toNumber()));
   }
 

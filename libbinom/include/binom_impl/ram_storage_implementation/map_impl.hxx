@@ -1,9 +1,6 @@
 #ifndef MAP_IMPL_HXX
 #define MAP_IMPL_HXX
 
-//#include "../../variables/variable.hxx"
-//#include "../avl_tree.hxx"
-//#include "../../variables/named_variable.hxx"
 #include <map>
 #include "../../utils/pseudo_pointer.hxx"
 #include "../../variables/key_value.hxx"
@@ -14,8 +11,7 @@ namespace binom::priv {
 class MapImplementation {
 public:
   typedef std::map<KeyValue, Variable> VariableMap;
-
-  class NamedVariable;
+  using NamedVariable = MapNodeRef;
 
   class Iterator : public VariableMap::iterator {
   public:
@@ -68,6 +64,7 @@ public:
 
   MapImplementation(const literals::map& map);
   MapImplementation(const MapImplementation& other);
+  MapImplementation(MapImplementation&& other);
   ~MapImplementation();
 
   bool isEmpty() const noexcept;
