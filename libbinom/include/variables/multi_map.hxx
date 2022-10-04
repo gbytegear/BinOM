@@ -10,32 +10,28 @@ class MultiMap : public Variable {
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
-  operator SinglyLinkedList& () = delete;
-  operator DoublyLinkedList& () = delete;
+  operator List& () = delete;
   operator Map& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
   BufferArray& toBufferArray() = delete;
   Array& toArray() = delete;
-  SinglyLinkedList& toSinglyLinkedList() = delete;
-  DoublyLinkedList& toDoublyLinkedList() = delete;
+  List& toList() = delete;
   Map& toMap() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
   operator const BufferArray& () const = delete;
   operator const Array& () const = delete;
-  operator const SinglyLinkedList& () const = delete;
-  operator const DoublyLinkedList& () const = delete;
+  operator const List& () const = delete;
   operator const Map& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
   const BufferArray& toBufferArray() const = delete;
   const Array& toArray() const = delete;
-  const SinglyLinkedList& toSinglyLinkedList() const = delete;
-  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const List& toList() const = delete;
   const Map& toMap() const = delete;
 
   Variable& operator=(const Variable& other) = delete;

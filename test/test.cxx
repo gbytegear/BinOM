@@ -16,8 +16,8 @@ int main() {
 
 #ifdef FULL_TEST // Questionable or incompletely implemented tests
   testRecursiveSharedMutex();
-  testVariable(); // Not ended!
 #endif
+  testVariable(); // Not ended!
 
   testAllBugs();
 

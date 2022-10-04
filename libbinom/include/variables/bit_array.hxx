@@ -10,8 +10,7 @@ class BitArray : public Variable {
   operator Number& () = delete;
   operator BufferArray& () = delete;
   operator Array& () = delete;
-  operator SinglyLinkedList& () = delete;
-  operator DoublyLinkedList& () = delete;
+  operator List& () = delete;
   operator Map& () = delete;
   operator MultiMap& () = delete;
 
@@ -19,16 +18,14 @@ class BitArray : public Variable {
   BitArray& toBitArray() = delete;
   BufferArray& toBufferArray() = delete;
   Array& toArray() = delete;
-  SinglyLinkedList& toSinglyLinkedList() = delete;
-  DoublyLinkedList& toDoublyLinkedList() = delete;
+  List& toList() = delete;
   Map& toMap() = delete;
   MultiMap& toMultiMap() = delete;
 
   operator const Number& () const = delete;
   operator const BufferArray& () const = delete;
   operator const Array& () const = delete;
-  operator const SinglyLinkedList& () const = delete;
-  operator const DoublyLinkedList& () const = delete;
+  operator const List& () const = delete;
   operator const Map& () const = delete;
   operator const MultiMap& () const = delete;
 
@@ -36,8 +33,7 @@ class BitArray : public Variable {
   const BitArray& toBitArray() const = delete;
   const BufferArray& toBufferArray() const = delete;
   const Array& toArray() const = delete;
-  const SinglyLinkedList& toSinglyLinkedList() const = delete;
-  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const List& toList() const = delete;
   const Map& toMap() const = delete;
   const MultiMap& toMultiMap() const = delete;
 

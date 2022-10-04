@@ -3,8 +3,7 @@
 #include "libbinom/include/variables/bit_array.hxx"
 #include "libbinom/include/variables/buffer_array.hxx"
 #include "libbinom/include/variables/array.hxx"
-#include "libbinom/include/variables/singly_linked_list.hxx"
-#include "libbinom/include/variables/doubly_linked_list.hxx"
+#include "libbinom/include/variables/list.hxx"
 #include "libbinom/include/variables/map.hxx"
 
 using namespace binom;

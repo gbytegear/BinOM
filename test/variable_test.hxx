@@ -25,8 +25,7 @@ void testVariable() {
     PRINT_RUN(b = 512;)
     TEST(ui64(a.toNumber()) == 512);
     TEST(ui64(b) == 512);
-  }
-  GRP_POP;
+  } GRP_POP;
 
   TEST_ANNOUNCE(Variable-reference in array test); GRP_PUSH;
   {
@@ -44,35 +43,26 @@ void testVariable() {
     LOG("If you don't delete the variable-reference to the parent element,")
     LOG("then the memory from under the resource will not be freed!")
     PRINT_RUN(array.toArray().popBack());
-  }
-  GRP_POP;
+  } GRP_POP;
 
-  TEST_ANNOUNCE(SinglyLinkedList test); GRP_PUSH;
+  TEST_ANNOUNCE(List test); GRP_PUSH;
   {
-    LOG("(bug in [r]): Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
-    Variable sl_list_var = sllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
-    PRINT_RUN(SinglyLinkedList sl_list = sl_list_var.toSinglyLinkedList().move());
-    PRINT_RUN(utils::printVariable(sl_list));
-  }
+    LOG("(bug in [r]): Variable list_var = list{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
+    Variable list_var = list{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
+    PRINT_RUN(List _list = list_var.toList().move());
+    PRINT_RUN(utils::printVariable(_list));
 
-  TEST_ANNOUNCE(DoublyLinkedList test); GRP_PUSH;
-  {
-    LOG("(bug in [r]): Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};")
-    Variable dl_list_var = dllist{true, false, i8(-8), 8_ui8, i16(-16), 16_ui16, i32(-32), 32_ui32, .32_f32, i64(-64), 64_ui64, .64_f64};
-    PRINT_RUN(DoublyLinkedList dl_list = dl_list_var.toDoublyLinkedList().move());
-    PRINT_RUN(utils::printVariable(dl_list));
-
-
-    for(const auto& element : dl_list) {
+    LOG("Iteration in order")
+    for(const auto& element : _list) {
       utils::printVariable(element);
     }
 
-    for(const auto& element : reverse_iterator::ReverseRange(dl_list)) {
+    LOG("Reverse iteration")
+    for(const auto& element : reverse_iterator::ReverseRange(_list)) {
       utils::printVariable(element);
     }
 
-
-  }
+  } GRP_POP
 }
 
 #endif // VARIABLE_TEST_HXX

@@ -24,8 +24,7 @@ protected:
 //  static void serializeImpl(const BitArray& bit_array, std::vector<byte>& buffer);
 //  static void serializeImpl(const BufferArray& buffer_array, std::vector<byte>& buffer);
 //  static void serializeImpl(const Array& array, std::vector<byte>& buffer);
-//  static void serializeImpl(const SinglyLinkedList& sl_list, std::vector<byte>& buffer);
-//  static void serializeImpl(const DoublyLinkedList& dl_list, std::vector<byte>& buffer);
+//  static void serializeImpl(const List& dl_list, std::vector<byte>& buffer);
 //  static void serializeImpl(const Map& map, std::vector<byte>& buffer);
 //  static void serializeImpl(const Table& bit_array, std::vector<byte>& buffer);
 
@@ -82,11 +81,8 @@ public:
   // Array
   Variable(const literals::arr array);
 
-  // SinglyLinkedList
-  Variable(const literals::sllist singly_linked_list);
-
-  // DoublyLinkedList
-  Variable(const literals::dllist doubly_linked_list);
+  // List
+  Variable(const literals::list list);
 
   // Map
   Variable(const literals::map map);
@@ -121,8 +117,7 @@ public:
   operator BitArray& ();
   operator BufferArray& ();
   operator Array& ();
-  operator SinglyLinkedList& ();
-  operator DoublyLinkedList& ();
+  operator List& ();
   operator Map& ();
   operator MultiMap& ();
 
@@ -130,8 +125,7 @@ public:
   operator const BitArray& () const;
   operator const BufferArray& () const;
   operator const Array& () const;
-  operator const SinglyLinkedList& () const;
-  operator const DoublyLinkedList& () const;
+  operator const List& () const;
   operator const Map& () const;
   operator const MultiMap& () const;
 
@@ -140,8 +134,7 @@ public:
   BitArray& toBitArray();
   BufferArray& toBufferArray();
   Array& toArray();
-  SinglyLinkedList& toSinglyLinkedList();
-  DoublyLinkedList& toDoublyLinkedList();
+  List& toList();
   Map& toMap();
   MultiMap& toMultiMap();
 
@@ -149,8 +142,7 @@ public:
   const BitArray& toBitArray() const;
   const BufferArray& toBufferArray() const;
   const Array& toArray() const;
-  const SinglyLinkedList& toSinglyLinkedList() const;
-  const DoublyLinkedList& toDoublyLinkedList() const;
+  const List& toList() const;
   const Map& toMap() const;
   const MultiMap& toMultiMap() const;
 

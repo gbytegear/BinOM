@@ -29,8 +29,7 @@ struct ResourceData {
     BitArrayImplementation*         bit_array_implementation;
     BufferArrayImplementation*      buffer_array_implementation;
     ArrayImplementation*            array_implementation;
-    SinglyLinkedListImplementation* single_linked_list_implementation;
-    DoublyLinkedListImplementation* doubly_linked_list_implementation;
+    ListImplementation*             list_implementation;
     MapImplementation*              map_implementation;
     MultiMapImplementation*         multi_map_implementation;
 

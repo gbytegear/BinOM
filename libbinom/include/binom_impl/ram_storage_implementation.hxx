@@ -4,8 +4,7 @@
 #include "ram_storage_implementation/bit_array_impl.hxx"
 #include "ram_storage_implementation/buffer_array_impl.hxx"
 #include "ram_storage_implementation/array_impl.hxx"
-#include "ram_storage_implementation/singly_linked_list_impl.hxx"
-#include "ram_storage_implementation/doubly_linked_list_impl.hxx"
+#include "ram_storage_implementation/list_impl.hxx"
 #include "ram_storage_implementation/map_impl.hxx"
 #include "ram_storage_implementation/multi_map_impl.hxx"
 

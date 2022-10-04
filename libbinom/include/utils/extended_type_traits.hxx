@@ -81,6 +81,8 @@ struct is_instantiation_without_cvref : is_instantiation<U, remove_cvref_t<T>...
 template<template<typename...> class U, typename... T>
 concept is_instantiation_without_cvref_v = is_instantiation_without_cvref<U, T...>::value;
 
+//typename iterator_traits<_Iter>::iterator_category
+
 }
 
 #endif // EXTENDED_TYPE_TRAITS_HXX

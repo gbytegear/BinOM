@@ -11,8 +11,7 @@ class Array : public Variable {
   operator Number& () = delete;
   operator BitArray& () = delete;
   operator BufferArray& () = delete;
-  operator SinglyLinkedList& () = delete;
-  operator DoublyLinkedList& () = delete;
+  operator List& () = delete;
   operator Map& () = delete;
   operator MultiMap& () = delete;
 
@@ -20,16 +19,14 @@ class Array : public Variable {
   BitArray& toBitArray() = delete;
   BufferArray& toBufferArray() = delete;
   Array& toArray() = delete;
-  SinglyLinkedList& toSinglyLinkedList() = delete;
-  DoublyLinkedList& toDoublyLinkedList() = delete;
+  List& toList() = delete;
   Map& toMap() = delete;
   MultiMap& toMultiMap() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
   operator const BufferArray& () const = delete;
-  operator const SinglyLinkedList& () const = delete;
-  operator const DoublyLinkedList& () const = delete;
+  operator const List& () const = delete;
   operator const Map& () const = delete;
   operator const MultiMap& () const = delete;
 
@@ -37,8 +34,7 @@ class Array : public Variable {
   const BitArray& toBitArray() const = delete;
   const BufferArray& toBufferArray() const = delete;
   const Array& toArray() const = delete;
-  const SinglyLinkedList& toSinglyLinkedList() const = delete;
-  const DoublyLinkedList& toDoublyLinkedList() const = delete;
+  const List& toList() const = delete;
   const Map& toMap() const = delete;
   const MultiMap& toMultiMap() const = delete;
 
@@ -54,10 +50,10 @@ class Array : public Variable {
   Array(priv::Link&& link);
 
 public:
-  typedef Variable* Iterator;
-  typedef const Variable* ConstIterator;
-  typedef reverse_iterator::ReverseIterator<Variable*> ReverseIterator;
-  typedef const reverse_iterator::ReverseIterator<Variable*> ConstReverseIterator;
+  typedef Variable*                                           Iterator;
+  typedef const Variable*                                     ConstIterator;
+  typedef reverse_iterator::ReverseIterator<Variable*>        ReverseIterator;
+  typedef const reverse_iterator::ReverseIterator<Variable*>  ConstReverseIterator;
 
   Array();
   Array(const literals::arr array);

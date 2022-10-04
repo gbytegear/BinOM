@@ -72,11 +72,10 @@ enum class VarType : ui8 {
   si64_array              = 0x16, ///< Array of signed 64-bit integer numbers
   f64_array               = 0x17, ///< Array of 64-bit numbers with floating point
   array                   = 0x18, ///< Heterogeneous array
-  singly_linked_list      = 0x19, ///< Heterogeneous singly linked list
-  doubly_linked_list      = 0x1A, ///< Heterogeneous doubly linked list
-  map                     = 0x1B, ///< Associative heterogeneous container with key-sorted
-  multimap                = 0x1C, ///< Associative heterogeneous container with key-sorted
-  table                   = 0x1D, ///< Multiple key-sorted associative heterogeneous container
+  list                    = 0x19, ///< Heterogeneous doubly linked list
+  map                     = 0x1A, ///< Associative heterogeneous container with key-sorted
+  multimap                = 0x1B, ///< Associative heterogeneous container with key-sorted
+  table                   = 0x1C, ///< Multiple key-sorted associative heterogeneous container
 
 // Compile-time defined C-like data types
 
@@ -118,8 +117,6 @@ enum class VarType : ui8 {
   float_array             = int(int(VarType::float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
   long_float_array        = int(int(VarType::long_float_t) + (int(VarType::ui8_array) - int(VarType::ui8))),
   long_long_float_array   = sizeof (double) == sizeof (long double) ? VarType::f64_array : VarType::invalid_type,
-
-  list                    = doubly_linked_list
 };
 
 enum class VarKeyType : ui8 {
@@ -198,11 +195,10 @@ enum class VarTypeClass : ui8 {
   bit_array               = 0x03,
   buffer_array            = 0x04,
   array                   = 0x05,
-  singly_linked_list      = 0x06,
-  doubly_linked_list      = 0x07,
-  map                     = 0x08,
-  multimap                = 0x09,
-  table                   = 0x0A,
+  list                    = 0x06,
+  map                     = 0x07,
+  multimap                = 0x08,
+  table                   = 0x09,
 
   invalid_type            = int(VarType::invalid_type)
 };
@@ -303,9 +299,7 @@ constexpr inline VarTypeClass toTypeClass(VarType type) noexcept {
 
   case VarType::array: return VarTypeClass::array;
 
-  case VarType::singly_linked_list: return VarTypeClass::singly_linked_list;
-
-  case VarType::doubly_linked_list: return VarTypeClass::doubly_linked_list;
+  case VarType::list: return VarTypeClass::list;
 
   case VarType::map: return VarTypeClass::map;
 
@@ -661,8 +655,7 @@ class FileResourceIndex;
 class BitArrayImplementation;
 class BufferArrayImplementation;
 class ArrayImplementation;
-class SinglyLinkedListImplementation;
-class DoublyLinkedListImplementation;
+class ListImplementation;
 class MapImplementation;
 class MultiMapImplementation;
 class TableImplementation;
@@ -676,8 +669,7 @@ class Number;
 class BitArray;
 class BufferArray;
 class Array;
-class SinglyLinkedList;
-class DoublyLinkedList;
+class List;
 class Map;
 class MultiMap;
 class Table;
@@ -690,8 +682,7 @@ namespace literals {
 namespace priv {
 
 struct ArrayLiteral             : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
-struct SinglyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
-struct DoublyLinkedListLiteral  : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
+struct ListLiteral              : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
 struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
 struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
 struct ColumnDescriptor;
@@ -712,8 +703,7 @@ typedef std::initializer_list<const ui64>       ui64arr;
 typedef std::initializer_list<const i64>        i64arr;
 typedef std::initializer_list<const f64>        f64arr;
 typedef priv::ArrayLiteral                      arr;
-typedef priv::SinglyLinkedListLiteral           sllist;
-typedef priv::DoublyLinkedListLiteral           dllist;
+typedef priv::ListLiteral                       list;
 typedef priv::MapLiteral                        map;
 typedef priv::MultiMapLiteral                   multimap;
 typedef priv::TableLiteral                      table;

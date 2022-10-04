@@ -32,15 +32,9 @@ void SharedResource::destroy() {
     resource_data.data.pointer = nullptr;
   return;
 
-  case VarTypeClass::singly_linked_list:
+  case VarTypeClass::list:
     if(resource_data.data.pointer)
-      delete resource_data.data.single_linked_list_implementation;
-    resource_data.data.pointer = nullptr;
-  return;
-
-  case VarTypeClass::doubly_linked_list:
-    if(resource_data.data.pointer)
-      delete resource_data.data.doubly_linked_list_implementation;
+      delete resource_data.data.list_implementation;
     resource_data.data.pointer = nullptr;
   return;
 
@@ -116,12 +110,8 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
     resource->resource_data.data.array_implementation = ArrayImplementation::copy(resource_data.data.array_implementation);
   return;
 
-  case VarTypeClass::singly_linked_list:
-    resource->resource_data.data.single_linked_list_implementation = new SinglyLinkedListImplementation(*resource_data.data.single_linked_list_implementation);
-  return;
-
-  case VarTypeClass::doubly_linked_list:
-    resource->resource_data.data.doubly_linked_list_implementation = new DoublyLinkedListImplementation(*resource_data.data.doubly_linked_list_implementation);
+  case VarTypeClass::list:
+    resource->resource_data.data.list_implementation = new ListImplementation(*resource_data.data.list_implementation);
   return;
 
   case VarTypeClass::map:
@@ -155,11 +145,8 @@ Link Link::cloneResource(Link resource_link) noexcept {
   case VarTypeClass::array:
   return ResourceData{VarType::array, {.array_implementation = ArrayImplementation::copy(resource_link->data.array_implementation)}};
 
-  case VarTypeClass::singly_linked_list:
-  return ResourceData{VarType::singly_linked_list, {.single_linked_list_implementation = new SinglyLinkedListImplementation(*resource_link->data.single_linked_list_implementation)}};
-
-  case VarTypeClass::doubly_linked_list:
-  return ResourceData{VarType::doubly_linked_list, {.doubly_linked_list_implementation = new DoublyLinkedListImplementation(*resource_link->data.doubly_linked_list_implementation)}};
+  case VarTypeClass::list:
+  return ResourceData{VarType::list, {.list_implementation = new ListImplementation(*resource_link->data.list_implementation)}};
 
   case VarTypeClass::map:
   return ResourceData{VarType::map, {.map_implementation = new MapImplementation(*resource_link->data.map_implementation)}};

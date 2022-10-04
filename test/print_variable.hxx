@@ -153,21 +153,14 @@ class {
       }
       for(const auto& var : variable.toArray()) print(var, shift + 1);
     break;
-    case binom::VarType::singly_linked_list:
-      std::cout << std::string(shift, '|') << "[singly_linked_list]\n\r";
+    case binom::VarType::list:
+      std::cout << std::string(shift, '|') << "[list]\n\r";
       if(shift >= 100) {
         std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n\r";
         return;
       }
-      for(const auto& var : variable.toSinglyLinkedList()) print(var, shift + 1);
-    break;
-    case binom::VarType::doubly_linked_list:
-      std::cout << std::string(shift, '|') << "[doubly_linked_list]\n\r";
-      if(shift >= 100) {
-        std::cout << std::string(shift, '|') << "Error: The maximum stack size for the printVariable function has been reached!\n\r";
-        return;
-      }
-      for(const auto& var : variable.toDoublyLinkedList()) print(var, shift + 1);
+      for(const auto& var : variable.toList())
+        print(var, shift + 1);
     break;
     case binom::VarType::map:
       std::cout << std::string(shift, '|') << "[map]\n\r";
