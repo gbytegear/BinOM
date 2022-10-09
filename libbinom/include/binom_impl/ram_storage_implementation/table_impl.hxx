@@ -6,48 +6,160 @@
 #include "../multi_avl_tree.hxx"
 #include "../avl_tree.hxx"
 
-#include <vector>
+#include <set>
 #include <initializer_list>
 
 namespace binom::literals::priv {
-enum class ColumnType {
-  unique = 0,
-  multi  = 1,
-};
 
-union Index {
-       binom::priv::AVLTree unique;
-  binom::priv::MultiAVLTree multi;
-};
-
-struct ColumnDescriptor {
-  ColumnType column_type;
-  KeyValue column_name;
-};
-
-
-
-
-struct TableDescriptor;
-struct TableLiteral;
 }
 
 namespace binom::priv {
 
-struct Column {
-  binom::literals::priv::ColumnType column_type;
-  binom::literals::priv::Index index;
+struct Index;
+class RowHeader;
+struct IndexedRowCell;
+struct UnindexedRowCell;
+
+
+// =============================================================================================================
+// Comparators
+
+class RowCellComparator {
+public:
+  using is_transparent = void;
+  bool operator()(IndexedRowCell const& lhs, IndexedRowCell const& rhs) const;
+  bool operator()(KeyValue const& search_value, IndexedRowCell const& cell) const;
 };
 
+class RowUnindexedCellComparator {
+public:
+  using is_transparent = void;
+  bool operator()(UnindexedRowCell const& lhs, UnindexedRowCell const& rhs) const;
+  bool operator()(KeyValue const& search_value, UnindexedRowCell const& cell) const;
+};
+
+class RowComparator {
+public:
+  using is_transparent = void;
+  bool operator()(KeyValue const& search_value, IndexedRowCell const& cell);
+  bool operator()(IndexedRowCell const& lhs, IndexedRowCell const& rhs) const;
+};
+
+class IndexComparator {
+public:
+  using is_transparent = void;
+  bool operator()(KeyValue const& search_value, Index const& index);
+  bool operator()(Index const& lhs, Index const& rhs) const;
+};
+
+
+// =============================================================================================================
+// Structures
+
+struct IndexedRowCell {
+  RowHeader* row_header;
+  KeyValue* name;
+  KeyValue value;
+};
+
+struct UnindexedRowCell {
+  KeyValue name;
+  Variable value;
+};
+
+class RowHeader {
+  std::set<IndexedRowCell*, RowCellComparator> indexed_cells;
+  std::set<UnindexedRowCell, RowUnindexedCellComparator> unindexed_cells;
+public:
+
+};
+
+struct Index {
+
+  union IndexData {
+    static constexpr size_t INDEX_DATA_SIZE =
+        sizeof (std::set<IndexedRowCell, RowComparator>) > sizeof (std::multiset<IndexedRowCell, RowComparator>)
+        ? sizeof (std::set<IndexedRowCell, RowComparator>)
+        : sizeof (std::multiset<IndexedRowCell, RowComparator>);
+    std::set<IndexedRowCell, RowComparator> unique_index_rows;
+    std::multiset<IndexedRowCell, RowComparator> multi_index_rows;
+    char data[INDEX_DATA_SIZE] = {};
+
+    IndexData(IndexType type) {
+      switch (type) {
+      case binom::IndexType::unique_index:
+        new(&unique_index_rows) std::set<IndexedRowCell, RowComparator>();
+      return;
+      case binom::IndexType::multi_index:
+        new(&multi_index_rows) std::multiset<IndexedRowCell, RowComparator>();
+      return;
+      }
+    }
+    ~IndexData() {}
+  };
+
+  KeyValue name;
+  IndexType type;
+  IndexData index;
+};
+
+
+// =============================================================================================================
+// Compartor functions
+
+inline bool RowCellComparator::operator()(const KeyValue& search_value, const IndexedRowCell& cell) const {
+  return search_value < *cell.name;
+}
+
+inline bool RowCellComparator::operator()(IndexedRowCell const& lhs, IndexedRowCell const& rhs) const {
+  return *lhs.name < *rhs.name;
+}
+
+inline bool RowUnindexedCellComparator::operator()(const KeyValue& search_value, const UnindexedRowCell& cell) const {
+  return search_value < cell.name;
+}
+
+inline bool RowUnindexedCellComparator::operator()(UnindexedRowCell const& lhs, UnindexedRowCell const& rhs) const {
+  return lhs.name < rhs.name;
+}
+
+inline bool RowComparator::operator()(const KeyValue& search_value, const IndexedRowCell& cell) {
+  return search_value < cell.value;
+}
+
+inline bool RowComparator::operator()(const IndexedRowCell& lhs, const IndexedRowCell& rhs) const {
+  return lhs.value < rhs.value;
+}
+
+inline bool IndexComparator::operator()(const KeyValue& search_value, const Index& index) {
+  return search_value < index.name;
+}
+
+inline bool IndexComparator::operator()(const Index& lhs, const Index& rhs) const {
+  return lhs.name < rhs.name;
+}
+
+
+// =============================================================================================================
+
 class TableImplementation {
-  size_t              column_count;
-  size_t              row_count = 0;
-  ValueStoringAVLTree<Column> columns;
+  std::set<Index, IndexComparator> indexes;
+
+  void initTable(std::initializer_list<std::pair<KeyValue, IndexType>> table_header) {
+    for(auto& column_info : table_header) {
+      indexes.emplace(Index{
+                        .name = std::move(column_info.first),
+                        .type = column_info.second,
+                        .index = column_info.second
+                      });
+    }
+  }
+
 
 public:
 
-  inline size_t getRowCount() const noexcept    { return row_count; }
-  inline size_t getColumnCount() const noexcept { return column_count; }
+
+
 
 };
 

@@ -261,6 +261,13 @@ enum class ValType : ui8 {
   long_long_float_t       = sizeof (double) == sizeof (long double) ? ValType::f64 : ValType::invalid_type
 };
 
+
+//! Table column index type
+enum class IndexType {
+  unique_index,
+  multi_index
+};
+
 #undef getIntType
 #undef getIntArrType
 
