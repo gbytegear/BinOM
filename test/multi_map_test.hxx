@@ -21,8 +21,10 @@ void testMultiMap() {
   TEST_ANNOUNCE(MultiMap test)
   GRP_PUSH
 
-  LOG("(bug in [r]): binom::Map _map = map{{1, 2},{3, 4}};");
-  binom::MultiMap _map = multimap{{2, 1},{2, 2},{2, 3},{1, 1},{1, 2},{1, 3}};
+  LOG("(bug in [r]): binom::Map _map = map{{2, 1},{2, 2},{2, 3},{1, 1},{1, 2},{1, 3}, {\"Hello\", \"World\"}, {\"Hello\", \"Someone\"}};");
+  binom::MultiMap _map = multimap{{2, 1},{2, 2},{2, 3},{1, 1},{1, 2},{1, 3}, {"Hello", "World"}, {"Hello", "Someone"}};
+  utils::printVariable(_map);
+  SEPARATOR
 
   utils::printVariable(_map.move());
 

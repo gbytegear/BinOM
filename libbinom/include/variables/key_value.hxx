@@ -39,6 +39,7 @@ private:
 
   VarKeyType type = VarKeyType::null;
   Data data;
+
 public:
 
   KeyValue() = default;
@@ -62,6 +63,14 @@ public:
   KeyValue(const literals::bitarr bit_array);
   KeyValue(const BitArray& value) noexcept;
   KeyValue(BitArray&& value) noexcept;
+
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  KeyValue(const std::basic_string_view<CharT> string_view);
+
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  KeyValue(const CharT* c_str) : KeyValue(std::basic_string_view<CharT>(c_str)) {}
 
   KeyValue(const literals::ui8arr ui8_array);
   KeyValue(const literals::i8arr i8_array);

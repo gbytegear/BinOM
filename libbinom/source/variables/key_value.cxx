@@ -36,6 +36,19 @@ KeyValue::KeyValue(BitArray&& value) noexcept
   value.resource_link->data.pointer = nullptr;
 }
 
+template<typename CharT>
+requires extended_type_traits::is_char_v<CharT>
+KeyValue::KeyValue(const std::basic_string_view<CharT> string_view)
+  : type(toKeyType(to_buffer_array_type<CharT>)), data{.buffer_array_implementation = priv::BufferArrayImplementation::create(string_view)} {}
+
+template KeyValue::KeyValue(const std::basic_string_view<char>);
+template KeyValue::KeyValue(const std::basic_string_view<signed char>);
+template KeyValue::KeyValue(const std::basic_string_view<unsigned char>);
+template KeyValue::KeyValue(const std::basic_string_view<wchar_t>);
+template KeyValue::KeyValue(const std::basic_string_view<char8_t>);
+template KeyValue::KeyValue(const std::basic_string_view<char16_t>);
+template KeyValue::KeyValue(const std::basic_string_view<char32_t>);
+
 KeyValue::KeyValue(const literals::ui8arr ui8_array)
   : type(VarKeyType::ui8_array), data{.buffer_array_implementation = priv::BufferArrayImplementation::create(ui8_array)} {}
 KeyValue::KeyValue(const literals::i8arr i8_array)
@@ -290,3 +303,4 @@ KeyValue& KeyValue::operator=(Variable variable) {
   default: return *new(this) KeyValue();
   }
 }
+

@@ -15,8 +15,10 @@ void testMap() {
   TEST_ANNOUNCE(Map test)
   GRP_PUSH
 
-  LOG("(bug in [r]): binom::Map _map = map{{1, 2},{3, 4}};");
-  binom::Map _map = map{{1, 2},{3, 4}};
+  LOG("(bug in [r]): binom::Map _map = map{{1, 2},{3, 4}, {\"Hello\", \"World\"}};");
+  binom::Map _map = map{{1, 2},{3, 4}, {"Hello", "World"}};
+  utils::printVariable(_map);
+  SEPARATOR
 
   PRINT_RUN(_map[4] = 5;)
   LOG("Requesting a non-existent element via an \"[]\" operator results in the creation of that element with a value of NULL:")

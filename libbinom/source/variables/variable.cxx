@@ -33,6 +33,20 @@ Variable::Variable(GenericValue&& value) noexcept : Variable(value.toResourceDat
 Variable::Variable(const literals::bitarr bit_array)
   : Variable(ResourceData{VarType::bit_array, {.bit_array_implementation = priv::BitArrayImplementation::create(bit_array)}}) {}
 
+template<typename CharT>
+requires extended_type_traits::is_char_v<CharT>
+Variable::Variable(const std::basic_string_view<CharT> string_view)
+  : Variable(ResourceData{to_buffer_array_type<CharT>,
+{.buffer_array_implementation = priv::BufferArrayImplementation::create(string_view)}}) {}
+
+template Variable::Variable(const std::basic_string_view<char>);
+template Variable::Variable(const std::basic_string_view<signed char>);
+template Variable::Variable(const std::basic_string_view<unsigned char>);
+template Variable::Variable(const std::basic_string_view<wchar_t>);
+template Variable::Variable(const std::basic_string_view<char8_t>);
+template Variable::Variable(const std::basic_string_view<char16_t>);
+template Variable::Variable(const std::basic_string_view<char32_t>);
+
 Variable::Variable(const literals::ui8arr ui8_array)
   : Variable(ResourceData{VarType::ui8_array, {.buffer_array_implementation = priv::BufferArrayImplementation::create(ui8_array)}}) {}
 Variable::Variable(const literals::i8arr i8_array)

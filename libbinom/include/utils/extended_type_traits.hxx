@@ -6,6 +6,16 @@
 
 namespace extended_type_traits {
 
+template <typename T>
+concept is_char_v =
+    std::same_as<T, char> ||
+    std::same_as<T, signed char> ||
+    std::same_as<T, unsigned char> ||
+    std::same_as<T, wchar_t> ||
+    std::same_as<T, char8_t> ||
+    std::same_as<T, char16_t> ||
+    std::same_as<T, char32_t>;
+
 template <class T>
 struct remove_cvref : std::remove_cv<std::remove_reference_t<T>> {};
 

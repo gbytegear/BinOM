@@ -4,6 +4,8 @@
 
 #include "test/all_test.hxx"
 
+#include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
+
 int main() {
   testTypesConversions();
   testGenericValue();
@@ -20,5 +22,14 @@ int main() {
   testVariable(); // Not ended!
 
   testAllBugs();
+
+  using namespace binom::priv;
+
+  Variable var = "Hello world";
+  KeyValue key_val = "Hello world";
+
+  TableImplementation table;
+
+  table.initTable({{1_ui64, IndexType::unique_index}, {2_i64, IndexType::multi_index}});
 
 }

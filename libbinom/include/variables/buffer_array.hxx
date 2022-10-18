@@ -57,9 +57,19 @@ public:
   typedef GenericValueRef ValueRef;
 
   BufferArray() noexcept;
+
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  BufferArray(const std::basic_string_view<CharT> string_view) : Variable(string_view) {}
+
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  BufferArray(const CharT* c_str) : Variable(std::basic_string_view<CharT>(c_str)) {}
+
   template<typename T>
   requires std::is_arithmetic_v<T>
   BufferArray(const std::initializer_list<T> init_list) noexcept : Variable(init_list) {}
+
   BufferArray(const BufferArray& other) noexcept;
   BufferArray(const BufferArray&& other) noexcept;
 

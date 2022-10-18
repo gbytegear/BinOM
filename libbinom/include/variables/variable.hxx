@@ -55,17 +55,13 @@ public:
   Variable(const literals::bitarr bit_array);
 
   // BufferArray
-//  template<class CharT>
-//  Variable(const std::basic_string_view<CharT> string_view)
-//    : Variable(ResourceData{
-//                 sizeof(CharT) == 1
-//                 ? VarType::char_t
-//                 : sizeof(CharT) == 2
-//                 ? VarType::char16
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  Variable(const std::basic_string_view<CharT> string_view);
 
-//                  ,
-//  {.buffer_array_implementation = priv::BufferArrayImplementation::create(string_view)}}) {}
-
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  Variable(const CharT* c_str) : Variable(std::basic_string_view<CharT>(c_str)) {}
 
   Variable(const literals::ui8arr ui8_array);
   Variable(const literals::i8arr i8_array);

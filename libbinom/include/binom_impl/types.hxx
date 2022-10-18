@@ -3,8 +3,8 @@
 
 #include "../utils/memctrl.hxx"
 #include "../utils/heritable_initializer_list.hxx"
+#include "../utils/extended_type_traits.hxx"
 
-#include <type_traits>
 #include <initializer_list>
 
 /// Binary Object Model
@@ -261,6 +261,29 @@ enum class ValType : ui8 {
   long_long_float_t       = sizeof (double) == sizeof (long double) ? ValType::f64 : ValType::invalid_type
 };
 
+template<typename T>
+requires std::is_arithmetic_v<T> &&
+(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8)
+constexpr VarType to_number_type = []() consteval {
+  switch (sizeof (T)) {
+  case 1: return std::is_signed_v<T> ? VarType::si8 : VarType::ui8;
+  case 2: return std::is_signed_v<T> ? VarType::si16 : VarType::ui16;
+  case 4: return std::is_signed_v<T> ? std::is_floating_point_v<T> ? VarType::f32 : VarType::si32 : VarType::ui32;
+  case 8: return std::is_signed_v<T> ? std::is_floating_point_v<T> ? VarType::f64 : VarType::si64 : VarType::ui64;
+  }
+}();
+
+template<typename T>
+requires std::is_arithmetic_v<T> &&
+(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8)
+constexpr VarType to_buffer_array_type = []() consteval {
+  switch (sizeof (T)) {
+  case 1: return std::is_signed_v<T> ? VarType::si8_array : VarType::ui8_array;
+  case 2: return std::is_signed_v<T> ? VarType::si16_array : VarType::ui16_array;
+  case 4: return std::is_signed_v<T> ? std::is_floating_point_v<T> ? VarType::f32_array : VarType::si32_array : VarType::ui32_array;
+  case 8: return std::is_signed_v<T> ? std::is_floating_point_v<T> ? VarType::f64_array : VarType::si64_array : VarType::ui64_array;
+  }
+}();
 
 //! Table column index type
 enum class IndexType {

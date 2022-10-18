@@ -81,9 +81,9 @@ struct Index {
         sizeof (std::set<IndexedRowCell, RowComparator>) > sizeof (std::multiset<IndexedRowCell, RowComparator>)
         ? sizeof (std::set<IndexedRowCell, RowComparator>)
         : sizeof (std::multiset<IndexedRowCell, RowComparator>);
+//    char empty_union_init[INDEX_DATA_SIZE] = {};
     std::set<IndexedRowCell, RowComparator> unique_index_rows;
     std::multiset<IndexedRowCell, RowComparator> multi_index_rows;
-    char data[INDEX_DATA_SIZE] = {};
 
     IndexData(IndexType type) {
       switch (type) {
@@ -95,12 +95,29 @@ struct Index {
       return;
       }
     }
+
+    IndexData(IndexType type, IndexData&& other) {
+      switch (type) {
+      case binom::IndexType::unique_index:
+        new(&unique_index_rows) std::set<IndexedRowCell, RowComparator>(std::move(other.unique_index_rows));
+      return;
+      case binom::IndexType::multi_index:
+        new(&multi_index_rows) std::multiset<IndexedRowCell, RowComparator>(std::move(other.multi_index_rows));
+      return;
+      }
+    }
+
     ~IndexData() {}
   };
 
   KeyValue name;
   IndexType type;
   IndexData index;
+
+  Index(KeyValue column_name, IndexType index_type)
+    : name(std::move(column_name)), type(index_type), index(index_type) {}
+  Index(Index&& other)
+    : name(std::move(other.name)), type(other.type), index(other.type, std::move(other.index)) {}
 };
 
 
@@ -142,16 +159,12 @@ inline bool IndexComparator::operator()(const Index& lhs, const Index& rhs) cons
 
 // =============================================================================================================
 
-class TableImplementation {
+struct TableImplementation {
   std::set<Index, IndexComparator> indexes;
 
   void initTable(std::initializer_list<std::pair<KeyValue, IndexType>> table_header) {
     for(auto& column_info : table_header) {
-      indexes.emplace(Index{
-                        .name = std::move(column_info.first),
-                        .type = column_info.second,
-                        .index = column_info.second
-                      });
+      indexes.emplace(Index(std::move(column_info.first), column_info.second));
     }
   }
 
