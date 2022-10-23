@@ -141,6 +141,10 @@ public:
   const ReverseIterator crbegin() const;
   const ReverseIterator crend() const;
 
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  operator std::basic_string<CharT>();
+
   BufferArray& operator=(const BufferArray& other);
   BufferArray& operator=(BufferArray&& other);
 

@@ -28,8 +28,16 @@ int main() {
   Variable var = "Hello world";
   KeyValue key_val = "Hello world";
 
-  TableImplementation table;
-
-  table.initTable({{1_ui64, IndexType::unique_index}, {2_i64, IndexType::multi_index}});
+  TableImplementation table(
+        {{{"Column 1", IndexType::unique_index}, {"Column 2", IndexType::multi_index}}, {
+           {
+             {"Column 1", "1 1"},
+             {"Column 2", "2 1"},
+           },
+           {
+             {"Column 1", "1 2"},
+             {"Column 2", "2 2"},
+           }
+         }});
 
 }

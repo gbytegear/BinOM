@@ -139,3 +139,17 @@ BufferArray& BufferArray::changeLink(BufferArray&& other) {
   this->~BufferArray();
   return *new(this) BufferArray(std::move(other));
 }
+
+template<typename CharT>
+requires extended_type_traits::is_char_v<CharT>
+BufferArray::operator std::basic_string<CharT>() {
+  // TODO!!!
+}
+
+template BufferArray::operator std::basic_string<char>();
+template BufferArray::operator std::basic_string<signed char>();
+template BufferArray::operator std::basic_string<unsigned char>();
+template BufferArray::operator std::basic_string<wchar_t>();
+template BufferArray::operator std::basic_string<char8_t>();
+template BufferArray::operator std::basic_string<char16_t>();
+template BufferArray::operator std::basic_string<char32_t>();
