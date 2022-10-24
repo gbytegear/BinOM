@@ -23,6 +23,8 @@ enum class ErrorType : ui8 {
   binom_resource_not_available,
   binom_out_of_range,
   binom_key_unique_error,
+
+  binom_invalid_column_name,
 };
 
 class Error : public std::exception {
@@ -54,6 +56,7 @@ inline const char* Error::what() const noexcept {
   return                                            "BinOM: Variable resource isn't available";
   case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range";
   case ErrorType::binom_key_unique_error: return    "BinOM: Non-unique key";
+  case ErrorType::binom_invalid_column_name: return "BinOM: Column with given name does not exist";
 
   case ErrorType::any: return                       "Unknown exception";
   default: return                                   "Invalid error codes";

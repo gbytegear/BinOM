@@ -4,6 +4,8 @@
 
 #include "test/all_test.hxx"
 
+//#include <iostream>
+
 #include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
 
 int main() {
@@ -39,5 +41,7 @@ int main() {
              {"Column 2", "2 2"},
            }
          }});
+
+  table.remove("Column 1", "1 2");
 
 }

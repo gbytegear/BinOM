@@ -143,7 +143,18 @@ BufferArray& BufferArray::changeLink(BufferArray&& other) {
 template<typename CharT>
 requires extended_type_traits::is_char_v<CharT>
 BufferArray::operator std::basic_string<CharT>() {
-  // TODO!!!
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return std::basic_string<CharT>();
+
+  std::basic_string<CharT> str(getData()->getSize(), '\0');
+
+  auto str_it = str.begin(), str_end = str.end();
+  auto buffer_array_it = cbegin(), buffer_array_end = cend();
+
+  for(; str_it != str_end && buffer_array_it != buffer_array_end; (++str_it, ++buffer_array_it))
+    *str_it = CharT(*buffer_array_it);
+
+  return str;
 }
 
 template BufferArray::operator std::basic_string<char>();
