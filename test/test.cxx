@@ -30,15 +30,24 @@ int main() {
   Variable var = "Hello world";
   KeyValue key_val = "Hello world";
 
+  {
+    std::set<IndexedRowCell, RowCellComparator> indexed_cells;
+    std::set<UnindexedRowCell, RowUnindexedCellComparator> unindexed_cells;
+
+
+  }
+
   TableImplementation table(
         {{{"Column 1", IndexType::unique_index}, {"Column 2", IndexType::multi_index}}, {
            {
              {"Column 1", "1 1"},
              {"Column 2", "2 1"},
+             {"Unindexed", "3 1"}
            },
            {
              {"Column 1", "1 2"},
              {"Column 2", "2 2"},
+             {"Unindexed", "3 2"}
            }
          }});
 

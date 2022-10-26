@@ -190,12 +190,12 @@ class {
   }
 public:
   void operator()(const Variable& var) {
-    std::cout << "\x1B[34m" << std::string(log_depth, '|') INFO << "\x1B[94m[i] (printVariable) \x1B[34m:\n\r";
+    std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i] (printVariable) \x1B[34m:\n\r";
     print(var, log_depth);
     std::cout << "\033[0m"; std::cout.flush();
   }
   void operator()(Variable&& var) {
-    std::cout << "\x1B[34m" << std::string(log_depth, '|') INFO << "\x1B[94m[i] (printVariable) \x1B[34m:\n\r";
+    std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i] (printVariable) \x1B[34m:\n\r";
     print(var, log_depth);
     std::cout << "\033[0m"; std::cout.flush();
   }

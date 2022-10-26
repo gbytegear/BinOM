@@ -72,8 +72,8 @@ struct IndexedRowCell {
   Index* index;
   KeyValue value;
   union {
-    std::set<IndexedRowCell*, RowComparator>::iterator unique;
-    std::multiset<IndexedRowCell*, RowComparator>::iterator multi;
+    std::set<IndexedRowCell*, RowComparator>::const_iterator unique;
+    std::multiset<IndexedRowCell*, RowComparator>::const_iterator multi;
   } self_iterator;
 
   ~IndexedRowCell();
@@ -88,8 +88,10 @@ class RowHeader {
   friend class TableImplementation;
   std::set<IndexedRowCell, RowCellComparator> indexed_cells;
   std::set<UnindexedRowCell, RowUnindexedCellComparator> unindexed_cells;
-  std::list<RowHeader>::iterator self_iterator;
+  std::list<RowHeader>::const_iterator self_iterator;
 public:
+  RowHeader() = default;
+  ~RowHeader() {}
 
 };
 
@@ -268,6 +270,8 @@ public:
         return ErrorType::binom_out_of_range;
       row_list.erase((*value_it)->row_header->self_iterator);
     } break;
+
+
     case IndexType::multi_index:
       auto value_it = index_it->index.multi_index_rows.lower_bound(std::move(value));
       if(value_it == index_it->index.multi_index_rows.cend())

@@ -114,14 +114,14 @@ extern thread_local size_t log_depth = 0;
 #define SEPARATOR std::cout << "\x1B[97m=============================================================================\033[0m\n\r";  std::cout.flush();
 
 #define PRINT_RUN(expression) \
-  std::cout << "\x1B[33m" << std::string(log_depth, '|') INFO << "\x1B[93m[r]\x1B[33m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
+  std::cout << std::string(log_depth, '|') INFO << "\x1B[93m[r]\x1B[33m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
   expression
 
 #define TEST_ANNOUNCE(MSG) \
-  std::cout << "\033[107;30m" << std::string(log_depth, '|') INFO << "[T]: " #MSG << "\033[0m\n\r"; std::cout.flush();
+  std::cout << std::string(log_depth, '|') INFO << "[T]: " #MSG << "\033[0m\n\r"; std::cout.flush();
 
 #define LOG(INF) \
-  std::cout << "\x1B[34m" << std::string(log_depth, '|') INFO << "\x1B[94m[i]\x1B[34m: " << INF << "\033[0m\n\r"; std::cout.flush();
+  std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i]\x1B[34m: " << INF << "\033[0m\n\r"; std::cout.flush();
 
 #define TEST_LEGEND \
   std::cout << "Test legend:\n\r" \
@@ -163,9 +163,9 @@ inline struct __TestInit {
 
 #define TEST(expression) \
   if(static_cast <bool> (expression)) { \
-    std::cout << "\x1B[32m" << std::string(log_depth, '|') INFO << "\x1B[92m[✓]\x1B[32m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
+    std::cout << std::string(log_depth, '|') INFO << "\x1B[92m[✓]\x1B[32m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
   } else { \
-    std::cout << "\x1B[97;101m" << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
+    std::cout << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
     __test_init.is_success = false; \
     std::cout.flush(); \
     std::exit(-1); \
@@ -181,13 +181,13 @@ public:
   ~RAIIPerfomanceTest() {
     double time = double( clock() - start_time ) / (double)CLOCKS_PER_SEC;
     if(!start_time) return;
-    std::cout << "\033[102;30m" << std::string(log_depth, '|') << msg << time << " second(s).\033[0m" << std::endl;
+    std::cout << std::string(log_depth, '|') << msg << time << " second(s).\033[0m" << std::endl;
     std::cout.flush();
   }
 } __test_perf("Test perfomance: ");
 
 void __signal_handler(int signum) {
-  std::cout << "\x1B[97;101m" << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: ";
+  std::cout << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: ";
   std::cout.flush();
   switch (signum) {
   case SIGILL:  std::cout << "Recived signal SIGILL - Illegal instruction"; std::cout.flush(); break;

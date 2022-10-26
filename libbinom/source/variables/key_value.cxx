@@ -72,7 +72,7 @@ KeyValue::KeyValue(const literals::f64arr f64_array)
 KeyValue::KeyValue(const BufferArray& value) noexcept
   : type(toKeyType(value.getValType())), data{.buffer_array_implementation = priv::BufferArrayImplementation::copy(value.getData())} {}
 KeyValue::KeyValue(BufferArray&& value) noexcept
-  : type(toKeyType(value.getValType())), data{.buffer_array_implementation = value.resource_link->data.buffer_array_implementation} {
+  : type(toKeyBufferType(value.getValType())), data{.buffer_array_implementation = value.resource_link->data.buffer_array_implementation} {
   value.resource_link->data.pointer = nullptr;
 }
 

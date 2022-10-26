@@ -411,6 +411,23 @@ constexpr inline VarKeyType toKeyType(ValType type) noexcept {
   }
 }
 
+constexpr inline VarKeyType toKeyBufferType(ValType type) noexcept {
+  switch (type) {
+  case ValType::ui8:          return VarKeyType::ui8_array;
+  case ValType::si8:          return VarKeyType::si8_array;
+  case ValType::ui16:         return VarKeyType::ui16_array;
+  case ValType::si16:         return VarKeyType::si16_array;
+  case ValType::ui32:         return VarKeyType::ui32_array;
+  case ValType::si32:         return VarKeyType::si32_array;
+  case ValType::f32:          return VarKeyType::f32_array;
+  case ValType::ui64:         return VarKeyType::ui64_array;
+  case ValType::si64:         return VarKeyType::si64_array;
+  case ValType::f64:          return VarKeyType::f64_array;
+  default:
+  case ValType::invalid_type: return VarKeyType::invalid_type;
+  }
+}
+
 constexpr inline VarType toVarType(VarKeyType key_type) noexcept {return VarType(key_type);}
 
 constexpr inline bool operator == (VarType type, VarKeyType key_type) noexcept {return toKeyType(type) == key_type;}
