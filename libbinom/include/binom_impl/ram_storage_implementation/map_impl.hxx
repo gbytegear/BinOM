@@ -2,6 +2,8 @@
 #define MAP_IMPL_HXX
 
 #include <map>
+#include <set>
+#include <list>
 #include "../../utils/pseudo_pointer.hxx"
 #include "../../variables/key_value.hxx"
 #include "../../variables/variable.hxx"

@@ -8,13 +8,15 @@
 #include "libbinom/include/variables/multi_map.hxx"
 #include "libbinom/include/binom_impl/ram_storage_implementation.hxx"
 
+#include <set>
+
 using namespace binom;
 using namespace binom::priv;
 
 Variable::Variable(ResourceData data) : resource_link(data) {}
 Variable::Variable(Link&& link) : resource_link(std::move(link)) {}
 
-Variable::Variable() noexcept : Variable(ResourceData{VarType::null, {.pointer = nullptr}}) {}
+Variable::Variable() noexcept : Variable(nullptr) {}
 Variable::Variable(decltype(nullptr)) noexcept : Variable(ResourceData{VarType::null, {.pointer = nullptr}}) {}
 Variable::Variable(bool value) noexcept : Variable(ResourceData{VarType::boolean, {.bool_val = value}}) {}
 Variable::Variable(ui8 value) noexcept : Variable(ResourceData{VarType::ui8, {.ui8_val = value}}) {}
@@ -317,4 +319,10 @@ Variable& Variable::changeLink(Variable&& other) {
   if(this == &other) return self;
   this->~Variable();
   return *new(this) Variable(std::move(other));
+}
+
+shared_recursive_mtx::TransactionLock binom::Variable::makeTransaction(std::list<const Variable&> variables, shared_recursive_mtx::MtxLockType lock_type) {
+  std::set<std::shared_mutex*> mtx_set;
+  for(const auto& variable : variables) mtx_set.emplace(&variable.getMutex());
+  return shared_recursive_mtx::TransactionLock(std::move(mtx_set), lock_type);
 }

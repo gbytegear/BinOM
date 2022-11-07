@@ -7,6 +7,7 @@
 #include "../avl_tree.hxx"
 
 #include <set>
+#include <ranges>
 #include <initializer_list>
 
 namespace binom::literals::priv {
@@ -95,7 +96,11 @@ public:
 
 };
 
-struct Index {
+class Index {
+  friend class TableImplementation;
+  friend class RowCellComparator;
+  friend class IndexComparator;
+  friend class IndexedRowCell;
 
   union IndexData {
     static constexpr size_t INDEX_DATA_SIZE =
@@ -143,6 +148,7 @@ struct Index {
       indexed_row_cell_ptr->self_iterator.unique = result.first;
       return ErrorType::no_error;
     }
+
     case IndexType::multi_index:
       indexed_row_cell_ptr->self_iterator.multi = index.multi_index_rows.insert(indexed_row_cell_ptr);
     return ErrorType::no_error;
@@ -153,6 +159,75 @@ struct Index {
     : name(std::move(column_name)), type(index_type), index(index_type) {}
   Index(Index&& other)
     : name(std::move(other.name)), type(other.type), index(other.type, std::move(other.index)) {}
+public:
+
+  struct RowsView : public std::ranges::view_interface<RowsView> {
+
+    class Iterator : public std::set<IndexedRowCell*>::iterator {
+    public:
+      typedef std::set<IndexedRowCell*>::iterator Base;
+
+      Iterator() : Base() {}
+      Iterator(Base it) : Base(it) {}
+      Iterator(const Iterator& other) : Base(other) {}
+      Iterator(Iterator&& other) : Base(other) {}
+
+      inline RowHeader& operator*() {return *(*reinterpret_cast<Base&>(self))->row_header;}
+      inline const RowHeader& operator*() const {return *(*reinterpret_cast<const Base&>(self))->row_header;}
+
+      inline RowHeader* operator->() {return (*reinterpret_cast<Base&>(self))->row_header;}
+      inline const RowHeader* operator->() const {return (*reinterpret_cast<const Base&>(self))->row_header;}
+    };
+
+    class ConstIterator : public std::set<IndexedRowCell*>::const_iterator {
+    public:
+      typedef std::set<IndexedRowCell*>::const_iterator Base;
+
+      ConstIterator() : Base() {}
+      ConstIterator(Base it) : Base(it) {}
+      ConstIterator(const ConstIterator& other) : Base(other) {}
+      ConstIterator(ConstIterator&& other) : Base(other) {}
+
+      inline const RowHeader& operator*() {return *(*reinterpret_cast<Base&>(self))->row_header;}
+      inline const RowHeader& operator*() const {return *(*reinterpret_cast<const Base&>(self))->row_header;}
+
+      inline const RowHeader* operator->() {return (*reinterpret_cast<Base&>(self))->row_header;}
+      inline const RowHeader* operator->() const {return (*reinterpret_cast<const Base&>(self))->row_header;}
+    };
+
+  private:
+    Iterator begin_it, end_it;
+
+  public:
+
+    RowsView()
+      : begin_it(), end_it() {}
+    RowsView(Iterator begin, Iterator end)
+      : begin_it(begin), end_it(end) {}
+    RowsView(const RowsView& other)
+      : begin_it(other.begin_it), end_it(other.end_it) {}
+    RowsView(RowsView&& other)
+      : begin_it(std::move(other.begin_it)), end_it(std::move(other.end_it)) {}
+
+    Iterator begin() { return begin_it; }
+    Iterator end() { return end_it; }
+  };
+
+  RowsView operator[](KeyValue search_key) {
+    switch (type) {
+    default: return RowsView();
+    case IndexType::unique_index:
+      if(auto it = index.unique_index_rows.find(std::move(search_key)); it != index.unique_index_rows.cend())
+        return RowsView(it, ++RowsView::Iterator(it));
+      else return RowsView();
+
+    case IndexType::multi_index:
+      if(auto range = index.multi_index_rows.equal_range(std::move(search_key)); range.first != index.unique_index_rows.cend())
+        return RowsView(range.first, range.second);
+      else return RowsView();
+    }
+  }
+
 };
 
 
@@ -230,7 +305,7 @@ public:
 
   Error insert(literals::table::RowLiteral row_data) {
     RowHeader& row_header = self.row_list.emplace_back();
-    row_header.self_iterator = self.row_list.rbegin().base();
+    row_header.self_iterator = --self.row_list.cend();
 
     for(auto& cell_data : row_data) {
 

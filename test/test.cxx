@@ -6,9 +6,10 @@
 
 //#include <iostream>
 
+#include <mutex>
 #include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
 
-int main() {
+auto main() -> int {
   testTypesConversions();
   testGenericValue();
   testNumber();
@@ -26,31 +27,31 @@ int main() {
   testAllBugs();
 
   using namespace binom::priv;
-
-  Variable var = "Hello world";
-  KeyValue key_val = "Hello world";
-
-  {
-    std::set<IndexedRowCell, RowCellComparator> indexed_cells;
-    std::set<UnindexedRowCell, RowUnindexedCellComparator> unindexed_cells;
-
-
-  }
+  using namespace binom::literals;
 
   TableImplementation table(
-        {{{"Column 1", IndexType::unique_index}, {"Column 2", IndexType::multi_index}}, {
-           {
-             {"Column 1", "1 1"},
-             {"Column 2", "2 1"},
-             {"Unindexed", "3 1"}
-           },
-           {
-             {"Column 1", "1 2"},
-             {"Column 2", "2 2"},
-             {"Unindexed", "3 2"}
-           }
-         }});
+    {{ // Header
+       {"Column 1", IndexType::unique_index},
+       {"Column 2", IndexType::multi_index}
+     },{ // Rows
+         {
+           {"Column 1", ui64arr{1,1}},
+           {"Column 2", ui64arr{2,1}},
+           {"Unindexed", ui64arr{3,1}}
+         },
+         {
+           {"Column 1", ui64arr{1,2}},
+           {"Column 2", ui64arr{2,2}},
+           {"Unindexed", ui64arr{3,2}}
+         },
+         {
+           {"Column 1", ui64arr{1,3}},
+           {"Unindexed", ui64arr{3,2}}
+         }
+    }}
+  );
 
-  table.remove("Column 1", "1 2");
+  table.remove("Column 1", ui64arr{1,2});
+  table.remove("Column 2", ui64arr{2,1});
 
 }

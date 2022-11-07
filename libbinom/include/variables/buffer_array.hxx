@@ -122,7 +122,6 @@ public:
   void popFront(size_t count = 1);
   void clear();
 
-
   Iterator begin();
   Iterator end();
 

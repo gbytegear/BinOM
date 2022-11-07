@@ -13,6 +13,7 @@ libbinom/include/binom_impl/ram_storage_implementation.hxx
 libbinom/include/binom_impl/ram_storage_implementation/array_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/bit_array_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/buffer_array_impl.hxx
+libbinom/include/binom_impl/ram_storage_implementation/index_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/list_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/map_impl.hxx
 libbinom/include/binom_impl/ram_storage_implementation/multi_map_impl.hxx

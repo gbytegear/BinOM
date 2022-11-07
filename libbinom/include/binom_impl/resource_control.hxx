@@ -6,6 +6,7 @@
 #include "../utils/shared_recursive_mutex_wrapper.hxx"
 
 #include <atomic>
+#include <set>
 
 namespace binom::priv {
 
@@ -54,6 +55,12 @@ struct SharedResource {
   std::atomic_uint64_t link_counter = 1;
   std::shared_mutex mtx;
 
+//  enum MutexType : ui8 {independent, dependent};
+//  union Mautex {
+//    std::shared_mutex independent;
+//    std::set<std::shared_mutex*> dependent;
+//  };
+
   bool isExist() noexcept;
   void destroy();
 
@@ -61,12 +68,17 @@ struct SharedResource {
   ~SharedResource();
 };
 
+class WeakLink;
+
 class Link {
   SharedResource* resource = nullptr;
 
   friend class binom::Variable;
-  std::shared_mutex& getMutex() {return resource->mtx;}
+  friend class WeakLink;
+  std::shared_mutex& getMutex() const {return resource->mtx;}
 
+  Link(WeakLink&& other) noexcept;
+  Link(const WeakLink& other) noexcept;
 public:
   Link(ResourceData resource_data) noexcept;
   Link(Link&& other) noexcept;

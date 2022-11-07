@@ -5,6 +5,8 @@
 #include "../binom_impl/multi_avl_tree.hxx"
 #include "generic_value.hxx"
 
+#include <list>
+
 namespace binom {
 
 class Variable {
@@ -14,7 +16,7 @@ protected:
 
   Link resource_link;
 
-  std::shared_mutex& getMutex() {return resource_link.getMutex();}
+  std::shared_mutex& getMutex() const {return resource_link.getMutex();}
 
   Variable(ResourceData data);
   Variable(Link&& link);
@@ -95,7 +97,7 @@ public:
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
-//  static TransactionLock makeTransaction(std::list<Variable&> variables, MtxLockType lock_type = MtxLockType::unique_locked);
+  static shared_recursive_mtx::TransactionLock makeTransaction(std::list<const Variable&> variables, MtxLockType lock_type = MtxLockType::unique_locked);
 
   // Properties
   bool isResourceExist() const noexcept;
