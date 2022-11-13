@@ -56,6 +56,8 @@ void SharedResource::destroy() {
   }
 }
 
+SharedResource::SharedResource() : resource_data{} {}
+
 SharedResource::SharedResource(ResourceData resource_data) : resource_data(resource_data) {}
 
 SharedResource::~SharedResource() {destroy();}
@@ -64,6 +66,11 @@ SharedResource::~SharedResource() {destroy();}
 //////////////////////////////////////////////////////////// Link ////////////////////////////////////////////////////////
 
 
+Link::Link(SharedResource& shared_resource) noexcept : resource(&shared_resource) {
+  if(auto lk = getLock(MtxLockType::shared_locked); lk) {
+    ++resource->link_counter;
+  } else resource = nullptr;
+}
 
 Link::Link(ResourceData resource_data) noexcept : resource(new SharedResource(resource_data)) {}
 

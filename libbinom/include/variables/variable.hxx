@@ -97,7 +97,7 @@ public:
 
   OptionalSharedRecursiveLock getLock(MtxLockType lock_type) const noexcept;
 
-  static shared_recursive_mtx::TransactionLock makeTransaction(std::list<const Variable&> variables, MtxLockType lock_type = MtxLockType::unique_locked);
+  static shared_recursive_mtx::TransactionLock makeTransaction(std::initializer_list<const Variable> variables, MtxLockType lock_type = MtxLockType::unique_locked);
 
   // Properties
   bool isResourceExist() const noexcept;

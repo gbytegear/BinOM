@@ -13,6 +13,15 @@
 using namespace binom;
 using namespace binom::priv;
 
+
+Link createMap(const literals::map& map) {
+  SharedResource* shared_resource = new SharedResource();
+  shared_resource->link_counter = 0;
+  shared_resource->resource_data.data.map_implementation = new MapImplementation(*shared_resource, map);
+  shared_resource->resource_data.type = VarType::map;
+  return *shared_resource;
+}
+
 Variable::Variable(ResourceData data) : resource_link(data) {}
 Variable::Variable(Link&& link) : resource_link(std::move(link)) {}
 
@@ -76,8 +85,10 @@ Variable::Variable(const literals::arr array)
 Variable::Variable(const literals::list list)
   : Variable(ResourceData{VarType::list, {.list_implementation = new priv::ListImplementation(list)}}) {}
 
-Variable::Variable(const literals::map map)
-  : Variable(ResourceData{VarType::map, {.map_implementation = new priv::MapImplementation(map)}}) {}
+//Variable::Variable(const literals::map map)
+//  : Variable(ResourceData{VarType::map, {.map_implementation = new priv::MapImplementation(map)}}) {}
+
+Variable::Variable(const literals::map map) : Variable(createMap(map)) {}
 
 Variable::Variable(const literals::multimap multimap, NewNodePosition pos)
   : Variable(ResourceData{VarType::multimap, {.multi_map_implementation = new priv::MultiMapImplementation(multimap, pos)}}) {}
@@ -321,7 +332,7 @@ Variable& Variable::changeLink(Variable&& other) {
   return *new(this) Variable(std::move(other));
 }
 
-shared_recursive_mtx::TransactionLock binom::Variable::makeTransaction(std::list<const Variable&> variables, shared_recursive_mtx::MtxLockType lock_type) {
+shared_recursive_mtx::TransactionLock binom::Variable::makeTransaction(std::initializer_list<const Variable> variables, shared_recursive_mtx::MtxLockType lock_type) {
   std::set<std::shared_mutex*> mtx_set;
   for(const auto& variable : variables) mtx_set.emplace(&variable.getMutex());
   return shared_recursive_mtx::TransactionLock(std::move(mtx_set), lock_type);

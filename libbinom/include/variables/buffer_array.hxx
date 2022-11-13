@@ -142,7 +142,7 @@ public:
 
   template<typename CharT>
   requires extended_type_traits::is_char_v<CharT>
-  operator std::basic_string<CharT>();
+  operator std::basic_string<CharT>() const;
 
   BufferArray& operator=(const BufferArray& other);
   BufferArray& operator=(BufferArray&& other);

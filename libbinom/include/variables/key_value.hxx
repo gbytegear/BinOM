@@ -101,13 +101,38 @@ public:
   size_t getElementCount() const noexcept;
   size_t getElementSize() const noexcept;
 
-  CompareResult getCompare(KeyValue& other) const;
-  inline bool operator == (KeyValue value) const {return getCompare(value) == CompareResult::equal;}
-  inline bool operator != (KeyValue value) const {return getCompare(value) != CompareResult::equal;}
-  inline bool operator < (KeyValue value) const {return getCompare(value) == CompareResult::lower;}
-  inline bool operator > (KeyValue value) const {return getCompare(value) == CompareResult::highter;}
-  inline bool operator <= (KeyValue value) const {auto cmp = getCompare(value); return cmp == CompareResult::lower || cmp == CompareResult::equal;}
-  inline bool operator >= (KeyValue value) const {auto cmp = getCompare(value); return cmp == CompareResult::highter || cmp == CompareResult::equal;}
+  CompareResult getCompare(const KeyValue& other) const;
+  CompareResult getCompare(KeyValue&& other) const;
+  CompareResult getCompare(const Variable& other) const;
+  CompareResult getCompare(Variable&& other) const;
+//  inline auto operator <=>(const KeyValue& other) const {return getCompare(other);}
+//  inline auto operator <=>(KeyValue&& other) const {return getCompare(other);}
+//  inline auto operator <=>(const Variable& other) const {return getCompare(other);}
+//  inline auto operator <=>(Variable&& other) const {return getCompare(other);}
+  inline bool operator == (const KeyValue& value) const {return getCompare(value) == CompareResult::equal;}
+  inline bool operator != (const KeyValue& value) const {return getCompare(value) != CompareResult::equal;}
+  inline bool operator < (const KeyValue& value) const {return getCompare(value) == CompareResult::lower;}
+  inline bool operator > (const KeyValue& value) const {return getCompare(value) == CompareResult::highter;}
+  inline bool operator <= (const KeyValue& value) const {auto cmp = getCompare(value); return cmp == CompareResult::lower || cmp == CompareResult::equal;}
+  inline bool operator >= (const KeyValue& value) const {auto cmp = getCompare(value); return cmp == CompareResult::highter || cmp == CompareResult::equal;}
+  inline bool operator == (KeyValue&& value) const {return getCompare(value) == CompareResult::equal;}
+  inline bool operator != (KeyValue&& value) const {return getCompare(value) != CompareResult::equal;}
+  inline bool operator < (KeyValue&& value) const {return getCompare(value) == CompareResult::lower;}
+  inline bool operator > (KeyValue&& value) const {return getCompare(value) == CompareResult::highter;}
+  inline bool operator <= (KeyValue&& value) const {auto cmp = getCompare(value); return cmp == CompareResult::lower || cmp == CompareResult::equal;}
+  inline bool operator >= (KeyValue&& value) const {auto cmp = getCompare(value); return cmp == CompareResult::highter || cmp == CompareResult::equal;}
+  inline bool operator == (const Variable& value) const {return getCompare(value) == CompareResult::equal;}
+  inline bool operator != (const Variable& value) const {return getCompare(value) != CompareResult::equal;}
+  inline bool operator < (const Variable& value) const {return getCompare(value) == CompareResult::lower;}
+  inline bool operator > (const Variable& value) const {return getCompare(value) == CompareResult::highter;}
+  inline bool operator <= (const Variable& value) const {auto cmp = getCompare(value); return cmp == CompareResult::lower || cmp == CompareResult::equal;}
+  inline bool operator >= (const Variable& value) const {auto cmp = getCompare(value); return cmp == CompareResult::highter || cmp == CompareResult::equal;}
+  inline bool operator == (Variable&& value) const {return getCompare(value) == CompareResult::equal;}
+  inline bool operator != (Variable&& value) const {return getCompare(value) != CompareResult::equal;}
+  inline bool operator < (Variable&& value) const {return getCompare(value) == CompareResult::lower;}
+  inline bool operator > (Variable&& value) const {return getCompare(value) == CompareResult::highter;}
+  inline bool operator <= (Variable&& value) const {auto cmp = getCompare(value); return cmp == CompareResult::lower || cmp == CompareResult::equal;}
+  inline bool operator >= (Variable&& value) const {auto cmp = getCompare(value); return cmp == CompareResult::highter || cmp == CompareResult::equal;}
 
   Variable toVariable() const;
   Number toNumber() const;

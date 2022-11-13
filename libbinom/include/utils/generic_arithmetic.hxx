@@ -70,6 +70,12 @@ public:
     return binom::toBitWidth(getValType());
   }
 
+  ui64 getRawData() const noexcept {
+    auto lk = downcast().getLock(MtxLockType::shared_locked);
+    if(!downcast().checkLock(lk)) return 0;
+    return getArithmeticData().ui64_val;
+  }
+
   bool isNaN() const noexcept {
     auto lk = downcast().getLock(MtxLockType::shared_locked);
     if(!downcast().checkLock(lk)) return true;

@@ -14,10 +14,6 @@ class BitIterator;
 class BitMap64 {
 
   union {
-    ui64 number_64 = 0;
-    std::array<ui32, 2> number_32;
-    std::array<ui16, 4> number_16;
-    std::array<ui8, 8> number_8;
     struct {
       bool _0:1;
       bool _1:1;
@@ -84,6 +80,10 @@ class BitMap64 {
       bool _62:1;
       bool _63:1;
     } bits;
+    ui64 number_64 = 0;
+    std::array<ui32, 2> number_32;
+    std::array<ui16, 4> number_16;
+    std::array<ui8, 8> number_8;
   } data;
 
 public:

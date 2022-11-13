@@ -142,7 +142,7 @@ BufferArray& BufferArray::changeLink(BufferArray&& other) {
 
 template<typename CharT>
 requires extended_type_traits::is_char_v<CharT>
-BufferArray::operator std::basic_string<CharT>() {
+BufferArray::operator std::basic_string<CharT>() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return std::basic_string<CharT>();
 
@@ -157,10 +157,10 @@ BufferArray::operator std::basic_string<CharT>() {
   return str;
 }
 
-template BufferArray::operator std::basic_string<char>();
-template BufferArray::operator std::basic_string<signed char>();
-template BufferArray::operator std::basic_string<unsigned char>();
-template BufferArray::operator std::basic_string<wchar_t>();
-template BufferArray::operator std::basic_string<char8_t>();
-template BufferArray::operator std::basic_string<char16_t>();
-template BufferArray::operator std::basic_string<char32_t>();
+template BufferArray::operator std::basic_string<char>() const;
+template BufferArray::operator std::basic_string<signed char>() const;
+template BufferArray::operator std::basic_string<unsigned char>() const;
+template BufferArray::operator std::basic_string<wchar_t>() const;
+template BufferArray::operator std::basic_string<char8_t>() const;
+template BufferArray::operator std::basic_string<char16_t>() const;
+template BufferArray::operator std::basic_string<char32_t>() const;

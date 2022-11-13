@@ -7,7 +7,8 @@
 //#include <iostream>
 
 #include <mutex>
-#include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
+#include "libbinom/include/binom_impl/ram_storage_implementation/index_impl.hxx"
+#include "libbinom/include/variables/key_value.hxx"
 
 auto main() -> int {
   testTypesConversions();
@@ -29,29 +30,25 @@ auto main() -> int {
   using namespace binom::priv;
   using namespace binom::literals;
 
-  TableImplementation table(
-    {{ // Header
-       {"Column 1", IndexType::unique_index},
-       {"Column 2", IndexType::multi_index}
-     },{ // Rows
-         {
-           {"Column 1", ui64arr{1,1}},
-           {"Column 2", ui64arr{2,1}},
-           {"Unindexed", ui64arr{3,1}}
-         },
-         {
-           {"Column 1", ui64arr{1,2}},
-           {"Column 2", ui64arr{2,2}},
-           {"Unindexed", ui64arr{3,2}}
-         },
-         {
-           {"Column 1", ui64arr{1,3}},
-           {"Unindexed", ui64arr{3,2}}
-         }
-    }}
-  );
 
-  table.remove("Column 1", ui64arr{1,2});
-  table.remove("Column 2", ui64arr{2,1});
+  KeyValue test_a = 10, test_b = 10_ui64;
+  bool value = test_a == test_b;
+  std::clog << "test_a == test_b" << (test_a == test_b);
+
+  std::set<index::Field, index::MapComparator> test /*{
+    {WeakLink(), 1, "value"},
+    {WeakLink(), 2, "value"},
+    {WeakLink(), 3, "value"}
+  }*/;
+
+  test.emplace(WeakLink(), 1, "value 1");
+  test.emplace(WeakLink(), 2, "value 2");
+  test.emplace(WeakLink(), 3, "value 3");
+
+  for(auto& entry : test) {
+    std::clog << "key: " << i32(entry.getKey().toNumber()) << '\n';
+  }
+
+
 
 }

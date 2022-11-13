@@ -49,6 +49,7 @@ libbinom/source/binom_impl/multi_avl_tree.cxx
 libbinom/source/binom_impl/ram_storage_implementation/array_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/bit_array_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/buffer_array_impl.cxx
+libbinom/source/binom_impl/ram_storage_implementation/index_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/list_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/map_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/multi_map_impl.cxx

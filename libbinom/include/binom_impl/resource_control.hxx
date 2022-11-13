@@ -64,6 +64,7 @@ struct SharedResource {
   bool isExist() noexcept;
   void destroy();
 
+  SharedResource();
   SharedResource(ResourceData resource_data);
   ~SharedResource();
 };
@@ -80,6 +81,7 @@ class Link {
   Link(WeakLink&& other) noexcept;
   Link(const WeakLink& other) noexcept;
 public:
+  Link(SharedResource& shared_resource) noexcept;
   Link(ResourceData resource_data) noexcept;
   Link(Link&& other) noexcept;
   Link(const Link& other) noexcept;
