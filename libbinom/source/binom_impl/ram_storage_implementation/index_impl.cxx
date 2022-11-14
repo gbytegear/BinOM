@@ -224,7 +224,14 @@ KeyValue Field::setKey(KeyValue key) {
   default:
   case FieldType::empty: return {};
   case FieldType::local: return data.local.key = key;
-  case FieldType::indexed: return data.indexed.index_list.front().index_ptr->getKey();
+  case FieldType::indexed:
+  // TODO: Reindex
+  // Get table list from owner
+  // find in tables field(s) with name 'key'
+  // * If field(s) is finded - add this field to index
+  // * If field(s) isn't finded - change this field type to local
+
+  return data.indexed.index_list.front().index_ptr->getKey(); // TEMPORARY STUB!!!
   }
 }
 

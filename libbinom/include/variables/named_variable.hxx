@@ -20,11 +20,15 @@ public:
   const Variable operator*() const noexcept {return downcast().getVariableRef().move();}
   const Variable* operator->() const noexcept {return &downcast().getVariableRef();}
 
-  Variable getVariable() noexcept {return downcast().getVariableRef().move();}
+  Variable getValue() noexcept {return downcast().getVariableRef().move();}
   Variable getKey() noexcept {return downcast().getKeyRef();}
 
-  const Variable getVariable() const noexcept {return downcast().getVariableRef().move();}
+  const Variable getValue() const noexcept {return downcast().getVariableRef().move();}
   const Variable getKey() const noexcept {return downcast().getKeyRef();}
+
+  Variable setValue(Variable value) noexcept {return downcast().setValueImpl(value.move());}
+  KeyValue setKey(KeyValue key) noexcept {return downcast().setKeyImpl(std::move(key));}
+  Variable operator=(Variable value) noexcept {return downcast().setValueImpl(value.move());}
 };
 
 }
@@ -33,6 +37,7 @@ class NamedVariable : public priv::NamedVariableBase<NamedVariable> {
   template<typename Driven>
   friend class priv::NamedVariableBase;
   friend class priv::MultiMapImplementation;
+
   KeyValue key;
   Variable variable;
 
@@ -40,6 +45,8 @@ class NamedVariable : public priv::NamedVariableBase<NamedVariable> {
   inline KeyValue& getKeyRef() noexcept {return key;}
   inline const Variable& getVariableRef() const noexcept {return variable;}
   inline const KeyValue& getKeyRef() const noexcept {return key;}
+  inline Variable setValueImpl(Variable value) noexcept {return variable = value.move();}
+  inline KeyValue setKeyImpl(KeyValue key) noexcept {return self.key = std::move(key);}
 
 public:
   NamedVariable(KeyValue key, Variable variable)
@@ -57,26 +64,45 @@ public:
 };
 
 class MapNodeRef : public priv::NamedVariableBase<MapNodeRef> {
-  template<typename Driven>
-  friend class priv::NamedVariableBase;
+  template<typename Driven> friend class priv::NamedVariableBase;
   friend class priv::MapImplementation;
   friend class priv::MultiMapImplementation;
-  typedef std::pair<const KeyValue, Variable> KeyVariablePair;
 
-  KeyVariablePair& pair;
+  index::Field& data;
 
-  inline Variable& getVariableRef() noexcept {return pair.second;}
-  inline const Variable& getVariableRef() const noexcept {return pair.second;}
-  inline const KeyValue& getKeyRef() const noexcept {return pair.first;}
+  inline Variable getVariableRef() noexcept {return data.getValue().move();}
+  inline const Variable getVariableRef() const noexcept {return data.getValue().move();}
+  inline const KeyValue getKeyRef() const noexcept {return data.getKey();}
+  inline Variable setValue(Variable value) noexcept {return data.setValue(std::move(value));}
+  inline KeyValue setKey(KeyValue key) noexcept {return data.setKey(std::move(key));}
 
-  friend class priv::MapImplementation;
-  friend class priv::MapImplementation::Iterator;
-  friend class priv::MapImplementation::ReverseIterator;
-  MapNodeRef(const KeyVariablePair& pair) : pair(const_cast<KeyVariablePair&>(pair)) {}
+  MapNodeRef(const index::Field& data) : data(const_cast<index::Field&>(data)) {}
 public:
-  MapNodeRef(const MapNodeRef& other) : pair(const_cast<KeyVariablePair&>(other.pair)) {}
-  MapNodeRef(MapNodeRef& other) : pair(other.pair) {}
+  MapNodeRef(const MapNodeRef& other) : data(const_cast<index::Field&>(other.data)) {}
+  MapNodeRef(MapNodeRef& other) : data(other.data) {}
 };
+
+//class MapNodeRef : public priv::NamedVariableBase<MapNodeRef> {
+//  template<typename Driven>
+//  friend class priv::NamedVariableBase;
+//  friend class priv::MapImplementation;
+//  friend class priv::MultiMapImplementation;
+//  typedef std::pair<const KeyValue, Variable> KeyVariablePair;
+
+//  KeyVariablePair& pair;
+
+//  inline Variable& getVariableRef() noexcept {return pair.second;}
+//  inline const Variable& getVariableRef() const noexcept {return pair.second;}
+//  inline const KeyValue& getKeyRef() const noexcept {return pair.first;}
+
+//  friend class priv::MapImplementation;
+//  friend class priv::MapImplementation::Iterator;
+//  friend class priv::MapImplementation::ReverseIterator;
+//  MapNodeRef(const KeyVariablePair& pair) : pair(const_cast<KeyVariablePair&>(pair)) {}
+//public:
+//  MapNodeRef(const MapNodeRef& other) : pair(const_cast<KeyVariablePair&>(other.pair)) {}
+//  MapNodeRef(MapNodeRef& other) : pair(other.pair) {}
+//};
 
 }
 

@@ -159,3 +159,32 @@ using namespace binom::literals;
 //pseudo_ptr::PseudoPointer<const MapImplementation::NamedVariable> MapImplementation::ConstReverseIterator::operator->() const {return *self;}
 
 MapImplementation::MapImplementation(WeakLink owner, const map& map) {for(auto& element : map) insert(owner, std::move(element.getKey()), element.getVariable().move());}
+
+err::ProgressReport<MapImplementation::NamedVariable> MapImplementation::insert(WeakLink owner, KeyValue key, Variable variable) {
+  auto insert_result = data.emplace(owner, std::move(key), variable.move());
+  if(insert_result.second) return MapImplementation::NamedVariable(*insert_result.first);
+  return err::ErrorType::binom_key_unique_error;
+}
+
+Error MapImplementation::remove(KeyValue key) {
+  if(auto it = data.find(std::move(key)); it != data.cend()) {
+    data.erase(it);
+    return ErrorType::no_error;
+  } else return ErrorType::binom_out_of_range;
+}
+
+err::ProgressReport<MapImplementation::NamedVariable> MapImplementation::rename(KeyValue old_key, KeyValue new_key) {
+  auto element = data.extract(data.find(old_key));
+  if(element.empty()) return ErrorType::binom_out_of_range;
+  element.value().setKey(new_key);
+  auto insert_result = data.insert(std::move(element));
+  if(insert_result.inserted) return NamedVariable(*insert_result.position);
+  insert_result.node.value().setKey(std::move(old_key));
+  insert_result = data.insert(std::move(insert_result.node));
+  if(insert_result.inserted) return {ErrorType::binom_key_unique_error, NamedVariable(*insert_result.position)};
+  return ErrorType::binom_key_unique_error;
+}
+
+MapImplementation::NamedVariable MapImplementation::getOrInsertNamedVariable(KeyValue key) {
+
+}

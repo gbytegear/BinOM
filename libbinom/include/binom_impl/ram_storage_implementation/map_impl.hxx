@@ -15,6 +15,7 @@ class MapImplementation {
   std::list<Link>* index_list = nullptr;
   std::set<index::Field, index::MapComparator> data;
 public:
+  using NamedVariable = MapNodeRef;
   typedef std::set<index::Field, index::MapComparator> ContainerType;
 
   class Iterator : public ContainerType::iterator {
@@ -70,11 +71,7 @@ public:
   size_t getSize() const noexcept {return data.size();}
   bool contains(KeyValue value) const noexcept {return data.contains(std::move(value));}
 
-  err::ProgressReport<NamedVariable> insert(WeakLink owner, KeyValue key, Variable variable) {
-    auto insert_result = data.emplace(owner, std::move(key), variable.move());
-    if(insert_result.second) return MapImplementation::NamedVariable(*insert_result.first);
-    return err::ErrorType::binom_key_unique_error;
-  }
+  err::ProgressReport<NamedVariable> insert(WeakLink owner, KeyValue key, Variable variable);
 
   err::Error remove(KeyValue key);
 
