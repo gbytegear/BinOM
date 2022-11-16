@@ -117,14 +117,6 @@ class Field {
   friend Index;
   friend Index::Comparator;
   friend MapComparator;
-public:
-  enum class FieldType : ui8 {
-    local = 0x00,
-    indexed = 0x01,
-    empty = 0xFF
-  };
-
-
 private:
 
   union FieldData {

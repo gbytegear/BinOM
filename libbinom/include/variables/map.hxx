@@ -49,7 +49,7 @@ class Map : public Variable {
   Map(priv::Link&& link);
 
 public:
-  using NamedVariable = binom::priv::MapImplementation::NamedVariable;
+  using FieldRef = binom::priv::MapImplementation::FieldRef;
   typedef priv::MapImplementation::Iterator             Iterator;
   typedef priv::MapImplementation::ReverseIterator      ReverseIterator;
   typedef priv::MapImplementation::ConstIterator        ConstIterator;
@@ -68,14 +68,16 @@ public:
   bool contains(KeyValue value) const noexcept;
 
   void clear();
-  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable);
+  err::ProgressReport<FieldRef> insert(KeyValue key, Variable variable);
   err::Error remove(KeyValue key);
-  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
+  err::ProgressReport<FieldRef> rename(KeyValue old_key, KeyValue new_key);
 
   Variable getVariable(KeyValue key);
   const Variable getVariable(KeyValue key) const;
-  Variable operator[] (KeyValue key);
-  const Variable operator[] (KeyValue key) const;
+  FieldRef getField(KeyValue key);
+  const FieldRef getField(KeyValue key) const;
+  FieldRef operator[] (KeyValue key);
+  const FieldRef operator[] (KeyValue key) const;
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);

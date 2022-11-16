@@ -156,9 +156,7 @@ size_t Variable::getElementCount() const noexcept {
   case VarTypeClass::array: return toArray().getElementCount();
   case VarTypeClass::list: return toList().getElementCount();
   case VarTypeClass::map: return toMap().getElementCount();
-  case VarTypeClass::multimap:
-    // TODO
-  break;
+  case VarTypeClass::multimap: return toMultiMap().getElementCount();
   case VarTypeClass::table:
     // TODO
   break;

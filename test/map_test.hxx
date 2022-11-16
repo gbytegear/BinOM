@@ -23,7 +23,7 @@ void testMap() {
   PRINT_RUN(_map[4] = 5;)
   LOG("Requesting a non-existent element via an \"[]\" operator results in the creation of that element with a value of NULL:")
   PRINT_RUN(_map[KeyValue(nullptr)];)
-  PRINT_RUN(_map[-1] = 0;)
+  PRINT_RUN(_map[-1] = 0_ui32;)
   LOG("(bug in [r]): _map[6] = i32arr{7,8,9,10};");
   _map[6] = i32arr{7,8,9,10};
 

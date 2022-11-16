@@ -147,8 +147,8 @@ void Field::setEmpty() {
 
 Error Field::addIndex(Index* index_ptr, Index::Iterator self_iterator) {
   switch (type) {
-  case Field::FieldType::empty: return ErrorType::invalid_data;
-  case Field::FieldType::local: {
+  case FieldType::empty: return ErrorType::invalid_data;
+  case FieldType::local: {
     KeyValue value = data.local.value;
 
     data.local.~LocalField();
@@ -159,7 +159,7 @@ Error Field::addIndex(Index* index_ptr, Index::Iterator self_iterator) {
   } return ErrorType::no_error;
 
 
-  case Field::FieldType::indexed:
+  case FieldType::indexed:
     data.indexed.index_list.emplace_back(index_ptr, self_iterator);
   return ErrorType::no_error;
   }
@@ -266,33 +266,33 @@ Variable Field::setValue(Variable value) {
 
 inline bool MapComparator::operator()(const KeyValue& search_value, const Field& field) const {
   switch (field.type) {
-  default: case Field::FieldType::empty: return false;
-  case Field::FieldType::local: return search_value < field.data.local.key;
-  case Field::FieldType::indexed: return search_value < field.data.indexed.index_list.front().index_ptr->key;
+  default: case FieldType::empty: return false;
+  case FieldType::local: return search_value < field.data.local.key;
+  case FieldType::indexed: return search_value < field.data.indexed.index_list.front().index_ptr->key;
   }
 }
 
 inline bool MapComparator::operator()(const Field& field, const KeyValue& search_value) const {
   switch (field.type) {
-  default: case Field::FieldType::empty: return true;
-  case Field::FieldType::local: return field.data.local.key < search_value;
-  case Field::FieldType::indexed: return field.data.indexed.index_list.front().index_ptr->key < search_value;
+  default: case FieldType::empty: return true;
+  case FieldType::local: return field.data.local.key < search_value;
+  case FieldType::indexed: return field.data.indexed.index_list.front().index_ptr->key < search_value;
   }
 }
 
 inline bool MapComparator::operator()(const Field& lhs, const Field& rhs) const {
   switch (lhs.type) {
-  default: case Field::FieldType::empty: return rhs.type != Field::FieldType::empty;
-  case Field::FieldType::local:
+  default: case FieldType::empty: return rhs.type != FieldType::empty;
+  case FieldType::local:
     switch (rhs.type) {
-    default: case Field::FieldType::empty: return false;
-    case Field::FieldType::local: return lhs.data.local.key < rhs.data.local.key;
-    case Field::FieldType::indexed: return lhs.data.local.key < rhs.data.indexed.index_list.front().index_ptr->key;
+    default: case FieldType::empty: return false;
+    case FieldType::local: return lhs.data.local.key < rhs.data.local.key;
+    case FieldType::indexed: return lhs.data.local.key < rhs.data.indexed.index_list.front().index_ptr->key;
     }
-  case Field::FieldType::indexed: switch (rhs.type) {
-    default: case Field::FieldType::empty: return false;
-    case Field::FieldType::local: return lhs.data.indexed.index_list.front().index_ptr->key < rhs.data.local.key;
-    case Field::FieldType::indexed: return lhs.data.indexed.index_list.front().index_ptr->key < rhs.data.indexed.index_list.front().index_ptr->key;
+  case FieldType::indexed: switch (rhs.type) {
+    default: case FieldType::empty: return false;
+    case FieldType::local: return lhs.data.indexed.index_list.front().index_ptr->key < rhs.data.local.key;
+    case FieldType::indexed: return lhs.data.indexed.index_list.front().index_ptr->key < rhs.data.indexed.index_list.front().index_ptr->key;
     }
   }
 }

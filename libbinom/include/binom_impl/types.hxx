@@ -291,6 +291,13 @@ enum class IndexType {
   multi_index
 };
 
+//! Map or MultiMap field type
+enum class FieldType : ui8 {
+  local = 0x00,
+  indexed = 0x01,
+  empty = 0xFF
+};
+
 #undef getIntType
 #undef getIntArrType
 
@@ -722,7 +729,8 @@ class MultiMap;
 class Table;
 class KeyValue;
 
-class NamedVariable;
+class FieldInit;
+class FieldRef;
 class MapNodeRef;
 
 namespace literals {
@@ -730,8 +738,8 @@ namespace priv {
 
 struct ArrayLiteral             : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
 struct ListLiteral              : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
-struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
-struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const NamedVariable> {using HeritableInitializerList::HeritableInitializerList;};
+struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
+struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
 struct ColumnDescriptor;
 struct TableDescriptor;
 struct TableLiteral;

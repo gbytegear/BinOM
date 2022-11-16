@@ -47,10 +47,10 @@ void Map::clear() {
   return getData()->clear();
 }
 
-err::ProgressReport<Map::NamedVariable> Map::insert(KeyValue key, Variable variable) {
+err::ProgressReport<FieldRef> Map::insert(KeyValue key, Variable variable) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return err::ErrorType::binom_resource_not_available;
-  return getData()->insert(std::move(key), variable.move());
+  return getData()->insert(resource_link, std::move(key), variable.move());
 }
 
 Error Map::remove(KeyValue key) {
@@ -59,7 +59,7 @@ Error Map::remove(KeyValue key) {
   return getData()->remove(std::move(key));
 }
 
-err::ProgressReport<Map::NamedVariable> Map::rename(KeyValue old_key, KeyValue new_key) {
+err::ProgressReport<FieldRef> Map::rename(KeyValue old_key, KeyValue new_key) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return err::ErrorType::binom_resource_not_available;
   return getData()->rename(std::move(old_key), std::move(new_key));
@@ -71,10 +71,16 @@ Variable Map::getVariable(KeyValue key) {
   return getData()->getVariable(std::move(key));
 }
 
-Variable Map::operator[](KeyValue key) {
+FieldRef binom::Map::getField(KeyValue key) {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return nullptr;
-  return getData()->getOrInsertNamedVariable(std::move(key)).getVariable().move();
+  return getData()->getField(std::move(key));
+}
+
+FieldRef Map::operator[](KeyValue key) {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return nullptr;
+  return getData()->getOrInsertFieldRef(resource_link, std::move(key));
 }
 
 Map::Iterator Map::find(KeyValue key) {
@@ -107,10 +113,16 @@ const Variable Map::getVariable(KeyValue key) const {
   return getData()->getVariable(std::move(key));
 }
 
-const Variable Map::operator[](KeyValue key) const {
+const FieldRef Map::getField(KeyValue key) const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return nullptr;
+  return getData()->getField(std::move(key));
+}
+
+const FieldRef Map::operator[](KeyValue key) const {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return nullptr;
-  return getData()->getVariable(std::move(key));
+  return getData()->getField(std::move(key));
 }
 
 Map::Iterator Map::begin() {

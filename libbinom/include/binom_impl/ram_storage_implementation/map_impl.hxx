@@ -15,7 +15,6 @@ class MapImplementation {
   std::list<Link>* index_list = nullptr;
   std::set<index::Field, index::MapComparator> data;
 public:
-  using NamedVariable = MapNodeRef;
   typedef std::set<index::Field, index::MapComparator> ContainerType;
 
   class Iterator : public ContainerType::iterator {
@@ -23,10 +22,10 @@ public:
     Iterator(ContainerType::iterator map_it);
     Iterator(const Iterator& other);
     Iterator(Iterator&& other);
-    NamedVariable operator*();
-    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
-    const NamedVariable operator*() const;
-    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    FieldRef operator*();
+    pseudo_ptr::PseudoPointer<FieldRef> operator->();
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
     static Iterator nullit() noexcept {return  ContainerType::iterator(nullptr);}
   };
 
@@ -35,10 +34,10 @@ public:
     ReverseIterator(ContainerType::reverse_iterator map_rit);
     ReverseIterator(const ReverseIterator& other);
     ReverseIterator(ReverseIterator&& other);
-    NamedVariable operator*();
-    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
-    const NamedVariable operator*() const;
-    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    FieldRef operator*();
+    pseudo_ptr::PseudoPointer<FieldRef> operator->();
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
     static ReverseIterator nullit() noexcept {return  ContainerType::reverse_iterator(Iterator::nullit());}
   };
 
@@ -47,8 +46,8 @@ public:
     ConstIterator(ContainerType::const_iterator map_it);
     ConstIterator(const ConstIterator& other);
     ConstIterator(ConstIterator&& other);
-    const NamedVariable operator*() const;
-    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
     static ConstIterator nullit() noexcept {return  ContainerType::const_iterator(nullptr);}
   };
 
@@ -57,8 +56,8 @@ public:
     ConstReverseIterator(ContainerType::const_reverse_iterator map_rit);
     ConstReverseIterator(const ConstReverseIterator& other);
     ConstReverseIterator(ConstReverseIterator&& other);
-    const NamedVariable operator*() const;
-    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
     static ConstReverseIterator nullit() noexcept {return  ContainerType::const_reverse_iterator(ConstIterator::nullit());}
   };
 
@@ -71,15 +70,16 @@ public:
   size_t getSize() const noexcept {return data.size();}
   bool contains(KeyValue value) const noexcept {return data.contains(std::move(value));}
 
-  err::ProgressReport<NamedVariable> insert(WeakLink owner, KeyValue key, Variable variable);
+  err::ProgressReport<FieldRef> insert(WeakLink owner, KeyValue key, Variable variable);
 
   err::Error remove(KeyValue key);
 
-  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
+  err::ProgressReport<FieldRef> rename(KeyValue old_key, KeyValue new_key);
 
-  NamedVariable getOrInsertNamedVariable(KeyValue key);
+  FieldRef getOrInsertFieldRef(WeakLink owner, KeyValue key);
 
   Variable getVariable(KeyValue key) const;
+  FieldRef getField(KeyValue key) const;
 
   Iterator find(KeyValue key);
   ReverseIterator rfind(KeyValue key);
@@ -111,17 +111,17 @@ public:
 //class MapImplementation {
 //public:
 //  typedef std::map<KeyValue, Variable> VariableMap;
-//  using NamedVariable = MapNodeRef;
+//  using FieldRef = MapNodeRef;
 
 //  class Iterator : public VariableMap::iterator {
 //  public:
 //    Iterator(VariableMap::iterator map_it);
 //    Iterator(const Iterator& other);
 //    Iterator(Iterator&& other);
-//    NamedVariable operator*();
-//    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
-//    const NamedVariable operator*() const;
-//    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+//    FieldRef operator*();
+//    pseudo_ptr::PseudoPointer<FieldRef> operator->();
+//    const FieldRef operator*() const;
+//    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
 //    static Iterator nullit() noexcept {return  VariableMap::iterator(nullptr);}
 //  };
 
@@ -130,10 +130,10 @@ public:
 //    ReverseIterator(VariableMap::reverse_iterator map_rit);
 //    ReverseIterator(const ReverseIterator& other);
 //    ReverseIterator(ReverseIterator&& other);
-//    NamedVariable operator*();
-//    pseudo_ptr::PseudoPointer<NamedVariable> operator->();
-//    const NamedVariable operator*() const;
-//    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+//    FieldRef operator*();
+//    pseudo_ptr::PseudoPointer<FieldRef> operator->();
+//    const FieldRef operator*() const;
+//    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
 //    static ReverseIterator nullit() noexcept {return  VariableMap::reverse_iterator(Iterator::nullit());}
 //  };
 
@@ -142,8 +142,8 @@ public:
 //    ConstIterator(VariableMap::const_iterator map_it);
 //    ConstIterator(const ConstIterator& other);
 //    ConstIterator(ConstIterator&& other);
-//    const NamedVariable operator*() const;
-//    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+//    const FieldRef operator*() const;
+//    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
 //    static ConstIterator nullit() noexcept {return  VariableMap::const_iterator(nullptr);}
 //  };
 
@@ -152,8 +152,8 @@ public:
 //    ConstReverseIterator(VariableMap::const_reverse_iterator map_rit);
 //    ConstReverseIterator(const ConstReverseIterator& other);
 //    ConstReverseIterator(ConstReverseIterator&& other);
-//    const NamedVariable operator*() const;
-//    pseudo_ptr::PseudoPointer<const NamedVariable> operator->() const;
+//    const FieldRef operator*() const;
+//    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
 //    static ConstReverseIterator nullit() noexcept {return  VariableMap::const_reverse_iterator(ConstIterator::nullit());}
 //  };
 
@@ -171,13 +171,13 @@ public:
 //  size_t getSize() const noexcept;
 //  bool contains(KeyValue value) const noexcept;
 
-//  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable);
+//  err::ProgressReport<FieldRef> insert(KeyValue key, Variable variable);
 
 //  err::Error remove(KeyValue key);
 
-//  err::ProgressReport<NamedVariable> rename(KeyValue old_key, KeyValue new_key);
+//  err::ProgressReport<FieldRef> rename(KeyValue old_key, KeyValue new_key);
 
-//  NamedVariable getOrInsertNamedVariable(KeyValue key);
+//  FieldRef getOrInsertFieldRef(KeyValue key);
 
 //  Variable getVariable(KeyValue key) const;
 

@@ -8,7 +8,7 @@ namespace binom {
 namespace priv {
 
 template<class Driven>
-class NamedVariableBase {
+class FieldBase {
 
   Driven& downcast() noexcept {return *reinterpret_cast<Driven*>(this);}
   const Driven& downcast() const noexcept {return *reinterpret_cast<const Driven*>(this);}
@@ -33,9 +33,9 @@ public:
 
 }
 
-class NamedVariable : public priv::NamedVariableBase<NamedVariable> {
+class FieldInit : public priv::FieldBase<FieldInit> {
   template<typename Driven>
-  friend class priv::NamedVariableBase;
+  friend class priv::FieldBase;
   friend class priv::MultiMapImplementation;
 
   KeyValue key;
@@ -49,42 +49,45 @@ class NamedVariable : public priv::NamedVariableBase<NamedVariable> {
   inline KeyValue setKeyImpl(KeyValue key) noexcept {return self.key = std::move(key);}
 
 public:
-  NamedVariable(KeyValue key, Variable variable)
+  FieldInit(KeyValue key, Variable variable)
     : key(std::move(key)), variable(variable.move()) {}
-  NamedVariable(const NamedVariable&& named_variable)
-    : key(std::move(const_cast<NamedVariable&&>(named_variable).key)), variable(const_cast<NamedVariable&&>(named_variable).variable.move()) {}
-  template<class NamedVariableDriven>
-  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
-  NamedVariable(const NamedVariableDriven& other)
+  FieldInit(const FieldInit&& named_variable)
+    : key(std::move(const_cast<FieldInit&&>(named_variable).key)), variable(const_cast<FieldInit&&>(named_variable).variable.move()) {}
+  template<class FieldInitDriven>
+  requires extended_type_traits::is_crtp_base_of_v<FieldBase, FieldInitDriven>
+  FieldInit(const FieldInitDriven& other)
     : key(other.getKeyRef()), variable(other.getVariableRef()) {}
-  template<class NamedVariableDriven>
-  requires extended_type_traits::is_crtp_base_of_v<NamedVariableBase, NamedVariableDriven>
-  NamedVariable(NamedVariableDriven&& other)
+  template<class FieldInitDriven>
+  requires extended_type_traits::is_crtp_base_of_v<FieldBase, FieldInitDriven>
+  FieldInit(FieldInitDriven&& other)
     : key(std::move(other.getKeyRef())), variable(std::move(other.getVariableRef())) {}
 };
 
-class MapNodeRef : public priv::NamedVariableBase<MapNodeRef> {
-  template<typename Driven> friend class priv::NamedVariableBase;
+class FieldRef : public priv::FieldBase<FieldRef> {
+  template<typename Driven> friend class priv::FieldBase;
   friend class priv::MapImplementation;
   friend class priv::MultiMapImplementation;
 
-  index::Field& data;
+  index::Field* data;
 
-  inline Variable getVariableRef() noexcept {return data.getValue().move();}
-  inline const Variable getVariableRef() const noexcept {return data.getValue().move();}
-  inline const KeyValue getKeyRef() const noexcept {return data.getKey();}
-  inline Variable setValue(Variable value) noexcept {return data.setValue(std::move(value));}
-  inline KeyValue setKey(KeyValue key) noexcept {return data.setKey(std::move(key));}
+  inline Variable getVariableRef() noexcept {return data ? data->getValue().move() : nullptr;}
+  inline const Variable getVariableRef() const noexcept {return data ? data->getValue().move() : nullptr;}
+  inline const KeyValue getKeyRef() const noexcept {return data ? data->getKey() : KeyValue();}
+  inline Variable setValue(Variable value) noexcept {return data ? data->setValue(std::move(value)) : nullptr;}
+  inline KeyValue setKey(KeyValue key) noexcept {return data ? data->setKey(std::move(key)) : KeyValue();}
 
-  MapNodeRef(const index::Field& data) : data(const_cast<index::Field&>(data)) {}
+  FieldRef(const index::Field& data) : data(const_cast<index::Field*>(&data)) {}
 public:
-  MapNodeRef(const MapNodeRef& other) : data(const_cast<index::Field&>(other.data)) {}
-  MapNodeRef(MapNodeRef& other) : data(other.data) {}
+  FieldRef(decltype (nullptr)) : data(nullptr) {}
+  FieldRef(const FieldRef& other) : data(const_cast<index::Field*>(other.data)) {}
+  FieldRef(FieldRef& other) : data(other.data) {}
+
+  using priv::FieldBase<FieldRef>::operator=;
 };
 
-//class MapNodeRef : public priv::NamedVariableBase<MapNodeRef> {
+//class FieldRef : public priv::FieldBase<FieldRef> {
 //  template<typename Driven>
-//  friend class priv::NamedVariableBase;
+//  friend class priv::FieldBase;
 //  friend class priv::MapImplementation;
 //  friend class priv::MultiMapImplementation;
 //  typedef std::pair<const KeyValue, Variable> KeyVariablePair;
@@ -98,10 +101,10 @@ public:
 //  friend class priv::MapImplementation;
 //  friend class priv::MapImplementation::Iterator;
 //  friend class priv::MapImplementation::ReverseIterator;
-//  MapNodeRef(const KeyVariablePair& pair) : pair(const_cast<KeyVariablePair&>(pair)) {}
+//  FieldRef(const KeyVariablePair& pair) : pair(const_cast<KeyVariablePair&>(pair)) {}
 //public:
-//  MapNodeRef(const MapNodeRef& other) : pair(const_cast<KeyVariablePair&>(other.pair)) {}
-//  MapNodeRef(MapNodeRef& other) : pair(other.pair) {}
+//  FieldRef(const FieldRef& other) : pair(const_cast<KeyVariablePair&>(other.pair)) {}
+//  FieldRef(FieldRef& other) : pair(other.pair) {}
 //};
 
 }
