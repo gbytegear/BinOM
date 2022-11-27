@@ -5,6 +5,7 @@
 #include <list>
 #include "../../variables/key_value.hxx"
 #include "../../variables/variable.hxx"
+#include "../../utils/pseudo_pointer.hxx"
 
 namespace binom::priv {
 
@@ -55,7 +56,7 @@ public:
     using is_transparent = void;
     bool operator()(const KeyValue& search_value, const Field*& cell) const;
     bool operator()(const Field*& cell, const KeyValue& search_value) const;
-    bool operator()(const Field*& lhs, const Field*& rhs) const;
+    bool operator()(Field* const& lhs, Field* const& rhs) const;
   };
 
 private:
@@ -182,6 +183,60 @@ public:
   bool operator()(const Field& cell, const KeyValue& search_value) const;
   bool operator()(const Field& lhs, const Field& rhs) const;
 };
+
+
+
+
+// Map iterators
+
+typedef std::set<index::Field, index::MapComparator> ContainerType;
+
+class Iterator : public ContainerType::iterator {
+public:
+  Iterator(ContainerType::iterator map_it);
+  Iterator(const Iterator& other);
+  Iterator(Iterator&& other);
+  FieldRef operator*();
+  pseudo_ptr::PseudoPointer<FieldRef> operator->();
+  const FieldRef operator*() const;
+  pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  static Iterator nullit() noexcept {return  ContainerType::iterator(nullptr);}
+};
+
+class ReverseIterator : public ContainerType::reverse_iterator {
+public:
+  ReverseIterator(ContainerType::reverse_iterator map_rit);
+  ReverseIterator(const ReverseIterator& other);
+  ReverseIterator(ReverseIterator&& other);
+  FieldRef operator*();
+  pseudo_ptr::PseudoPointer<FieldRef> operator->();
+  const FieldRef operator*() const;
+  pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  static ReverseIterator nullit() noexcept {return  ContainerType::reverse_iterator(Iterator::nullit());}
+};
+
+class ConstIterator : public ContainerType::const_iterator {
+public:
+  ConstIterator(ContainerType::const_iterator map_it);
+  ConstIterator(const ConstIterator& other);
+  ConstIterator(ConstIterator&& other);
+  const FieldRef operator*() const;
+  pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  static ConstIterator nullit() noexcept {return  ContainerType::const_iterator(nullptr);}
+};
+
+class ConstReverseIterator : public ContainerType::const_reverse_iterator {
+public:
+  ConstReverseIterator(ContainerType::const_reverse_iterator map_rit);
+  ConstReverseIterator(const ConstReverseIterator& other);
+  ConstReverseIterator(ConstReverseIterator&& other);
+  const FieldRef operator*() const;
+  pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  static ConstReverseIterator nullit() noexcept {return  ContainerType::const_reverse_iterator(ConstIterator::nullit());}
+};
+
+
+
 
 };
 

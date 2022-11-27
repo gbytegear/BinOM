@@ -1,4 +1,5 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/index_impl.hxx"
+#include "libbinom/include/variables/named_variable.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -121,7 +122,7 @@ inline bool Index::Comparator::operator()(const Field*& field, const KeyValue& s
   return field->data.indexed.value < search_value;
 }
 
-inline bool Index::Comparator::operator()(const Field*& lhs, const Field*& rhs) const {
+inline bool Index::Comparator::operator()(Field* const& lhs, Field* const& rhs) const {
   return lhs->data.indexed.value < rhs->data.indexed.value;
 }
 
@@ -296,3 +297,69 @@ inline bool MapComparator::operator()(const Field& lhs, const Field& rhs) const 
     }
   }
 }
+
+
+
+
+
+
+
+
+Iterator::Iterator(ContainerType::iterator map_it) : ContainerType::iterator(map_it) {}
+
+Iterator::Iterator(const Iterator& other) : ContainerType::iterator(dynamic_cast<const ContainerType::iterator&>(other)) {}
+
+Iterator::Iterator(Iterator&& other) : ContainerType::iterator(dynamic_cast<ContainerType::iterator&&>(other)) {}
+
+FieldRef Iterator::operator*() {return FieldRef(*dynamic_cast<ContainerType::iterator&>(self));}
+
+pseudo_ptr::PseudoPointer<FieldRef> Iterator::operator->() {return *self;}
+
+const FieldRef Iterator::operator*() const {return *dynamic_cast<const ContainerType::iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> Iterator::operator->() const {return *self;}
+
+
+
+
+
+
+ReverseIterator::ReverseIterator(ContainerType::reverse_iterator map_rit) : ContainerType::reverse_iterator(map_rit) {}
+
+ReverseIterator::ReverseIterator(const ReverseIterator& other) : ContainerType::reverse_iterator(dynamic_cast<const ContainerType::reverse_iterator&>(other)) {}
+
+ReverseIterator::ReverseIterator(ReverseIterator&& other) : ContainerType::reverse_iterator(dynamic_cast<ContainerType::reverse_iterator&&>(other)) {}
+
+FieldRef ReverseIterator::operator*() {return *dynamic_cast<ContainerType::reverse_iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<FieldRef> ReverseIterator::operator->() {return *self;}
+
+const FieldRef ReverseIterator::operator*() const {return *dynamic_cast<const ContainerType::reverse_iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> ReverseIterator::operator->() const {return *self;}
+
+
+
+
+ConstIterator::ConstIterator(ContainerType::const_iterator map_it) : ContainerType::const_iterator(map_it) {}
+
+ConstIterator::ConstIterator(const ConstIterator& other) : ContainerType::const_iterator(dynamic_cast<const ContainerType::const_iterator&>(other)) {}
+
+ConstIterator::ConstIterator(ConstIterator&& other) : ContainerType::const_iterator(dynamic_cast<ContainerType::const_iterator&&>(other)) {}
+
+const FieldRef ConstIterator::operator*() const {return *dynamic_cast<const ContainerType::const_iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> ConstIterator::operator->() const {return *self;}
+
+
+
+
+ConstReverseIterator::ConstReverseIterator(ContainerType::const_reverse_iterator map_rit) : ContainerType::const_reverse_iterator(map_rit) {}
+
+ConstReverseIterator::ConstReverseIterator(const ConstReverseIterator& other) : ContainerType::const_reverse_iterator(dynamic_cast<const ContainerType::const_reverse_iterator&>(other)) {}
+
+ConstReverseIterator::ConstReverseIterator(ConstReverseIterator&& other) : ContainerType::const_reverse_iterator(dynamic_cast<ContainerType::const_reverse_iterator&&>(other)) {}
+
+const FieldRef ConstReverseIterator::operator*() const {return *dynamic_cast<const ContainerType::const_reverse_iterator&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> ConstReverseIterator::operator->() const {return *self;}

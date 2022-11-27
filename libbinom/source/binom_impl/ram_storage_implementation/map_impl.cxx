@@ -5,14 +5,6 @@ using namespace binom;
 using namespace binom::priv;
 using namespace binom::literals;
 
-
-
-
-
-
-
-
-
 //MapImplementation::MapImplementation(const literals::map& map) { for(auto& element : map) insert(std::move(element.getKey()), element.getVariable().move()); }
 
 //MapImplementation::MapImplementation(const MapImplementation& other) : storage(other.storage) {}
@@ -158,11 +150,27 @@ using namespace binom::literals;
 
 //pseudo_ptr::PseudoPointer<const FieldRef> MapImplementation::ConstReverseIterator::operator->() const {return *self;}
 
-MapImplementation::MapImplementation(WeakLink owner, const map& map) {for(auto& element : map) insert(owner, std::move(element.getKey()), element.getValue().move());}
+MapImplementation::MapImplementation(WeakLink owner, const map& map) {
+  for(auto& element : map)
+    insert(owner, std::move(element.getKey()), element.getValue().move());
+}
+
+MapImplementation::MapImplementation(WeakLink owner, const MapImplementation& other) {
+  for(auto element : other) insert(owner, element.getKey(), element.getValue());
+}
+
+MapImplementation::~MapImplementation() {
+  if(table_list) delete table_list;
+}
 
 err::ProgressReport<FieldRef> MapImplementation::insert(WeakLink owner, KeyValue key, Variable variable) {
   auto insert_result = data.emplace(owner, std::move(key), variable.move());
-  if(insert_result.second) return FieldRef(*insert_result.first);
+  if(insert_result.second) {
+    if(table_list) {
+      // TODO: Add to index in table if has index with equal field key
+    }
+    return FieldRef(*insert_result.first);
+  }
   return err::ErrorType::binom_key_unique_error;
 }
 
@@ -237,64 +245,3 @@ MapImplementation::ConstReverseIterator MapImplementation::crbegin() const noexc
 
 MapImplementation::ConstReverseIterator MapImplementation::crend() const noexcept {return data.crend();}
 
-
-
-
-MapImplementation::Iterator::Iterator(ContainerType::iterator map_it) : ContainerType::iterator(map_it) {}
-
-MapImplementation::Iterator::Iterator(const Iterator& other) : ContainerType::iterator(dynamic_cast<const ContainerType::iterator&>(other)) {}
-
-MapImplementation::Iterator::Iterator(Iterator&& other) : ContainerType::iterator(dynamic_cast<ContainerType::iterator&&>(other)) {}
-
-FieldRef MapImplementation::Iterator::operator*() {return FieldRef(*dynamic_cast<ContainerType::iterator&>(self));}
-
-pseudo_ptr::PseudoPointer<FieldRef> MapImplementation::Iterator::operator->() {return *self;}
-
-const FieldRef MapImplementation::Iterator::operator*() const {return *dynamic_cast<const ContainerType::iterator&>(self);}
-
-pseudo_ptr::PseudoPointer<const FieldRef> MapImplementation::Iterator::operator->() const {return *self;}
-
-
-
-
-
-
-MapImplementation::ReverseIterator::ReverseIterator(ContainerType::reverse_iterator map_rit) : ContainerType::reverse_iterator(map_rit) {}
-
-MapImplementation::ReverseIterator::ReverseIterator(const ReverseIterator& other) : ContainerType::reverse_iterator(dynamic_cast<const ContainerType::reverse_iterator&>(other)) {}
-
-MapImplementation::ReverseIterator::ReverseIterator(ReverseIterator&& other) : ContainerType::reverse_iterator(dynamic_cast<ContainerType::reverse_iterator&&>(other)) {}
-
-FieldRef MapImplementation::ReverseIterator::operator*() {return *dynamic_cast<ContainerType::reverse_iterator&>(self);}
-
-pseudo_ptr::PseudoPointer<FieldRef> MapImplementation::ReverseIterator::operator->() {return *self;}
-
-const FieldRef MapImplementation::ReverseIterator::operator*() const {return *dynamic_cast<const ContainerType::reverse_iterator&>(self);}
-
-pseudo_ptr::PseudoPointer<const FieldRef> MapImplementation::ReverseIterator::operator->() const {return *self;}
-
-
-
-
-MapImplementation::ConstIterator::ConstIterator(ContainerType::const_iterator map_it) : ContainerType::const_iterator(map_it) {}
-
-MapImplementation::ConstIterator::ConstIterator(const ConstIterator& other) : ContainerType::const_iterator(dynamic_cast<const ContainerType::const_iterator&>(other)) {}
-
-MapImplementation::ConstIterator::ConstIterator(ConstIterator&& other) : ContainerType::const_iterator(dynamic_cast<ContainerType::const_iterator&&>(other)) {}
-
-const FieldRef MapImplementation::ConstIterator::operator*() const {return *dynamic_cast<const ContainerType::const_iterator&>(self);}
-
-pseudo_ptr::PseudoPointer<const FieldRef> MapImplementation::ConstIterator::operator->() const {return *self;}
-
-
-
-
-MapImplementation::ConstReverseIterator::ConstReverseIterator(ContainerType::const_reverse_iterator map_rit) : ContainerType::const_reverse_iterator(map_rit) {}
-
-MapImplementation::ConstReverseIterator::ConstReverseIterator(const ConstReverseIterator& other) : ContainerType::const_reverse_iterator(dynamic_cast<const ContainerType::const_reverse_iterator&>(other)) {}
-
-MapImplementation::ConstReverseIterator::ConstReverseIterator(ConstReverseIterator&& other) : ContainerType::const_reverse_iterator(dynamic_cast<ContainerType::const_reverse_iterator&&>(other)) {}
-
-const FieldRef MapImplementation::ConstReverseIterator::operator*() const {return *dynamic_cast<const ContainerType::const_reverse_iterator&>(self);}
-
-pseudo_ptr::PseudoPointer<const FieldRef> MapImplementation::ConstReverseIterator::operator->() const {return *self;}

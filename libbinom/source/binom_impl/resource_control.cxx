@@ -122,11 +122,11 @@ void Link::overwriteWithResourceCopy(ResourceData& resource_data) {
   return;
 
   case VarTypeClass::map:
-    resource->resource_data.data.map_implementation = new MapImplementation(*resource_data.data.map_implementation);
+    resource->resource_data.data.map_implementation = new MapImplementation(self, *resource_data.data.map_implementation);
   return;
 
   case VarTypeClass::multimap:
-    resource->resource_data.data.multi_map_implementation = new MultiMapImplementation(*resource_data.data.multi_map_implementation);
+    resource->resource_data.data.multi_map_implementation = new MultiMapImplementation(self, *resource_data.data.multi_map_implementation);
   return;
 
   case VarTypeClass::table: // TODO
@@ -156,7 +156,7 @@ Link Link::cloneResource(Link resource_link) noexcept {
   return ResourceData{VarType::list, {.list_implementation = new ListImplementation(*resource_link->data.list_implementation)}};
 
   case VarTypeClass::map:
-  return ResourceData{VarType::map, {.map_implementation = new MapImplementation(*resource_link->data.map_implementation)}};
+  return ResourceData{VarType::map, {.map_implementation = new MapImplementation(resource_link, *resource_link->data.map_implementation)}};
 
   case VarTypeClass::multimap:
   return ResourceData{VarType::map, {.multi_map_implementation = new MultiMapImplementation(*resource_link->data.multi_map_implementation)}};

@@ -67,6 +67,10 @@ class FieldRef : public priv::FieldBase<FieldRef> {
   template<typename Driven> friend class priv::FieldBase;
   friend class priv::MapImplementation;
   friend class priv::MultiMapImplementation;
+  friend class index::Iterator;
+  friend class index::ConstIterator;
+  friend class index::ReverseIterator;
+  friend class index::ConstReverseIterator;
 
   index::Field* data;
 

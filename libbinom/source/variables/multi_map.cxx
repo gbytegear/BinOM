@@ -47,10 +47,10 @@ void MultiMap::clear() {
   return getData()->clear();
 }
 
-err::ProgressReport<MultiMap::NamedVariable> MultiMap::insert(KeyValue key, Variable variable, NewNodePosition position) {
+err::ProgressReport<FieldRef> MultiMap::insert(KeyValue key, Variable variable, NewNodePosition position) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return err::ErrorType::binom_resource_not_available;
-  return getData()->insert(std::move(key), variable.move(), position);
+  return getData()->insert(resource_link, std::move(key), variable.move(), position);
 }
 
 Error MultiMap::remove(Iterator it) {
@@ -74,7 +74,7 @@ Error MultiMap::removeAll(KeyValue key) {
   return err::ErrorType::no_error;
 }
 
-err::ProgressReport<MultiMap::NamedVariable> MultiMap::rename(Iterator it, KeyValue new_key) {
+err::ProgressReport<FieldRef> MultiMap::rename(Iterator it, KeyValue new_key) {
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return err::ErrorType::binom_resource_not_available;
   return getData()->rename(std::move(it), std::move(new_key));

@@ -4,7 +4,6 @@
 #include <map>
 #include <set>
 #include <list>
-#include "../../utils/pseudo_pointer.hxx"
 #include "../../variables/key_value.hxx"
 #include "../../variables/variable.hxx"
 #include "index_impl.hxx"
@@ -12,58 +11,17 @@
 namespace binom::priv {
 
 class MapImplementation {
-  std::list<Link>* index_list = nullptr;
+  std::list<Link>* table_list = nullptr;
   std::set<index::Field, index::MapComparator> data;
 public:
   typedef std::set<index::Field, index::MapComparator> ContainerType;
-
-  class Iterator : public ContainerType::iterator {
-  public:
-    Iterator(ContainerType::iterator map_it);
-    Iterator(const Iterator& other);
-    Iterator(Iterator&& other);
-    FieldRef operator*();
-    pseudo_ptr::PseudoPointer<FieldRef> operator->();
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
-    static Iterator nullit() noexcept {return  ContainerType::iterator(nullptr);}
-  };
-
-  class ReverseIterator : public ContainerType::reverse_iterator {
-  public:
-    ReverseIterator(ContainerType::reverse_iterator map_rit);
-    ReverseIterator(const ReverseIterator& other);
-    ReverseIterator(ReverseIterator&& other);
-    FieldRef operator*();
-    pseudo_ptr::PseudoPointer<FieldRef> operator->();
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
-    static ReverseIterator nullit() noexcept {return  ContainerType::reverse_iterator(Iterator::nullit());}
-  };
-
-  class ConstIterator : public ContainerType::const_iterator {
-  public:
-    ConstIterator(ContainerType::const_iterator map_it);
-    ConstIterator(const ConstIterator& other);
-    ConstIterator(ConstIterator&& other);
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
-    static ConstIterator nullit() noexcept {return  ContainerType::const_iterator(nullptr);}
-  };
-
-  class ConstReverseIterator : public ContainerType::const_reverse_iterator {
-  public:
-    ConstReverseIterator(ContainerType::const_reverse_iterator map_rit);
-    ConstReverseIterator(const ConstReverseIterator& other);
-    ConstReverseIterator(ConstReverseIterator&& other);
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
-    static ConstReverseIterator nullit() noexcept {return  ContainerType::const_reverse_iterator(ConstIterator::nullit());}
-  };
+  using Iterator = index::Iterator;
+  using ConstIterator = index::ConstIterator;
+  using ReverseIterator = index::ReverseIterator;
+  using ConstReverseIterator = index::ConstReverseIterator;
 
   MapImplementation(WeakLink owner, const literals::map& map);
-//  MapImplementation(const MapImplementation& other);
-//  MapImplementation(MapImplementation&& other);
+  MapImplementation(WeakLink owner, const MapImplementation& other);
   ~MapImplementation();
 
   bool isEmpty() const noexcept {return data.empty();}

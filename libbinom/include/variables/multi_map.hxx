@@ -46,7 +46,7 @@ class MultiMap : public Variable {
   friend class Variable;
   MultiMap(priv::Link&& link);
 public:
-  using NamedVariable = binom::priv::MultiMapImplementation::NamedVariable;
+//  using NamedVariable = binom::priv::MultiMapImplementation::NamedVariable;
   typedef priv::MultiMapImplementation::Iterator             Iterator;
   typedef priv::MultiMapImplementation::ReverseIterator      ReverseIterator;
   typedef priv::MultiMapImplementation::ConstIterator        ConstIterator;
@@ -65,11 +65,11 @@ public:
   size_t getElementCount() const noexcept;
   bool contains(KeyValue key) const noexcept;
 
-  err::ProgressReport<NamedVariable> insert(KeyValue key, Variable variable, NewNodePosition position = NewNodePosition::back);
+  err::ProgressReport<FieldRef> insert(KeyValue key, Variable variable, NewNodePosition position = NewNodePosition::back);
   Error remove(Iterator it);
   Error remove(ReverseIterator it);
   Error removeAll(KeyValue key);
-  err::ProgressReport<NamedVariable> rename(Iterator it, KeyValue new_key);
+  err::ProgressReport<FieldRef> rename(Iterator it, KeyValue new_key);
 
   std::pair<Iterator, Iterator> getRange(KeyValue key);
   std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key);

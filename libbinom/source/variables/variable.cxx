@@ -22,6 +22,14 @@ Link createMap(const literals::map& map) {
   return *shared_resource;
 }
 
+Link createMultiMap(const literals::multimap& multimap) {
+  SharedResource* shared_resource = new SharedResource();
+  shared_resource->link_counter = 0;
+  shared_resource->resource_data.data.multi_map_implementation = new MultiMapImplementation(*shared_resource, multimap);
+  shared_resource->resource_data.type = VarType::map;
+  return *shared_resource;
+}
+
 Variable::Variable(ResourceData data) : resource_link(data) {}
 Variable::Variable(Link&& link) : resource_link(std::move(link)) {}
 
@@ -90,8 +98,10 @@ Variable::Variable(const literals::list list)
 
 Variable::Variable(const literals::map map) : Variable(createMap(map)) {}
 
-Variable::Variable(const literals::multimap multimap, NewNodePosition pos)
-  : Variable(ResourceData{VarType::multimap, {.multi_map_implementation = new priv::MultiMapImplementation(multimap, pos)}}) {}
+//Variable::Variable(const literals::multimap multimap, NewNodePosition pos)
+//  : Variable(ResourceData{VarType::multimap, {.multi_map_implementation = new priv::MultiMapImplementation(multimap, pos)}}) {}
+
+Variable::Variable(const literals::multimap multimap, NewNodePosition pos) : Variable(createMultiMap(multimap)) {}
 
 Variable::Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}

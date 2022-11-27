@@ -49,7 +49,7 @@ class Map : public Variable {
   Map(priv::Link&& link);
 
 public:
-  using FieldRef = binom::priv::MapImplementation::FieldRef;
+//  using FieldRef = binom::index::FieldRef;
   typedef priv::MapImplementation::Iterator             Iterator;
   typedef priv::MapImplementation::ReverseIterator      ReverseIterator;
   typedef priv::MapImplementation::ConstIterator        ConstIterator;
