@@ -170,7 +170,7 @@ class {
       }
       for(const auto& named_var : variable.toMap()) {
         std::cout << std::string(shift, '|'); printKey(named_var.getKey()); std::cout << ":" << std::endl;
-        print(named_var.getVariable(), shift + 1);
+        print(named_var.getValue(), shift + 1);
       }
     break;
     case binom::VarType::multimap:
@@ -181,7 +181,7 @@ class {
       }
       for(const auto& named_var : variable.toMultiMap()) {
         std::cout << std::string(shift, '|'); printKey(named_var.getKey()); std::cout << ":" << std::endl;
-        print(named_var.getVariable(), shift + 1);
+        print(named_var.getValue(), shift + 1);
       }
     break;
     default:

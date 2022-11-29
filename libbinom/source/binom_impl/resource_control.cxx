@@ -159,7 +159,7 @@ Link Link::cloneResource(Link resource_link) noexcept {
   return ResourceData{VarType::map, {.map_implementation = new MapImplementation(resource_link, *resource_link->data.map_implementation)}};
 
   case VarTypeClass::multimap:
-  return ResourceData{VarType::map, {.multi_map_implementation = new MultiMapImplementation(*resource_link->data.multi_map_implementation)}};
+  return ResourceData{VarType::multimap, {.multi_map_implementation = new MultiMapImplementation(resource_link, *resource_link->data.multi_map_implementation)}};
 
   case VarTypeClass::table: // TODO
   case VarTypeClass::invalid_type:

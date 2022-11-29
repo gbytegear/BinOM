@@ -42,17 +42,17 @@ void testMultiMap() {
 
   LOG("2 Key values iterating:");
   for(auto named_variable : IteratorRange<MultiMap::Iterator>{_map.getRange(2)}) {
-    LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getVariable().toNumber()));
+    LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getValue().toNumber()));
   }
 
   LOG("0 Key values iterating:");
   for(auto named_variable : IteratorRange<MultiMap::Iterator>{_map.getRange(0)}) {
-    LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getVariable().toNumber()));
+    LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getValue().toNumber()));
   }
 
   LOG("1 Key values iterating:");
   for(auto named_variable : IteratorRange<MultiMap::Iterator>{_map.getRange(1)}) {
-    LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getVariable().toNumber()));
+    LOG("Key:" << i32(named_variable.getKey().toNumber()) << "; Value:" << i32(named_variable.getValue().toNumber()));
   }
 
   TEST(_map[1] == _map.cend())

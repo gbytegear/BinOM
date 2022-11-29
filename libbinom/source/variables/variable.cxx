@@ -16,18 +16,20 @@ using namespace binom::priv;
 
 Link createMap(const literals::map& map) {
   SharedResource* shared_resource = new SharedResource();
-  shared_resource->link_counter = 0;
   shared_resource->resource_data.data.map_implementation = new MapImplementation(*shared_resource, map);
   shared_resource->resource_data.type = VarType::map;
-  return *shared_resource;
+  Link link(*shared_resource);
+  shared_resource->link_counter = 1;
+  return link;
 }
 
 Link createMultiMap(const literals::multimap& multimap) {
   SharedResource* shared_resource = new SharedResource();
-  shared_resource->link_counter = 0;
   shared_resource->resource_data.data.multi_map_implementation = new MultiMapImplementation(*shared_resource, multimap);
-  shared_resource->resource_data.type = VarType::map;
-  return *shared_resource;
+  shared_resource->resource_data.type = VarType::multimap;
+  Link link(*shared_resource);
+  shared_resource->link_counter = 1;
+  return link;
 }
 
 Variable::Variable(ResourceData data) : resource_link(data) {}

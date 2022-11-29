@@ -22,14 +22,19 @@
     * [x] `binom::Array::Iterator`
     * [x] `binom::Array::ReverseIterator`
   * [x] `binom::List` - `std::list<Variable>`
-  * [x] `binom::Map` - `std::map<KeyValue, Variable>`
-  * [x] `binom::MultiMap` - `std::multimap<KeyValue, Variable>`
+  * [x] `binom::Map` - `std::set<index::Field, index::MapComparator>`
+  * [x] `binom::MultiMap` - `std::multiset<index::Field, index::MapComparator>`
   * [ ] `binom::Table`
-    * [ ] `binom::UnindexedRowCell`
-    * [ ] `binom::IndexedRowCell`
-    * [ ] `binom::RowHeader`
-    * [ ] `binom::Index`
+    * [x] `binom::Index`
 * [ ] Implement serialization/deserialization methods of BinOM containers
+  * [ ] `binom::Number` serialization/deserialization
+  * [ ] `binom::BitArray` serialization/deserialization
+  * [ ] `binom::BufferArray` serialization/deserialization
+  * [ ] `binom::Array` serialization/deserialization
+  * [ ] `binom::List` serialization/deserialization
+  * [ ] `binom::Map` serialization/deserialization
+  * [ ] `binom::MultiMap` serialization/deserialization
+  * [ ] `binom::Table` serialization/deserialization
 * [ ] Implement file storage (DBMS)
   * [ ] File memory manager
   * [ ] File node accessor

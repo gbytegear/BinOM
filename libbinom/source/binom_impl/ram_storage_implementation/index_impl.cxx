@@ -82,7 +82,7 @@ Index::~Index() {
 
 binom::KeyValue Index::getKey() const { return key; }
 
-inline binom::Error Index::add(Field& field) {
+binom::Error Index::add(Field& field) {
   if(!field.isCanBeIndexed()) return ErrorType::binom_invalid_type;
   if(field.data.local.key != key) return ErrorType::invalid_data;
 
@@ -99,7 +99,7 @@ inline binom::Error Index::add(Field& field) {
   }
 }
 
-inline binom::Error Index::unlink(Iterator it) {
+binom::Error Index::unlink(Iterator it) {
   switch (type) {
   case IndexType::unique_index:
     data.unique_index.erase(it);
@@ -114,15 +114,15 @@ inline binom::Error Index::unlink(Iterator it) {
 
 
 
-inline bool Index::Comparator::operator()(const KeyValue& search_value, const Field*& field) const {
+bool Index::Comparator::operator()(const KeyValue& search_value, const Field*& field) const {
   return search_value < field->data.indexed.value;
 }
 
-inline bool Index::Comparator::operator()(const Field*& field, const KeyValue& search_value) const {
+bool Index::Comparator::operator()(const Field*& field, const KeyValue& search_value) const {
   return field->data.indexed.value < search_value;
 }
 
-inline bool Index::Comparator::operator()(Field* const& lhs, Field* const& rhs) const {
+bool Index::Comparator::operator()(Field* const& lhs, Field* const& rhs) const {
   return lhs->data.indexed.value < rhs->data.indexed.value;
 }
 
@@ -265,7 +265,7 @@ Variable Field::setValue(Variable value) {
 
 
 
-inline bool MapComparator::operator()(const KeyValue& search_value, const Field& field) const {
+bool MapComparator::operator()(const KeyValue& search_value, const Field& field) const {
   switch (field.type) {
   default: case FieldType::empty: return false;
   case FieldType::local: return search_value < field.data.local.key;
@@ -273,7 +273,7 @@ inline bool MapComparator::operator()(const KeyValue& search_value, const Field&
   }
 }
 
-inline bool MapComparator::operator()(const Field& field, const KeyValue& search_value) const {
+bool MapComparator::operator()(const Field& field, const KeyValue& search_value) const {
   switch (field.type) {
   default: case FieldType::empty: return true;
   case FieldType::local: return field.data.local.key < search_value;
@@ -281,7 +281,7 @@ inline bool MapComparator::operator()(const Field& field, const KeyValue& search
   }
 }
 
-inline bool MapComparator::operator()(const Field& lhs, const Field& rhs) const {
+bool MapComparator::operator()(const Field& lhs, const Field& rhs) const {
   switch (lhs.type) {
   default: case FieldType::empty: return rhs.type != FieldType::empty;
   case FieldType::local:

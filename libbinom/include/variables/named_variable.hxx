@@ -77,8 +77,8 @@ class FieldRef : public priv::FieldBase<FieldRef> {
   inline Variable getVariableRef() noexcept {return data ? data->getValue().move() : nullptr;}
   inline const Variable getVariableRef() const noexcept {return data ? data->getValue().move() : nullptr;}
   inline const KeyValue getKeyRef() const noexcept {return data ? data->getKey() : KeyValue();}
-  inline Variable setValue(Variable value) noexcept {return data ? data->setValue(std::move(value)) : nullptr;}
-  inline KeyValue setKey(KeyValue key) noexcept {return data ? data->setKey(std::move(key)) : KeyValue();}
+  inline Variable setValueImpl(Variable value) noexcept {return data ? data->setValue(std::move(value)) : nullptr;}
+  inline KeyValue setKeyImpl(KeyValue key) noexcept {return data ? data->setKey(std::move(key)) : KeyValue();}
 
   FieldRef(const index::Field& data) : data(const_cast<index::Field*>(&data)) {}
 public:
