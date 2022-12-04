@@ -35,13 +35,14 @@ libbinom/include/utils/util_functions.hxx
 libbinom/include/variables/array.hxx
 libbinom/include/variables/bit_array.hxx
 libbinom/include/variables/buffer_array.hxx
+libbinom/include/variables/field.hxx
 libbinom/include/variables/generic_value.hxx
 libbinom/include/variables/key_value.hxx
 libbinom/include/variables/list.hxx
 libbinom/include/variables/map.hxx
 libbinom/include/variables/multi_map.hxx
-libbinom/include/variables/named_variable.hxx
 libbinom/include/variables/number.hxx
+libbinom/include/variables/table.hxx
 libbinom/include/variables/variable.hxx
 libbinom/source/binom_impl/avl_tree.cxx
 libbinom/source/binom_impl/bits.cxx
@@ -53,6 +54,7 @@ libbinom/source/binom_impl/ram_storage_implementation/index_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/list_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/map_impl.cxx
 libbinom/source/binom_impl/ram_storage_implementation/multi_map_impl.cxx
+libbinom/source/binom_impl/ram_storage_implementation/table_impl.cxx
 libbinom/source/binom_impl/resource_control.cxx
 libbinom/source/variables/array.cxx
 libbinom/source/variables/bit_array.cxx

@@ -1,7 +1,7 @@
 #ifndef MAP_HXX
 #define MAP_HXX
 
-#include "named_variable.hxx"
+#include "field.hxx"
 
 namespace binom {
 

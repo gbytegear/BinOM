@@ -359,22 +359,12 @@ public:
 
 };
 
-
-/// Use it in case we DON'T need multithreading
-class OptionalLockPlaceholder {
-public:
-  OptionalLockPlaceholder([[maybe_unused]] std::shared_mutex* mtx, [[maybe_unused]] MtxLockType lock_type) {}
-  OptionalLockPlaceholder([[maybe_unused]] const OptionalLockPlaceholder& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
-  OptionalLockPlaceholder([[maybe_unused]] OptionalLockPlaceholder&& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
-  constexpr operator bool() const noexcept {return true;}
-  constexpr bool has_value() const noexcept {return true;}
-};
-
 }
 
 namespace binom {
 using shared_recursive_mtx::MtxLockType;
 using shared_recursive_mtx::SharedRecursiveLock;
+using shared_recursive_mtx::TransactionLock;
 typedef std::optional<shared_recursive_mtx::SharedRecursiveLock> OptionalSharedRecursiveLock;
 }
 

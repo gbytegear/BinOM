@@ -1,10 +1,16 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/multi_map_impl.hxx"
-#include "libbinom/include/variables/named_variable.hxx"
+#include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
+#include "libbinom/include/variables/field.hxx"
 #include "libbinom/include/utils/util_functions.hxx"
 
 using namespace binom;
 using namespace binom::priv;
 using namespace binom::literals;
+
+void MultiMapImplementation::insertTable(TableImplementation& table) {
+  if(!table_list) table_list = new std::list<TableImplementation*>();
+  table_list->push_back(&table);
+}
 
 MultiMapImplementation::MultiMapImplementation(WeakLink owner, const multimap& map) {
   for(auto& element : map)

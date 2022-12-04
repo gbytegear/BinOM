@@ -40,6 +40,7 @@ class BufferArrayImplementation {
   }
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   static void set(ValType type, void* to, T from) {
     switch (type) {
     case binom::ValType::ui8:

@@ -19,7 +19,6 @@ protected:
   std::shared_mutex& getMutex() const {return resource_link.getMutex();}
 
   Variable(ResourceData data);
-  Variable(Link&& link);
 
 //  static void serializeImpl(const Variable& variable, std::vector<byte>& buffer);
 //  static void serializeImpl(const Number& number, std::vector<byte>& buffer);
@@ -33,6 +32,8 @@ protected:
 public:
   using NewNodePosition = binom::priv::MultiAVLTree::NewNodePosition;
 //  using TransactionLock = shared_recursive_mtx::TransactionLock;
+
+  Variable(Link&& link);
 
   // Null
   Variable() noexcept;
@@ -87,6 +88,9 @@ public:
 
   // MultiMap
   Variable(const literals::multimap multimap, NewNodePosition pos = NewNodePosition::back);
+
+  // Table
+  Variable(const literals::table table);
 
   // Move & Copy
   Variable(Variable&& other) noexcept;

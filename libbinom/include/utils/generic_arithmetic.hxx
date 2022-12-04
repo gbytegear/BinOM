@@ -11,12 +11,21 @@
 namespace binom::arithmetic {
 using namespace extended_type_traits;
 
+/// Use it in case we DON'T need multithreading
+class OptionalLockPlaceholder {
+public:
+  OptionalLockPlaceholder([[maybe_unused]] std::shared_mutex* mtx, [[maybe_unused]] MtxLockType lock_type) {}
+  OptionalLockPlaceholder([[maybe_unused]] const OptionalLockPlaceholder& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
+  OptionalLockPlaceholder([[maybe_unused]] OptionalLockPlaceholder&& other, [[maybe_unused]] MtxLockType lock_type = MtxLockType::unlocked) {}
+  constexpr operator bool() const noexcept {return true;}
+  constexpr bool has_value() const noexcept {return true;}
+};
 
 /// Placeholder for getLock (don't inhearit if we NEED multithreading support)
 class ArithmeticMthrImplPlaceholders {
 protected:
-  shared_recursive_mtx::OptionalLockPlaceholder getLock(MtxLockType lock_type) const noexcept {return shared_recursive_mtx::OptionalLockPlaceholder(nullptr, lock_type);}
-  bool checkLock(const shared_recursive_mtx::OptionalLockPlaceholder&) const noexcept {return true;}
+  OptionalLockPlaceholder getLock(MtxLockType lock_type) const noexcept {return OptionalLockPlaceholder(nullptr, lock_type);}
+  bool checkLock(const OptionalLockPlaceholder&) const noexcept {return true;}
 };
 
 //////////////////////

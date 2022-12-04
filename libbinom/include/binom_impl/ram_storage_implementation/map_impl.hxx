@@ -11,7 +11,7 @@
 namespace binom::priv {
 
 class MapImplementation {
-  std::list<Link>* table_list = nullptr;
+  std::list<TableImplementation*>* table_list = nullptr;
   std::set<index::Field, index::MapComparator> data;
 public:
   typedef std::set<index::Field, index::MapComparator> ContainerType;

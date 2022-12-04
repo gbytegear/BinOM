@@ -33,6 +33,7 @@ struct ResourceData {
     ListImplementation*             list_implementation;
     MapImplementation*              map_implementation;
     MultiMapImplementation*         multi_map_implementation;
+    TableImplementation*            table_implementation;
 
     template<typename T> T* asPointerAt() const noexcept { return reinterpret_cast<T*>(pointer);}
   };
@@ -78,9 +79,9 @@ class Link {
   friend class WeakLink;
   std::shared_mutex& getMutex() const {return resource->mtx;}
 
+public:
   Link(WeakLink&& other) noexcept;
   Link(const WeakLink& other) noexcept;
-public:
   Link(SharedResource& shared_resource) noexcept;
   Link(ResourceData resource_data) noexcept;
   Link(Link&& other) noexcept;

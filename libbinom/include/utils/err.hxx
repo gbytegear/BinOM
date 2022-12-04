@@ -23,6 +23,7 @@ enum class ErrorType : ui8 {
   binom_resource_not_available,
   binom_out_of_range,
   binom_key_unique_error,
+  binom_row_has_no_fields_for_indexing,
 
   binom_invalid_column_name,
 };
@@ -57,6 +58,8 @@ inline const char* Error::what() const noexcept {
   case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range";
   case ErrorType::binom_key_unique_error: return    "BinOM: Non-unique key";
   case ErrorType::binom_invalid_column_name: return "BinOM: Column with given name does not exist";
+  case ErrorType::binom_row_has_no_fields_for_indexing:
+  return "BinOM: Row has no fields for indexing";
 
   case ErrorType::any: return                       "Unknown exception";
   default: return                                   "Invalid error codes";

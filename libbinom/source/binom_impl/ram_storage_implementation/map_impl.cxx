@@ -1,5 +1,5 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/map_impl.hxx"
-#include "libbinom/include/variables/named_variable.hxx"
+#include "libbinom/include/variables/field.hxx"
 
 using namespace binom;
 using namespace binom::priv;

@@ -2,10 +2,20 @@
 #define INDEX_IMPL_HXX
 
 #include <set>
+#include <map>
 #include <list>
 #include "../../variables/key_value.hxx"
 #include "../../variables/variable.hxx"
 #include "../../utils/pseudo_pointer.hxx"
+
+
+namespace binom::index {
+
+class Field;
+struct MapComparator;
+struct IndexComparator;
+
+}
 
 namespace binom::priv {
 
@@ -16,6 +26,22 @@ class WeakLink {
 
   friend class Variable;
   friend class Link;
+  friend class binom::index::Field;
+
+  std::list<TableImplementation*> getTableList() {
+    if(auto lk = getLock(MtxLockType::shared_locked); lk) {
+      switch (resource->resource_data.type) {
+      default: return {};
+      case binom::VarType::map:
+
+      break;
+      case binom::VarType::multimap:
+
+      break;
+      }
+    } else return {};
+  }
+
 public:
   WeakLink() = default;
   WeakLink(const SharedResource& resource);
@@ -44,8 +70,6 @@ public:
 
 namespace binom::index {
 
-class Field;
-class MapComparator;
 
 class Index {
   friend Field;
@@ -80,6 +104,7 @@ private:
   };
 
   IndexType type;
+  mutable std::shared_mutex mtx;
   KeyValue key;
   IndexData data;
 
@@ -104,13 +129,35 @@ public:
 
   ~Index();
 
+  bool operator==(const Index& other) const { return key == other.key; }
+  bool operator!=(const Index& other) const { return key != other.key; }
+  bool operator>(const Index& other) const { return key > other.key; }
+  bool operator<(const Index& other) const { return key < other.key; }
+  bool operator>=(const Index& other) const { return key >= other.key; }
+  bool operator<=(const Index& other) const { return key <= other.key; }
+
+  bool operator==(const KeyValue& key) const { return self.key == key; }
+  bool operator!=(const KeyValue& key) const { return self.key != key; }
+  bool operator>(const KeyValue& key) const { return self.key > key; }
+  bool operator<(const KeyValue& key) const { return self.key < key; }
+  bool operator>=(const KeyValue& key) const { return self.key >= key; }
+  bool operator<=(const KeyValue& key) const { return self.key <= key; }
+
+
+  std::shared_mutex& getMutex() const {return mtx;}
+  SharedRecursiveLock getLock(MtxLockType lock_type) const {return SharedRecursiveLock(&mtx, lock_type);}
   KeyValue getKey() const;
   Error add(Field& field);
   Error remove(Field& field);
 
 };
 
-
+struct IndexComparator {
+  using is_transparent = void;
+  bool operator()(const KeyValue& search_value, const Index& index) const {return index > search_value;}
+  bool operator()(const Index& index, const KeyValue& search_value) const {return index < search_value;}
+  bool operator()(const Index& lhs, const Index& rhs) const {return lhs < rhs;}
+};
 
 
 
@@ -118,6 +165,7 @@ class Field {
   friend Index;
   friend Index::Comparator;
   friend MapComparator;
+  friend priv::TableImplementation;
 private:
 
   union FieldData {
@@ -128,16 +176,22 @@ private:
     };
 
     struct IndexedField {
-
-      struct IndexEntry {
-        Index* index_ptr;
-        Index::Iterator self_iterator;
-
-        ~IndexEntry() {index_ptr->unlink(self_iterator);}
-      };
-
-      std::list<IndexEntry> index_list;
+      std::map<Index*, Index::Iterator> indexed_at;
       KeyValue value;
+
+      TransactionLock makeTransaction(MtxLockType lock_type) {
+        std::set<std::shared_mutex*> mtx_set;
+        for(auto& index_entry : indexed_at) mtx_set.insert(&index_entry.first->getMutex());
+        return TransactionLock(mtx_set, lock_type);
+      }
+
+      void unlinkFromIndexes() {
+        auto lk = makeTransaction(MtxLockType::unique_locked);
+        for(auto& index_entry : indexed_at) index_entry.first->unlink(index_entry.second);
+        indexed_at.clear();
+      }
+
+      ~IndexedField() {unlinkFromIndexes();}
     };
 
     static constexpr size_t SIZE = sizeof (IndexedField) > sizeof (LocalField)
@@ -157,8 +211,11 @@ private:
   binom::priv::WeakLink owner;
 
   void setEmpty();
-  Error addIndex(Index* index_ptr, Index::Iterator self_iterator);
   bool isCanBeIndexed();
+
+  Error addIndex(Index& index, Index::Iterator self_iterator);
+  Error removeIndex(Index& index);
+  Error removeIndex(std::map<Index*, Index::Iterator>::iterator entry_it);
 
 public:
   Field(binom::priv::WeakLink owner, KeyValue key, Variable value);
@@ -176,8 +233,7 @@ public:
 };
 
 
-class MapComparator {
-public:
+struct MapComparator {
   using is_transparent = void;
   bool operator()(const KeyValue& search_value, const Field& cell) const;
   bool operator()(const Field& cell, const KeyValue& search_value) const;

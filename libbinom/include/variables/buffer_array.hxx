@@ -84,6 +84,7 @@ public:
   const ValueRef operator[](size_t index) const noexcept;
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   ValueRef pushBack(T value) noexcept {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
       return priv::BufferArrayImplementation::pushBack(getData(), getValType(), value);
@@ -91,6 +92,7 @@ public:
   }
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   Iterator pushBack(const std::initializer_list<T> value_list) {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
       return priv::BufferArrayImplementation::pushBack(getData(), getValType(), value_list);
@@ -98,12 +100,15 @@ public:
   }
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   ValueRef pushFront(T value) noexcept {return insert<T>(0, value);}
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   Iterator pushFront(std::initializer_list<T> value_list) {return insert<T>(0, value_list);}
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   ValueRef insert(size_t at, T value) noexcept {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
       return priv::BufferArrayImplementation::insert(getData(), getBitWidth(), at, 1, value);
@@ -111,6 +116,7 @@ public:
   }
 
   template<typename T>
+  requires extended_type_traits::is_crtp_base_of_v<arithmetic::ArithmeticTypeBase, T> || extended_type_traits::is_arithmetic_without_cvref_v<T>
   Iterator insert(size_t at, std::initializer_list<T> value_list) {
     if(auto lk = getLock(MtxLockType::unique_locked); lk)
       return priv::BufferArrayImplementation::insert(getData(), getBitWidth(), at, 1, value_list);

@@ -1,7 +1,7 @@
 #ifndef MULTI_MAP_HXX
 #define MULTI_MAP_HXX
 
-#include "named_variable.hxx"
+#include "field.hxx"
 
 namespace binom {
 
@@ -40,8 +40,10 @@ class MultiMap : public Variable {
   Variable& changeLink(const Variable& other) = delete;
   Variable& changeLink(Variable&& other) = delete;
 
+  friend class priv::TableImplementation;
   priv::MultiMapImplementation* getData();
   const priv::MultiMapImplementation* getData() const;
+
 
   friend class Variable;
   MultiMap(priv::Link&& link);

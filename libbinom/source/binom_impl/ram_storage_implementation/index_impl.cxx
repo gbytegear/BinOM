@@ -1,5 +1,5 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/index_impl.hxx"
-#include "libbinom/include/variables/named_variable.hxx"
+#include "libbinom/include/variables/field.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -83,27 +83,49 @@ Index::~Index() {
 binom::KeyValue Index::getKey() const { return key; }
 
 binom::Error Index::add(Field& field) {
+
+  // Compare keys
+  if(key != field.getKey()) return ErrorType::invalid_data;
+
   if(!field.isCanBeIndexed()) return ErrorType::binom_invalid_type;
   if(field.data.local.key != key) return ErrorType::invalid_data;
 
   switch (type) {
   case IndexType::unique_index:
     if(auto result = data.unique_index.insert(&field); result.second)
-      field.addIndex(this, result.first);
+      return field.addIndex(self, result.first);
     else return ErrorType::binom_key_unique_error;
     return ErrorType::no_error;
 
   case IndexType::multi_index:
-    field.addIndex(this, data.multi_index.insert(&field));
+    return field.addIndex(self, data.multi_index.insert(&field));
   return ErrorType::no_error;
   }
+}
+
+Error Index::remove(Field& field) {
+  if(field.type != FieldType::indexed) return ErrorType::binom_out_of_range;
+
+  if(auto entry_it = field.data.indexed.indexed_at.find(this);
+     entry_it != field.data.indexed.indexed_at.cend()) {
+    switch (type) {
+    case IndexType::unique_index:
+      data.unique_index.erase(entry_it->second);
+    break;
+    case IndexType::multi_index:
+      data.multi_index.erase(entry_it->second);
+    break;
+    }
+    field.removeIndex(entry_it);
+    return ErrorType::no_error;
+  } else return ErrorType::binom_out_of_range;
 }
 
 binom::Error Index::unlink(Iterator it) {
   switch (type) {
   case IndexType::unique_index:
     data.unique_index.erase(it);
-    return ErrorType::no_error;
+  return ErrorType::no_error;
 
   case IndexType::multi_index:
     data.multi_index.erase(it);
@@ -146,7 +168,15 @@ void Field::setEmpty() {
   }
 }
 
-Error Field::addIndex(Index* index_ptr, Index::Iterator self_iterator) {
+bool Field::isCanBeIndexed() {
+  return type == FieldType::empty
+      ? false
+      : type == FieldType::indexed
+        ? true
+        : toKeyType(data.local.value.getType()) != VarKeyType::invalid_type;
+}
+
+Error Field::addIndex(Index& index, Index::Iterator self_iterator) {
   switch (type) {
   case FieldType::empty: return ErrorType::invalid_data;
   case FieldType::local: {
@@ -154,24 +184,58 @@ Error Field::addIndex(Index* index_ptr, Index::Iterator self_iterator) {
 
     data.local.~LocalField();
     new(&data.indexed) FieldData::IndexedField{
-      .index_list{{index_ptr, self_iterator}},
+      .indexed_at{{&index, self_iterator}},
       .value = std::move(value)
     };
   } return ErrorType::no_error;
 
 
   case FieldType::indexed:
-    data.indexed.index_list.emplace_back(index_ptr, self_iterator);
+    data.indexed.indexed_at.emplace(&index, self_iterator);
   return ErrorType::no_error;
   }
 }
 
-bool Field::isCanBeIndexed() {
-  return type == FieldType::empty
-      ? false
-      : type == FieldType::indexed
-        ? true
-        : toKeyType(data.local.value.getType()) != VarKeyType::invalid_type;
+Error Field::removeIndex(Index& index) {
+  switch (type) {
+  case FieldType::empty: return ErrorType::binom_out_of_range;
+  case FieldType::local: return ErrorType::binom_out_of_range;
+  case FieldType::indexed:
+    if(auto entry_it = data.indexed.indexed_at.find(&index); entry_it != data.indexed.indexed_at.cend()) {
+      if(data.indexed.indexed_at.size() == 1) {
+        KeyValue key = entry_it->first->key;
+        Variable value = data.indexed.value;
+        data.indexed.indexed_at.erase(entry_it);
+        data.indexed.~IndexedField();
+        new(&data.local) FieldData::LocalField {
+          .key = std::move(key),
+          .value = value.move()
+        };
+        type = FieldType::local;
+      } else data.indexed.indexed_at.erase(entry_it);
+      return ErrorType::no_error;
+    } else return ErrorType::binom_out_of_range;
+  }
+}
+
+Error Field::removeIndex(std::map<Index*, Index::Iterator>::iterator entry_it) {
+  switch (type) {
+  case FieldType::empty: return ErrorType::binom_out_of_range;
+  case FieldType::local: return ErrorType::binom_out_of_range;
+  case FieldType::indexed:
+    if(data.indexed.indexed_at.size() == 1) {
+      KeyValue key = entry_it->first->key;
+      Variable value = data.indexed.value;
+      data.indexed.indexed_at.erase(entry_it);
+      data.indexed.~IndexedField();
+      new(&data.local) FieldData::LocalField {
+        .key = std::move(key),
+        .value = value.move()
+      };
+      type = FieldType::local;
+    } else data.indexed.indexed_at.erase(entry_it);
+  return ErrorType::no_error;
+  }
 }
 
 Field::Field(binom::priv::WeakLink owner, KeyValue key, Variable value)
@@ -194,7 +258,7 @@ Field::Field(Field&& other)
 
   case FieldType::indexed:
     new(&data.indexed) FieldData::IndexedField {
-      .index_list = std::move(other.data.indexed.index_list),
+      .indexed_at = std::move(other.data.indexed.indexed_at),
       .value = std::move(other.data.indexed.value)
     };
     other.setEmpty();
@@ -216,7 +280,7 @@ KeyValue Field::getKey() const {
   default:
   case FieldType::empty: return {};
   case FieldType::local: return data.local.key;
-  case FieldType::indexed: return data.indexed.index_list.front().index_ptr->getKey();
+  case FieldType::indexed: return data.indexed.indexed_at.begin()->first->getKey();
   }
 }
 
@@ -226,13 +290,16 @@ KeyValue Field::setKey(KeyValue key) {
   case FieldType::empty: return {};
   case FieldType::local: return data.local.key = key;
   case FieldType::indexed:
-  // TODO: Reindex
-  // Get table list from owner
-  // find in tables field(s) with name 'key'
-  // * If field(s) is finded - add this field to index
-  // * If field(s) isn't finded - change this field type to local
+    data.indexed.unlinkFromIndexes();
+    Variable owner_var = Link(owner);
 
-  return data.indexed.index_list.front().index_ptr->getKey(); // TEMPORARY STUB!!!
+    // TODO: Reindex
+    // Get table list from owner
+    // find in tables field(s) with name 'key'
+    // * If field(s) is finded - add this field to index
+    // * If field(s) isn't finded - change this field type to local
+
+  return data.indexed.indexed_at.begin()->first->getKey(); // TEMPORARY STUB!!!
   }
 }
 
@@ -259,7 +326,8 @@ Variable Field::setValue(Variable value) {
   default:
   case FieldType::empty: return {};
   case FieldType::local: return (data.local.value = value).move();
-  case FieldType::indexed: return data.indexed.value = value.move();
+  case FieldType::indexed:
+    return data.indexed.value = value.move();
   }
 }
 
@@ -269,7 +337,7 @@ bool MapComparator::operator()(const KeyValue& search_value, const Field& field)
   switch (field.type) {
   default: case FieldType::empty: return false;
   case FieldType::local: return search_value < field.data.local.key;
-  case FieldType::indexed: return search_value < field.data.indexed.index_list.front().index_ptr->key;
+  case FieldType::indexed: return search_value < field.data.indexed.indexed_at.begin()->first->key;
   }
 }
 
@@ -277,7 +345,7 @@ bool MapComparator::operator()(const Field& field, const KeyValue& search_value)
   switch (field.type) {
   default: case FieldType::empty: return true;
   case FieldType::local: return field.data.local.key < search_value;
-  case FieldType::indexed: return field.data.indexed.index_list.front().index_ptr->key < search_value;
+  case FieldType::indexed: return field.data.indexed.indexed_at.begin()->first->key < search_value;
   }
 }
 
@@ -288,12 +356,12 @@ bool MapComparator::operator()(const Field& lhs, const Field& rhs) const {
     switch (rhs.type) {
     default: case FieldType::empty: return false;
     case FieldType::local: return lhs.data.local.key < rhs.data.local.key;
-    case FieldType::indexed: return lhs.data.local.key < rhs.data.indexed.index_list.front().index_ptr->key;
+    case FieldType::indexed: return lhs.data.local.key < rhs.data.indexed.indexed_at.begin()->first->key;
     }
   case FieldType::indexed: switch (rhs.type) {
     default: case FieldType::empty: return false;
-    case FieldType::local: return lhs.data.indexed.index_list.front().index_ptr->key < rhs.data.local.key;
-    case FieldType::indexed: return lhs.data.indexed.index_list.front().index_ptr->key < rhs.data.indexed.index_list.front().index_ptr->key;
+    case FieldType::local: return lhs.data.indexed.indexed_at.begin()->first->key < rhs.data.local.key;
+    case FieldType::indexed: return lhs.data.indexed.indexed_at.begin()->first->key < rhs.data.indexed.indexed_at.begin()->first->key;
     }
   }
 }

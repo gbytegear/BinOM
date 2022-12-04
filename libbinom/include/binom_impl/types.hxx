@@ -740,9 +740,10 @@ struct ArrayLiteral             : public heritable_initializer_list::HeritableIn
 struct ListLiteral              : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
 struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
 struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
-struct ColumnDescriptor;
-struct TableDescriptor;
-struct TableLiteral;
+struct TableLiteral {
+  std::initializer_list<std::pair<KeyValue, IndexType>> header;
+  std::initializer_list<MultiMap> row_list;
+};
 
 }
 

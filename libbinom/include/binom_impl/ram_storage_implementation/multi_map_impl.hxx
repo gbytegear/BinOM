@@ -13,8 +13,13 @@
 namespace binom::priv {
 
 class MultiMapImplementation {
-  std::list<Link>* table_list = nullptr;
+  friend class TableImplementation;
+  friend class binom::index::Field;
+
+  std::list<TableImplementation*>* table_list = nullptr;
   std::multiset<index::Field, index::MapComparator> data;
+
+  void insertTable(TableImplementation& table);
 public:
   using NewNodePosition = MultiAVLTree::NewNodePosition;
   typedef std::multiset<index::Field, index::MapComparator> ContainerType;

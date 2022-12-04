@@ -95,15 +95,12 @@ Variable::Variable(const literals::arr array)
 Variable::Variable(const literals::list list)
   : Variable(ResourceData{VarType::list, {.list_implementation = new priv::ListImplementation(list)}}) {}
 
-//Variable::Variable(const literals::map map)
-//  : Variable(ResourceData{VarType::map, {.map_implementation = new priv::MapImplementation(map)}}) {}
-
 Variable::Variable(const literals::map map) : Variable(createMap(map)) {}
 
-//Variable::Variable(const literals::multimap multimap, NewNodePosition pos)
-//  : Variable(ResourceData{VarType::multimap, {.multi_map_implementation = new priv::MultiMapImplementation(multimap, pos)}}) {}
-
 Variable::Variable(const literals::multimap multimap, NewNodePosition pos) : Variable(createMultiMap(multimap)) {}
+
+binom::Variable::Variable(const literals::table table)
+ : Variable(ResourceData{VarType::table, {.table_implementation = new priv::TableImplementation(table)}}) {}
 
 Variable::Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}
