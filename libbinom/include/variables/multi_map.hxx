@@ -44,9 +44,12 @@ class MultiMap : public Variable {
   priv::MultiMapImplementation* getData();
   const priv::MultiMapImplementation* getData() const;
 
-
   friend class Variable;
   MultiMap(priv::Link&& link);
+
+  friend class priv::TableImplementation;
+  Error addTable(priv::TableImplementation& table);
+
 public:
 //  using NamedVariable = binom::priv::MultiMapImplementation::NamedVariable;
   typedef priv::MultiMapImplementation::Iterator             Iterator;

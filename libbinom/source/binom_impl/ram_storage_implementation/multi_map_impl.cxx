@@ -7,11 +7,6 @@ using namespace binom;
 using namespace binom::priv;
 using namespace binom::literals;
 
-void MultiMapImplementation::insertTable(TableImplementation& table) {
-  if(!table_list) table_list = new std::list<TableImplementation*>();
-  table_list->push_back(&table);
-}
-
 MultiMapImplementation::MultiMapImplementation(WeakLink owner, const multimap& map) {
   for(auto& element : map)
     insert(owner, std::move(element.getKeyRef()), element.getVariableRef().move());
@@ -114,3 +109,8 @@ MultiMapImplementation::ConstIterator MultiMapImplementation::cend() const noexc
 MultiMapImplementation::ConstReverseIterator MultiMapImplementation::crbegin() const noexcept {return data.crbegin();}
 
 MultiMapImplementation::ConstReverseIterator MultiMapImplementation::crend() const noexcept {return data.crend();}
+
+void MultiMapImplementation::addTable(TableImplementation& table) {
+  if(!table_list) table_list = new std::set<TableImplementation*>();
+  table_list->insert(&table);
+}

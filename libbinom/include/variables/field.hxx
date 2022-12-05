@@ -69,6 +69,7 @@ class FieldRef : public priv::FieldBase<FieldRef> {
   friend class priv::MultiMapImplementation;
   friend class priv::TableImplementation;
 
+  friend class index::Index;
   friend class index::Iterator;
   friend class index::ConstIterator;
   friend class index::ReverseIterator;
@@ -90,28 +91,6 @@ public:
 
   using priv::FieldBase<FieldRef>::operator=;
 };
-
-//class FieldRef : public priv::FieldBase<FieldRef> {
-//  template<typename Driven>
-//  friend class priv::FieldBase;
-//  friend class priv::MapImplementation;
-//  friend class priv::MultiMapImplementation;
-//  typedef std::pair<const KeyValue, Variable> KeyVariablePair;
-
-//  KeyVariablePair& pair;
-
-//  inline Variable& getVariableRef() noexcept {return pair.second;}
-//  inline const Variable& getVariableRef() const noexcept {return pair.second;}
-//  inline const KeyValue& getKeyRef() const noexcept {return pair.first;}
-
-//  friend class priv::MapImplementation;
-//  friend class priv::MapImplementation::Iterator;
-//  friend class priv::MapImplementation::ReverseIterator;
-//  FieldRef(const KeyVariablePair& pair) : pair(const_cast<KeyVariablePair&>(pair)) {}
-//public:
-//  FieldRef(const FieldRef& other) : pair(const_cast<KeyVariablePair&>(other.pair)) {}
-//  FieldRef(FieldRef& other) : pair(other.pair) {}
-//};
 
 }
 

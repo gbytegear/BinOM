@@ -16,10 +16,9 @@ class MultiMapImplementation {
   friend class TableImplementation;
   friend class binom::index::Field;
 
-  std::list<TableImplementation*>* table_list = nullptr;
+  std::set<TableImplementation*>* table_list = nullptr;
   std::multiset<index::Field, index::MapComparator> data;
 
-  void insertTable(TableImplementation& table);
 public:
   using NewNodePosition = MultiAVLTree::NewNodePosition;
   typedef std::multiset<index::Field, index::MapComparator> ContainerType;
@@ -82,6 +81,7 @@ public:
   ConstReverseIterator crbegin() const noexcept;
   ConstReverseIterator crend() const noexcept;
 
+  void addTable(TableImplementation& table);
 
 };
 

@@ -20,12 +20,15 @@ enum class ErrorType : ui8 {
 
   // BinOM Exceptions
   binom_invalid_type,
+  binom_invalid_key_type,
   binom_resource_not_available,
   binom_out_of_range,
   binom_key_unique_error,
   binom_row_has_no_fields_for_indexing,
-
   binom_invalid_column_name,
+
+  // BinOM Critical errors
+  binom_data_corrupted
 };
 
 class Error : public std::exception {
@@ -46,23 +49,24 @@ public:
 
 inline const char* Error::what() const noexcept {
   switch (err_type) {
-  case ErrorType::no_error: return                  "";
-  case ErrorType::out_of_range: return              "Out of range";
-  case ErrorType::file_open_error: return           "File open error";
-  case ErrorType::invalid_data: return              "Invalid data";
-  case ErrorType::null_ponter_dereference: return   "Trying to dereference null-pointer";
+  case ErrorType::no_error: return                              "Not a error";
+  case ErrorType::out_of_range: return                          "Out of range";
+  case ErrorType::file_open_error: return                       "File open error";
+  case ErrorType::invalid_data: return                          "Invalid data";
+  case ErrorType::null_ponter_dereference: return               "Trying to dereference null-pointer";
 
-  case ErrorType::binom_invalid_type: return        "BinOM: Invalid BinOM type";
+  case ErrorType::binom_invalid_type: return                    "BinOM: Invalid BinOM type";
   case ErrorType::binom_resource_not_available:
-  return                                            "BinOM: Variable resource isn't available";
-  case ErrorType::binom_out_of_range: return        "BinOM: Out of BinOM container range";
-  case ErrorType::binom_key_unique_error: return    "BinOM: Non-unique key";
-  case ErrorType::binom_invalid_column_name: return "BinOM: Column with given name does not exist";
-  case ErrorType::binom_row_has_no_fields_for_indexing:
-  return "BinOM: Row has no fields for indexing";
+  return                                                        "BinOM: Variable resource isn't available";
+  case ErrorType::binom_out_of_range: return                    "BinOM: Out of BinOM container range";
+  case ErrorType::binom_key_unique_error: return                "BinOM: Non-unique key";
+  case ErrorType::binom_invalid_column_name: return             "BinOM: Column with given name does not exist";
+  case ErrorType::binom_row_has_no_fields_for_indexing: return  "BinOM: Row has no fields for indexing";
 
-  case ErrorType::any: return                       "Unknown exception";
-  default: return                                   "Invalid error codes";
+  case ErrorType::binom_data_corrupted: return                  "BinOM critical error: Data corrupted";
+
+  case ErrorType::any: return                                   "Unknown exception";
+  default: return                                               "Invalid error codes";
   }
 }
 

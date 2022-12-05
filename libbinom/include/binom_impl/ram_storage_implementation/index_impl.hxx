@@ -74,6 +74,8 @@ namespace binom::index {
 class Index {
   friend Field;
   friend MapComparator;
+  friend binom::priv::TableImplementation;
+  friend IndexComparator;
 public:
   class Comparator {
   public:
@@ -82,6 +84,13 @@ public:
     bool operator()(const Field*& cell, const KeyValue& search_value) const;
     bool operator()(Field* const& lhs, Field* const& rhs) const;
   };
+
+  static_assert (
+  std::is_same_v<std::set<Field*, Comparator>::iterator, std::multiset<Field*, Comparator>::iterator> &&
+  std::is_same_v<std::set<Field*, Comparator>::const_iterator, std::multiset<Field*, Comparator>::const_iterator> &&
+  std::is_same_v<std::set<Field*, Comparator>::reverse_iterator, std::multiset<Field*, Comparator>::reverse_iterator> &&
+  std::is_same_v<std::set<Field*, Comparator>::const_reverse_iterator, std::multiset<Field*, Comparator>::const_reverse_iterator>
+  , "std::set and std::multiset iterators isn't same");
 
 private:
 
@@ -109,25 +118,10 @@ private:
   IndexData data;
 
   Error unlink(std::set<Field*, Comparator>::iterator it);
-
-public:
-  typedef std::set<Field*, Comparator>::iterator Iterator;
-  typedef std::set<Field*, Comparator>::const_iterator ConstIterator;
-  typedef std::set<Field*, Comparator>::reverse_iterator ReverseIterator;
-  typedef std::set<Field*, Comparator>::const_reverse_iterator ConstReverseIterator;
-
-  static_assert (
-  std::is_same_v<std::set<Field*, Comparator>::iterator, std::multiset<Field*, Comparator>::iterator> &&
-  std::is_same_v<std::set<Field*, Comparator>::const_iterator, std::multiset<Field*, Comparator>::const_iterator> &&
-  std::is_same_v<std::set<Field*, Comparator>::reverse_iterator, std::multiset<Field*, Comparator>::reverse_iterator> &&
-  std::is_same_v<std::set<Field*, Comparator>::const_reverse_iterator, std::multiset<Field*, Comparator>::const_reverse_iterator>
-  , "std::set and std::multiset iterators isn't same");
-
-  Index(IndexType type, KeyValue key);
-  Index(const Index&) = delete;
-  Index(Index&&) = delete;
-
-  ~Index();
+  std::shared_mutex& getMutex() const {return mtx;}
+  SharedRecursiveLock getLock(MtxLockType lock_type) const {return SharedRecursiveLock(&mtx, lock_type);}
+  Error add(Field& field);
+  Error remove(Field& field);
 
   bool operator==(const Index& other) const { return key == other.key; }
   bool operator!=(const Index& other) const { return key != other.key; }
@@ -143,21 +137,101 @@ public:
   bool operator>=(const KeyValue& key) const { return self.key >= key; }
   bool operator<=(const KeyValue& key) const { return self.key <= key; }
 
+public:
 
-  std::shared_mutex& getMutex() const {return mtx;}
-  SharedRecursiveLock getLock(MtxLockType lock_type) const {return SharedRecursiveLock(&mtx, lock_type);}
+  Index(IndexType type, KeyValue key);
+  Index(const Index&) = delete;
+  Index(Index&&) = delete;
+  ~Index();
+
+  class Iterator : public std::set<Field*, Comparator>::iterator {
+    typedef std::set<Field*, Comparator>::iterator Base;
+    Index* index_ptr;
+  public:
+    Iterator(Index* index_ptr, Base map_it);
+    Iterator(const Iterator& other);
+    Iterator(Iterator&& other);
+    FieldRef operator*();
+    pseudo_ptr::PseudoPointer<FieldRef> operator->();
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  };
+
+  class ConstIterator : public std::set<Field*, Comparator>::const_iterator {
+    typedef std::set<Field*, Comparator>::const_iterator Base;
+    Index* index_ptr;
+  public:
+    ConstIterator(const Index* index_ptr, Base map_it);
+    ConstIterator(const ConstIterator& other);
+    ConstIterator(ConstIterator&& other);
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  };
+
+  class ReverseIterator : public std::set<Field*, Comparator>::reverse_iterator {
+    typedef std::set<Field*, Comparator>::reverse_iterator Base;
+    Index* index_ptr;
+  public:
+    ReverseIterator(Index* index_ptr, Base map_it);
+    ReverseIterator(const ReverseIterator& other);
+    ReverseIterator(ReverseIterator&& other);
+    FieldRef operator*();
+    pseudo_ptr::PseudoPointer<FieldRef> operator->();
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  };
+
+  class ConstReverseIterator : public std::set<Field*, Comparator>::const_reverse_iterator {
+    typedef std::set<Field*, Comparator>::const_reverse_iterator Base;
+    Index* index_ptr;
+  public:
+    ConstReverseIterator(const Index* index_ptr, Base map_it);
+    ConstReverseIterator(const ConstReverseIterator& other);
+    ConstReverseIterator(ConstReverseIterator&& other);
+    const FieldRef operator*() const;
+    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+  };
+
   KeyValue getKey() const;
-  Error add(Field& field);
-  Error remove(Field& field);
+
+  Iterator find(KeyValue key) {return Iterator(this, type == IndexType::unique_index ? data.unique_index.find(key) : data.multi_index.find(key));}
+//  ReverseIterator rfind(KeyValue key) {return ReverseIterator(this, type == IndexType::unique_index ? data.unique_index.find(key) : data.multi_index.find(key));}
+  Iterator findLast(KeyValue key);
+  ReverseIterator rfindLast(KeyValue key);
+
+  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const;
+
+  ConstIterator find(KeyValue key) const;
+  ConstReverseIterator rfind(KeyValue key) const;
+  ConstIterator findLast(KeyValue key) const;
+  ConstReverseIterator rfindLast(KeyValue key) const;
+
+  Iterator begin() {return Iterator(this, type == IndexType::unique_index ? data.unique_index.begin() : data.multi_index.begin());}
+  Iterator end() {return Iterator(this, type == IndexType::unique_index ? data.unique_index.end() : data.multi_index.end());}
+  ConstIterator begin() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.begin() : data.multi_index.begin());}
+  ConstIterator end() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.end() : data.multi_index.end());}
+  ConstIterator cbegin() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.cbegin() : data.multi_index.cbegin());}
+  ConstIterator cend() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.cend() : data.multi_index.cend());}
+  ReverseIterator rbegin() {return ReverseIterator(this, type == IndexType::unique_index ? data.unique_index.rbegin() : data.multi_index.rbegin());}
+  ReverseIterator rend() {return ReverseIterator(this, type == IndexType::unique_index ? data.unique_index.rend() : data.multi_index.rend());}
+  ConstReverseIterator rbegin() const {return ConstReverseIterator(this, type == IndexType::unique_index ? data.unique_index.crbegin() : data.multi_index.crbegin());}
+  ConstReverseIterator rend() const {return ConstReverseIterator(this, type == IndexType::unique_index ? data.unique_index.crend() : data.multi_index.crend());}
 
 };
 
 struct IndexComparator {
   using is_transparent = void;
-  bool operator()(const KeyValue& search_value, const Index& index) const {return index > search_value;}
-  bool operator()(const Index& index, const KeyValue& search_value) const {return index < search_value;}
-  bool operator()(const Index& lhs, const Index& rhs) const {return lhs < rhs;}
+  inline bool operator()(const KeyValue& search_value, const Index& index) const {return index > search_value;}
+  inline bool operator()(const Index& index, const KeyValue& search_value) const {return index < search_value;}
+  inline bool operator()(const Index& lhs, const Index& rhs) const {return lhs < rhs;}
 };
+
+
+
+
+
+
 
 
 
@@ -176,7 +250,7 @@ private:
     };
 
     struct IndexedField {
-      std::map<Index*, Index::Iterator> indexed_at;
+      std::map<Index*, std::set<Field*, Index::Comparator>::iterator> indexed_at;
       KeyValue value;
 
       TransactionLock makeTransaction(MtxLockType lock_type) {
@@ -213,9 +287,9 @@ private:
   void setEmpty();
   bool isCanBeIndexed();
 
-  Error addIndex(Index& index, Index::Iterator self_iterator);
+  Error addIndex(Index& index, std::set<Field*, Index::Comparator>::iterator self_iterator);
   Error removeIndex(Index& index);
-  Error removeIndex(std::map<Index*, Index::Iterator>::iterator entry_it);
+  Error removeIndex(std::map<Index*, std::set<Field*, Index::Comparator>::iterator>::iterator entry_it);
 
 public:
   Field(binom::priv::WeakLink owner, KeyValue key, Variable value);
@@ -239,6 +313,9 @@ struct MapComparator {
   bool operator()(const Field& cell, const KeyValue& search_value) const;
   bool operator()(const Field& lhs, const Field& rhs) const;
 };
+
+
+
 
 
 

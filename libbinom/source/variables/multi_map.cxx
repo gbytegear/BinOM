@@ -263,3 +263,10 @@ MultiMap& MultiMap::changeLink(MultiMap&& other) {
   this->~MultiMap();
   return *new(this) MultiMap(std::move(other));
 }
+
+Error binom::MultiMap::addTable(priv::TableImplementation& table) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk) {
+    getData()->addTable(table);
+    return ErrorType::no_error;
+  } else return ErrorType::binom_resource_not_available;
+}

@@ -22,10 +22,14 @@
     * [x] `binom::Array::Iterator`
     * [x] `binom::Array::ReverseIterator`
   * [x] `binom::List` - `std::list<Variable>`
-  * [x] `binom::Map` - `std::set<index::Field, index::MapComparator>`
-  * [x] `binom::MultiMap` - `std::multiset<index::Field, index::MapComparator>`
-  * [ ] `binom::Table`
-    * [x] `binom::Index`
+  * [ ] Indexed containers:
+    * [x] `namespace binom::index`
+      * [x] `binom::Index` - table column
+      * [x] `binom::Field` - map field or multimap field or table cell
+      * [x] `binom::FieldRef` - frontend of map field or multimap field or table cell
+    * [x] `binom::Map` - `std::set<index::Field, index::MapComparator>`
+    * [x] `binom::MultiMap` - `std::multiset<index::Field, index::MapComparator>`
+    * [ ] `binom::Table`
 * [ ] Implement serialization/deserialization methods of BinOM containers
   * [ ] `binom::Number` serialization/deserialization
   * [ ] `binom::BitArray` serialization/deserialization

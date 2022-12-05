@@ -121,7 +121,7 @@ Error Index::remove(Field& field) {
   } else return ErrorType::binom_out_of_range;
 }
 
-binom::Error Index::unlink(Iterator it) {
+binom::Error Index::unlink(std::set<Field*, Index::Comparator>::iterator it) {
   switch (type) {
   case IndexType::unique_index:
     data.unique_index.erase(it);
@@ -176,7 +176,7 @@ bool Field::isCanBeIndexed() {
         : toKeyType(data.local.value.getType()) != VarKeyType::invalid_type;
 }
 
-Error Field::addIndex(Index& index, Index::Iterator self_iterator) {
+Error Field::addIndex(Index& index, std::set<Field*, Index::Comparator>::iterator self_iterator) {
   switch (type) {
   case FieldType::empty: return ErrorType::invalid_data;
   case FieldType::local: {
@@ -218,7 +218,7 @@ Error Field::removeIndex(Index& index) {
   }
 }
 
-Error Field::removeIndex(std::map<Index*, Index::Iterator>::iterator entry_it) {
+Error Field::removeIndex(std::map<Index*, std::set<Field*, Index::Comparator>::iterator>::iterator entry_it) {
   switch (type) {
   case FieldType::empty: return ErrorType::binom_out_of_range;
   case FieldType::local: return ErrorType::binom_out_of_range;
@@ -431,3 +431,82 @@ ConstReverseIterator::ConstReverseIterator(ConstReverseIterator&& other) : Conta
 const FieldRef ConstReverseIterator::operator*() const {return *dynamic_cast<const ContainerType::const_reverse_iterator&>(self);}
 
 pseudo_ptr::PseudoPointer<const FieldRef> ConstReverseIterator::operator->() const {return *self;}
+
+
+
+
+
+
+
+Index::Iterator::Iterator(Index* index_ptr, Base map_it)
+  : index_ptr(index_ptr), Base(map_it) {}
+
+Index::Iterator::Iterator(const Iterator& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+Index::Iterator::Iterator(Iterator&& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+FieldRef Index::Iterator::operator*() {return **dynamic_cast<const Base&>(self);}
+
+pseudo_ptr::PseudoPointer<FieldRef> Index::Iterator::operator->() {return *self;}
+
+const FieldRef Index::Iterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> Index::Iterator::operator->() const {return *self;}
+
+
+
+
+
+Index::ConstIterator::ConstIterator(const Index* index_ptr, Base map_it)
+  : index_ptr(index_ptr), Base(map_it) {}
+
+Index::ConstIterator::ConstIterator(const ConstIterator& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+Index::ConstIterator::ConstIterator(ConstIterator&& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+const FieldRef Index::ConstIterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> Index::ConstIterator::operator->() const {return *self;}
+
+
+
+
+
+
+Index::ReverseIterator::ReverseIterator(Index* index_ptr, Base map_it)
+  : index_ptr(index_ptr), Base(map_it) {}
+
+Index::ReverseIterator::ReverseIterator(const ReverseIterator& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+Index::ReverseIterator::ReverseIterator(ReverseIterator&& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+FieldRef Index::ReverseIterator::operator*() {return **dynamic_cast<const Base&>(self);}
+
+pseudo_ptr::PseudoPointer<FieldRef> Index::ReverseIterator::operator->() {return *self;}
+
+const FieldRef Index::ReverseIterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> Index::ReverseIterator::operator->() const {return *self;}
+
+
+
+
+
+Index::ConstReverseIterator::ConstReverseIterator(const Index* index_ptr, Base map_it)
+  : index_ptr(index_ptr), Base(map_it) {}
+
+Index::ConstReverseIterator::ConstReverseIterator(const ConstReverseIterator& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+Index::ConstReverseIterator::ConstReverseIterator(ConstReverseIterator&& other)
+  : index_ptr(other.index_ptr), Base(other) {}
+
+const FieldRef Index::ConstReverseIterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+
+pseudo_ptr::PseudoPointer<const FieldRef> Index::ConstReverseIterator::operator->() const {return *self;}

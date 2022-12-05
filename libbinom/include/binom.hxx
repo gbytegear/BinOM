@@ -8,5 +8,6 @@
 #include "variables/list.hxx"
 #include "variables/map.hxx"
 #include "variables/multi_map.hxx"
+#include "variables/table.hxx"
 
 #endif // BINOM_HXX
