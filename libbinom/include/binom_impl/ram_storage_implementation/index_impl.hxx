@@ -28,20 +28,6 @@ class WeakLink {
   friend class Link;
   friend class binom::index::Field;
 
-  std::list<TableImplementation*> getTableList() {
-    if(auto lk = getLock(MtxLockType::shared_locked); lk) {
-      switch (resource->resource_data.type) {
-      default: return {};
-      case binom::VarType::map:
-
-      break;
-      case binom::VarType::multimap:
-
-      break;
-      }
-    } else return {};
-  }
-
 public:
   WeakLink() = default;
   WeakLink(const SharedResource& resource);
@@ -145,62 +131,195 @@ public:
   ~Index();
 
   class Iterator : public std::set<Field*, Comparator>::iterator {
+  public:
     typedef std::set<Field*, Comparator>::iterator Base;
+    typedef Base& BaseRef;
+    typedef Base&& BaseTmp;
+    typedef Iterator Self;
+    typedef Self& SelfRef;
+    typedef Self&& SelfTmp;
+
+  private:
+    inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+    static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+    static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
     Index* index_ptr;
+
   public:
     Iterator(Index* index_ptr, Base map_it);
     Iterator(const Iterator& other);
     Iterator(Iterator&& other);
+
     FieldRef operator*();
     pseudo_ptr::PseudoPointer<FieldRef> operator->();
     const FieldRef operator*() const;
     pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+    inline SelfRef operator++() {return downcast(++upcast());}
+    inline Self operator++(int) {return downcast(upcast()++);}
+    inline SelfRef operator--() {return downcast(--upcast());}
+    inline Self operator--(int) {return downcast(upcast()--);}
   };
 
   class ConstIterator : public std::set<Field*, Comparator>::const_iterator {
+  public:
     typedef std::set<Field*, Comparator>::const_iterator Base;
+    typedef Base& BaseRef;
+    typedef Base&& BaseTmp;
+    typedef ConstIterator Self;
+    typedef Self& SelfRef;
+    typedef Self&& SelfTmp;
+
+  private:
+    inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+    static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+    static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
     Index* index_ptr;
   public:
     ConstIterator(const Index* index_ptr, Base map_it);
     ConstIterator(const ConstIterator& other);
     ConstIterator(ConstIterator&& other);
+
     const FieldRef operator*() const;
     pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+    inline SelfRef operator++() {return downcast(++upcast());}
+    inline Self operator++(int) {return downcast(upcast()++);}
+    inline SelfRef operator--() {return downcast(--upcast());}
+    inline Self operator--(int) {return downcast(upcast()--);}
   };
 
   class ReverseIterator : public std::set<Field*, Comparator>::reverse_iterator {
+  public:
     typedef std::set<Field*, Comparator>::reverse_iterator Base;
+    typedef Base& BaseRef;
+    typedef Base&& BaseTmp;
+    typedef ReverseIterator Self;
+    typedef Self& SelfRef;
+    typedef Self&& SelfTmp;
+
+  private:
+    inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+    static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+    static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
     Index* index_ptr;
   public:
     ReverseIterator(Index* index_ptr, Base map_it);
     ReverseIterator(const ReverseIterator& other);
     ReverseIterator(ReverseIterator&& other);
+
     FieldRef operator*();
     pseudo_ptr::PseudoPointer<FieldRef> operator->();
     const FieldRef operator*() const;
     pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+    inline SelfRef operator++() {return downcast(++upcast());}
+    inline Self operator++(int) {return downcast(upcast()++);}
+    inline SelfRef operator--() {return downcast(--upcast());}
+    inline Self operator--(int) {return downcast(upcast()--);}
   };
 
   class ConstReverseIterator : public std::set<Field*, Comparator>::const_reverse_iterator {
+  public:
     typedef std::set<Field*, Comparator>::const_reverse_iterator Base;
+    typedef Base& BaseRef;
+    typedef Base&& BaseTmp;
+    typedef ConstReverseIterator Self;
+    typedef Self& SelfRef;
+    typedef Self&& SelfTmp;
+
+  private:
+    inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+    static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+    static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
     Index* index_ptr;
   public:
     ConstReverseIterator(const Index* index_ptr, Base map_it);
     ConstReverseIterator(const ConstReverseIterator& other);
     ConstReverseIterator(ConstReverseIterator&& other);
+
     const FieldRef operator*() const;
     pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+    inline SelfRef operator++() {return downcast(++upcast());}
+    inline Self operator++(int) {return downcast(upcast()++);}
+    inline SelfRef operator--() {return downcast(--upcast());}
+    inline Self operator--(int) {return downcast(upcast()--);}
   };
 
   KeyValue getKey() const;
 
-  Iterator find(KeyValue key) {return Iterator(this, type == IndexType::unique_index ? data.unique_index.find(key) : data.multi_index.find(key));}
-//  ReverseIterator rfind(KeyValue key) {return ReverseIterator(this, type == IndexType::unique_index ? data.unique_index.find(key) : data.multi_index.find(key));}
-  Iterator findLast(KeyValue key);
-  ReverseIterator rfindLast(KeyValue key);
+  std::pair<Iterator, Iterator> getRange(KeyValue key) {
+    return std::pair<Iterator, Iterator>(
+      find(key),
+      ++findLast(key)
+    );
+  }
 
-  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const;
-  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const;
+  std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key) {
+    return std::pair<ReverseIterator, ReverseIterator>(
+      rfind(key),
+      ++rfindLast(key)
+    );
+  }
+
+  Iterator find(KeyValue key) {
+    return Iterator(
+      this,
+      type == IndexType::unique_index
+      ? data.unique_index.find(key)
+      : data.multi_index.find(key)
+    );
+  }
+
+  ReverseIterator rfind(KeyValue key) {
+    return ReverseIterator(
+      this,
+      std::set<Field*, Comparator>::reverse_iterator(
+        type == IndexType::unique_index
+        ? --data.unique_index.upper_bound(key)
+        : --data.multi_index.upper_bound(key)
+      )
+    );
+  }
+
+  Iterator findLast(KeyValue key) {
+    return Iterator(
+      this,
+      type == IndexType::unique_index
+      ? --data.unique_index.upper_bound(key)
+      : --data.multi_index.upper_bound(key)
+    );
+  }
+
+  ReverseIterator rfindLast(KeyValue key) {
+    return ReverseIterator(
+      this,
+      std::set<Field*, Comparator>::reverse_iterator(
+        type == IndexType::unique_index
+        ? data.unique_index.find(key)
+        : data.multi_index.find(key)
+      )
+    );
+  }
+
+  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const {
+    return std::pair<ConstIterator, ConstIterator>(
+      find(key),
+      ++findLast(key)
+    );
+  }
+
+  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const {
+    return std::pair<ConstReverseIterator, ConstReverseIterator>(
+      rfind(key),
+      ++rfindLast(key)
+    );
+  }
 
   ConstIterator find(KeyValue key) const;
   ConstReverseIterator rfind(KeyValue key) const;
@@ -326,45 +445,125 @@ typedef std::set<index::Field, index::MapComparator> ContainerType;
 
 class Iterator : public ContainerType::iterator {
 public:
+  typedef ContainerType::iterator Base;
+  typedef Base& BaseRef;
+  typedef Base&& BaseTmp;
+  typedef Iterator Self;
+  typedef Self& SelfRef;
+  typedef Self&& SelfTmp;
+
+private:
+  inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+  static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+  static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
+public:
   Iterator(ContainerType::iterator map_it);
   Iterator(const Iterator& other);
   Iterator(Iterator&& other);
+
   FieldRef operator*();
   pseudo_ptr::PseudoPointer<FieldRef> operator->();
   const FieldRef operator*() const;
+
+  inline SelfRef operator++() {return downcast(++upcast());}
+  inline Self operator++(int) {return downcast(upcast()++);}
+  inline SelfRef operator--() {return downcast(--upcast());}
+  inline Self operator--(int) {return downcast(upcast()--);}
+
   pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
   static Iterator nullit() noexcept {return  ContainerType::iterator(nullptr);}
 };
 
 class ReverseIterator : public ContainerType::reverse_iterator {
 public:
+  typedef ContainerType::reverse_iterator Base;
+  typedef Base& BaseRef;
+  typedef Base&& BaseTmp;
+  typedef ReverseIterator Self;
+  typedef Self& SelfRef;
+  typedef Self&& SelfTmp;
+
+private:
+  inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+  static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+  static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
+public:
   ReverseIterator(ContainerType::reverse_iterator map_rit);
   ReverseIterator(const ReverseIterator& other);
   ReverseIterator(ReverseIterator&& other);
+
   FieldRef operator*();
   pseudo_ptr::PseudoPointer<FieldRef> operator->();
   const FieldRef operator*() const;
   pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+  inline SelfRef operator++() {return downcast(++upcast());}
+  inline Self operator++(int) {return downcast(upcast()++);}
+  inline SelfRef operator--() {return downcast(--upcast());}
+  inline Self operator--(int) {return downcast(upcast()--);}
+
   static ReverseIterator nullit() noexcept {return  ContainerType::reverse_iterator(Iterator::nullit());}
 };
 
 class ConstIterator : public ContainerType::const_iterator {
 public:
+  typedef ContainerType::const_iterator Base;
+  typedef Base& BaseRef;
+  typedef Base&& BaseTmp;
+  typedef ConstIterator Self;
+  typedef Self& SelfRef;
+  typedef Self&& SelfTmp;
+
+private:
+  inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+  static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+  static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
+public:
   ConstIterator(ContainerType::const_iterator map_it);
   ConstIterator(const ConstIterator& other);
   ConstIterator(ConstIterator&& other);
+
   const FieldRef operator*() const;
   pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+  inline SelfRef operator++() {return downcast(++upcast());}
+  inline Self operator++(int) {return downcast(upcast()++);}
+  inline SelfRef operator--() {return downcast(--upcast());}
+  inline Self operator--(int) {return downcast(upcast()--);}
+
   static ConstIterator nullit() noexcept {return  ContainerType::const_iterator(nullptr);}
 };
 
 class ConstReverseIterator : public ContainerType::const_reverse_iterator {
 public:
+  typedef ContainerType::const_reverse_iterator Base;
+  typedef Base& BaseRef;
+  typedef Base&& BaseTmp;
+  typedef ConstReverseIterator Self;
+  typedef Self& SelfRef;
+  typedef Self&& SelfTmp;
+
+private:
+  inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
+  static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
+  static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
+
+public:
   ConstReverseIterator(ContainerType::const_reverse_iterator map_rit);
   ConstReverseIterator(const ConstReverseIterator& other);
   ConstReverseIterator(ConstReverseIterator&& other);
+
   const FieldRef operator*() const;
   pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+
+  inline SelfRef operator++() {return downcast(++upcast());}
+  inline Self operator++(int) {return downcast(upcast()++);}
+  inline SelfRef operator--() {return downcast(--upcast());}
+  inline Self operator--(int) {return downcast(upcast()--);}
+
   static ConstReverseIterator nullit() noexcept {return  ContainerType::const_reverse_iterator(ConstIterator::nullit());}
 };
 

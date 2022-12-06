@@ -460,7 +460,7 @@ pseudo_ptr::PseudoPointer<const FieldRef> Index::Iterator::operator->() const {r
 
 
 Index::ConstIterator::ConstIterator(const Index* index_ptr, Base map_it)
-  : index_ptr(index_ptr), Base(map_it) {}
+  : index_ptr(const_cast<Index*>(index_ptr)), Base(map_it) {}
 
 Index::ConstIterator::ConstIterator(const ConstIterator& other)
   : index_ptr(other.index_ptr), Base(other) {}
@@ -499,7 +499,7 @@ pseudo_ptr::PseudoPointer<const FieldRef> Index::ReverseIterator::operator->() c
 
 
 Index::ConstReverseIterator::ConstReverseIterator(const Index* index_ptr, Base map_it)
-  : index_ptr(index_ptr), Base(map_it) {}
+  : index_ptr(const_cast<Index*>(index_ptr)), Base(map_it) {}
 
 Index::ConstReverseIterator::ConstReverseIterator(const ConstReverseIterator& other)
   : index_ptr(other.index_ptr), Base(other) {}
