@@ -66,9 +66,9 @@ public:
   class Comparator {
   public:
     using is_transparent = void;
-    bool operator()(const KeyValue& search_value, const Field*& cell) const;
-    bool operator()(const Field*& cell, const KeyValue& search_value) const;
-    bool operator()(Field* const& lhs, Field* const& rhs) const;
+    bool operator()(const KeyValue& search_value, const Field* const& cell) const;
+    bool operator()(const Field* const& cell, const KeyValue& search_value) const;
+    bool operator()(const Field* const& lhs, const Field* const& rhs) const;
   };
 
   static_assert (

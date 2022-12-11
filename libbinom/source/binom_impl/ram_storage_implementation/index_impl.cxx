@@ -136,15 +136,15 @@ binom::Error Index::unlink(std::set<Field*, Index::Comparator>::iterator it) {
 
 
 
-bool Index::Comparator::operator()(const KeyValue& search_value, const Field*& field) const {
+bool Index::Comparator::operator()(const KeyValue& search_value, const Field* const& field) const {
   return search_value < field->data.indexed.value;
 }
 
-bool Index::Comparator::operator()(const Field*& field, const KeyValue& search_value) const {
+bool Index::Comparator::operator()(const Field* const& field, const KeyValue& search_value) const {
   return field->data.indexed.value < search_value;
 }
 
-bool Index::Comparator::operator()(Field* const& lhs, Field* const& rhs) const {
+bool Index::Comparator::operator()(const Field* const& lhs, const Field* const& rhs) const {
   return lhs->data.indexed.value < rhs->data.indexed.value;
 }
 
