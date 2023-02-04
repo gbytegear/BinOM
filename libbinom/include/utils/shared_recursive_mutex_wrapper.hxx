@@ -37,7 +37,7 @@ struct Counters {
  * unlockShared() shared_lock => unlock;
  */
 class SharedRecursiveMutexWrapper {
-  static inline thread_local std::map<std::shared_mutex*, Counters> counter_storage;
+  thread_local static std::map<std::shared_mutex*, Counters> counter_storage;
   std::map<std::shared_mutex*, Counters>::iterator mtx_data = counter_storage.end();
 
   static std::map<std::shared_mutex*, Counters>::iterator createCountersRef(const std::shared_mutex* mtx) noexcept {
@@ -211,6 +211,7 @@ public:
     case MtxLockType::unique_locked:
       ++mtx_data->second.shared_lock_counter;
     return true;
+    default: return false;
     }
   }
 

@@ -49,6 +49,7 @@ class MultiMap : public Variable {
 
   friend class priv::TableImplementation;
   Error addTable(priv::TableImplementation& table);
+  Error removeTable(priv::TableImplementation& table);
 
 public:
 //  using NamedVariable = binom::priv::MultiMapImplementation::NamedVariable;

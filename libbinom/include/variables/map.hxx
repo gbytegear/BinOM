@@ -48,6 +48,10 @@ class Map : public Variable {
   friend class Variable;
   Map(priv::Link&& link);
 
+  friend class priv::TableImplementation;
+  Error addTable(priv::TableImplementation& table);
+  Error removeTable(priv::TableImplementation& table);
+
 public:
 //  using FieldRef = binom::index::FieldRef;
   typedef priv::MapImplementation::Iterator             Iterator;

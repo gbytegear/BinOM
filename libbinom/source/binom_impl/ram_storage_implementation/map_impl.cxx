@@ -104,3 +104,14 @@ MapImplementation::ConstReverseIterator MapImplementation::crbegin() const noexc
 
 MapImplementation::ConstReverseIterator MapImplementation::crend() const noexcept {return data.crend();}
 
+void MapImplementation::addTable(TableImplementation& table) {
+  if(!table_list) table_list = new std::set<TableImplementation*>();
+  table_list->insert(&table);
+}
+
+Error binom::priv::MapImplementation::removeTable(TableImplementation &table) {
+  if(!table_list) return ErrorType::out_of_range;
+  if(table_list->erase(&table) == 0) return ErrorType::out_of_range;
+  if(table_list->empty()) delete table_list;
+  return Error{};
+}

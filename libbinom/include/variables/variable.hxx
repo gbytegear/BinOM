@@ -10,6 +10,9 @@
 namespace binom {
 
 class Variable {
+public:
+  struct ResourceComparator;
+
 protected:
   using Link = priv::Link;
   using ResourceData = priv::ResourceData;
@@ -20,18 +23,16 @@ protected:
 
   Variable(ResourceData data);
 
-//  static void serializeImpl(const Variable& variable, std::vector<byte>& buffer);
-//  static void serializeImpl(const Number& number, std::vector<byte>& buffer);
-//  static void serializeImpl(const BitArray& bit_array, std::vector<byte>& buffer);
-//  static void serializeImpl(const BufferArray& buffer_array, std::vector<byte>& buffer);
-//  static void serializeImpl(const Array& array, std::vector<byte>& buffer);
-//  static void serializeImpl(const List& dl_list, std::vector<byte>& buffer);
-//  static void serializeImpl(const Map& map, std::vector<byte>& buffer);
-//  static void serializeImpl(const Table& bit_array, std::vector<byte>& buffer);
+  friend Variable::ResourceComparator;
+  inline Link& getLink() { return resource_link; }
+  inline const Link& getLink() const { return resource_link; }
 
 public:
   using NewNodePosition = binom::priv::MultiAVLTree::NewNodePosition;
-//  using TransactionLock = shared_recursive_mtx::TransactionLock;
+
+  struct ResourceComparator {
+    inline bool operator()(const Variable& lhs, const Variable& rhs) const { return lhs.getLink() < rhs.getLink(); }
+  };
 
   Variable(Link&& link);
 

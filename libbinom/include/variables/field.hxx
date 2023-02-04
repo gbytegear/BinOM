@@ -89,6 +89,11 @@ public:
   FieldRef(const FieldRef& other) : data(const_cast<index::Field*>(other.data)) {}
   FieldRef(FieldRef& other) : data(other.data) {}
 
+  Variable getOwner() { return data->getOwner(); }
+  const Variable getOwner() const { return data->getOwner(); }
+
+  bool isIndexed() const { return data->isIndexed(); }
+
   using priv::FieldBase<FieldRef>::operator=;
 };
 

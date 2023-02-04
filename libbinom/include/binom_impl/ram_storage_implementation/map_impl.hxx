@@ -11,7 +11,7 @@
 namespace binom::priv {
 
 class MapImplementation {
-  std::list<TableImplementation*>* table_list = nullptr;
+  std::set<TableImplementation*>* table_list = nullptr;
   std::set<index::Field, index::MapComparator> data;
 public:
   typedef std::set<index::Field, index::MapComparator> ContainerType;
@@ -66,6 +66,9 @@ public:
 
   ConstReverseIterator crbegin() const noexcept;
   ConstReverseIterator crend() const noexcept;
+
+  void addTable(TableImplementation& table);
+  Error removeTable(TableImplementation& table);
 
 };
 

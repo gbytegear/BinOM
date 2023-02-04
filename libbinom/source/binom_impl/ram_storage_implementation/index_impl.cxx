@@ -75,8 +75,14 @@ Index::Index(IndexType type, KeyValue key) :
 
 Index::~Index() {
   switch (type) {
-  case IndexType::unique_index: data.unique_index.~set(); return;
-  case IndexType::multi_index: data.multi_index.~multiset(); return;
+  case IndexType::unique_index:
+    for(auto field : data.unique_index) remove(*field);
+    data.unique_index.~set();
+  return;
+  case IndexType::multi_index:
+    for(auto field : data.multi_index) remove(*field);
+    data.multi_index.~multiset();
+  return;
   }
 }
 
@@ -331,7 +337,8 @@ Variable Field::setValue(Variable value) {
   }
 }
 
-
+Variable binom::index::Field::getOwner() { return Link(owner); }
+const Variable binom::index::Field::getOwner() const { return Link(owner); }
 
 bool MapComparator::operator()(const KeyValue& search_value, const Field& field) const {
   switch (field.type) {

@@ -270,3 +270,10 @@ Error binom::MultiMap::addTable(priv::TableImplementation& table) {
     return ErrorType::no_error;
   } else return ErrorType::binom_resource_not_available;
 }
+
+Error binom::MultiMap::removeTable(priv::TableImplementation & table) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk) {
+    getData()->removeTable(table);
+    return ErrorType::no_error;
+  } else return ErrorType::binom_resource_not_available;
+}

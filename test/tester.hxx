@@ -111,6 +111,9 @@ extern thread_local size_t log_depth = 0;
 #define RED_TXT "\x1B[97;101m"
 #define GREEN_TXT "\x1B[32m"
 
+
+// Test utilits
+
 #define SEPARATOR std::cout << "\x1B[97m=============================================================================\033[0m\n\r";  std::cout.flush();
 
 #define PRINT_RUN(expression) \
@@ -130,6 +133,7 @@ extern thread_local size_t log_depth = 0;
                "\x1B[94m[i]\033[0m - log\n\r" \
                "\x1B[92m[✓]\033[0m - passed test\n\r" \
                "\x1B[97;41m[✗]\033[0m - failed test\n\r"; std::cout.flush();
+
 
 [[noreturn]] void __signal_handler(int signum);
 

@@ -96,6 +96,16 @@ public:
   ResourceData* operator*() const noexcept;
   ResourceData* operator->() const noexcept;
   VarType getType() const noexcept;
+
+  inline bool operator==(const Link& other) const {return resource == other.resource;}
+  inline bool operator==(Link&& other) const {return resource == other.resource;}
+  inline bool operator!=(const Link& other) const {return resource != other.resource;}
+  inline bool operator!=(Link&& other) const {return resource != other.resource;}
+  inline bool operator>(const Link& other) const {return resource > other.resource;}
+  inline bool operator>=(Link&& other) const {return resource >= other.resource;}
+  inline bool operator<(const Link& other) const {return resource < other.resource;}
+  inline bool operator<=(Link&& other) const {return resource <= other.resource;}
+
 };
 
 }

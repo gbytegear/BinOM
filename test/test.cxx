@@ -4,6 +4,8 @@
 
 #include "test/all_test.hxx"
 
+#include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
+
 //#include <iostream>
 
 #include <mutex>
@@ -22,33 +24,38 @@ auto main() -> int {
 
 #ifdef FULL_TEST // Questionable or incompletely implemented tests
   testRecursiveSharedMutex();
-#endif
   testVariable(); // Not ended!
+#endif
 
   testAllBugs();
+
+  TEST_ANNOUNCE(InDev test)
+  GRP_PUSH
 
   using namespace binom::priv;
   using namespace binom::literals;
 
 
-  KeyValue test_a = 10, test_b = 10_ui64;
-  bool value = test_a == test_b;
-  std::clog << "test_a == test_b" << (test_a == test_b);
+  TableImplementation tbl (table{
+    {
+      {"ID", IndexType::unique_index},
+      {"Name", IndexType::multi_index},
+      {"Last name", IndexType::multi_index},
+    }, {
+      multimap{
+        {"ID", 0},
+        {"Name", "Maksim"},
+        {"Last name", "Shemendyuk"}
+      },
+      multimap{
+        {"ID", 1},
+        {"Name", "Roma"},
+        {"Last name", "Vitkovsiy"}
+      }
+    }
+  });
 
-  std::set<index::Field, index::MapComparator> test /*{
-    {WeakLink(), 1, "value"},
-    {WeakLink(), 2, "value"},
-    {WeakLink(), 3, "value"}
-  }*/;
+  utils::printVariable(tbl.getRow("name", "Maksim"));
 
-  test.emplace(WeakLink(), 1, "value 1");
-  test.emplace(WeakLink(), 2, "value 2");
-  test.emplace(WeakLink(), 3, "value 3");
-
-  for(auto& entry : test) {
-    std::clog << "key: " << i32(entry.getKey().toNumber()) << '\n';
-  }
-
-
-
+  GRP_POP
 }

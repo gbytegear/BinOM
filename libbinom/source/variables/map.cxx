@@ -201,3 +201,17 @@ Map& Map::changeLink(Map&& other) {
   this->~Map();
   return *new(this) Map(std::move(other));
 }
+
+Error binom::Map::addTable(priv::TableImplementation& table) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk) {
+    getData()->addTable(table);
+    return ErrorType::no_error;
+  } else return ErrorType::binom_resource_not_available;
+}
+
+Error binom::Map::removeTable(priv::TableImplementation & table) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk) {
+    getData()->removeTable(table);
+    return ErrorType::no_error;
+  } else return ErrorType::binom_resource_not_available;
+}

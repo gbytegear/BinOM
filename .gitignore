@@ -36,5 +36,12 @@
 *.creator.user
 
 # Builded library
-build/*
+build/*.o
+build/*.obj
+build/*.a
+build/*.lib
+build/*.so
+build/*.dll
+build/test
+build/*.exe
 build-*

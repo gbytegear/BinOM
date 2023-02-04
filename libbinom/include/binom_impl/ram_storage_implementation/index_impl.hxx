@@ -321,10 +321,45 @@ public:
     );
   }
 
-  ConstIterator find(KeyValue key) const;
-  ConstReverseIterator rfind(KeyValue key) const;
-  ConstIterator findLast(KeyValue key) const;
-  ConstReverseIterator rfindLast(KeyValue key) const;
+  ConstIterator find(KeyValue key) const {
+    return ConstIterator(
+      this,
+      type == IndexType::unique_index
+      ? data.unique_index.find(key)
+      : data.multi_index.find(key)
+    );
+  }
+
+  ConstReverseIterator rfind(KeyValue key) const {
+    return ConstReverseIterator(
+          this,
+          std::set<Field*, Comparator>::reverse_iterator(
+            type == IndexType::unique_index
+            ? --data.unique_index.upper_bound(key)
+            : --data.multi_index.upper_bound(key)
+          )
+        );
+  }
+
+  ConstIterator findLast(KeyValue key) const {
+    return ConstIterator(
+      this,
+      type == IndexType::unique_index
+      ? --data.unique_index.upper_bound(key)
+      : --data.multi_index.upper_bound(key)
+    );
+  }
+
+  ConstReverseIterator rfindLast(KeyValue key) const {
+    return ConstReverseIterator(
+      this,
+      std::set<Field*, Comparator>::const_reverse_iterator(
+        type == IndexType::unique_index
+        ? data.unique_index.find(key)
+        : data.multi_index.find(key)
+      )
+    );
+  }
 
   Iterator begin() {return Iterator(this, type == IndexType::unique_index ? data.unique_index.begin() : data.multi_index.begin());}
   Iterator end() {return Iterator(this, type == IndexType::unique_index ? data.unique_index.end() : data.multi_index.end());}
@@ -422,6 +457,11 @@ public:
   Variable getValue();
   Variable getValue() const;
   Variable setValue(Variable value);
+
+  inline bool isIndexed() const { return type == FieldType::indexed; }
+
+  Variable getOwner();
+  const Variable getOwner() const;
 
 };
 

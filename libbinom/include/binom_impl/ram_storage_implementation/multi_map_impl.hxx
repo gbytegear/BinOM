@@ -82,7 +82,7 @@ public:
   ConstReverseIterator crend() const noexcept;
 
   void addTable(TableImplementation& table);
-
+  Error removeTable(TableImplementation& table);
 };
 
 }
