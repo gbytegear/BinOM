@@ -1,0 +1,7 @@
+../../
+../../libbinom/include/binom_impl/ram_storage_implementation
+../../libbinom/source/binom_impl/ram_storage_implementation
+../../libbinom/include/variables
+../../libbinom/source/variables
+../../test
+../../libbinom/include/utils

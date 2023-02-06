@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\libbinom",
+    "\\libbinom\\include",
+    "\\libbinom\\include\\binom_impl",
+    "\\libbinom\\include\\binom_impl\\ram_storage_implementation"
+  ],
+  "SelectedNode": "\\libbinom\\include\\binom_impl\\ram_storage_implementation\\table_impl.hxx",
+  "PreviewInSolutionExplorer": false
+}
