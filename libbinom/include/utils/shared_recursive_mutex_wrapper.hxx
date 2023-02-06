@@ -289,6 +289,12 @@ class TransactionLock {
 public:
   TransactionLock(std::set<std::shared_mutex*> mtx_set, MtxLockType lock_type = MtxLockType::unique_locked)
     : lock_type(lock_type) {
+
+    if(mtx_set.empty()) {
+      this->lock_type = MtxLockType::unlocked;
+      return;
+    }
+
     switch (lock_type) {
     case shared_recursive_mtx::MtxLockType::unlocked: return;
     case shared_recursive_mtx::MtxLockType::shared_locked:

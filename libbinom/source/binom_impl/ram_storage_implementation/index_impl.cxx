@@ -74,13 +74,16 @@ Index::Index(IndexType type, KeyValue key) :
   type(type), key(std::move(key)), data(type) {}
 
 Index::~Index() {
+  // TODO for-loop remove last *it
   switch (type) {
   case IndexType::unique_index:
-    for(auto field : data.unique_index) remove(*field);
+    while(!data.unique_index.empty()) remove(**data.unique_index.begin());
+//    for(auto field : data.unique_index) remove(*field);
     data.unique_index.~set();
   return;
   case IndexType::multi_index:
-    for(auto field : data.multi_index) remove(*field);
+    while(!data.multi_index.empty()) remove(**data.multi_index.begin());
+//    for(auto field : data.multi_index) remove(*field);
     data.multi_index.~multiset();
   return;
   }
@@ -189,6 +192,7 @@ Error Field::addIndex(Index& index, std::set<Field*, Index::Comparator>::iterato
     KeyValue value = data.local.value;
 
     data.local.~LocalField();
+    type = FieldType::indexed;
     new(&data.indexed) FieldData::IndexedField{
       .indexed_at{{&index, self_iterator}},
       .value = std::move(value)
@@ -234,11 +238,11 @@ Error Field::removeIndex(std::map<Index*, std::set<Field*, Index::Comparator>::i
       Variable value = data.indexed.value;
       data.indexed.indexed_at.erase(entry_it);
       data.indexed.~IndexedField();
+      type = FieldType::local;
       new(&data.local) FieldData::LocalField {
         .key = std::move(key),
         .value = value.move()
       };
-      type = FieldType::local;
     } else data.indexed.indexed_at.erase(entry_it);
   return ErrorType::no_error;
   }

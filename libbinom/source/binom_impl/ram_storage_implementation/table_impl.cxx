@@ -1,7 +1,5 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
 
-#include "test/print_variable.hxx"
-
 #define ENABLE_DEBUG
 #include "libbinom/include/utils/debug.hxx"
 
@@ -130,7 +128,7 @@ Error TableImplementation::remove(T row) {
 
   rows.erase(row.upcast().move());
 
-  return ErrorType::no_error;;
+  return ErrorType::no_error;
 }
 
 Variable binom::priv::TableImplementation::getRow(KeyValue column_name, KeyValue value) {

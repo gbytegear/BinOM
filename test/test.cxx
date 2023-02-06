@@ -55,7 +55,7 @@ auto main() -> int {
     }
   });
 
-  utils::printVariable(tbl.getRow("name", "Maksim"));
+  utils::printVariable(tbl.getRow("Name", "Maksim"));
 
   GRP_POP
 }
