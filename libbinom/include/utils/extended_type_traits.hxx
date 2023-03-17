@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <concepts>
 
+//! Extendet type traits and concepts
 namespace extended_type_traits {
 
 template <typename T>
@@ -90,6 +91,9 @@ struct is_instantiation_without_cvref : is_instantiation<U, remove_cvref_t<T>...
 
 template<template<typename...> class U, typename... T>
 concept is_instantiation_without_cvref_v = is_instantiation_without_cvref<U, T...>::value;
+
+template<typename T, typename ... U>
+concept is_any_of = (std::same_as<T, U> || ...);
 
 //typename iterator_traits<_Iter>::iterator_category
 

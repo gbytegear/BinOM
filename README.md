@@ -52,7 +52,10 @@
 ### Library
 For build shared and static library - run in project directory:
 ```bash
-make lib -j
+# In this project directory
+cd build
+cmake -G <"MSYS Makefile"/"Unix Makefile"> ..
+make -j <Hardware thread count>
 ```
 Library files will be placed in build directiry:
 ```

@@ -5,6 +5,16 @@
 
 using namespace binom;
 using namespace binom::priv;
+using namespace binom::index;
+using namespace binom::conditions;
+
+TableImplementation TableImplementation::cloneTableHeader() const {
+  TableImplementation new_table;
+  for(const auto& index : indexes) {
+    new_table.indexes.emplace(index.getType(), index.getKey());
+  }
+  return new_table;
+}
 
 TableImplementation::TableImplementation(const binom::literals::table& table_descriptor) {
   for(auto& column_descriptor : table_descriptor.header)
@@ -12,6 +22,21 @@ TableImplementation::TableImplementation(const binom::literals::table& table_des
 
   for(auto& row_descriptor : table_descriptor.row_list) insert(row_descriptor.move());
 }
+
+TableImplementation::TableImplementation(const TableImplementation& other) {
+  for(const auto& index : other.indexes)
+    indexes.emplace(index.getType(), index.getKey());
+  
+  for(const auto& row : other.rows) 
+    switch(row.getTypeClass()) {
+      case VarTypeClass::map: insert(row.toMap()); continue;
+      case VarTypeClass::multimap: insert(row.toMultiMap()); continue;
+      default: continue;
+    }
+}
+
+TableImplementation::TableImplementation(TableImplementation&& other)
+  : rows{std::move(other.rows)}, indexes{std::move(other.indexes)} {}
 
 binom::priv::TableImplementation::~TableImplementation() {}
 
@@ -136,4 +161,28 @@ Variable binom::priv::TableImplementation::getRow(KeyValue column_name, KeyValue
     if(auto field_it = index_it->find(value); field_it != index_it->cend())
       return FieldRef(*field_it).getOwner();
   return {};
+}
+
+std::list<conditions::ConditionExpression>::iterator
+TableImplementation::filterByAndBlock(TableImplementation& result,
+                                      std::list<ConditionExpression>::iterator and_block_start) {
+  
+}
+
+
+TableImplementation TableImplementation::find(conditions::ConditionQuery query) {
+  TableImplementation results = cloneTableHeader();
+  std::list<ConstIterator> range;
+  for(auto it = query.begin(), end = query.end(); it != end; ++it) { // OR level
+    if(range.empty()) {
+
+    }
+
+  }
+}
+
+err::ProgressReport<TableImplementation::Column> binom::priv::TableImplementation::operator[](KeyValue column_name)  {
+  if(auto column_it = indexes.find(std::move(column_name)); column_it != indexes.cend())
+    return err::ProgressReport<TableImplementation::Column>(&const_cast<Column&>(*column_it));
+  else return ErrorType::binom_out_of_range;
 }

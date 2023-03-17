@@ -474,6 +474,34 @@ KeyValue::operator BitArray() const {return toBitArray();}
 
 KeyValue::operator BufferArray() const {return toBufferArray();}
 
+
+template<typename CharT>
+requires extended_type_traits::is_char_v<CharT>
+KeyValue::operator std::basic_string<CharT>() const {
+  if(getTypeClass() != VarTypeClass::buffer_array) return std::basic_string<CharT>();
+
+  std::basic_string<CharT> str(data.buffer_array_implementation->getSize(), '\0');
+
+  auto str_it = str.begin(), str_end = str.end();
+  auto buffer_array_it = data.buffer_array_implementation->begin(getValType()),
+       buffer_array_end = data.buffer_array_implementation->end(getValType());
+
+  for(; str_it != str_end && buffer_array_it != buffer_array_end; (++str_it, ++buffer_array_it))
+    *str_it = CharT(*buffer_array_it);
+
+  return str;
+}
+
+template KeyValue::operator std::basic_string<char>() const;
+template KeyValue::operator std::basic_string<signed char>() const;
+template KeyValue::operator std::basic_string<unsigned char>() const;
+template KeyValue::operator std::basic_string<wchar_t>() const;
+template KeyValue::operator std::basic_string<char8_t>() const;
+template KeyValue::operator std::basic_string<char16_t>() const;
+template KeyValue::operator std::basic_string<char32_t>() const;
+
+
+
 KeyValue& KeyValue::operator=(KeyValue key) {this->~KeyValue(); return *new(this) KeyValue(std::move(key));}
 
 KeyValue& KeyValue::operator=(Number number) {this->~KeyValue(); return *new(this) KeyValue(number.move());}

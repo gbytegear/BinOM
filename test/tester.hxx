@@ -103,7 +103,7 @@
 extern thread_local size_t log_depth = 0;
 
 #define GRP_PUSH ++log_depth;
-#define GRP_POP std::cout << std::string(log_depth - 1, '|') << "+---\n\r"; std::cout.flush(); --log_depth;
+#define GRP_POP if(log_depth) std::cout << std::string(log_depth - 1, '|') << "+---\n\r"; std::cout.flush(); --log_depth;
 #define GRP(expression) GRP_PUSH expression GRP_POP
 
 #define NORMAL_TXT "\033[0m"

@@ -91,6 +91,20 @@ Index::~Index() {
 
 binom::KeyValue Index::getKey() const { return key; }
 
+binom::IndexType Index::getType() const { return type; }
+
+Variable Index::getFirstMapByKey(KeyValue key) {
+  if(auto it = find(std::move(key)); it != end())
+    return it->getOwner();
+  else return nullptr;
+}
+
+const Variable Index::getFirstMapByKey(KeyValue key) const {
+  if(auto it = find(std::move(key)); it != cend())
+    return it->getOwner();
+  else return nullptr;
+}
+
 binom::Error Index::add(Field& field) {
 
   // Compare keys

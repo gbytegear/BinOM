@@ -43,6 +43,7 @@ private:
 public:
 
   KeyValue() = default;
+  KeyValue(std::nullptr_t) {}
 
   KeyValue(bool value) noexcept;
   KeyValue(ui8 value) noexcept;
@@ -105,10 +106,6 @@ public:
   CompareResult getCompare(KeyValue&& other) const;
   CompareResult getCompare(const Variable& other) const;
   CompareResult getCompare(Variable&& other) const;
-//  inline auto operator <=>(const KeyValue& other) const {return getCompare(other);}
-//  inline auto operator <=>(KeyValue&& other) const {return getCompare(other);}
-//  inline auto operator <=>(const Variable& other) const {return getCompare(other);}
-//  inline auto operator <=>(Variable&& other) const {return getCompare(other);}
   inline bool operator == (const KeyValue& value) const {return getCompare(value) == CompareResult::equal;}
   inline bool operator != (const KeyValue& value) const {return getCompare(value) != CompareResult::equal;}
   inline bool operator < (const KeyValue& value) const {return getCompare(value) == CompareResult::lower;}
@@ -143,6 +140,10 @@ public:
   operator Number () const;
   operator BitArray () const;
   operator BufferArray () const;
+
+  template<typename CharT>
+  requires extended_type_traits::is_char_v<CharT>
+  operator std::basic_string<CharT>() const;
 
   KeyValue& operator=(KeyValue key);
   KeyValue& operator=(Number number);

@@ -32,6 +32,17 @@ size_t BufferArray::getCapacity() const noexcept {
   return getData()->getCapacity();
 }
 
+bool binom::BufferArray::isPrintable() const noexcept {
+  if(size_t(getBitWidth()) == sizeof(char)) {
+    for(auto value : self) if(!isprint(int(value))) return false;
+    return true;
+  } elif(size_t(getBitWidth()) == sizeof(wchar_t)) {
+    for(auto value : self) if(!iswprint(wint_t(value))) return false;
+    return true;
+  }
+  return false;
+}
+
 BufferArray::ValueRef BufferArray::operator[](size_t index) noexcept {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) return ValueRef(ValType::invalid_type, nullptr);

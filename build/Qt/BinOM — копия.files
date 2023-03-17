@@ -8,7 +8,6 @@
 ../../libbinom/include/binom_impl/avl_tree.hxx
 ../../libbinom/include/binom_impl/bits.hxx
 ../../libbinom/include/binom_impl/file_storage_implementation.hxx
-../../libbinom/include/binom_impl/query.hxx
 ../../libbinom/include/binom_impl/multi_avl_tree.hxx
 ../../libbinom/include/binom_impl/ram_storage_implementation.hxx
 ../../libbinom/include/binom_impl/ram_storage_implementation/array_impl.hxx
@@ -26,7 +25,6 @@
 ../../libbinom/include/utils/extended_cxx.hxx
 ../../libbinom/include/utils/extended_type_traits.hxx
 ../../libbinom/include/utils/generic_arithmetic.hxx
-../../libbinom/include/utils/iterator_template.hxx
 ../../libbinom/include/utils/heritable_initializer_list.hxx
 ../../libbinom/include/utils/memctrl.hxx
 ../../libbinom/include/utils/pseudo_pointer.hxx

@@ -79,6 +79,8 @@ public:
   size_t getElementCount() const noexcept;
   size_t getSize() const noexcept;
   size_t getCapacity() const noexcept;
+  bool isPrintable() const noexcept;
+  bool isPrintable(std::locale loc) const noexcept;
 
   ValueRef operator[](size_t index) noexcept;
   const ValueRef operator[](size_t index) const noexcept;

@@ -80,8 +80,19 @@ class ProgressReport {
   const T* getData() const noexcept {return reinterpret_cast<const T*>(data);}
 
 public:
-  ProgressReport(T* answer_ptr) : error(ErrorType::no_error), answer(answer_ptr) {}
-  ProgressReport(const T& answer) : error(ErrorType::no_error), answer(getData()) {new(getData()) T(answer);}
+  typedef ProgressReport<T> Self;
+  typedef ProgressReport<T>& SelfRef;
+  typedef const ProgressReport<T> ConstSelf;
+  typedef const ProgressReport<T>& ConstSelfRef;
+  typedef T Value;
+  typedef T& ValueRef;
+  typedef T* ValuePtr;
+  typedef const T ConstValue;
+  typedef const T& ConstValueRef;
+  typedef const T* ConstValuePtr;
+
+  ProgressReport(ValuePtr answer_ptr) : error(ErrorType::no_error), answer(answer_ptr) {}
+  ProgressReport(ConstValueRef answer) : error(ErrorType::no_error), answer(getData()) {new(getData()) T(answer);}
   ProgressReport(T&& answer) : error(ErrorType::no_error), answer(getData()) {new(getData()) T(std::move(answer));}
   ProgressReport(ErrorType error_type, T* answer_ptr = nullptr) : error(error_type), answer(answer_ptr) {}
   ProgressReport(ErrorType error_type, const T& answer) : error(error_type), answer(getData()) {new(getData()) T(answer);}
@@ -105,25 +116,54 @@ public:
     }
   }
 
+  template<typename F>
+  requires std::is_invocable_v<F, ValueRef>
+  SelfRef ifNoError(F callback) {
+    if(hasAnswer()) callback(*self);
+    return self;
+  }
+
+  template<typename F>
+  requires std::is_invocable_v<F, ConstValueRef>
+  ConstSelfRef ifNoError(F callback) const {
+    if(hasAnswer()) callback(*self);
+    return self;
+  }
+
+  template<typename F>
+  requires std::is_invocable_v<F, Error>
+  SelfRef ifError(F callback) {
+    if(!self) F(error);
+    return self;
+  }
+
+  template<typename F>
+  requires std::is_invocable_v<F, Error>
+  ConstSelfRef ifError(F callback) const {
+    if(!self) F(self);
+    return self;
+  }
+
   ~ProgressReport() { if(isInThisInstanceAnswerLocated()) answer->~T(); }
 
-  ProgressReport<T>& operator=(const ProgressReport<T>& other) noexcept { new(this) ProgressReport<T>(other); return self; }
-  ProgressReport<T>& operator=(ProgressReport<T>&& other) noexcept { new(this) ProgressReport<T>(other); return self; }
+  SelfRef operator=(const ProgressReport<T>& other) noexcept { new(this) ProgressReport<T>(other); return self; }
+  SelfRef operator=(ProgressReport<T>&& other) noexcept { new(this) ProgressReport<T>(other); return self; }
 
   inline bool isInThisInstanceAnswerLocated() const noexcept { return answer == getData(); }
   inline bool hasAnswer() const noexcept { return answer; }
-  inline operator bool () const noexcept {return error;}
-  inline operator ErrorType () const noexcept {return error;}
-  inline ErrorType getErrorCode() const noexcept {return error;}
-  const char* what() const noexcept {return error.what();}
+  inline operator bool () const noexcept { return !error; }
+  inline operator ErrorType () const noexcept { return error; }
+  inline operator Error () const noexcept { return error; }
+  inline ErrorType getErrorCode() const noexcept { return error; }
+  const char* what() const noexcept { return error.what(); }
 
-  T* getAnswer() noexcept {return answer;}
-  T& operator*() {return *answer;}
-  T* operator->() noexcept {return answer;}
+  ValuePtr getAnswer() noexcept {return answer;}
+  ValueRef operator*() {return *answer;}
+  ValuePtr operator->() noexcept {return answer;}
 
-  const T* getAnswer() const noexcept {return answer;}
-  const T& operator*() const {return *answer;}
-  const T* operator->() const noexcept {return answer;}
+  ConstValuePtr getAnswer() const noexcept {return answer;}
+  ConstValueRef operator*() const {return *answer;}
+  ConstValuePtr operator->() const noexcept {return answer;}
 };
 
 }

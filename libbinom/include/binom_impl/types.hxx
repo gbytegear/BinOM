@@ -7,7 +7,9 @@
 
 #include <initializer_list>
 
-/// Binary Object Model
+/**
+ * @brief Binary Object Model namespace
+ */
 namespace binom {
 
 using namespace type_alias;
@@ -119,6 +121,7 @@ enum class VarType : ui8 {
   long_long_float_array   = sizeof (double) == sizeof (long double) ? VarType::f64_array : VarType::invalid_type,
 };
 
+//! BinOM KeyValue type
 enum class VarKeyType : ui8 {
   separator               = int(VarType::separator),    ///< End code
   invalid_type            = int(VarType::invalid_type), ///< Invalid type code
@@ -189,6 +192,7 @@ enum class VarKeyType : ui8 {
   long_long_float_array   = sizeof (double) == sizeof (long double) ? VarKeyType::f64_array : VarKeyType::invalid_type
 };
 
+//! BinOM Variable type class
 enum class VarTypeClass : ui8 {
   null                    = 0x01,
   number                  = 0x02,
@@ -203,6 +207,7 @@ enum class VarTypeClass : ui8 {
   invalid_type            = int(VarType::invalid_type)
 };
 
+//! BinOM Number/BufferArray bit width
 enum class VarBitWidth : ui8 {
   byte                    = sizeof (byte),
   word                    = sizeof (word),
@@ -212,6 +217,7 @@ enum class VarBitWidth : ui8 {
   invalid_type            = int(VarType::invalid_type)
 };
 
+//! BinOM Number/BufferArray number type
 enum class VarNumberType : ui8 {
   unsigned_integer        = 0x00,
   signed_integer          = 0x01,
@@ -220,6 +226,7 @@ enum class VarNumberType : ui8 {
   invalid_type            = int(VarType::invalid_type)
 };
 
+//! BinOM Number/BufferArray value type
 enum class ValType : ui8 {
   invalid_type            = int(VarType::invalid_type),
   boolean                 = int(VarType::boolean),
