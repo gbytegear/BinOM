@@ -31,7 +31,10 @@
 *.out
 *.app
 
-# Qt Profiles
+# IDE configs
+.vs
+.vscode
+## Qt Profiles
 *.pro.*
 *.creator.user
 
@@ -45,3 +48,8 @@ build/*.dll
 build/test
 build/*.exe
 build-*
+## CMake trash
+build/CMakeFiles
+build/cmake_install.cmake
+build/CMakeCache.txt
+build/Makefile
