@@ -93,6 +93,12 @@ binom::KeyValue Index::getKey() const { return key; }
 
 binom::IndexType Index::getType() const { return type; }
 
+ui64 Index::getIndexedFieldsCount() const {
+  return (type == IndexType::multi_index)
+      ? data.multi_index.size()
+      : data.unique_index.size();
+}
+
 Variable Index::getFirstMapByKey(KeyValue key) {
   if(auto it = find(std::move(key)); it != end())
     return it->getOwner();
@@ -111,7 +117,6 @@ binom::Error Index::add(Field& field) {
   if(key != field.getKey()) return ErrorType::invalid_data;
 
   if(!field.isCanBeIndexed()) return ErrorType::binom_invalid_type;
-  if(field.data.local.key != key) return ErrorType::invalid_data;
 
   switch (type) {
   case IndexType::unique_index:
@@ -123,6 +128,7 @@ binom::Error Index::add(Field& field) {
   case IndexType::multi_index:
     return field.addIndex(self, data.multi_index.insert(&field));
   return ErrorType::no_error;
+  default: return ErrorType::invalid_data;
   }
 }
 
@@ -153,6 +159,7 @@ binom::Error Index::unlink(std::set<Field*, Index::Comparator>::iterator it) {
   case IndexType::multi_index:
     data.multi_index.erase(it);
   return ErrorType::no_error;
+  default: return ErrorType::invalid_data;
   }
 }
 
@@ -217,12 +224,14 @@ Error Field::addIndex(Index& index, std::set<Field*, Index::Comparator>::iterato
   case FieldType::indexed:
     data.indexed.indexed_at.emplace(&index, self_iterator);
   return ErrorType::no_error;
+  default: return ErrorType::invalid_data;
   }
 }
 
 Error Field::removeIndex(Index& index) {
   switch (type) {
-  case FieldType::empty: return ErrorType::binom_out_of_range;
+  default:
+  case FieldType::empty:
   case FieldType::local: return ErrorType::binom_out_of_range;
   case FieldType::indexed:
     if(auto entry_it = data.indexed.indexed_at.find(&index); entry_it != data.indexed.indexed_at.cend()) {
@@ -233,7 +242,7 @@ Error Field::removeIndex(Index& index) {
         data.indexed.~IndexedField();
         new(&data.local) FieldData::LocalField {
           .key = std::move(key),
-          .value = value.move()
+          .value = std::move(value)
         };
         type = FieldType::local;
       } else data.indexed.indexed_at.erase(entry_it);
@@ -244,7 +253,8 @@ Error Field::removeIndex(Index& index) {
 
 Error Field::removeIndex(std::map<Index*, std::set<Field*, Index::Comparator>::iterator>::iterator entry_it) {
   switch (type) {
-  case FieldType::empty: return ErrorType::binom_out_of_range;
+  default:
+  case FieldType::empty:
   case FieldType::local: return ErrorType::binom_out_of_range;
   case FieldType::indexed:
     if(data.indexed.indexed_at.size() == 1) {

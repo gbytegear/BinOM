@@ -205,22 +205,30 @@ class {
 public:
   void operator()(const Variable& var) {
     std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i] printVariable(const Variable&) \x1B[34m:\n\r";
+    GRP_PUSH
     print(var, log_depth);
+    GRP_POP
     std::cout << "\033[0m"; std::cout.flush();
   }
   void operator()(Variable&& var) {
     std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i] printVariable(Variable&&) \x1B[34m:\n\r";
+    GRP_PUSH
     print(var, log_depth);
+    GRP_POP
     std::cout << "\033[0m"; std::cout.flush();
   }
   void operator()(const KeyValue& var) {
     std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i] printVariable(const KeyValue&) \x1B[34m:\n\r";
+    GRP_PUSH
     print(var, log_depth);
+    GRP_POP
     std::cout << "\033[0m"; std::cout.flush();
   }
   void operator()(KeyValue&& var) {
     std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i] printVariable(KeyValue&&) \x1B[34m:\n\r";
+    GRP_PUSH
     print(var, log_depth);
+    GRP_POP
     std::cout << "\033[0m"; std::cout.flush();
   }
 } printVariable;

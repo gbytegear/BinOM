@@ -2,6 +2,7 @@
 ../../makefile
 ../../.gitignore
 ../../README.md
+../../CMakeLists.txt
 
 # Source code
 ../../libbinom/include/binom.hxx

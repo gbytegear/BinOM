@@ -159,6 +159,7 @@ public:
     typedef Self&& SelfTmp;
 
   private:
+    inline const BaseRef upcast() const {return const_cast<const BaseRef>(dynamic_cast<BaseRef>(const_cast<SelfRef>(self)));}
     inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
     static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
     static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
@@ -179,6 +180,11 @@ public:
     inline Self operator++(int) {return downcast(upcast()++);}
     inline SelfRef operator--() {return downcast(--upcast());}
     inline Self operator--(int) {return downcast(upcast()--);}
+    inline bool operator=(const SelfRef other) { this->~Iterator(); return new(this) Iterator(other); }
+    inline bool operator=(SelfTmp other) { this->~Iterator(); return new(this) Iterator(std::move(other)); }
+
+    inline bool operator==(Self other) const {return upcast() == other.upcast();}
+    inline bool operator!=(Self other) const {return upcast() != other.upcast();}
   };
 
   class ConstIterator : public std::set<Field*, Comparator>::const_iterator {
@@ -191,6 +197,7 @@ public:
     typedef Self&& SelfTmp;
 
   private:
+    inline const BaseRef upcast() const {return const_cast<const BaseRef>(dynamic_cast<BaseRef>(const_cast<SelfRef>(self)));}
     inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
     static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
     static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
@@ -208,6 +215,11 @@ public:
     inline Self operator++(int) {return downcast(upcast()++);}
     inline SelfRef operator--() {return downcast(--upcast());}
     inline Self operator--(int) {return downcast(upcast()--);}
+    inline bool operator=(const SelfRef other) { this->~ConstIterator(); return new(this) ConstIterator(other); }
+    inline bool operator=(SelfTmp other) { this->~ConstIterator(); return new(this) ConstIterator(std::move(other)); }
+
+    inline bool operator==(Self other) const {return upcast() == other.upcast();}
+    inline bool operator!=(Self other) const {return upcast() != other.upcast();}
   };
 
   class ReverseIterator : public std::set<Field*, Comparator>::reverse_iterator {
@@ -220,6 +232,7 @@ public:
     typedef Self&& SelfTmp;
 
   private:
+    inline const BaseRef upcast() const {return const_cast<const BaseRef>(dynamic_cast<BaseRef>(const_cast<SelfRef>(self)));}
     inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
     static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
     static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
@@ -239,6 +252,11 @@ public:
     inline Self operator++(int) {return downcast(upcast()++);}
     inline SelfRef operator--() {return downcast(--upcast());}
     inline Self operator--(int) {return downcast(upcast()--);}
+    inline bool operator=(const SelfRef other) { this->~ReverseIterator(); return new(this) ReverseIterator(other); }
+    inline bool operator=(SelfTmp other) { this->~ReverseIterator(); return new(this) ReverseIterator(std::move(other)); }
+
+    inline bool operator==(Self other) const {return upcast() == other.upcast();}
+    inline bool operator!=(Self other) const {return upcast() != other.upcast();}
   };
 
   class ConstReverseIterator : public std::set<Field*, Comparator>::const_reverse_iterator {
@@ -251,6 +269,7 @@ public:
     typedef Self&& SelfTmp;
 
   private:
+    inline const BaseRef upcast() const {return const_cast<const BaseRef>(dynamic_cast<BaseRef>(const_cast<SelfRef>(self)));}
     inline BaseRef upcast() {return dynamic_cast<BaseRef>(self);}
     static inline SelfRef downcast(BaseRef base) {return reinterpret_cast<SelfRef>(base);}
     static inline Self downcast(BaseTmp base) {return reinterpret_cast<SelfTmp>(base);}
@@ -268,21 +287,27 @@ public:
     inline Self operator++(int) {return downcast(upcast()++);}
     inline SelfRef operator--() {return downcast(--upcast());}
     inline Self operator--(int) {return downcast(upcast()--);}
+    inline bool operator=(const SelfRef other) { this->~ConstReverseIterator(); return new(this) ConstReverseIterator(other); }
+    inline bool operator=(SelfTmp other) { this->~ConstReverseIterator(); return new(this) ConstReverseIterator(std::move(other)); }
+
+    inline bool operator==(Self other) const {return upcast() == other.upcast();}
+    inline bool operator!=(Self other) const {return upcast() != other.upcast();}
   };
 
   KeyValue getKey() const;
   IndexType getType() const;
+  ui64 getIndexedFieldsCount() const;
 
   std::pair<Iterator, Iterator> getRange(KeyValue key) {
     return std::pair<Iterator, Iterator>(
-      find(std::move(key)),
+      find(key),
       ++findLast(key)
     );
   }
 
   std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key) {
     return std::pair<ReverseIterator, ReverseIterator>(
-      rfind(std::move(key)),
+      rfind(key),
       ++rfindLast(key)
     );
   }
@@ -329,14 +354,14 @@ public:
 
   std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const {
     return std::pair<ConstIterator, ConstIterator>{
-      find(std::move(key)),
+      find(key),
       ++findLast(key)
     };
   }
 
   std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const {
     return std::pair<ConstReverseIterator, ConstReverseIterator>{
-      rfind(std::move(key)),
+      rfind(key),
       ++rfindLast(key)
     };
   }
@@ -402,7 +427,7 @@ public:
     std::pair<ConstIterator, ConstIterator>
   > getNegativeRange(KeyValue key) const {
     return std::pair<std::pair<ConstIterator, ConstIterator>, std::pair<ConstIterator, ConstIterator>> {
-      getLowerRange(std::move(key)), getHigherRange(key)
+      getLowerRange(key), getHigherRange(key)
     };
   }
 
@@ -411,7 +436,7 @@ public:
     std::pair<ConstReverseIterator, ConstReverseIterator>
   > getNegativeReverseRange(KeyValue key) const {
     return std::pair<std::pair<ConstReverseIterator, ConstReverseIterator>, std::pair<ConstReverseIterator, ConstReverseIterator>> {
-      getHigherReverseRange(std::move(key)), getLowerReverseRange(key)
+      getHigherReverseRange(key), getLowerReverseRange(key)
     };
   }
 

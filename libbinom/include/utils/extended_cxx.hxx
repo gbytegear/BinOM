@@ -1,6 +1,14 @@
 #ifndef EXTENDED_CXX_HXX
 #define EXTENDED_CXX_HXX
 
+#include <type_traits>
+
+template<typename T>
+inline std::remove_const_t<T> unconst(T arg) { return const_cast<std::remove_const_t<T>>(arg); }
+
+template<typename T>
+inline const T addconst(T arg) { return const_cast<const T>(arg); }
+
 // A little bit of what I'm used to
 
 #define self (*this)        // T* this -> T& this

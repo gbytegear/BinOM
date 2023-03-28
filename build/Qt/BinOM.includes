@@ -5,3 +5,4 @@
 ../../libbinom/source/variables
 ../../test
 ../../libbinom/include/utils
+../../../libmmf/test

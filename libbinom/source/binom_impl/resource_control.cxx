@@ -155,11 +155,23 @@ Link Link::cloneResource(Link resource_link) noexcept {
   case VarTypeClass::list:
   return ResourceData{VarType::list, {.list_implementation = new ListImplementation(*resource_link->data.list_implementation)}};
 
-  case VarTypeClass::map:
-  return ResourceData{VarType::map, {.map_implementation = new MapImplementation(resource_link, *resource_link->data.map_implementation)}};
+  case VarTypeClass::map:{
+    SharedResource* shared_resource = new SharedResource();
+    shared_resource->resource_data.data.map_implementation = new MapImplementation(*shared_resource, *resource_link->data.map_implementation);
+    shared_resource->resource_data.type = VarType::map;
+    Link link(*shared_resource);
+    shared_resource->link_counter = 1;
+    return link;
+  }
 
-  case VarTypeClass::multimap:
-  return ResourceData{VarType::multimap, {.multi_map_implementation = new MultiMapImplementation(resource_link, *resource_link->data.multi_map_implementation)}};
+  case VarTypeClass::multimap: {
+    SharedResource* shared_resource = new SharedResource();
+    shared_resource->resource_data.data.multi_map_implementation = new MultiMapImplementation(*shared_resource, *resource_link->data.multi_map_implementation);
+    shared_resource->resource_data.type = VarType::multimap;
+    Link link(*shared_resource);
+    shared_resource->link_counter = 1;
+    return link;
+  }
 
   case VarTypeClass::table: // TODO
   case VarTypeClass::invalid_type:

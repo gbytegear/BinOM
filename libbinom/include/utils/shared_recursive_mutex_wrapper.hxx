@@ -195,6 +195,7 @@ public:
     case MtxLockType::unique_locked:
       ++mtx_data->second.unique_lock_counter;
     return true;
+    default: return false;
     }
   }
 

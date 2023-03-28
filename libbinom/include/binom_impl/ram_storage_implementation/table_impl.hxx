@@ -14,7 +14,13 @@ class TableImplementation {
   std::set<binom::Variable, binom::Variable::ResourceComparator> rows;
   std::set<binom::index::Index, binom::index::IndexComparator> indexes;
 
-  std::list<conditions::ConditionExpression>::iterator filterByAndBlock(TableImplementation& result, std::list<conditions::ConditionExpression>::iterator and_block_start);
+  template<typename T>
+  requires std::is_same_v<T, TableImplementation&> || std::is_same_v<T, std::list<binom::Variable>&>
+  void filterByConjunctionBlock(T result,
+                                conditions::ConditionQuery::Iterator and_block_begin,
+                                conditions::ConditionQuery::Iterator and_block_end);
+
+  static bool test(Variable row, conditions::ConditionExpression& expression);
 
   TableImplementation cloneTableHeader() const;
 
@@ -28,11 +34,14 @@ public:
   TableImplementation(TableImplementation&& other);
   ~TableImplementation();
 
+  bool isEmpty() const { return rows.empty(); }
+
   template<typename T>
   requires is_map_type_v<T>
   Error insert(T row);
 
   Error remove(KeyValue column_name, KeyValue value, size_t index = 0, size_t count = 1);
+  Error remove(conditions::ConditionQuery query);
 
   template<typename T>
   requires is_map_type_v<T>

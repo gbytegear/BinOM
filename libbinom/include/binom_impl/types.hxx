@@ -300,9 +300,9 @@ enum class IndexType {
 
 //! Map or MultiMap field type
 enum class FieldType : ui8 {
-  local = 0x00,
+  local   = 0x00,
   indexed = 0x01,
-  empty = 0xFF
+  empty   = 0xFF
 };
 
 #undef getIntType
@@ -706,13 +706,15 @@ constexpr inline bool operator == (VarType type, ValType val_type) noexcept {ret
 constexpr inline bool operator != (ValType val_type, VarType type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 constexpr inline bool operator != (VarType type, ValType val_type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 
-namespace priv { // BinOM containers implementation
+namespace priv {
 
+// Shared resource implementation
 class Link;
 class SharedResource;
 class ResourceData;
 class FileResourceIndex;
 
+// BinOM containers implementation
 class BitArrayImplementation;
 class BufferArrayImplementation;
 class ArrayImplementation;
@@ -724,8 +726,11 @@ class KeyValueImplementation;
 
 }
 
+// BinOM generic variables
 class Variable;
+class KeyValue;
 
+// BinOM containers
 class Number;
 class BitArray;
 class BufferArray;
@@ -734,8 +739,8 @@ class List;
 class Map;
 class MultiMap;
 class Table;
-class KeyValue;
 
+// Container support types
 class FieldInit;
 class FieldRef;
 class MapNodeRef;
@@ -754,6 +759,7 @@ struct TableLiteral {
 
 }
 
+// BinOM Container literals
 typedef std::initializer_list<const bool>       bitarr;
 typedef std::initializer_list<const ui8>        ui8arr;
 typedef std::initializer_list<const i8>         i8arr;
