@@ -89,44 +89,26 @@ public:
   ConditionExpression(KeyValue column_name,
                       Operator op,
                       KeyValue value,
-                      Relation next_relation = Relation::AND)
-    : op(op), rel(next_relation), data(std::move(column_name), std::move(value)) {}
+                      Relation next_relation = Relation::AND);
 
-  ConditionExpression(std::initializer_list<ConditionExpression> subexprs, Relation next_relation = Relation::AND)
-    : op(Operator::subexpression), rel(next_relation), data(subexprs) {}
+  ConditionExpression(std::initializer_list<ConditionExpression> subexprs, Relation next_relation = Relation::AND);
 
-  ConditionExpression(const std::list<ConditionExpression>& subexprs, Relation next_relation = Relation::AND)
-    : op(Operator::subexpression), rel(next_relation), data(subexprs) {}
+  ConditionExpression(const std::list<ConditionExpression>& subexprs, Relation next_relation = Relation::AND);
 
-  ConditionExpression(std::list<ConditionExpression>&& subexprs, Relation next_relation = Relation::AND)
-    : op(Operator::subexpression), rel(next_relation), data(std::move(subexprs)) {}
+  ConditionExpression(std::list<ConditionExpression>&& subexprs, Relation next_relation = Relation::AND);
 
-  ConditionExpression(const ConditionExpression& other)
-    : op(other.op),
-      rel(other.rel),
-      data(other.op, other.data) {}
+  ConditionExpression(const ConditionExpression& other);
   
-  ConditionExpression(ConditionExpression&& other)
-    : op(other.op),
-      rel(other.rel),
-      data(other.op, std::move(other.data)) {}
+  ConditionExpression(ConditionExpression&& other);
   
-  KeyValue getColumnName() const { if(op != Operator::subexpression) return data.expression.column_name; return nullptr; }
-  KeyValue getValue() const { if(op != Operator::subexpression) return data.expression.value; return nullptr; }
-  Operator getOperator() const { return op; }
-  Relation getNextRelation() const { return rel; }
+  KeyValue getColumnName() const;
+  KeyValue getValue() const;
+  Operator getOperator() const;
+  Relation getNextRelation() const;
 
-  std::list<ConditionExpression>* getSubexpression() {
-    if(op == Operator::subexpression)
-      return &data.subexpression;
-    return nullptr;
-  }
+  std::list<ConditionExpression>* getSubexpression();
 
-  const std::list<ConditionExpression>* getSubexpression() const  {
-    if(op == Operator::subexpression)
-      return &data.subexpression;
-    return nullptr;
-  }
+  const std::list<ConditionExpression>* getSubexpression() const;
 
 };
 
@@ -142,89 +124,26 @@ private:
 
   ExpressionList::iterator simplifyConjunctionBlock(ExpressionList::iterator and_block_begin,
                                                     ExpressionList::iterator subexpression_pos,
-                                                    ExpressionList::iterator and_block_end) {
-
-    auto& subexpression = *subexpression_pos->getSubexpression();
-    auto sub_and_block_begin = subexpression.begin();
-    auto sub_and_block_end = subexpression.end();
-    auto add_iterator = and_block_end;
-
-    const bool subexpression_is_first = subexpression_pos == and_block_begin;
-    const bool subexpression_is_last = subexpression_pos == --ExpressionList::iterator(and_block_end);
-
-    for(auto it = sub_and_block_begin, end = sub_and_block_end;; ++it) {
-
-      if(it->getNextRelation() == Relation::OR || it == end) {
-        sub_and_block_end = (it != end) ? ++ExpressionList::iterator(it) : it;
-
-        // Insert expressions before subexpression
-        if(!subexpression_is_first)
-          for(auto it = and_block_begin; it != subexpression_pos; ++it)
-            if(add_iterator == and_block_end)
-              and_block_end = expressions.insert(add_iterator, *it);
-            else expressions.insert(add_iterator, *it);
-
-        // Insert expressions from conjunction block of subexpression
-        for(auto it = sub_and_block_begin; it != sub_and_block_end; ++it)
-          if(add_iterator == and_block_end)
-            and_block_end = expressions.insert(add_iterator, *it);
-          else expressions.insert(add_iterator, *it);
-
-        // Insert expressions after subexpression
-        if(!subexpression_is_last) {
-          (--ExpressionList::iterator(add_iterator))->rel = Relation::AND;
-          for(auto it = ++ExpressionList::iterator(subexpression_pos); it != and_block_end; ++it)
-            expressions.insert(add_iterator, *it);
-        }
-
-        if(it == end)
-          return expressions.erase(and_block_begin, and_block_end);
-
-        sub_and_block_begin = sub_and_block_end;
-        continue;
-      }
-
-    }
-  }
+                                                    ExpressionList::iterator and_block_end);
 
 public:
 
-  ConditionQuery(std::initializer_list<ConditionExpression> expressions)
-    : expressions(expressions) {}
+  ConditionQuery(std::initializer_list<ConditionExpression> expressions);
 
-  void simplifySubExpressions() {
-    auto and_block_begin = expressions.begin();
-    for (auto it = expressions.begin(), end = expressions.end(); it != end;) {
+  void simplifySubExpressions();
 
-      if(it->getOperator() == Operator::subexpression) {
-        auto subexpression_pos = it;
-        for(;it != end && it->getNextRelation() != Relation::OR; ++it);
-        auto and_block_end = (it != end) ? ++it : it;
-        and_block_begin = it = simplifyConjunctionBlock(and_block_begin, subexpression_pos, and_block_end);
-        continue;
-      }
-
-      if (it->getNextRelation() == Relation::OR) {
-        and_block_begin = it;
-        ++and_block_begin;
-      }
-
-      ++it;
-    }
-  }
-
-  Iterator begin() { return expressions.begin(); }
-  Iterator end() { return expressions.end(); }
-  ConstIterator begin() const { return expressions.begin(); }
-  ConstIterator end() const { return expressions.end(); }
-  ConstIterator cbegin() const { return expressions.begin(); }
-  ConstIterator cend() const { return expressions.end(); }
-  ReverseIterator rbegin() { return expressions.rbegin(); }
-  ReverseIterator rend() { return expressions.rend(); }
-  ConstReverseIterator rbegin() const { return expressions.rbegin(); }
-  ConstReverseIterator rend() const { return expressions.rend(); }
-  ConstReverseIterator crbegin() const { return expressions.crbegin(); }
-  ConstReverseIterator crend() const { return expressions.crend(); }
+  Iterator begin();
+  Iterator end();
+  ConstIterator begin() const;
+  ConstIterator end() const;
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+  ConstReverseIterator rbegin() const;
+  ConstReverseIterator rend() const;
+  ConstReverseIterator crbegin() const;
+  ConstReverseIterator crend() const;
 
 };
 

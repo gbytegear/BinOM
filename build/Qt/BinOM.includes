@@ -6,3 +6,4 @@
 ../../test
 ../../libbinom/include/utils
 ../../../libmmf/test
+../../libbinom/source/binom_impl

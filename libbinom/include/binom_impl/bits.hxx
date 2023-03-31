@@ -2,6 +2,7 @@
 #define BITS_HXX
 
 #include "types.hxx"
+#include "../utils/pseudo_pointer.hxx"
 
 namespace binom::priv {
 
@@ -85,10 +86,18 @@ public:
   Iterator operator++(int) noexcept;
   Iterator operator--(int) noexcept;
 
+  Iterator& operator+=(std::size_t shift) noexcept;
+  Iterator& operator-=(std::size_t shift) noexcept;
+
+  Iterator operator+(std::size_t shift) const noexcept;
+  Iterator operator-(std::size_t shift) const noexcept;
+
   operator ValueRef() noexcept;
   operator const ValueRef() const noexcept;
   ValueRef operator*() noexcept;
   const ValueRef operator*() const noexcept;
+  pseudo_ptr::PseudoPointer<ValueRef> operator->() noexcept;
+  pseudo_ptr::PseudoPointer<const ValueRef> operator->() const noexcept;
 };
 
 

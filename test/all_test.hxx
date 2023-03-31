@@ -1,6 +1,7 @@
 #ifndef ALL_TEST_HXX
 #define ALL_TEST_HXX
 
+// Standart tests
 #include "types_test.hxx"
 #include "generic_value_test.hxx"
 #include "number_test.hxx"
@@ -13,5 +14,8 @@
 #include "variable_test.hxx"
 
 #include "bugs.hxx"
+
+// InDev tests
+#include "table_impl_test.hxx"
 
 #endif

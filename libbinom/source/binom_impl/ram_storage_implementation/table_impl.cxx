@@ -52,6 +52,8 @@ Error TableImplementation::insert(T row) {
 
   bool is_indexed = false;
 
+  auto lk = row.getLock(MtxLockType::unique_locked);
+  if(!lk) return ErrorType::binom_resource_not_available;
   if(auto error = row.addTable(self); error)
     return error;
 
@@ -97,6 +99,8 @@ Error TableImplementation::remove(KeyValue column_name, KeyValue value, size_t i
         if(index > 0) continue;
 
         auto row = range.first->getOwner();
+        auto lk = row.getLock(MtxLockType::unique_locked);
+        if(!lk) return ErrorType::binom_resource_not_available;
 
         switch (row.getType()) {
         case VarType::map:
@@ -153,6 +157,9 @@ Error TableImplementation::remove(conditions::ConditionQuery query) {
     }
 
   for(auto& row : result) {
+    auto lk = row.getLock(MtxLockType::unique_locked);
+    if(!lk) continue; // Resource not avalible
+
     switch (row.getType()) {
     case VarType::map:
 
@@ -211,9 +218,11 @@ Error TableImplementation::remove(T row) {
 }
 
 Variable binom::priv::TableImplementation::getRow(KeyValue column_name, KeyValue value) {
-  if(auto index_it = indexes.find(column_name); index_it != indexes.cend())
+  if(auto index_it = indexes.find(column_name); index_it != indexes.cend()) {
+    auto lk = index_it->getLock(MtxLockType::shared_locked);
     if(auto field_it = index_it->find(value); field_it != index_it->cend())
       return FieldRef(*field_it).getOwner();
+  }
   return {};
 }
 

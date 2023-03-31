@@ -3,7 +3,6 @@
 
 #include <set>
 #include <map>
-#include <list>
 #include "../../variables/key_value.hxx"
 #include "../../variables/variable.hxx"
 #include "../../utils/pseudo_pointer.hxx"
@@ -61,6 +60,8 @@ class Index {
   friend Field;
   friend MapComparator;
   friend binom::priv::TableImplementation;
+  friend binom::priv::MapImplementation;
+  friend binom::priv::MultiMapImplementation;
   friend IndexComparator;
 public:
   class Comparator {
@@ -85,24 +86,13 @@ private:
     std::set<Field*, Comparator> unique_index;
     std::multiset<Field*, Comparator> multi_index;
 
-    IndexData() {}
+    IndexData();
 
-    IndexData(IndexType type) {
-      switch (type) {
-      case IndexType::unique_index:
-        new(&unique_index) std::set<Field*, Comparator>();
-      return;
-      case IndexType::multi_index:
-        new(&multi_index) std::multiset<Field*, Comparator>();
-      return;
-      }
-    }
+    IndexData(IndexType type);
 
-    IndexData(std::set<Field*, Comparator>&& data)
-      : unique_index(std::move(data)) {}
+    IndexData(std::set<Field*, Comparator>&& data);
     
-    IndexData(std::multiset<Field*, Comparator>&& data)
-      : multi_index(std::move(data)) {}
+    IndexData(std::multiset<Field*, Comparator>&& data);
 
     ~IndexData() {}
   };
@@ -113,36 +103,27 @@ private:
   IndexData data;
 
   Error unlink(std::set<Field*, Comparator>::iterator it);
-  std::shared_mutex& getMutex() const {return mtx;}
-  SharedRecursiveLock getLock(MtxLockType lock_type) const {return SharedRecursiveLock(&mtx, lock_type);}
+  std::shared_mutex& getMutex() const;
+  SharedRecursiveLock getLock(MtxLockType lock_type) const;
   Error add(Field& field);
   Error remove(Field& field);
 
-  bool operator==(const Index& other) const { return key == other.key; }
-  bool operator!=(const Index& other) const { return key != other.key; }
-  bool operator>(const Index& other) const { return key > other.key; }
-  bool operator<(const Index& other) const { return key < other.key; }
-  bool operator>=(const Index& other) const { return key >= other.key; }
-  bool operator<=(const Index& other) const { return key <= other.key; }
+  bool operator==(const Index& other) const;
+  bool operator!=(const Index& other) const;
+  bool operator>(const Index& other) const;
+  bool operator<(const Index& other) const;
+  bool operator>=(const Index& other) const;
+  bool operator<=(const Index& other) const;
 
-  bool operator==(const KeyValue& key) const { return self.key == key; }
-  bool operator!=(const KeyValue& key) const { return self.key != key; }
-  bool operator>(const KeyValue& key) const { return self.key > key; }
-  bool operator<(const KeyValue& key) const { return self.key < key; }
-  bool operator>=(const KeyValue& key) const { return self.key >= key; }
-  bool operator<=(const KeyValue& key) const { return self.key <= key; }
+  bool operator==(const KeyValue& key) const;
+  bool operator!=(const KeyValue& key) const;
+  bool operator>(const KeyValue& key) const;
+  bool operator<(const KeyValue& key) const;
+  bool operator>=(const KeyValue& key) const;
+  bool operator<=(const KeyValue& key) const;
 
   Index(const Index&) = delete;
-  Index(Index&& other) : type(other.type), key(std::move(other.key)) {
-    switch(other.type) {
-      case IndexType::unique_index:
-        new(&data) IndexData(std::move(other.data.unique_index));
-      return;
-      case IndexType::multi_index:
-        new(&data) IndexData(std::move(other.data.multi_index));
-      return;
-    }
-  }
+  Index(Index&& other);
 
 public:
 
@@ -298,204 +279,51 @@ public:
   IndexType getType() const;
   ui64 getIndexedFieldsCount() const;
 
-  std::pair<Iterator, Iterator> getRange(KeyValue key) {
-    return std::pair<Iterator, Iterator>(
-      find(key),
-      ++findLast(key)
-    );
-  }
+  std::pair<Iterator, Iterator> getRange(KeyValue key);
 
-  std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key) {
-    return std::pair<ReverseIterator, ReverseIterator>(
-      rfind(key),
-      ++rfindLast(key)
-    );
-  }
+  std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key);
 
-  Iterator find(KeyValue key) {
-    return Iterator(
-      this,
-      type == IndexType::unique_index
-      ? data.unique_index.find(key)
-      : data.multi_index.find(key)
-    );
-  }
 
-  ReverseIterator rfind(KeyValue key) {
-    return ReverseIterator(
-      this,
-      std::set<Field*, Comparator>::reverse_iterator(
-        type == IndexType::unique_index
-        ? --data.unique_index.upper_bound(key)
-        : --data.multi_index.upper_bound(key)
-      )
-    );
-  }
+  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const;
+  std::pair<ConstIterator, ConstIterator> getLowerRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getLowerReverseRange(KeyValue key) const;
+  std::pair<ConstIterator, ConstIterator> getLowerEqualRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getLowerEqualReverseRange(KeyValue key) const;
+  std::pair<ConstIterator, ConstIterator> getHigherRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getHigherReverseRange(KeyValue key) const;
+  std::pair<ConstIterator, ConstIterator> getHigherEqualRange(KeyValue key) const;
+  std::pair<ConstReverseIterator, ConstReverseIterator> getHigherEqualReverseRange(KeyValue key) const;
+  std::pair<std::pair<ConstIterator, ConstIterator>, std::pair<ConstIterator, ConstIterator>> getNegativeRange(KeyValue key) const;
+  std::pair<std::pair<ConstReverseIterator, ConstReverseIterator>, std::pair<ConstReverseIterator, ConstReverseIterator>> getNegativeReverseRange(KeyValue key) const;
 
-  Iterator findLast(KeyValue key) {
-    return Iterator(
-      this,
-      type == IndexType::unique_index
-      ? --data.unique_index.upper_bound(key)
-      : --data.multi_index.upper_bound(key)
-    );
-  }
-
-  ReverseIterator rfindLast(KeyValue key) {
-    return ReverseIterator(
-      this,
-      std::set<Field*, Comparator>::reverse_iterator(
-        type == IndexType::unique_index
-        ? data.unique_index.find(key)
-        : data.multi_index.find(key)
-      )
-    );
-  }
-
-  std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const {
-    return std::pair<ConstIterator, ConstIterator>{
-      find(key),
-      ++findLast(key)
-    };
-  }
-
-  std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const {
-    return std::pair<ConstReverseIterator, ConstReverseIterator>{
-      rfind(key),
-      ++rfindLast(key)
-    };
-  }
-
-  std::pair<ConstIterator, ConstIterator> getLowerRange(KeyValue key) const {
-    return std::pair<ConstIterator, ConstIterator>{
-      begin(),
-      find(std::move(key))
-    };
-  }
-
-  std::pair<ConstReverseIterator, ConstReverseIterator> getLowerReverseRange(KeyValue key) const {
-    return std::pair<ConstReverseIterator, ConstReverseIterator>{
-      ++rfindLast(std::move(key)),
-      rend()
-    };
-  }
-
-  std::pair<ConstIterator, ConstIterator> getLowerEqualRange(KeyValue key) const {
-    return std::pair<ConstIterator, ConstIterator>{
-      begin(),
-      ++findLast(std::move(key))
-    };
-  }
-
-  std::pair<ConstReverseIterator, ConstReverseIterator> getLowerEqualReverseRange(KeyValue key) const {
-    return std::pair<ConstReverseIterator, ConstReverseIterator>{
-      ++rfind(std::move(key)),
-      rend()
-    };
-  }
-
-  std::pair<ConstIterator, ConstIterator> getHigherRange(KeyValue key) const {
-    return std::pair<ConstIterator, ConstIterator>{
-      ++findLast(std::move(key)),
-      end()
-    };
-  }
-
-  std::pair<ConstReverseIterator, ConstReverseIterator> getHigherReverseRange(KeyValue key) const {
-    return std::pair<ConstReverseIterator, ConstReverseIterator>{
-      rbegin(),
-      rfind(std::move(key))
-    };
-  }
-
-  std::pair<ConstIterator, ConstIterator> getHigherEqualRange(KeyValue key) const {
-    return std::pair<ConstIterator, ConstIterator>{
-      find(std::move(key)),
-      end()
-    };
-  }
-
-  std::pair<ConstReverseIterator, ConstReverseIterator> getHigherEqualReverseRange(KeyValue key) const {
-    return std::pair<ConstReverseIterator, ConstReverseIterator>{
-      rbegin(),
-      ++rfindLast(std::move(key))
-    };
-  }
-
-  std::pair<
-    std::pair<ConstIterator, ConstIterator>,
-    std::pair<ConstIterator, ConstIterator>
-  > getNegativeRange(KeyValue key) const {
-    return std::pair<std::pair<ConstIterator, ConstIterator>, std::pair<ConstIterator, ConstIterator>> {
-      getLowerRange(key), getHigherRange(key)
-    };
-  }
-
-  std::pair<
-    std::pair<ConstReverseIterator, ConstReverseIterator>,
-    std::pair<ConstReverseIterator, ConstReverseIterator>
-  > getNegativeReverseRange(KeyValue key) const {
-    return std::pair<std::pair<ConstReverseIterator, ConstReverseIterator>, std::pair<ConstReverseIterator, ConstReverseIterator>> {
-      getHigherReverseRange(key), getLowerReverseRange(key)
-    };
-  }
-
-  ConstIterator find(KeyValue key) const {
-    return ConstIterator(
-      this,
-      type == IndexType::unique_index
-      ? data.unique_index.find(key)
-      : data.multi_index.find(key)
-    );
-  }
-
-  ConstReverseIterator rfind(KeyValue key) const {
-    return ConstReverseIterator(
-          this,
-          std::set<Field*, Comparator>::reverse_iterator(
-            type == IndexType::unique_index
-            ? --data.unique_index.upper_bound(key)
-            : --data.multi_index.upper_bound(key)
-          )
-        );
-  }
-
-  ConstIterator findLast(KeyValue key) const {
-    return ConstIterator(
-      this,
-      type == IndexType::unique_index
-      ? --data.unique_index.upper_bound(key)
-      : --data.multi_index.upper_bound(key)
-    );
-  }
-
-  ConstReverseIterator rfindLast(KeyValue key) const {
-    return ConstReverseIterator(
-      this,
-      std::set<Field*, Comparator>::const_reverse_iterator(
-        type == IndexType::unique_index
-        ? data.unique_index.find(key)
-        : data.multi_index.find(key)
-      )
-    );
-  }
+  Iterator find(KeyValue key);
+  ReverseIterator rfind(KeyValue key);
+  Iterator findLast(KeyValue key);
+  ReverseIterator rfindLast(KeyValue key);
+  ConstIterator find(KeyValue key) const;
+  ConstReverseIterator rfind(KeyValue key) const;
+  ConstIterator findLast(KeyValue key) const;
+  ConstReverseIterator rfindLast(KeyValue key) const;
+  ConstIterator findEnd(KeyValue key) const;
+  ConstReverseIterator rfindEnd(KeyValue key) const;
 
   Variable getFirstMapByKey(KeyValue key);
   const Variable getFirstMapByKey(KeyValue key) const;
 
-  inline Variable operator[](KeyValue key) { return getFirstMapByKey(std::move(key)); }
-  inline const Variable operator[](KeyValue key) const { return getFirstMapByKey(std::move(key)); }
+  Variable operator[](KeyValue key);
+  const Variable operator[](KeyValue key) const;
 
-  Iterator begin() {return Iterator(this, type == IndexType::unique_index ? data.unique_index.begin() : data.multi_index.begin());}
-  Iterator end() {return Iterator(this, type == IndexType::unique_index ? data.unique_index.end() : data.multi_index.end());}
-  ConstIterator begin() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.begin() : data.multi_index.begin());}
-  ConstIterator end() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.end() : data.multi_index.end());}
-  ConstIterator cbegin() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.cbegin() : data.multi_index.cbegin());}
-  ConstIterator cend() const {return ConstIterator(this, type == IndexType::unique_index ? data.unique_index.cend() : data.multi_index.cend());}
-  ReverseIterator rbegin() {return ReverseIterator(this, type == IndexType::unique_index ? data.unique_index.rbegin() : data.multi_index.rbegin());}
-  ReverseIterator rend() {return ReverseIterator(this, type == IndexType::unique_index ? data.unique_index.rend() : data.multi_index.rend());}
-  ConstReverseIterator rbegin() const {return ConstReverseIterator(this, type == IndexType::unique_index ? data.unique_index.crbegin() : data.multi_index.crbegin());}
-  ConstReverseIterator rend() const {return ConstReverseIterator(this, type == IndexType::unique_index ? data.unique_index.crend() : data.multi_index.crend());}
+  Iterator begin();
+  Iterator end();
+  ConstIterator begin() const;
+  ConstIterator end() const;
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+  ConstReverseIterator rbegin() const;
+  ConstReverseIterator rend() const;
 
 };
 
@@ -532,19 +360,11 @@ private:
       std::map<Index*, std::set<Field*, Index::Comparator>::iterator> indexed_at;
       KeyValue value;
 
-      TransactionLock makeTransaction(MtxLockType lock_type) {
-        std::set<std::shared_mutex*> mtx_set;
-        for(auto& index_entry : indexed_at) mtx_set.insert(&index_entry.first->getMutex());
-        return TransactionLock(mtx_set, lock_type);
-      }
+      TransactionLock makeTransaction(MtxLockType lock_type);
 
-      void unlinkFromIndexes() {
-        auto lk = makeTransaction(MtxLockType::unique_locked);
-        for(auto& index_entry : indexed_at) index_entry.first->unlink(index_entry.second);
-        indexed_at.clear();
-      }
+      void unlinkFromIndexes();
 
-      ~IndexedField() {unlinkFromIndexes();}
+      ~IndexedField();
     };
 
     static constexpr size_t SIZE = sizeof (IndexedField) > sizeof (LocalField)
@@ -734,9 +554,7 @@ public:
 
 
 
-};
-
-
+}
 
 
 #endif // INDEX_IMPL_HXX

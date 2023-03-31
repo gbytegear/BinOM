@@ -146,12 +146,19 @@ inline struct __TestInit {
     signal(SIGTERM, __signal_handler);
     signal(SIGABRT, __signal_handler);
 
+    std::cout << "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n\r"
+                 "\033[102;30m|                                Test started                               |\033[0m\n\r"
+                 "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n\r";
     SEPARATOR
     std::cout << "OS: " << OS_TYPE << "\n\r"; std::cout.flush();
     SEPARATOR
     TEST_LEGEND
   }
   ~__TestInit() {
+    SEPARATOR
+    std::cout << "OS: " << OS_TYPE << "\n\r"; std::cout.flush();
+    SEPARATOR
+    TEST_LEGEND
     SEPARATOR
     if(is_success)
       std::cout << "\033[102;30m+---------------------------------------------------------------------------+\033[0m\n\r"

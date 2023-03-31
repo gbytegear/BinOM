@@ -23,11 +23,9 @@ MapImplementation::~MapImplementation() {
 }
 
 err::ProgressReport<FieldRef> MapImplementation::insert(WeakLink owner, KeyValue key, Variable variable) {
-  auto insert_result = data.emplace(owner, std::move(key), variable.move());
+  auto insert_result = data.emplace(owner, key, variable.move());
   if(insert_result.second) {
-    if(table_list) {
-      // TODO: Add to index in table if has index with equal field key
-    }
+    updateKey(const_cast<binom::index::Field&>(*insert_result.first), key);
     return FieldRef(*insert_result.first);
   }
   return err::ErrorType::binom_key_unique_error;
@@ -109,9 +107,21 @@ void MapImplementation::addTable(TableImplementation& table) {
   table_list->insert(&table);
 }
 
-Error binom::priv::MapImplementation::removeTable(TableImplementation &table) {
+Error binom::priv::MapImplementation::removeTable(TableImplementation& table) {
   if(!table_list) return ErrorType::out_of_range;
   if(table_list->erase(&table) == 0) return ErrorType::out_of_range;
   if(table_list->empty()) delete table_list;
   return Error{};
+}
+
+bool MapImplementation::updateKey(index::Field& field, const KeyValue& new_key) {
+  if(!table_list) return false;
+  bool flag = false;
+  for(auto table_ptr : *table_list)
+    if(auto column = (*table_ptr)[new_key]; column) {
+      auto lk = column->getLock(MtxLockType::unique_locked);
+      column->add(field);
+      flag = true;
+    }
+  return flag;
 }

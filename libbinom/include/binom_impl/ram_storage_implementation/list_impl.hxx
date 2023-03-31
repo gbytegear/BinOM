@@ -39,9 +39,6 @@ public:
   Iterator pushFront(const literals::list& value_list);
 
   Iterator insert(Iterator it, Variable var);
-//  Iterator insert(Iterator it, literals::dllist& value_list) {
-
-//  }
 
   void popBack();
   void popFront();

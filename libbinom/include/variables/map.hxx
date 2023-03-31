@@ -49,8 +49,10 @@ class Map : public Variable {
   Map(priv::Link&& link);
 
   friend class priv::TableImplementation;
+  friend class index::Field;
   Error addTable(priv::TableImplementation& table);
   Error removeTable(priv::TableImplementation& table);
+  bool updateKey(index::Field& field, const KeyValue& new_key);
 
 public:
 //  using FieldRef = binom::index::FieldRef;

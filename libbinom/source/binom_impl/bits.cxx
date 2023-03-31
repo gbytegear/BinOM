@@ -89,6 +89,28 @@ binom::priv::Bits::Iterator& Bits::Iterator::operator--() noexcept {
   return self;
 }
 
+binom::priv::Bits::Iterator &Bits::Iterator::operator+=(std::size_t shift) noexcept {
+  std::size_t shift_from_byte_start = index + shift;
+  bits += shift_from_byte_start / 8;
+  index = shift_from_byte_start % 8;
+  return self;
+}
+
+binom::priv::Bits::Iterator &Bits::Iterator::operator-=(std::size_t shift) noexcept {
+  std::size_t shift_from_byte_end = shift + (7 - index);
+  bits -= shift_from_byte_end / 8;
+  index = 7 - (shift_from_byte_end % 8);
+  return self;
+}
+
+binom::priv::Bits::Iterator Bits::Iterator::operator+(std::size_t shift) const noexcept {
+  return Iterator(self) += shift;
+}
+
+binom::priv::Bits::Iterator Bits::Iterator::operator-(std::size_t shift) const noexcept {
+  return Iterator(self) -= shift;
+}
+
 const binom::priv::Bits::Iterator& Bits::Iterator::operator++() const noexcept {
   if(isNull()) return self;
   if(index < 7) {++index;}
@@ -136,6 +158,10 @@ Bits::Iterator::operator ValueRef() noexcept {if(isNull()) return ValueRef(); re
 Bits::Iterator::operator const ValueRef() const noexcept {if(isNull()) return ValueRef(); return ValueRef(bits, index);}
 
 Bits::ValueRef Bits::Iterator::operator*() noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
+
+pseudo_ptr::PseudoPointer<Bits::ValueRef> Bits::Iterator::operator->() noexcept { return Bits::ValueRef(self); }
+
+pseudo_ptr::PseudoPointer<const Bits::ValueRef> Bits::Iterator::operator->() const noexcept { return Bits::ValueRef(self); }
 
 const Bits::ValueRef Bits::Iterator::operator*() const noexcept {if(isNull()) return ValueRef(); return ValueRef(self);}
 

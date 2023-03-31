@@ -56,12 +56,6 @@ struct SharedResource {
   std::atomic_uint64_t link_counter = 1;
   std::shared_mutex mtx;
 
-//  enum MutexType : ui8 {independent, dependent};
-//  union Mautex {
-//    std::shared_mutex independent;
-//    std::set<std::shared_mutex*> dependent;
-//  };
-
   bool isExist() noexcept;
   void destroy();
 

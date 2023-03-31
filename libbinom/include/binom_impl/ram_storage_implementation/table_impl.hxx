@@ -5,7 +5,11 @@
 #include "../../variables/map.hxx"
 #include "../query.hxx"
 
+#include <concepts>
+
 namespace binom::priv {
+
+using namespace binom::conditions;
 
 template<typename T>
 constexpr bool is_map_type_v = std::is_same_v<T, binom::MultiMap> || std::is_same_v<T, binom::Map>;
@@ -42,6 +46,32 @@ public:
 
   Error remove(KeyValue column_name, KeyValue value, size_t index = 0, size_t count = 1);
   Error remove(conditions::ConditionQuery query);
+
+  template <typename F>
+  requires std::is_invocable_v<F, Variable>
+  void changeWhere(conditions::ConditionQuery query, F callback) {
+    if(isEmpty()) return;
+
+    query.simplifySubExpressions();
+    std::list<Variable> result;
+    auto and_block_begin = query.begin();
+
+    for(auto it = and_block_begin, end = query.end();; ++it)
+      if(it->getNextRelation() == Relation::OR || it == end) {
+        auto and_block_end = (it != end) ? ++ConditionQuery::Iterator(it) : it;
+
+        if(and_block_begin != and_block_end)
+          filterByConjunctionBlock<std::list<Variable>&>(result, and_block_begin, and_block_end);
+
+        if(it == end)
+          break;
+
+        and_block_begin = and_block_end;
+        continue;
+      }
+
+    for(auto& row : result) callback(row.move());
+  }
 
   template<typename T>
   requires is_map_type_v<T>

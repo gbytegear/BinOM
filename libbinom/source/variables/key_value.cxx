@@ -239,8 +239,8 @@ KeyValue::CompareResult KeyValue::getCompare(const KeyValue& other) const {
   }
 
   case binom::VarTypeClass::null:
-  case binom::VarTypeClass::invalid_type: default:
-  return CompareResult::equal;
+  case binom::VarTypeClass::invalid_type:
+  default: return CompareResult::equal;
 
   }
 }
@@ -306,9 +306,8 @@ binom::KeyValue::CompareResult binom::KeyValue::getCompare(KeyValue&& other) con
   }
 
   case binom::VarTypeClass::null:
-  case binom::VarTypeClass::invalid_type: default:
-  return CompareResult::equal;
-
+  case binom::VarTypeClass::invalid_type:
+  default: return CompareResult::equal;
   }
 }
 
@@ -370,8 +369,8 @@ binom::KeyValue::CompareResult binom::KeyValue::getCompare(const Variable& other
   }
 
   case binom::VarTypeClass::null:
-  case binom::VarTypeClass::invalid_type: default:
-  return CompareResult::equal;
+  case binom::VarTypeClass::invalid_type:
+  default: return CompareResult::equal;
   }
 }
 

@@ -83,6 +83,7 @@ public:
 
   void addTable(TableImplementation& table);
   Error removeTable(TableImplementation& table);
+  bool updateKey(index::Field& field, const KeyValue& new_key);
 };
 
 }

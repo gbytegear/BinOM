@@ -215,3 +215,10 @@ Error binom::Map::removeTable(priv::TableImplementation & table) {
     return ErrorType::no_error;
   } else return ErrorType::binom_resource_not_available;
 }
+
+bool binom::Map::updateKey(index::Field &field, const KeyValue& new_key) {
+  if(auto lk = getLock(MtxLockType::unique_locked); lk) {
+    getData()->updateKey(field, new_key);
+    return true;
+  } else return false;
+}

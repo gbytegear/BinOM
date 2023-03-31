@@ -23,9 +23,7 @@ MultiMapImplementation::~MultiMapImplementation() {
 
 FieldRef MultiMapImplementation::insert(WeakLink owner, KeyValue key, Variable variable, NewNodePosition position) {
   auto insert_result = data.emplace(owner, std::move(key), variable.move());
-  if(table_list) {
-    // TODO: Add to index in table if has index with equal field key
-  }
+  updateKey(const_cast<binom::index::Field&>(*insert_result), key);
   return FieldRef(*insert_result);
 }
 
@@ -120,4 +118,15 @@ Error MultiMapImplementation::removeTable(TableImplementation &table) {
   if(table_list->erase(&table) == 0) return ErrorType::out_of_range;
   if(table_list->empty()) delete table_list;
   return Error{};
+}
+
+bool MultiMapImplementation::updateKey(index::Field& field, const KeyValue& new_key) {
+  if(!table_list) return false;
+  bool flag = false;
+  for(auto table_ptr : *table_list)
+    if(auto column = (*table_ptr)[new_key]; column) {
+      auto lk = column->getLock(MtxLockType::unique_locked);
+      flag = !column->add(field);
+    }
+  return flag;
 }

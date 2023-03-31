@@ -752,6 +752,25 @@ struct ArrayLiteral             : public heritable_initializer_list::HeritableIn
 struct ListLiteral              : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
 struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
 struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
+
+struct TableRowLiteral {
+  enum LiteralType {
+    map,
+    multimap
+  } type;
+
+  union RowData {
+    MapLiteral map_literal;
+    MultiMapLiteral multi_map_literal;
+  } data;
+
+  TableRowLiteral(MapLiteral map_literal)
+    : type(LiteralType::map), data{.map_literal{map_literal}} {}
+
+  TableRowLiteral(MultiMapLiteral multi_map_literal)
+    : type(LiteralType::multimap), data{.multi_map_literal{multi_map_literal}} {}
+};
+
 struct TableLiteral {
   std::initializer_list<std::pair<KeyValue, IndexType>> header;
   std::initializer_list<MultiMap> row_list;
