@@ -1,5 +1,5 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/map_impl.hxx"
-#include "libbinom/include/variables/field.hxx"
+#include "libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -19,7 +19,7 @@ MapImplementation::MapImplementation(WeakLink owner, MapImplementation&& other) 
 }
 
 MapImplementation::~MapImplementation() {
-  if(table_list) delete table_list;
+  if(table_list) { delete table_list; table_list = nullptr; }
 }
 
 err::ProgressReport<FieldRef> MapImplementation::insert(WeakLink owner, KeyValue key, Variable variable) {
@@ -110,7 +110,7 @@ void MapImplementation::addTable(TableImplementation& table) {
 Error binom::priv::MapImplementation::removeTable(TableImplementation& table) {
   if(!table_list) return ErrorType::out_of_range;
   if(table_list->erase(&table) == 0) return ErrorType::out_of_range;
-  if(table_list->empty()) delete table_list;
+  if(table_list->empty()) { delete table_list; table_list = nullptr; }
   return Error{};
 }
 

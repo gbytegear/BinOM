@@ -64,6 +64,7 @@
 ../../libbinom/source/variables/array.cxx
 ../../libbinom/source/variables/bit_array.cxx
 ../../libbinom/source/variables/buffer_array.cxx
+../../libbinom/source/variables/field.cxx
 ../../libbinom/source/variables/generic_value.cxx
 ../../libbinom/source/variables/key_value.cxx
 ../../libbinom/source/variables/list.cxx
@@ -89,6 +90,7 @@
 ../../test/table_impl_test.hxx
 ../../test/test.cxx
 ../../test/test_area.hxx
+../../test/tester.cxx
 ../../test/tester.hxx
 ../../test/types_test.hxx
 ../../test/variable_test.hxx

@@ -7,9 +7,9 @@
 #include <csignal>
 
 #ifndef __FUNCTION_NAME__
-    #ifdef WIN32   //WINDOWS
+    #if defined (WIN32) || defined (_WIN32) || defined (_WIN64) || defined (__CYGWIN__) //WINDOWS
         #define __FUNCTION_NAME__   __FUNCTION__
-    #else          //*NIX
+    #else //*NIX
         #define __FUNCTION_NAME__   __func__
     #endif
 #endif
@@ -93,38 +93,58 @@
 
 #endif
 
-
 #ifdef TEST_FULL_INFO
 #define INFO << "(@path: " __FILE__ ":" << __LINE__ << " @func: " << __FUNCTION_NAME__ << " @thread: #" << std::hex << std::this_thread::get_id() << std::dec << ") "
 #else
 #define INFO
 #endif
 
-extern thread_local size_t log_depth = 0;
+extern thread_local size_t log_depth;
 
 #define GRP_PUSH ++log_depth;
 #define GRP_POP if(log_depth) std::cout << std::string(log_depth - 1, '|') << "+---\n\r"; std::cout.flush(); --log_depth;
 #define GRP(expression) GRP_PUSH expression GRP_POP
-
-#define NORMAL_TXT "\033[0m"
-#define WHITE_TXT "\x1B[97m"
-#define RED_TXT "\x1B[97;101m"
-#define GREEN_TXT "\x1B[32m"
 
 
 // Test utilits
 
 #define SEPARATOR std::cout << "\x1B[97m=============================================================================\033[0m\n\r";  std::cout.flush();
 
+
 #define PRINT_RUN(expression) \
   std::cout << std::string(log_depth, '|') INFO << "\x1B[93m[r]\x1B[33m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
   expression
 
+
 #define TEST_ANNOUNCE(MSG) \
   std::cout << std::string(log_depth, '|') INFO << "[T]: " #MSG << "\033[0m\n\r"; std::cout.flush();
 
+
+#define NORMAL_TXT "\033[0m"
+#define WHITE_TXT "\x1B[97m"
+#define RED_TXT "\x1B[97;101m"
+#define GREEN_TXT "\x1B[32m"
+
 #define LOG(INF) \
   std::cout << std::string(log_depth, '|') INFO << "\x1B[94m[i]\x1B[34m: " << INF << "\033[0m\n\r"; std::cout.flush();
+
+
+#ifdef EXIT_ON_FAILURE
+#define FAILURE_TEST_EXIT std::exit(-1);
+#else
+#define FAILURE_TEST_EXIT
+#endif
+
+#define TEST(expression) \
+  if(static_cast<bool>(expression)) { \
+    std::cout << std::string(log_depth, '|') INFO << "\x1B[92m[✓]\x1B[32m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
+  } else { \
+    std::cout << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
+    __test_init.is_success = false; \
+    std::cout.flush(); \
+    FAILURE_TEST_EXIT \
+  }
+
 
 #define TEST_LEGEND \
   std::cout << "Test legend:\n\r" \
@@ -132,13 +152,15 @@ extern thread_local size_t log_depth = 0;
                "\033[107;30m[T]\033[0m - test announce\n\r" \
                "\x1B[94m[i]\033[0m - log\n\r" \
                "\x1B[92m[✓]\033[0m - passed test\n\r" \
-               "\x1B[97;41m[✗]\033[0m - failed test\n\r"; std::cout.flush();
+               "\x1B[97;41m[✗]\033[0m - failed test\n\r"; \
+  std::cout.flush();
 
 
 [[noreturn]] void __signal_handler(int signum);
 
 inline struct __TestInit {
   bool is_success = true;
+
   __TestInit() {
     signal(SIGILL, __signal_handler);
     signal(SIGFPE, __signal_handler);
@@ -172,17 +194,9 @@ inline struct __TestInit {
   }
 } __test_init;
 
-#define TEST(expression) \
-  if(static_cast <bool> (expression)) { \
-    std::cout << std::string(log_depth, '|') INFO << "\x1B[92m[✓]\x1B[32m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
-  } else { \
-    std::cout << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: " << #expression << "\033[0m\n\r"; std::cout.flush(); \
-    __test_init.is_success = false; \
-    std::cout.flush(); \
-    std::exit(-1); \
-  }
 
-class RAIIPerfomanceTest {
+
+extern class RAIIPerfomanceTest {
   clock_t start_time;
   const char* msg;
 public:
@@ -195,22 +209,6 @@ public:
     std::cout << std::string(log_depth, '|') << msg << time << " second(s).\033[0m" << std::endl;
     std::cout.flush();
   }
-} __test_perf("Test perfomance: ");
-
-void __signal_handler(int signum) {
-  std::cout << std::string(log_depth, '|') INFO << "\x1B[97;41m[✗]\x1B[97;101m: ";
-  std::cout.flush();
-  switch (signum) {
-  case SIGILL:  std::cout << "Recived signal SIGILL - Illegal instruction"; std::cout.flush(); break;
-  case SIGABRT: std::cout << "Recived signal SIGABRT - Abnormal termination"; std::cout.flush(); break;
-  case SIGFPE:  std::cout << "Recived signal SIGFPE - Erroneous arithmetic operation"; std::cout.flush(); break;
-  case SIGSEGV: std::cout << "Recived signal SIGSEGV - Invalid access to storage"; std::cout.flush(); break;
-  case SIGTERM: std::cout << "Recived signal SIGTERM - Termination request"; std::cout.flush(); break;
-  }
-  std::cout << "\033[0m\n\r";
-  std::cout.flush();
-  __test_init.is_success = false;
-  std::exit(signum);
-}
+} __test_perf;
 
 #endif // TESTER_HPP

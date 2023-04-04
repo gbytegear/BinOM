@@ -2,7 +2,7 @@
 #define NAMED_VARIABLE_HXX
 
 #include "variable.hxx"
-#include "../binom_impl/ram_storage_implementation.hxx"
+#include "../binom_impl/types.hxx"
 
 namespace binom {
 namespace priv {
@@ -41,18 +41,16 @@ class FieldInit : public priv::FieldBase<FieldInit> {
   KeyValue key;
   Variable variable;
 
-  inline Variable& getVariableRef() noexcept {return variable;}
-  inline KeyValue& getKeyRef() noexcept {return key;}
-  inline const Variable& getVariableRef() const noexcept {return variable;}
-  inline const KeyValue& getKeyRef() const noexcept {return key;}
-  inline Variable setValueImpl(Variable value) noexcept {return variable = value.move();}
-  inline KeyValue setKeyImpl(KeyValue key) noexcept {return self.key = std::move(key);}
+  Variable& getVariableRef() noexcept;
+  KeyValue& getKeyRef() noexcept;
+  const Variable& getVariableRef() const noexcept;
+  const KeyValue& getKeyRef() const noexcept;
+  Variable setValueImpl(Variable value) noexcept;
+  KeyValue setKeyImpl(KeyValue key) noexcept;
 
 public:
-  FieldInit(KeyValue key, Variable variable)
-    : key(std::move(key)), variable(variable.move()) {}
-  FieldInit(const FieldInit&& named_variable)
-    : key(std::move(const_cast<FieldInit&&>(named_variable).key)), variable(const_cast<FieldInit&&>(named_variable).variable.move()) {}
+  FieldInit(KeyValue key, Variable variable);
+  FieldInit(const FieldInit&& named_variable);
   template<class FieldInitDriven>
   requires extended_type_traits::is_crtp_base_of_v<FieldBase, FieldInitDriven>
   FieldInit(const FieldInitDriven& other)
@@ -77,22 +75,22 @@ class FieldRef : public priv::FieldBase<FieldRef> {
 
   index::Field* data;
 
-  inline Variable getVariableRef() noexcept {return data ? data->getValue().move() : nullptr;}
-  inline const Variable getVariableRef() const noexcept {return data ? data->getValue().move() : nullptr;}
-  inline const KeyValue getKeyRef() const noexcept {return data ? data->getKey() : KeyValue();}
-  inline Variable setValueImpl(Variable value) noexcept {return data ? data->setValue(std::move(value)) : nullptr;}
-  inline KeyValue setKeyImpl(KeyValue key) noexcept {return data ? data->setKey(std::move(key)) : KeyValue();}
+  Variable getVariableRef() noexcept;
+  const Variable getVariableRef() const noexcept;
+  const KeyValue getKeyRef() const noexcept;
+  Variable setValueImpl(Variable value) noexcept;
+  KeyValue setKeyImpl(KeyValue key) noexcept;
 
-  FieldRef(const index::Field& data) : data(const_cast<index::Field*>(&data)) {}
+  FieldRef(const index::Field& data);
 public:
-  FieldRef(decltype (nullptr)) : data(nullptr) {}
-  FieldRef(const FieldRef& other) : data(const_cast<index::Field*>(other.data)) {}
-  FieldRef(FieldRef& other) : data(other.data) {}
+  FieldRef(decltype (nullptr));
+  FieldRef(const FieldRef& other);
+  FieldRef(FieldRef& other);
 
-  Variable getOwner() { return data->getOwner(); }
-  const Variable getOwner() const { return data->getOwner(); }
+  Variable getOwner();
+  const Variable getOwner() const;
 
-  bool isIndexed() const { return data->isIndexed(); }
+  bool isIndexed() const;
 
   using priv::FieldBase<FieldRef>::operator=;
 };

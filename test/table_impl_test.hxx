@@ -90,59 +90,61 @@ void testTableImpl() {
       }
     });
 
+//  tbl.remove("ID", 0);
   utils::printVariable(tbl.getRow("Name", "Maksim"));
 
-  tbl["ID"].ifNoError([](TableImplementation::Column& column) {
-    LOG(GREEN_TXT "Column finded")
-    utils::printVariable(column.getFirstMapByKey(1));
-  }).ifError([](Error err) {
-    LOG(RED_TXT "Column doesn't finded:" << err.what())
-  });
+//  tbl["ID"].ifNoError([](TableImplementation::Column& column) {
+//    LOG(GREEN_TXT "Column finded")
+//    utils::printVariable(column.getFirstMapByKey(1));
+//  }).ifError([](Error err) {
+//    LOG(RED_TXT "Column doesn't finded:" << err.what())
+//  });
 
-  {
-    using namespace binom::conditions;
-    TEST_ANNOUNCE(Search by query - Organization = Grebci i galeri && Is admin = true || Organization = Roga i copita && Is admin = true)
-    GRP_PUSH
-    auto new_tbl = tbl.find(
-          ConditionQuery(cexp_list{
-            cexp{"Organization", op::equal, "Grebci i galeri"},
-            cexp{"Is admin", op::equal, true, rel::OR},
-            cexp{"Organization", op::equal, "Roga i copita"},
-            cexp{"Is admin", op::equal, false, rel::OR},
-          }));
+//  {
+//    using namespace binom::conditions;
+//    TEST_ANNOUNCE(Search by query - Organization = Grebci i galeri && Is admin = true || Organization = Roga i copita && Is admin = true)
+//    GRP_PUSH
+//    auto new_tbl = tbl.find(
+//          ConditionQuery(cexp_list{
+//            cexp{"Organization", op::equal, "Grebci i galeri"},
+//            cexp{"Is admin", op::equal, true, rel::OR},
+//            cexp{"Organization", op::equal, "Roga i copita"},
+//            cexp{"Is admin", op::equal, false, rel::OR},
+//          }));
 
-    for(auto field_ref : *new_tbl["ID"])
-      utils::printVariable(field_ref.getOwner());
-    GRP_POP
-  }
+//    for(auto field_ref : *new_tbl["ID"])
+//      utils::printVariable(field_ref.getOwner());
+//    GRP_POP
+//  }
 
-  std::multiset<KeyValue> sorting_test {
-    true,
-    true,
-    false,
-    false,
-    true,
-    true
-  };
+  TEST_ANNOUNCE(Remove by query)
+  TableImplementation tbl_copy = tbl;
 
-  std::cout <<"Values: ";
-  for(auto& value : sorting_test)
-    std::cout << bool(value.toNumber()) << ' ';
-  std::cout << std::endl;
+  SEPARATOR
 
-  {
-    using namespace binom::conditions;
-    TEST_ANNOUNCE(Remove by query)
-    TableImplementation tbl_copy = tbl;
-    LOG(WHITE_TXT "Table before remove")
-    for(auto field_ref : *tbl_copy["ID"])
-      utils::printVariable(field_ref.getOwner());
+  LOG(WHITE_TXT "Table original before remove")
+  for(auto field_ref : *tbl["ID"])
+    utils::printVariable(field_ref.getOwner());
 
-    tbl_copy.remove(ConditionQuery{cexp{"Is admin", op::equal, true}});
-    LOG(WHITE_TXT "Table after remov by query - Is admin = true")
-    for(auto field_ref : *tbl_copy["ID"])
-      utils::printVariable(field_ref.getOwner());
-  }
+  LOG(WHITE_TXT "Try to remov by query from table original - Is amdin = true")
+  tbl.remove(ConditionQuery{cexp{"Is admin", op::equal, true}});
+
+  LOG(WHITE_TXT "Table original after remov by query - Is admin = true")
+  for(auto field_ref : *tbl["ID"])
+    utils::printVariable(field_ref.getOwner());
+
+  SEPARATOR
+
+  LOG(WHITE_TXT "Table copy before remove")
+  for(auto field_ref : *tbl_copy["Organization"])
+    utils::printVariable(field_ref.getOwner());
+
+  LOG(WHITE_TXT "Try to remov by query from table copy - Is amdin = true")
+  tbl_copy.remove(ConditionQuery{cexp{"Is admin", op::equal, true}});
+
+  LOG(WHITE_TXT "Table copy after remov by query - Is admin = true")
+  for(auto field_ref : *tbl_copy["ID"])
+    utils::printVariable(field_ref.getOwner());
 
 
   GRP_POP

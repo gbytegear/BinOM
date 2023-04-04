@@ -1,0 +1,178 @@
+==765==
+==765== HEAP SUMMARY:
+==765==     in use at exit: 160 bytes in 4 blocks
+==765==   total heap usage: 15,243 allocs, 15,239 frees, 1,084,856 bytes allocated
+==765==
+==765== 32 bytes in 1 blocks are definitely lost in loss record 1 of 3
+==765==    at 0x484A2F3: operator new[](unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==765==    by 0x1906E3: binom::priv::BufferArrayImplementation* binom::priv::BufferArrayImplementation::create<char>(std::basic_string_view<char, std::char_traits<char> > const&) (buffer_array_impl.hxx:109)
+==765==    by 0x18E81B: binom::KeyValue::KeyValue<char>(std::basic_string_view<char, std::char_traits<char> >) (key_value.cxx:42)
+==765==    by 0x143CBE: binom::KeyValue::KeyValue<char>(char const*) (key_value.hxx:74)
+==765==    by 0x136B16: testTableImpl() (table_impl_test.hxx:130)
+==765==    by 0x13931E: main (test.cxx:27)
+==765==
+==765== 32 bytes in 1 blocks are definitely lost in loss record 2 of 3
+==765==    at 0x484A2F3: operator new[](unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==765==    by 0x1906E3: binom::priv::BufferArrayImplementation* binom::priv::BufferArrayImplementation::create<char>(std::basic_string_view<char, std::char_traits<char> > const&) (buffer_array_impl.hxx:109)
+==765==    by 0x18E81B: binom::KeyValue::KeyValue<char>(std::basic_string_view<char, std::char_traits<char> >) (key_value.cxx:42)
+==765==    by 0x143CBE: binom::KeyValue::KeyValue<char>(char const*) (key_value.hxx:74)
+==765==    by 0x13710C: testTableImpl() (table_impl_test.hxx:143)
+==765==    by 0x13931E: main (test.cxx:27)
+==765==
+==765== 96 bytes in 2 blocks are definitely lost in loss record 3 of 3
+==765==    at 0x484A2F3: operator new[](unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==765==    by 0x19FCC4: binom::priv::BufferArrayImplementation::copy(binom::priv::BufferArrayImplementation const*) (buffer_array_impl.cxx:19)
+==765==    by 0x18C0E0: binom::KeyValue::KeyValue(binom::KeyValue const&) (key_value.cxx:105)
+==765==    by 0x162288: binom::conditions::ConditionExpression::ConditionExpressionData::ConditionExpressionData(binom::conditions::ConditionExpression::ConditionExpressionData const&) (query.hxx:29)
+==765==    by 0x16231E: binom::conditions::ConditionExpression::Data::Data(binom::conditions::Operator, binom::conditions::ConditionExpression::Data const&) (query.hxx:62)
+==765==    by 0x161548: binom::conditions::ConditionExpression::ConditionExpression(binom::conditions::ConditionExpression const&) (query.cxx:20)
+==765==    by 0x163165: decltype (::new ((void*)(0)) binom::conditions::ConditionExpression((declval<binom::conditions::ConditionExpression const&>)())) std::construct_at<binom::conditions::ConditionExpression, binom::conditions::ConditionExpression const&>(binom::conditions::ConditionExpression*, binom::conditions::ConditionExpression const&) (stl_construct.h:97)
+==765==    by 0x1631C8: void std::allocator_traits<std::allocator<std::_List_node<binom::conditions::ConditionExpression> > >::construct<binom::conditions::ConditionExpression, binom::conditions::ConditionExpression const&>(std::allocator<std::_List_node<binom::conditions::ConditionExpression> >&, binom::conditions::ConditionExpression*, binom::conditions::ConditionExpression const&) (alloc_traits.h:518)
+==765==    by 0x162D60: std::_List_node<binom::conditions::ConditionExpression>* std::__cxx11::list<binom::conditions::ConditionExpression, std::allocator<binom::conditions::ConditionExpression> >::_M_create_node<binom::conditions::ConditionExpression const&>(binom::conditions::ConditionExpression const&) (stl_list.h:637)
+==765==    by 0x16329D: void std::__cxx11::list<binom::conditions::ConditionExpression, std::allocator<binom::conditions::ConditionExpression> >::_M_insert<binom::conditions::ConditionExpression const&>(std::_List_iterator<binom::conditions::ConditionExpression>, binom::conditions::ConditionExpression const&) (stl_list.h:1911)
+==765==    by 0x162FEA: binom::conditions::ConditionExpression& std::__cxx11::list<binom::conditions::ConditionExpression, std::allocator<binom::conditions::ConditionExpression> >::emplace_back<binom::conditions::ConditionExpression const&>(binom::conditions::ConditionExpression const&) (stl_list.h:1227)
+==765==    by 0x162BCC: void std::__cxx11::list<binom::conditions::ConditionExpression, std::allocator<binom::conditions::ConditionExpression> >::_M_initialize_dispatch<binom::conditions::ConditionExpression const*>(binom::conditions::ConditionExpression const*, binom::conditions::ConditionExpression const*, std::__false_type) (stl_list.h:1840)
+==765==
+==765== LEAK SUMMARY:
+==765==    definitely lost: 160 bytes in 4 blocks
+==765==    indirectly lost: 0 bytes in 0 blocks
+==765==      possibly lost: 0 bytes in 0 blocks
+==765==    still reachable: 0 bytes in 0 blocks
+==765==         suppressed: 0 bytes in 0 blocks
+==765==
+==765== ERROR SUMMARY: 23 errors from 15 contexts (suppressed: 0 from 0)
+==765==
+==765== 1 errors in context 1 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F99E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x12311A: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 2 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F93E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x12311A: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 3 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F99E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x123035: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 4 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F93E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x123035: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 5 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F99E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122E7E: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 6 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F93E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122E7E: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 7 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F99E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122D99: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 8 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F93E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122D99: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 9 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F99E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122D65: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 1 errors in context 10 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F93E: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122D65: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 5 errors in context 11 of 15:
+==765== Conditional jump or move depends on uninitialised value(s)
+==765==    at 0x498F82D: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498F968: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122D65: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765==
+==765== 5 errors in context 12 of 15:
+==765== Use of uninitialised value of size 8
+==765==    at 0x498F81B: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498F968: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x498FC3E: std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, bool) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x499E611: std::ostream& std::ostream::_M_insert<bool>(bool) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
+==765==    by 0x122D65: testBits() (bits_test.hxx:23)
+==765==    by 0x13925E: main (test.cxx:14)
+==765==  Uninitialised value was created by a stack allocation
+==765==    at 0x1229AE: testBits() (bits_test.hxx:17)
+==765==
+==765== ERROR SUMMARY: 23 errors from 15 contexts (suppressed: 0 from 0)

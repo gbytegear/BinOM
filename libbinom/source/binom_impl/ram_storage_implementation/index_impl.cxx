@@ -1,5 +1,6 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/index_impl.hxx"
-#include "libbinom/include/variables/field.hxx"
+#include "libbinom/include/variables/map.hxx"
+#include "libbinom/include/variables/multi_map.hxx"
 
 using namespace binom;
 using namespace binom::priv;
@@ -79,12 +80,10 @@ Index::~Index() {
   switch (type) {
   case IndexType::unique_index:
     while(!data.unique_index.empty()) remove(**data.unique_index.begin());
-//    for(auto field : data.unique_index) remove(*field);
     data.unique_index.~set();
   return;
   case IndexType::multi_index:
     while(!data.multi_index.empty()) remove(**data.multi_index.begin());
-//    for(auto field : data.multi_index) remove(*field);
     data.multi_index.~multiset();
   return;
   }

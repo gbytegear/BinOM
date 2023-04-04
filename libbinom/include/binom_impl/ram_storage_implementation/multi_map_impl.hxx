@@ -1,9 +1,6 @@
 #ifndef MULTIMAP_IMPL_HXX
 #define MULTIMAP_IMPL_HXX
 
-//#include "../multi_avl_tree.hxx"
-//#include "../../variables/variable.hxx"
-//#include "../../utils/pseudo_pointer.hxx"
 #include <map>
 #include "../../utils/pseudo_pointer.hxx"
 #include "../../variables/key_value.hxx"

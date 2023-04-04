@@ -1,6 +1,7 @@
 #ifndef MULTI_MAP_HXX
 #define MULTI_MAP_HXX
 
+#include "../binom_impl/ram_storage_implementation/multi_map_impl.hxx"
 #include "field.hxx"
 
 namespace binom {

@@ -1,6 +1,7 @@
 #ifndef MAP_HXX
 #define MAP_HXX
 
+#include "../binom_impl/ram_storage_implementation/map_impl.hxx"
 #include "field.hxx"
 
 namespace binom {

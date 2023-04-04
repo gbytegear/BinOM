@@ -15,6 +15,123 @@ namespace binom {
 using namespace type_alias;
 using namespace memctrl;
 
+//! Table column index type
+enum class IndexType {
+  unique_index,
+  multi_index
+};
+
+//! Map or MultiMap field type
+enum class FieldType : ui8 {
+  local   = 0x00,
+  indexed = 0x01,
+  empty   = 0xFF
+};
+
+namespace priv {
+
+// Shared resource implementation
+class Link;
+class SharedResource;
+class ResourceData;
+class FileResourceIndex;
+
+// BinOM containers implementation
+class BitArrayImplementation;
+class BufferArrayImplementation;
+class ArrayImplementation;
+class ListImplementation;
+class MapImplementation;
+class MultiMapImplementation;
+class TableImplementation;
+class KeyValueImplementation;
+
+}
+
+namespace index {
+
+class Index;
+struct IndexComparator;
+class Field;
+struct MapComparator;
+class Iterator;
+class ConstIterator;
+class ReverseIterator;
+class ConstReverseIterator;
+
+}
+
+// BinOM generic variables
+class Variable;
+class KeyValue;
+
+// BinOM containers
+class Number;
+class BitArray;
+class BufferArray;
+class Array;
+class List;
+class Map;
+class MultiMap;
+class Table;
+
+// Container support types
+class FieldInit;
+class FieldRef;
+
+namespace literals {
+namespace priv {
+
+struct ArrayLiteral             : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
+struct ListLiteral              : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
+struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
+struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
+
+struct TableRowLiteral {
+  enum LiteralType {
+    map,
+    multimap
+  } type;
+
+  union RowData {
+    MapLiteral map_literal;
+    MultiMapLiteral multi_map_literal;
+  } data;
+
+  TableRowLiteral(MapLiteral map_literal)
+    : type(LiteralType::map), data{.map_literal{map_literal}} {}
+
+  TableRowLiteral(MultiMapLiteral multi_map_literal)
+    : type(LiteralType::multimap), data{.multi_map_literal{multi_map_literal}} {}
+};
+
+struct TableLiteral {
+  std::initializer_list<std::pair<KeyValue, IndexType>> header;
+  std::initializer_list<MultiMap> row_list;
+};
+
+}
+
+// BinOM Container literals
+typedef std::initializer_list<const bool>       bitarr;
+typedef std::initializer_list<const ui8>        ui8arr;
+typedef std::initializer_list<const i8>         i8arr;
+typedef std::initializer_list<const ui16>       ui16arr;
+typedef std::initializer_list<const i16>        i16arr;
+typedef std::initializer_list<const ui32>       ui32arr;
+typedef std::initializer_list<const i32>        i32arr;
+typedef std::initializer_list<const f32>        f32arr;
+typedef std::initializer_list<const ui64>       ui64arr;
+typedef std::initializer_list<const i64>        i64arr;
+typedef std::initializer_list<const f64>        f64arr;
+typedef priv::ArrayLiteral                      arr;
+typedef priv::ListLiteral                       list;
+typedef priv::MapLiteral                        map;
+typedef priv::MultiMapLiteral                   multimap;
+typedef priv::TableLiteral                      table;
+
+}
+
 #define getIntType(Enum, Type) \
 std::is_signed_v<Type> ? ( \
     sizeof (Type) == 1 ? Enum::si8 \
@@ -291,19 +408,6 @@ constexpr VarType to_buffer_array_type = []() consteval {
   case 8: return std::is_signed_v<T> ? std::is_floating_point_v<T> ? VarType::f64_array : VarType::si64_array : VarType::ui64_array;
   }
 }();
-
-//! Table column index type
-enum class IndexType {
-  unique_index,
-  multi_index
-};
-
-//! Map or MultiMap field type
-enum class FieldType : ui8 {
-  local   = 0x00,
-  indexed = 0x01,
-  empty   = 0xFF
-};
 
 #undef getIntType
 #undef getIntArrType
@@ -706,97 +810,6 @@ constexpr inline bool operator == (VarType type, ValType val_type) noexcept {ret
 constexpr inline bool operator != (ValType val_type, VarType type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 constexpr inline bool operator != (VarType type, ValType val_type) noexcept {return toVarType(val_type) != type && toBufferVarType(val_type) != type;}
 
-namespace priv {
-
-// Shared resource implementation
-class Link;
-class SharedResource;
-class ResourceData;
-class FileResourceIndex;
-
-// BinOM containers implementation
-class BitArrayImplementation;
-class BufferArrayImplementation;
-class ArrayImplementation;
-class ListImplementation;
-class MapImplementation;
-class MultiMapImplementation;
-class TableImplementation;
-class KeyValueImplementation;
-
-}
-
-// BinOM generic variables
-class Variable;
-class KeyValue;
-
-// BinOM containers
-class Number;
-class BitArray;
-class BufferArray;
-class Array;
-class List;
-class Map;
-class MultiMap;
-class Table;
-
-// Container support types
-class FieldInit;
-class FieldRef;
-class MapNodeRef;
-
-namespace literals {
-namespace priv {
-
-struct ArrayLiteral             : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
-struct ListLiteral              : public heritable_initializer_list::HeritableInitializerList<const Variable>      {using HeritableInitializerList::HeritableInitializerList;};
-struct MapLiteral               : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
-struct MultiMapLiteral          : public heritable_initializer_list::HeritableInitializerList<const FieldInit> {using HeritableInitializerList::HeritableInitializerList;};
-
-struct TableRowLiteral {
-  enum LiteralType {
-    map,
-    multimap
-  } type;
-
-  union RowData {
-    MapLiteral map_literal;
-    MultiMapLiteral multi_map_literal;
-  } data;
-
-  TableRowLiteral(MapLiteral map_literal)
-    : type(LiteralType::map), data{.map_literal{map_literal}} {}
-
-  TableRowLiteral(MultiMapLiteral multi_map_literal)
-    : type(LiteralType::multimap), data{.multi_map_literal{multi_map_literal}} {}
-};
-
-struct TableLiteral {
-  std::initializer_list<std::pair<KeyValue, IndexType>> header;
-  std::initializer_list<MultiMap> row_list;
-};
-
-}
-
-// BinOM Container literals
-typedef std::initializer_list<const bool>       bitarr;
-typedef std::initializer_list<const ui8>        ui8arr;
-typedef std::initializer_list<const i8>         i8arr;
-typedef std::initializer_list<const ui16>       ui16arr;
-typedef std::initializer_list<const i16>        i16arr;
-typedef std::initializer_list<const ui32>       ui32arr;
-typedef std::initializer_list<const i32>        i32arr;
-typedef std::initializer_list<const f32>        f32arr;
-typedef std::initializer_list<const ui64>       ui64arr;
-typedef std::initializer_list<const i64>        i64arr;
-typedef std::initializer_list<const f64>        f64arr;
-typedef priv::ArrayLiteral                      arr;
-typedef priv::ListLiteral                       list;
-typedef priv::MapLiteral                        map;
-typedef priv::MultiMapLiteral                   multimap;
-typedef priv::TableLiteral                      table;
-
-}
 
 }
 

@@ -5,6 +5,7 @@
 #include <map>
 #include "../../variables/key_value.hxx"
 #include "../../variables/variable.hxx"
+#include "../../variables/field.hxx"
 #include "../../utils/pseudo_pointer.hxx"
 
 

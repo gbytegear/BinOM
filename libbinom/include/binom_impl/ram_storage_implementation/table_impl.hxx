@@ -3,6 +3,8 @@
 
 #include "../../variables/multi_map.hxx"
 #include "../../variables/map.hxx"
+#include "../../variables/field.hxx"
+#include "../../utils/pseudo_pointer.hxx"
 #include "../query.hxx"
 
 #include <concepts>
@@ -18,9 +20,9 @@ class TableImplementation {
   std::set<binom::Variable, binom::Variable::ResourceComparator> rows;
   std::set<binom::index::Index, binom::index::IndexComparator> indexes;
 
-  template<typename T>
-  requires std::is_same_v<T, TableImplementation&> || std::is_same_v<T, std::list<binom::Variable>&>
-  void filterByConjunctionBlock(T result,
+  template<typename F>
+  requires std::is_invocable_v<F, Variable>
+  void filterByConjunctionBlock(F callback,
                                 conditions::ConditionQuery::Iterator and_block_begin,
                                 conditions::ConditionQuery::Iterator and_block_end);
 
@@ -61,7 +63,7 @@ public:
         auto and_block_end = (it != end) ? ++ConditionQuery::Iterator(it) : it;
 
         if(and_block_begin != and_block_end)
-          filterByConjunctionBlock<std::list<Variable>&>(result, and_block_begin, and_block_end);
+          filterByConjunctionBlock(callback, and_block_begin, and_block_end);
 
         if(it == end)
           break;
@@ -69,8 +71,6 @@ public:
         and_block_begin = and_block_end;
         continue;
       }
-
-    for(auto& row : result) callback(row.move());
   }
 
   template<typename T>
