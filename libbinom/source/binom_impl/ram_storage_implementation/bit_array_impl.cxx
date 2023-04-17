@@ -1,6 +1,7 @@
 #include "libbinom/include/binom_impl/ram_storage_implementation/bit_array_impl.hxx"
 #include "libbinom/include/utils/util_functions.hxx"
 #include <cmath>
+#include <cstring>
 
 using namespace binom;
 using namespace binom::priv;

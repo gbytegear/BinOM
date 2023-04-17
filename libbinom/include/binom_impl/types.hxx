@@ -1,11 +1,12 @@
 #ifndef TYPES_HXX
 #define TYPES_HXX
 
-#include "../utils/memctrl.hxx"
+#include "../utils/err.hxx"
 #include "../utils/heritable_initializer_list.hxx"
 #include "../utils/extended_type_traits.hxx"
 
 #include <initializer_list>
+#include <utility>
 
 /**
  * @brief Binary Object Model namespace
@@ -13,7 +14,7 @@
 namespace binom {
 
 using namespace type_alias;
-using namespace memctrl;
+using namespace binom::err;
 
 //! Table column index type
 enum class IndexType {
@@ -79,6 +80,13 @@ class Table;
 class FieldInit;
 class FieldRef;
 
+namespace conditions {
+
+class ConditionQuery;
+class ConditionExpression;
+
+}
+
 namespace literals {
 namespace priv {
 
@@ -94,20 +102,21 @@ struct TableRowLiteral {
   } type;
 
   union RowData {
-    MapLiteral map_literal;
-    MultiMapLiteral multi_map_literal;
+    MapLiteral map_init_list;
+    MultiMapLiteral multimap_init_list;
   } data;
 
   TableRowLiteral(MapLiteral map_literal)
-    : type(LiteralType::map), data{.map_literal{map_literal}} {}
+    : type(LiteralType::map), data{.map_init_list{map_literal}} {}
 
   TableRowLiteral(MultiMapLiteral multi_map_literal)
-    : type(LiteralType::multimap), data{.multi_map_literal{multi_map_literal}} {}
+    : type(LiteralType::multimap), data{.multimap_init_list{multi_map_literal}} {}
 };
 
 struct TableLiteral {
   std::initializer_list<std::pair<KeyValue, IndexType>> header;
-  std::initializer_list<MultiMap> row_list;
+  std::initializer_list<TableRowLiteral> row_list;
+  std::initializer_list<binom::conditions::ConditionQuery> constrait_list = {};
 };
 
 }

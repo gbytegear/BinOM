@@ -100,7 +100,23 @@ Variable::Variable(const literals::map map) : Variable(createMap(map)) {}
 Variable::Variable(const literals::multimap multimap, NewNodePosition pos) : Variable(createMultiMap(multimap)) {}
 
 binom::Variable::Variable(const literals::table table)
- : Variable(ResourceData{VarType::table, {.table_implementation = new priv::TableImplementation(table)}}) {}
+    : Variable(ResourceData{VarType::table, {.table_implementation = new priv::TableImplementation(table)}}) {}
+
+//Variable::Variable(const Number &other) : Variable(other.upcast()) {}
+//Variable::Variable(const BitArray &other) : Variable(other.upcast()) {}
+//Variable::Variable(const BufferArray &other) : Variable(other.upcast()) {}
+//Variable::Variable(const Array &other) : Variable(other.upcast()) {}
+//Variable::Variable(const List &other) : Variable(other.upcast()) {}
+//Variable::Variable(const Map &other) : Variable(other.upcast()) {}
+//Variable::Variable(const MultiMap &other) : Variable(other.upcast()) {}
+
+//Variable::Variable(Number&& other) : Variable(std::move(other.upcast())) {}
+//Variable::Variable(BitArray&& other) : Variable(std::move(other.upcast())) {}
+//Variable::Variable(BufferArray&& other) : Variable(std::move(other.upcast())) {}
+//Variable::Variable(Array&& other) : Variable(std::move(other.upcast())) {}
+//Variable::Variable(List&& other) : Variable(std::move(other.upcast())) {}
+//Variable::Variable(Map&& other) : Variable(std::move(other.upcast())) {}
+//Variable::Variable(MultiMap&& other) : Variable(std::move(other.upcast())) {}
 
 Variable::Variable(Variable&& other) noexcept : resource_link(std::move(other.resource_link)) {}
 Variable::Variable(const Variable& other) noexcept : resource_link(Link::cloneResource(other.resource_link)) {}

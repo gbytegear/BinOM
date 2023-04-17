@@ -3,6 +3,7 @@
 
 #include "../binom_impl/resource_control.hxx"
 #include "../binom_impl/multi_avl_tree.hxx"
+#include "../binom_impl/query.hxx"
 #include "generic_value.hxx"
 
 #include <list>
@@ -67,6 +68,28 @@ public:
   requires extended_type_traits::is_char_v<CharT>
   Variable(const CharT* c_str) : Variable(std::basic_string_view<CharT>(c_str)) {}
 
+//  Variable(const Number& other);
+//  Variable(const BitArray& other);
+//  Variable(const BufferArray& other);
+//  Variable(const Array& other);
+//  Variable(const List& other);
+//  Variable(const Map& other);
+//  Variable(const MultiMap& other);
+//  Variable(const Table& other);
+
+//  Variable(Number&& other);
+//  Variable(BitArray&& other);
+//  Variable(BufferArray&& other);
+//  Variable(Array&& other);
+//  Variable(List&& other);
+//  Variable(Map&& other);
+//  Variable(MultiMap&& other);
+//  Variable(Table&& other); // TODO
+
+  // Move & Copy
+  Variable(Variable&& other) noexcept;
+  Variable(const Variable& other) noexcept;
+
   Variable(const literals::ui8arr ui8_array);
   Variable(const literals::i8arr i8_array);
   Variable(const literals::ui16arr ui16_array);
@@ -93,9 +116,6 @@ public:
   // Table
   Variable(const literals::table table);
 
-  // Move & Copy
-  Variable(Variable&& other) noexcept;
-  Variable(const Variable& other) noexcept;
 
   Variable move() noexcept;
   const Variable move() const noexcept;

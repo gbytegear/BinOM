@@ -2,6 +2,49 @@
 
 using namespace binom::conditions;
 
+
+
+ConditionExpression::Data::Data(KeyValue column_name, KeyValue value)
+    : expression{
+        .column_name = std::move(column_name),
+        .value = std::move(value)
+    } {}
+
+ConditionExpression::Data::Data(std::initializer_list<ConditionExpression> &subexpression)
+    : subexpression(subexpression) {}
+
+ConditionExpression::Data::Data(const std::list<ConditionExpression> &subexpression)
+    : subexpression(subexpression) {}
+
+ConditionExpression::Data::Data(std::list<ConditionExpression> &&subexpression)
+    : subexpression(std::move(subexpression)) {}
+
+ConditionExpression::Data::Data(Operator op, const Data &other) {
+  switch(op) {
+  case Operator::subexpression:
+    new(&subexpression) std::list<ConditionExpression>(other.subexpression);
+    return;
+  default:
+    new(&expression) ConditionExpressionData(other.expression);
+    return;
+  }
+}
+
+ConditionExpression::Data::Data(Operator op, Data &&other) {
+  switch(op) {
+  case Operator::subexpression:
+    new(&subexpression) std::list<ConditionExpression>(std::move(other.subexpression));
+    return;
+  default:
+    new(&expression) ConditionExpressionData(std::move(other.expression));
+    return;
+  }
+}
+
+ConditionExpression::Data::~Data() {}
+
+
+
 ConditionExpression::ConditionExpression(KeyValue column_name, Operator op, KeyValue value, Relation next_relation)
   : op(op), rel(next_relation), data(std::move(column_name), std::move(value)) {}
 
@@ -97,6 +140,12 @@ std::list<ConditionExpression>::iterator ConditionQuery::simplifyConjunctionBloc
 
 ConditionQuery::ConditionQuery(std::initializer_list<ConditionExpression> expressions)
   : expressions(expressions) {}
+
+ConditionQuery::ConditionQuery(const ConditionQuery &other)
+  : expressions(other.expressions) {}
+
+ConditionQuery::ConditionQuery(ConditionQuery &&other)
+  : expressions(std::move(other.expressions)) {}
 
 void ConditionQuery::simplifySubExpressions() {
   auto and_block_begin = expressions.begin();

@@ -8,11 +8,9 @@
 #include <iterator>
 #include <type_traits>
 
-#include "err.hxx"
 
 namespace memctrl {
 
-using namespace binom::err;
 
 class BufferController {
   uint8_t* data = nullptr;

@@ -2,6 +2,8 @@
 #include "libbinom/include/variables/map.hxx"
 #include "libbinom/include/variables/multi_map.hxx"
 
+#include <cstring>
+
 using namespace binom;
 using namespace binom::priv;
 using namespace binom::index;
@@ -76,7 +78,6 @@ Index::Index(IndexType type, KeyValue key) :
   type(type), key(std::move(key)), data(type) {}
 
 Index::~Index() {
-  // TODO for-loop remove last *it
   switch (type) {
   case IndexType::unique_index:
     while(!data.unique_index.empty()) remove(**data.unique_index.begin());
@@ -303,13 +304,13 @@ Index::ConstReverseIterator Index::rfindEnd(KeyValue key) const {
 
 Variable Index::getFirstMapByKey(KeyValue key) {
   if(auto it = find(std::move(key)); it != end())
-    return it->getOwner();
+    return *it;
   else return nullptr;
 }
 
 const Variable Index::getFirstMapByKey(KeyValue key) const {
   if(auto it = find(std::move(key)); it != cend())
-    return it->getOwner();
+    return *it;
   else return nullptr;
 }
 
@@ -777,13 +778,13 @@ Index::Iterator::Iterator(const Iterator& other)
 Index::Iterator::Iterator(Iterator&& other)
   : index_ptr(other.index_ptr), Base(other) {}
 
-FieldRef Index::Iterator::operator*() {return **dynamic_cast<const Base&>(self);}
+Variable Index::Iterator::operator*() {return (*dynamic_cast<const Base&>(self))->getOwner().move();}
 
-pseudo_ptr::PseudoPointer<FieldRef> Index::Iterator::operator->() {return *self;}
+pseudo_ptr::PseudoPointer<Variable> Index::Iterator::operator->() {return (*self).move();}
 
-const FieldRef Index::Iterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+Variable Index::Iterator::operator*() const {return (*dynamic_cast<const Base&>(self))->getOwner();}
 
-pseudo_ptr::PseudoPointer<const FieldRef> Index::Iterator::operator->() const {return *self;}
+pseudo_ptr::PseudoPointer<Variable> Index::Iterator::operator->() const {return (*self).move();}
 
 
 
@@ -798,9 +799,9 @@ Index::ConstIterator::ConstIterator(const ConstIterator& other)
 Index::ConstIterator::ConstIterator(ConstIterator&& other)
   : index_ptr(other.index_ptr), Base(other) {}
 
-const FieldRef Index::ConstIterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+Variable Index::ConstIterator::operator*() const {return (*dynamic_cast<const Base&>(self))->getOwner();}
 
-pseudo_ptr::PseudoPointer<const FieldRef> Index::ConstIterator::operator->() const {return *self;}
+pseudo_ptr::PseudoPointer<Variable> Index::ConstIterator::operator->() const {return (*self).move();}
 
 
 
@@ -816,14 +817,13 @@ Index::ReverseIterator::ReverseIterator(const ReverseIterator& other)
 Index::ReverseIterator::ReverseIterator(ReverseIterator&& other)
   : index_ptr(other.index_ptr), Base(other) {}
 
-FieldRef Index::ReverseIterator::operator*() {return **dynamic_cast<const Base&>(self);}
+Variable Index::ReverseIterator::operator*() {return (*dynamic_cast<const Base&>(self))->getOwner().move();}
 
-pseudo_ptr::PseudoPointer<FieldRef> Index::ReverseIterator::operator->() {return *self;}
+pseudo_ptr::PseudoPointer<Variable> Index::ReverseIterator::operator->() {return (*self).move();}
 
-const FieldRef Index::ReverseIterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+Variable Index::ReverseIterator::operator*() const {return (*dynamic_cast<const Base&>(self))->getOwner();}
 
-pseudo_ptr::PseudoPointer<const FieldRef> Index::ReverseIterator::operator->() const {return *self;}
-
+pseudo_ptr::PseudoPointer<Variable> Index::ReverseIterator::operator->() const {return (*self).move();}
 
 
 
@@ -837,9 +837,9 @@ Index::ConstReverseIterator::ConstReverseIterator(const ConstReverseIterator& ot
 Index::ConstReverseIterator::ConstReverseIterator(ConstReverseIterator&& other)
   : index_ptr(other.index_ptr), Base(other) {}
 
-const FieldRef Index::ConstReverseIterator::operator*() const {return **dynamic_cast<const Base&>(self);}
+Variable Index::ConstReverseIterator::operator*() const {return (*dynamic_cast<const Base&>(self))->getOwner();}
 
-pseudo_ptr::PseudoPointer<const FieldRef> Index::ConstReverseIterator::operator->() const {return *self;}
+pseudo_ptr::PseudoPointer<Variable> Index::ConstReverseIterator::operator->() const {return (*self).move();}
 
 
 // ==============================================================================================

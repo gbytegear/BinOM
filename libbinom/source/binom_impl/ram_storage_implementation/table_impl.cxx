@@ -16,11 +16,26 @@ TableImplementation TableImplementation::cloneTableHeader() const {
   return new_table;
 }
 
-TableImplementation::TableImplementation(const binom::literals::table& table_descriptor) {
+TableImplementation::TableImplementation(const binom::literals::table &table_descriptor) {
+
+  for(auto& c_query : table_descriptor.constrait_list) {
+    auto& query = const_cast<conditions::ConditionQuery&>(c_query);
+    query.simplifySubExpressions();
+    constraits.emplace_back(std::move(query));
+  }
+
   for(auto& column_descriptor : table_descriptor.header)
     indexes.emplace(column_descriptor.second, std::move(column_descriptor.first));
 
-  for(auto& row_descriptor : table_descriptor.row_list) insert(std::move(row_descriptor));
+  for(auto& row_descriptor : table_descriptor.row_list)
+    switch (row_descriptor.type) {
+      case binom::literals::priv::TableRowLiteral::map:
+        insert<Map>(row_descriptor.data.map_init_list);
+      continue;
+      case binom::literals::priv::TableRowLiteral::multimap:
+        insert<MultiMap>(row_descriptor.data.multimap_init_list);
+      continue;
+    }
 }
 
 TableImplementation::TableImplementation(const TableImplementation& other) {
@@ -45,50 +60,61 @@ binom::priv::TableImplementation::~TableImplementation() {}
 
 template Error TableImplementation::insert<binom::Map>(binom::Map);
 template Error TableImplementation::insert<binom::MultiMap>(binom::MultiMap);
+template Error TableImplementation::insert<binom::Variable>(binom::Variable);
 
 template<typename T>
-requires is_map_type_v<T>
+requires is_map_type_v<T> || std::is_same_v<T, Variable>
 Error TableImplementation::insert(T row) {
+  if constexpr (std::is_same_v<T, Variable>) {
+    switch (row.getType()) {
+    case VarType::map: return insert<Map>(std::move(row.toMap()));
+    case VarType::multimap: return insert<MultiMap>(std::move(row.toMultiMap()));
+    default: return ErrorType::binom_invalid_type;
+    }
+  } else {
+    if(rows.contains(row.upcast().move()))
+      return ErrorType::binom_key_unique_error;
 
-  if(rows.contains(row.upcast().move()))
-    return ErrorType::binom_key_unique_error;
+    for(auto& query : constraits)
+      if(!test(row, query)) return ErrorType::binom_constraint_check_failed;
 
-  bool is_indexed = false;
+    bool is_indexed = false;
 
-  auto lk = row.getLock(MtxLockType::unique_locked);
-  if(!lk) return ErrorType::binom_resource_not_available;
-  if(auto error = row.addTable(self); error)
-    return error;
+    auto lk = row.getLock(MtxLockType::unique_locked);
+    if(!lk) return ErrorType::binom_resource_not_available;
+    if(auto error = row.addTable(self); error)
+      return error;
 
-  for(auto it = row.begin(), end = row.end(); it != end; ++it) {
-    if(auto index_it = indexes.find(KeyValue(it->getKey())); index_it != indexes.cend()) {
-      Error error;
-      {
-        auto lk = index_it->getLock(MtxLockType::unique_locked);
-        error = const_cast<index::Index&>(*index_it).add(*it->data);
-      }
+    for(auto it = row.begin(), end = row.end(); it != end; ++it) {
+      if(auto index_it = indexes.find(KeyValue(it->getKey())); index_it != indexes.cend()) {
+        Error error;
+        {
+          auto lk = index_it->getLock(MtxLockType::unique_locked);
+          error = const_cast<index::Index&>(*index_it).add(*it->data);
+        }
 
-      if(error) {
-        if(is_indexed) {
-          --it;
-          for(auto start = row.begin(); it != start; --it) {
-            if(auto index_it = indexes.find(it->getKey()); index_it != indexes.cend()) {
-              if(auto error = const_cast<index::Index&>(*index_it).remove(*it->data); error)
-                throw ErrorType::binom_data_corrupted;
+        if(error) {
+          if(is_indexed) {
+            --it;
+            for(auto start = row.begin(); it != start; --it) {
+              if(auto index_it = indexes.find(it->getKey()); index_it != indexes.cend()) {
+                if(auto error = const_cast<index::Index&>(*index_it).remove(*it->data); error)
+                  throw ErrorType::binom_data_corrupted;
+              }
             }
           }
+          return error;
         }
-        return error;
-      }
 
-      is_indexed = true;
-    } else continue;
+        is_indexed = true;
+      } else continue;
+    }
+
+    if(is_indexed) {
+      rows.emplace(std::move(row.upcast()));
+      return ErrorType::no_error;
+    } else return ErrorType::binom_row_has_no_fields_for_indexing;
   }
-
-  if(is_indexed) {
-    rows.emplace(std::move(row.upcast()));
-    return ErrorType::no_error;
-  } else return ErrorType::binom_row_has_no_fields_for_indexing;
 }
 
 
@@ -103,7 +129,7 @@ Error TableImplementation::remove(KeyValue column_name, KeyValue value, size_t i
         it != end && count > 0;
         (++it, index > 0 ? --index : --count)) {
         if(index > 0) continue;
-        remove_list.emplace_back(it->getOwner().move());
+        remove_list.emplace_back(it->move());
     }
   } else return ErrorType::binom_invalid_column_name;
 
@@ -140,42 +166,46 @@ Error TableImplementation::remove(conditions::ConditionQuery query) {
       continue;
     }
 
-  for(auto& row : remove_list) {
-    switch (row.getType()) {
-    case VarType::map: remove<Map>(row.toMap().move()); continue;
-    case VarType::multimap: remove<MultiMap>(row.toMultiMap().move()); continue;
-    }
-  }
+  for(auto& row : remove_list)
+    remove(row.move());
 
   return ErrorType::no_error;
 }
 
 template Error TableImplementation::remove<binom::Map>(binom::Map);
 template Error TableImplementation::remove<binom::MultiMap>(binom::MultiMap);
+template Error TableImplementation::remove<binom::Variable>(binom::Variable);
 
 template<typename T>
-requires is_map_type_v<T>
+requires is_map_type_v<T> || std::is_same_v<T, Variable>
 Error TableImplementation::remove(T row) {
+  if constexpr (std::is_same_v<T, Variable>) {
+    switch (row.getType()) {
+    case VarType::map: return remove<Map>(std::move(row.toMap()));
+    case VarType::multimap: return remove<MultiMap>(std::move(row.toMultiMap()));
+    default: return ErrorType::binom_invalid_type;
+    }
+  } else {
+    auto lk = row.getLock(MtxLockType::unique_locked);
+    if(!lk) return ErrorType::binom_resource_not_available;
 
-  auto lk = row.getLock(MtxLockType::unique_locked);
-  if(!lk) return ErrorType::binom_resource_not_available;
+    if(!rows.contains(row.upcast().move()))
+      return ErrorType::binom_out_of_range;
 
-  if(!rows.contains(row.upcast().move()))
-    return ErrorType::binom_out_of_range;
+    row.removeTable(self);
 
-  row.removeTable(self);
+    for(auto field : row) {
+      if(!field.isIndexed()) continue;
+      if(auto index_it = indexes.find(field.getKey()); index_it != indexes.cend()) {
+        auto lk = index_it->getLock(MtxLockType::unique_locked);
+        const_cast<index::Index&>(*index_it).remove(*field.data);
+      } else continue;
+    }
 
-  for(auto field : row) {
-    if(!field.isIndexed()) continue;
-    if(auto index_it = indexes.find(field.getKey()); index_it != indexes.cend()) {
-      auto lk = index_it->getLock(MtxLockType::unique_locked);
-      const_cast<index::Index&>(*index_it).remove(*field.data);
-    } else continue;
+    rows.erase(row.upcast().move());
+
+    return ErrorType::no_error;
   }
-
-  rows.erase(row.upcast().move());
-
-  return ErrorType::no_error;
 }
 
 
@@ -183,7 +213,7 @@ Variable binom::priv::TableImplementation::getRow(KeyValue column_name, KeyValue
   if(auto index_it = indexes.find(column_name); index_it != indexes.cend()) {
     auto lk = index_it->getLock(MtxLockType::shared_locked);
     if(auto field_it = index_it->find(value); field_it != index_it->cend())
-      return FieldRef(*field_it).getOwner();
+      return field_it->move();
   }
   return {};
 }
@@ -256,6 +286,21 @@ bool TableImplementation::test(Variable row, conditions::ConditionExpression &ex
   return false;
 }
 
+bool TableImplementation::test(Variable& row, ConditionQuery& query) {
+  bool result = true;
+
+  for(auto& expression : query) {
+    if(result) result = test(row.move(), expression);
+    if(expression.getNextRelation() == Relation::OR) {
+      if(result) return true;
+      else result = true;
+      continue;
+    }
+  }
+
+  return result;
+}
+
 
 TableImplementation TableImplementation::find(conditions::ConditionQuery query) {
   query.simplifySubExpressions();
@@ -268,12 +313,7 @@ TableImplementation TableImplementation::find(conditions::ConditionQuery query) 
       auto and_block_end = (it != end) ? ++ConditionQuery::Iterator(it) : it;
 
       if(and_block_begin != and_block_end)
-        filterByConjunctionBlock([&result](Variable row){
-          switch (row.getType()) {
-          case VarType::map: result.insert<Map>(row.toMap()); return;
-          case VarType::multimap: result.insert<MultiMap>(row.toMultiMap()); return;
-          }
-        }, and_block_begin, and_block_end);
+        filterByConjunctionBlock([&result](Variable row){ result.insert<Map>(row); }, and_block_begin, and_block_end);
 
       if(it == end)
         return result;
@@ -283,6 +323,50 @@ TableImplementation TableImplementation::find(conditions::ConditionQuery query) 
     }
 
   }
+}
+
+TableImplementation TableImplementation::findAndMove(ConditionQuery query) {
+  query.simplifySubExpressions();
+  TableImplementation result = cloneTableHeader();
+  auto and_block_begin = query.begin();
+
+  for(auto it = and_block_begin, end = query.end();; ++it) {
+
+    if(it->getNextRelation() == Relation::OR || it == end) {
+      auto and_block_end = (it != end) ? ++ConditionQuery::Iterator(it) : it;
+
+      if(and_block_begin != and_block_end)
+        filterByConjunctionBlock([&result](Variable row){ result.insert(row.move()); }, and_block_begin, and_block_end);
+
+      if(it == end)
+        return result;
+
+      and_block_begin = and_block_end;
+      continue;
+    }
+  }
+}
+
+size_t TableImplementation::merge(TableImplementation &other_table) {
+  size_t inserted_rows_count = 0;
+  for(auto row : other_table.rows)
+    switch(row.getType()) {
+    case VarType::map: if(!insert<Map>(row.toMap())) ++inserted_rows_count; continue;
+    case VarType::multimap: if(!insert<MultiMap>(row.toMultiMap())) ++inserted_rows_count; continue;
+    default: continue;
+    }
+  return inserted_rows_count;
+}
+
+size_t TableImplementation::moveMerge(TableImplementation &other_table) {
+  size_t inserted_rows_count = 0;
+  for(auto row : other_table.rows)
+    switch(row.getType()) {
+    case VarType::map: if(!insert<Map>(row.toMap().move())) ++inserted_rows_count; continue;
+    case VarType::multimap: if(!insert<MultiMap>(row.toMultiMap().move())) ++inserted_rows_count; continue;
+    default: continue;
+    }
+  return inserted_rows_count;
 }
 
 
@@ -366,11 +450,11 @@ void TableImplementation::filterByConjunctionBlock(F callback,
 
       for(auto expr_it = and_block_begin; expr_it != and_block_end; ++expr_it) {
         if(expr_it == expression_for_index_search) continue;
-        if(test(row_it->getOwner().move(), *expr_it)) continue;
+        if(test(row_it->move(), *expr_it)) continue;
         else { insert_this_row = false; break; }
       }
 
-      if(insert_this_row) callback(row_it->getOwner().move());
+      if(insert_this_row) callback(row_it->move());
     }
   };
 
@@ -391,11 +475,11 @@ void TableImplementation::filterByConjunctionBlock(F callback,
 
       for(auto expr_it = and_block_begin; expr_it != and_block_end; ++expr_it) {
         if(expr_it == expression_for_index_search) continue;
-        if(test(row_it->getOwner(), *expr_it)) continue;
+        if(test(*row_it, *expr_it)) continue;
         else { insert_this_row = false; break; }
       }
 
-      if(insert_this_row) callback(row_it->getOwner().move());
+      if(insert_this_row) callback(row_it->move());
     }
   } return;
   case binom::conditions::Operator::lower:

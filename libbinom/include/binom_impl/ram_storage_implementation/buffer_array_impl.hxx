@@ -6,6 +6,8 @@
 #include "../../utils/reverse_iterator.hxx"
 #include "../../variables/generic_value.hxx"
 
+#include <cstring>
+
 namespace binom::priv {
 
 class BufferArrayImplementation {

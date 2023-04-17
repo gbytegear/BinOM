@@ -441,9 +441,9 @@ Variable KeyValue::toVariable() const {
   switch (getTypeClass()) {
   default:
   case binom::VarTypeClass::null: return nullptr;
-  case binom::VarTypeClass::number: return toNumber();
-  case binom::VarTypeClass::bit_array: return toBitArray();
-  case binom::VarTypeClass::buffer_array: return toBufferArray();
+  case binom::VarTypeClass::number: return toNumber().upcast();
+  case binom::VarTypeClass::bit_array: return toBitArray().upcast();
+  case binom::VarTypeClass::buffer_array: return toBufferArray().upcast();
   }
 }
 

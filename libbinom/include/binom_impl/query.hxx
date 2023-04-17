@@ -2,7 +2,6 @@
 #define QUERY_HXX
 
 #include "libbinom/include/variables/key_value.hxx"
-#include "libbinom/include/utils/iterator_template.hxx"
 #include <list>
 
 namespace binom::conditions {
@@ -21,7 +20,7 @@ enum class Operator : ui8 {
   subexpression
 };
 
-class ConditionQuery;
+
 
 class ConditionExpression {
   friend ConditionQuery;
@@ -37,45 +36,13 @@ class ConditionExpression {
     std::list<ConditionExpression> subexpression;
     
     Data() = default;
-
-    Data(KeyValue column_name, KeyValue value)
-      : expression{
-          .column_name = std::move(column_name),
-          .value = std::move(value)
-    } {}
-
-    Data(std::initializer_list<ConditionExpression>& subexpression)
-      : subexpression(subexpression) {}
-
-    Data(const std::list<ConditionExpression>& subexpression)
-      : subexpression(subexpression) {}
-
-    Data(std::list<ConditionExpression>&& subexpression)
-      : subexpression(std::move(subexpression)) {}
-
-    Data(Operator op, const Data& other) {
-      switch(op) {
-        case Operator::subexpression:
-          new(&subexpression) std::list<ConditionExpression>(other.subexpression);
-        return;
-        default:
-          new(&expression) ConditionExpressionData(other.expression);
-        return;
-      }
-    }
-
-    Data(Operator op, Data&& other) {
-      switch(op) {
-        case Operator::subexpression:
-          new(&subexpression) std::list<ConditionExpression>(std::move(other.subexpression));
-        return;
-        default:
-          new(&expression) ConditionExpressionData(std::move(other.expression));
-        return;
-      }
-    }
-
-    ~Data() {}
+    Data(KeyValue column_name, KeyValue value);
+    Data(std::initializer_list<ConditionExpression>& subexpression);
+    Data(const std::list<ConditionExpression>& subexpression);
+    Data(std::list<ConditionExpression>&& subexpression);
+    Data(Operator op, const Data& other);
+    Data(Operator op, Data&& other);
+    ~Data();
 
   };
 
@@ -92,13 +59,9 @@ public:
                       Relation next_relation = Relation::AND);
 
   ConditionExpression(std::initializer_list<ConditionExpression> subexprs, Relation next_relation = Relation::AND);
-
   ConditionExpression(const std::list<ConditionExpression>& subexprs, Relation next_relation = Relation::AND);
-
   ConditionExpression(std::list<ConditionExpression>&& subexprs, Relation next_relation = Relation::AND);
-
   ConditionExpression(const ConditionExpression& other);
-  
   ConditionExpression(ConditionExpression&& other);
   
   KeyValue getColumnName() const;
@@ -107,9 +70,7 @@ public:
   Relation getNextRelation() const;
 
   std::list<ConditionExpression>* getSubexpression();
-
   const std::list<ConditionExpression>* getSubexpression() const;
-
 };
 
 class ConditionQuery {
@@ -129,6 +90,8 @@ private:
 public:
 
   ConditionQuery(std::initializer_list<ConditionExpression> expressions);
+  ConditionQuery(const ConditionQuery& other);
+  ConditionQuery(ConditionQuery&& other);
 
   void simplifySubExpressions();
 
@@ -144,7 +107,6 @@ public:
   ConstReverseIterator rend() const;
   ConstReverseIterator crbegin() const;
   ConstReverseIterator crend() const;
-
 };
 
 using cexp = ConditionExpression;

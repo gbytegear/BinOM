@@ -8,6 +8,8 @@
 #include "../query.hxx"
 
 #include <concepts>
+#include <list>
+
 
 namespace binom::priv {
 
@@ -19,6 +21,7 @@ constexpr bool is_map_type_v = std::is_same_v<T, binom::MultiMap> || std::is_sam
 class TableImplementation {
   std::set<binom::Variable, binom::Variable::ResourceComparator> rows;
   std::set<binom::index::Index, binom::index::IndexComparator> indexes;
+  std::list<binom::conditions::ConditionQuery> constraits;
 
   template<typename F>
   requires std::is_invocable_v<F, Variable>
@@ -27,6 +30,7 @@ class TableImplementation {
                                 conditions::ConditionQuery::Iterator and_block_end);
 
   static bool test(Variable row, conditions::ConditionExpression& expression);
+  static bool test(Variable& row, conditions::ConditionQuery& query);
 
   TableImplementation cloneTableHeader() const;
 
@@ -41,9 +45,10 @@ public:
   ~TableImplementation();
 
   bool isEmpty() const { return rows.empty(); }
+  size_t getSize() const { return rows.size(); }
 
   template<typename T>
-  requires is_map_type_v<T>
+  requires is_map_type_v<T> || std::is_same_v<T, Variable>
   Error insert(T row);
 
   Error remove(KeyValue column_name, KeyValue value, size_t index = 0, size_t count = 1);
@@ -74,11 +79,15 @@ public:
   }
 
   template<typename T>
-  requires is_map_type_v<T>
+  requires is_map_type_v<T> || std::is_same_v<T, Variable>
   Error remove(T row);
 
   Variable getRow(KeyValue column_name, KeyValue value);
   TableImplementation find(conditions::ConditionQuery query);
+  TableImplementation findAndMove(conditions::ConditionQuery query);
+
+  size_t merge(TableImplementation& other_table);
+  size_t moveMerge(TableImplementation& other_table);
 
   err::ProgressReport<Column> operator[](KeyValue column_name);
 };

@@ -4,7 +4,6 @@
 #include "../binom_impl/types.hxx"
 
 #include "shared_recursive_mutex_wrapper.hxx"
-#include "extended_type_traits.hxx"
 
 #include <cmath>
 

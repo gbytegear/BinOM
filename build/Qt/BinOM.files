@@ -73,6 +73,7 @@
 ../../libbinom/source/variables/number.cxx
 ../../libbinom/source/variables/serializtion.cxx
 ../../libbinom/source/variables/stdoutput.cxx
+../../libbinom/source/variables/table.cxx
 ../../libbinom/source/variables/variable.cxx
 
 # Tests

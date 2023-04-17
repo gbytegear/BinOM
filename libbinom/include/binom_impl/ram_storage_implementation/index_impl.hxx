@@ -153,10 +153,10 @@ public:
     Iterator(const Iterator& other);
     Iterator(Iterator&& other);
 
-    FieldRef operator*();
-    pseudo_ptr::PseudoPointer<FieldRef> operator->();
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+    Variable operator*();
+    pseudo_ptr::PseudoPointer<Variable> operator->();
+    Variable operator*() const;
+    pseudo_ptr::PseudoPointer<Variable> operator->() const;
 
     inline SelfRef operator++() {return downcast(++upcast());}
     inline Self operator++(int) {return downcast(upcast()++);}
@@ -190,8 +190,8 @@ public:
     ConstIterator(const ConstIterator& other);
     ConstIterator(ConstIterator&& other);
 
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+    Variable operator*() const;
+    pseudo_ptr::PseudoPointer<Variable> operator->() const;
 
     inline SelfRef operator++() {return downcast(++upcast());}
     inline Self operator++(int) {return downcast(upcast()++);}
@@ -225,10 +225,10 @@ public:
     ReverseIterator(const ReverseIterator& other);
     ReverseIterator(ReverseIterator&& other);
 
-    FieldRef operator*();
-    pseudo_ptr::PseudoPointer<FieldRef> operator->();
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+    Variable operator*();
+    pseudo_ptr::PseudoPointer<Variable> operator->();
+    Variable operator*() const;
+    pseudo_ptr::PseudoPointer<Variable> operator->() const;
 
     inline SelfRef operator++() {return downcast(++upcast());}
     inline Self operator++(int) {return downcast(upcast()++);}
@@ -262,8 +262,8 @@ public:
     ConstReverseIterator(const ConstReverseIterator& other);
     ConstReverseIterator(ConstReverseIterator&& other);
 
-    const FieldRef operator*() const;
-    pseudo_ptr::PseudoPointer<const FieldRef> operator->() const;
+    Variable operator*() const;
+    pseudo_ptr::PseudoPointer<Variable> operator->() const;
 
     inline SelfRef operator++() {return downcast(++upcast());}
     inline Self operator++(int) {return downcast(upcast()++);}

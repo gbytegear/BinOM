@@ -124,27 +124,27 @@ void testTableImpl() {
 
   LOG(WHITE_TXT "Table original before remove")
   for(auto field_ref : *tbl["ID"])
-    utils::printVariable(field_ref.getOwner());
+    utils::printVariable(field_ref);
 
   LOG(WHITE_TXT "Try to remov by query from table original - Is amdin = true")
   tbl.remove(ConditionQuery{cexp{"Is admin", op::equal, true}});
 
   LOG(WHITE_TXT "Table original after remov by query - Is admin = true")
   for(auto field_ref : *tbl["ID"])
-    utils::printVariable(field_ref.getOwner());
+    utils::printVariable(field_ref);
 
   SEPARATOR
 
   LOG(WHITE_TXT "Table copy before remove")
   for(auto field_ref : *tbl_copy["Organization"])
-    utils::printVariable(field_ref.getOwner());
+    utils::printVariable(field_ref);
 
   LOG(WHITE_TXT "Try to remov by query from table copy - Is amdin = true")
   tbl_copy.remove(ConditionQuery{cexp{"Is admin", op::equal, true}});
 
   LOG(WHITE_TXT "Table copy after remov by query - Is admin = true")
   for(auto field_ref : *tbl_copy["ID"])
-    utils::printVariable(field_ref.getOwner());
+    utils::printVariable(field_ref);
 
 
   GRP_POP
