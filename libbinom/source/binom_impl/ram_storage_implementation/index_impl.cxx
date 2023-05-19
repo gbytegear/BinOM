@@ -2,6 +2,8 @@
 #include "libbinom/include/variables/map.hxx"
 #include "libbinom/include/variables/multi_map.hxx"
 
+#include "libbinom/include/utils/shared_recursive_mutex_wrapper.hxx"
+
 #include <cstring>
 
 using namespace binom;
@@ -78,13 +80,12 @@ Index::Index(IndexType type, KeyValue key) :
   type(type), key(std::move(key)), data(type) {}
 
 Index::~Index() {
+  clear();
   switch (type) {
   case IndexType::unique_index:
-    while(!data.unique_index.empty()) remove(**data.unique_index.begin());
     data.unique_index.~set();
   return;
   case IndexType::multi_index:
-    while(!data.multi_index.empty()) remove(**data.multi_index.begin());
     data.multi_index.~multiset();
   return;
   }
@@ -339,6 +340,7 @@ Index::ConstReverseIterator Index::rbegin() const {return ConstReverseIterator(t
 Index::ConstReverseIterator Index::rend() const {return ConstReverseIterator(this, type == IndexType::unique_index ? data.unique_index.crend() : data.multi_index.crend());}
 
 binom::Error Index::add(Field& field) {
+  SharedRecursiveLock lk(&mtx, MtxLockType::unique_locked);
 
   // Compare keys
   if(key != field.getKey()) return ErrorType::invalid_data;
@@ -360,6 +362,7 @@ binom::Error Index::add(Field& field) {
 }
 
 Error Index::remove(Field& field) {
+  SharedRecursiveLock lk(&mtx, MtxLockType::unique_locked);
   if(field.type != FieldType::indexed) return ErrorType::binom_out_of_range;
 
   if(auto entry_it = field.data.indexed.indexed_at.find(this);
@@ -375,6 +378,18 @@ Error Index::remove(Field& field) {
     field.removeIndex(entry_it);
     return ErrorType::no_error;
   } else return ErrorType::binom_out_of_range;
+}
+
+void Index::clear() {
+  SharedRecursiveLock lk(&mtx, MtxLockType::unique_locked);
+  switch (type) {
+  case IndexType::unique_index:
+    while(!data.unique_index.empty()) remove(**data.unique_index.begin());
+  return;
+  case IndexType::multi_index:
+    while(!data.multi_index.empty()) remove(**data.multi_index.begin());
+  return;
+  }
 }
 
 bool Index::operator==(const Index &other) const { return key == other.key; }

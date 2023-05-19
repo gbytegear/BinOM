@@ -173,9 +173,33 @@ Map::ConstReverseIterator Map::rend() const noexcept {
   return getData()->crend();
 }
 
+Map::ConstIterator Map::cbegin() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ConstIterator::nullit();
+  return getData()->cbegin();
+}
+
+Map::ConstIterator Map::cend() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ConstIterator::nullit();
+  return getData()->cend();
+}
+
+Map::ConstReverseIterator Map::crbegin() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ConstReverseIterator::nullit();
+  return getData()->crbegin();
+}
+
+Map::ConstReverseIterator Map::crend() const noexcept {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) return ConstReverseIterator::nullit();
+  return getData()->crend();
+}
+
 
 Map& Map::operator=(const Map& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);
@@ -183,7 +207,7 @@ Map& Map::operator=(const Map& other) {
 }
 
 Map& Map::operator=(Map&& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);

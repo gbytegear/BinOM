@@ -1,5 +1,7 @@
 #include "libbinom/include/variables/buffer_array.hxx"
 
+#include <cwctype>
+
 using namespace binom;
 using namespace binom::priv;
 
@@ -124,7 +126,7 @@ const BufferArray::ReverseIterator BufferArray::crend() const {
 }
 
 BufferArray& BufferArray::operator=(const BufferArray& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);
@@ -132,7 +134,7 @@ BufferArray& BufferArray::operator=(const BufferArray& other) {
 }
 
 BufferArray& BufferArray::operator=(BufferArray&& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);

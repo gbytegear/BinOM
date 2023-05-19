@@ -19,9 +19,16 @@ template<typename T>
 constexpr bool is_map_type_v = std::is_same_v<T, binom::MultiMap> || std::is_same_v<T, binom::Map>;
 
 class TableImplementation {
-  std::set<binom::Variable, binom::Variable::ResourceComparator> rows;
-  std::set<binom::index::Index, binom::index::IndexComparator> indexes;
-  std::list<binom::conditions::ConditionQuery> constraits;
+public:
+  typedef std::set<binom::Variable, binom::Variable::ResourceComparator> RowSet;
+  typedef std::set<binom::index::Index, binom::index::IndexComparator> ColumnSet;
+  typedef std::list<binom::conditions::ConditionQuery> ConstraitList;
+  typedef binom::index::Index Column;
+
+private:
+  RowSet rows;
+  ColumnSet indexes;
+  ConstraitList constraits;
 
   template<typename F>
   requires std::is_invocable_v<F, Variable>
@@ -37,7 +44,6 @@ class TableImplementation {
   TableImplementation() = default;
 
 public:
-  typedef binom::index::Index Column;
 
   TableImplementation(const binom::literals::table& table_descriptor);
   TableImplementation(const TableImplementation& other);
@@ -46,6 +52,7 @@ public:
 
   bool isEmpty() const { return rows.empty(); }
   size_t getSize() const { return rows.size(); }
+  bool contains(conditions::ConditionQuery query) const;
 
   template<typename T>
   requires is_map_type_v<T> || std::is_same_v<T, Variable>
@@ -53,6 +60,7 @@ public:
 
   Error remove(KeyValue column_name, KeyValue value, size_t index = 0, size_t count = 1);
   Error remove(conditions::ConditionQuery query);
+  void clear();
 
   template <typename F>
   requires std::is_invocable_v<F, Variable>
@@ -90,8 +98,21 @@ public:
   size_t moveMerge(TableImplementation& other_table);
 
   err::ProgressReport<Column> operator[](KeyValue column_name);
+
+  inline ColumnSet::iterator begin() { return indexes.begin(); }
+  inline ColumnSet::iterator end() { return indexes.end(); }
+  inline ColumnSet::const_iterator begin() const { return indexes.begin(); }
+  inline ColumnSet::const_iterator end() const { return indexes.end(); }
+  inline ColumnSet::const_iterator cbegin() const { return indexes.cbegin(); }
+  inline ColumnSet::const_iterator cend() const { return indexes.cend(); }
+  inline ColumnSet::reverse_iterator rbegin() { return indexes.rbegin(); }
+  inline ColumnSet::reverse_iterator rend() { return indexes.rend(); }
+  inline ColumnSet::const_reverse_iterator rbegin() const { return indexes.rbegin(); }
+  inline ColumnSet::const_reverse_iterator rend() const { return indexes.rend(); }
+  inline ColumnSet::const_reverse_iterator crbegin() const { return indexes.crbegin(); }
+  inline ColumnSet::const_reverse_iterator crend() const { return indexes.crend(); }
 };
 
 }
 
-#endif // TABLE_IMPL_HXX
+#endif // TABLE_IMPL_HXX/

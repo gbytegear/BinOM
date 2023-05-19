@@ -13,6 +13,7 @@ class Map : public Variable {
   operator Array& () = delete;
   operator List& () = delete;
   operator MultiMap& () = delete;
+  operator Table& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -21,6 +22,7 @@ class Map : public Variable {
   List& toList() = delete;
   Map& toMap() = delete;
   MultiMap& toMultiMap() = delete;
+  Table& toTable() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -28,6 +30,7 @@ class Map : public Variable {
   operator const Array& () const = delete;
   operator const List& () const = delete;
   operator const MultiMap& () const = delete;
+  operator const Table& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -36,6 +39,7 @@ class Map : public Variable {
   const List& toList() const = delete;
   const Map& toMap() const = delete;
   const MultiMap& toMultiMap() const = delete;
+  const Table& toTable() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;
@@ -103,11 +107,11 @@ public:
   ConstReverseIterator rbegin() const noexcept;
   ConstReverseIterator rend() const noexcept;
 
-  ConstIterator cbegin() const;
-  ConstIterator cend() const;
+  ConstIterator cbegin() const noexcept;
+  ConstIterator cend() const noexcept;
 
-  ConstReverseIterator crbegin() const;
-  ConstReverseIterator crend() const;
+  ConstReverseIterator crbegin() const noexcept;
+  ConstReverseIterator crend() const noexcept;
 
   Map& operator=(const Map& other);
   Map& operator=(Map&& other);

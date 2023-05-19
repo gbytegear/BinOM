@@ -1,7 +1,7 @@
 // TEST FLAGS:
 //#define FULL_TEST
 //#define TEST_FULL_INFO
-#define IN_DEV_TEST_RUN
+//#define IN_DEV_TEST_RUN
 #define EXIT_ON_FAILURE
 
 #include "test/all_test.hxx"
@@ -16,6 +16,7 @@ auto main() -> int {
   testAVLTree();
   testMap();
   testMultiMap();
+  testTable();
 #ifdef FULL_TEST // Questionable or incompletely implemented tests
   testRecursiveSharedMutex();
   testVariable(); // Not ended!

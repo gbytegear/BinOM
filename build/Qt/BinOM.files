@@ -4,11 +4,12 @@
 ../../README.md
 ../../CMakeLists.txt
 
-# Source code
+# Include
 ../../libbinom/include/binom.hxx
 ../../libbinom/include/binom_impl/avl_tree.hxx
 ../../libbinom/include/binom_impl/bits.hxx
 ../../libbinom/include/binom_impl/file_storage_implementation.hxx
+../../libbinom/include/binom_impl/file_storage_implementation/portable_mmap.hxx
 ../../libbinom/include/binom_impl/query.hxx
 ../../libbinom/include/binom_impl/multi_avl_tree.hxx
 ../../libbinom/include/binom_impl/ram_storage_implementation.hxx
@@ -20,9 +21,9 @@
 ../../libbinom/include/binom_impl/ram_storage_implementation/map_impl.hxx
 ../../libbinom/include/binom_impl/ram_storage_implementation/multi_map_impl.hxx
 ../../libbinom/include/binom_impl/ram_storage_implementation/table_impl.hxx
+../../libbinom/include/binom_impl/file_storage_implementation/file_structs.hxx
 ../../libbinom/include/binom_impl/resource_control.hxx
 ../../libbinom/include/binom_impl/types.hxx
-../../libbinom/include/utils/bit_map64.hxx
 ../../libbinom/include/utils/err.hxx
 ../../libbinom/include/utils/extended_cxx.hxx
 ../../libbinom/include/utils/extended_type_traits.hxx
@@ -48,6 +49,9 @@
 ../../libbinom/include/variables/stdoutput.hxx
 ../../libbinom/include/variables/table.hxx
 ../../libbinom/include/variables/variable.hxx
+
+# Source code
+../../libbinom/include/utils/property.hxx
 ../../libbinom/source/binom_impl/avl_tree.cxx
 ../../libbinom/source/binom_impl/bits.cxx
 ../../libbinom/source/binom_impl/multi_avl_tree.cxx
@@ -60,6 +64,7 @@
 ../../libbinom/source/binom_impl/ram_storage_implementation/map_impl.cxx
 ../../libbinom/source/binom_impl/ram_storage_implementation/multi_map_impl.cxx
 ../../libbinom/source/binom_impl/ram_storage_implementation/table_impl.cxx
+../../libbinom/source/binom_impl/file_storage_implementation/portable_mmap.cxx
 ../../libbinom/source/binom_impl/resource_control.cxx
 ../../libbinom/source/variables/array.cxx
 ../../libbinom/source/variables/bit_array.cxx
@@ -89,6 +94,7 @@
 ../../test/print_variable.hxx
 ../../test/recursive_shared_mutex_test.hxx
 ../../test/table_impl_test.hxx
+../../test/table_test.hxx
 ../../test/test.cxx
 ../../test/test_area.hxx
 ../../test/tester.cxx

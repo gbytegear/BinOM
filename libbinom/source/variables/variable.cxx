@@ -6,13 +6,13 @@
 #include "libbinom/include/variables/list.hxx"
 #include "libbinom/include/variables/map.hxx"
 #include "libbinom/include/variables/multi_map.hxx"
+#include "libbinom/include/variables/table.hxx"
 #include "libbinom/include/binom_impl/ram_storage_implementation.hxx"
 
 #include <set>
 
 using namespace binom;
 using namespace binom::priv;
-
 
 Link createMap(const literals::map& map) {
   SharedResource* shared_resource = new SharedResource();
@@ -182,9 +182,7 @@ size_t Variable::getElementCount() const noexcept {
   case VarTypeClass::list: return toList().getElementCount();
   case VarTypeClass::map: return toMap().getElementCount();
   case VarTypeClass::multimap: return toMultiMap().getElementCount();
-  case VarTypeClass::table:
-    // TODO
-  break;
+  case VarTypeClass::table: return toTable().getElementCount();
   case VarTypeClass::invalid_type:
   default: break;
   }
@@ -262,6 +260,13 @@ Variable::operator MultiMap&() {
   return reinterpret_cast<MultiMap&>(self);
 }
 
+Variable::operator Table&() {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::table) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<Table&>(self);
+}
+
 Variable::operator const Number&() const {
   auto lk = getLock(MtxLockType::shared_locked);
   if(!lk) throw Error(ErrorType::binom_resource_not_available);
@@ -311,6 +316,13 @@ Variable::operator const MultiMap&() const {
   return reinterpret_cast<const MultiMap&>(self);
 }
 
+Variable::operator const Table&() const {
+  auto lk = getLock(MtxLockType::shared_locked);
+  if(!lk) throw Error(ErrorType::binom_resource_not_available);
+  if(getTypeClass() != VarTypeClass::table) throw Error(ErrorType::binom_invalid_type);
+  return reinterpret_cast<const Table&>(self);
+}
+
 Number& Variable::toNumber() {return self;}
 BitArray& Variable::toBitArray() {return self;}
 BufferArray& Variable::toBufferArray() {return self;}
@@ -318,6 +330,7 @@ Array& Variable::toArray() {return self;}
 List& Variable::toList() {return self;}
 Map& Variable::toMap() {return self;}
 MultiMap& Variable::toMultiMap() {return self;}
+Table& Variable::toTable() {return self;}
 
 const Number& Variable::toNumber() const {return self;}
 const BitArray& Variable::toBitArray() const {return self;}
@@ -326,9 +339,10 @@ const Array& Variable::toArray() const {return self;}
 const List& Variable::toList() const {return self;}
 const Map& Variable::toMap() const {return self;}
 const MultiMap& Variable::toMultiMap() const {return self;}
+const Table& Variable::toTable() const {return self;}
 
 Variable& Variable::operator=(const Variable& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);
@@ -336,7 +350,7 @@ Variable& Variable::operator=(const Variable& other) {
 }
 
 Variable& Variable::operator=(Variable&& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);

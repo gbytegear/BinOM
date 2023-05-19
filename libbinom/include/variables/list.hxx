@@ -13,6 +13,7 @@ class List : public Variable {
   operator Array& () = delete;
   operator Map& () = delete;
   operator MultiMap& () = delete;
+  operator Table& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -21,6 +22,7 @@ class List : public Variable {
   List& toList() = delete;
   Map& toMap() = delete;
   MultiMap& toMultiMap() = delete;
+  Table& toTable() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -28,6 +30,7 @@ class List : public Variable {
   operator const Array& () const = delete;
   operator const Map& () const = delete;
   operator const MultiMap& () const = delete;
+  operator const Table& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -35,12 +38,7 @@ class List : public Variable {
   const Array& toArray() const = delete;
   const Map& toMap() const = delete;
   const MultiMap& toMultiMap() const = delete;
-
-  Variable& operator=(const Variable& other) = delete;
-  Variable& operator=(Variable&& other) = delete;
-
-  Variable& changeLink(const Variable& other) = delete;
-  Variable& changeLink(Variable&& other) = delete;
+  const Table& toTable() const = delete;
 
   priv::ListImplementation*& getData() const noexcept;
 
@@ -91,6 +89,12 @@ public:
 
   ConstReverseIterator crbegin() const;
   ConstReverseIterator crend() const;
+
+  List& operator=(const List& other);
+  List& operator=(List&& other);
+
+  List& changeLink(const List& other);
+  List& changeLink(List&& other);
 };
 
 }

@@ -143,6 +143,7 @@ public:
   operator List& ();
   operator Map& ();
   operator MultiMap& ();
+  operator Table& ();
 
   operator const Number& () const;
   operator const BitArray& () const;
@@ -151,6 +152,7 @@ public:
   operator const List& () const;
   operator const Map& () const;
   operator const MultiMap& () const;
+  operator const Table& () const;
 
   // Downcast methods
   Number& toNumber();
@@ -160,6 +162,7 @@ public:
   List& toList();
   Map& toMap();
   MultiMap& toMultiMap();
+  Table& toTable();
 
   const Number& toNumber() const;
   const BitArray& toBitArray() const;
@@ -168,6 +171,7 @@ public:
   const List& toList() const;
   const Map& toMap() const;
   const MultiMap& toMultiMap() const;
+  const Table& toTable() const;
 
   Variable& operator=(const Variable& other);
   Variable& operator=(Variable&& other);

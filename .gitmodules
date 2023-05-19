@@ -1,0 +1,3 @@
+[submodule "libpmmf"]
+	path = libpmmf
+	url = git@github.com:gbytegear/libpmmf.git

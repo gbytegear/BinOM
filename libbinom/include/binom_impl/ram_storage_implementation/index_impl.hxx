@@ -8,7 +8,6 @@
 #include "../../variables/field.hxx"
 #include "../../utils/pseudo_pointer.hxx"
 
-
 namespace binom::index {
 
 class Field;
@@ -108,6 +107,7 @@ private:
   SharedRecursiveLock getLock(MtxLockType lock_type) const;
   Error add(Field& field);
   Error remove(Field& field);
+  void clear();
 
   bool operator==(const Index& other) const;
   bool operator!=(const Index& other) const;
@@ -281,9 +281,7 @@ public:
   ui64 getIndexedFieldsCount() const;
 
   std::pair<Iterator, Iterator> getRange(KeyValue key);
-
   std::pair<ReverseIterator, ReverseIterator> getReverseRange(KeyValue key);
-
 
   std::pair<ConstIterator, ConstIterator> getRange(KeyValue key) const;
   std::pair<ConstReverseIterator, ConstReverseIterator> getReverseRange(KeyValue key) const;

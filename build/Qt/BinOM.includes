@@ -7,3 +7,4 @@
 ../../libbinom/include/utils
 ../../../libmmf/test
 ../../libbinom/source/binom_impl
+../../libbinom/include/binom_impl/file_storage_implementation

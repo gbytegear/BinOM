@@ -22,6 +22,7 @@ struct OutCFG {
 }
 
 std::ostream& operator << (std::ostream&, binom::Variable);
+std::ostream& operator << (std::ostream&, binom::KeyValue);
 std::ostream& operator << (std::ostream&, binom::Number);
 std::ostream& operator << (std::ostream&, binom::BitArray);
 std::ostream& operator << (std::ostream&, binom::BufferArray);

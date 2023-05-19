@@ -17,6 +17,7 @@ enum class Operator : ui8 {
   lower_or_equal,
   higher,
   higher_or_equal,
+  contains,
   subexpression
 };
 
@@ -56,6 +57,8 @@ public:
   ConditionExpression(KeyValue column_name,
                       Operator op,
                       KeyValue value,
+                      Relation next_relation = Relation::AND);
+  ConditionExpression(KeyValue column_name,
                       Relation next_relation = Relation::AND);
 
   ConditionExpression(std::initializer_list<ConditionExpression> subexprs, Relation next_relation = Relation::AND);

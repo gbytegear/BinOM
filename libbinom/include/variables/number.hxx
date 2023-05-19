@@ -19,6 +19,7 @@ class Number :
   operator List& () = delete;
   operator Map& () = delete;
   operator MultiMap& () = delete;
+  operator Table& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -27,6 +28,7 @@ class Number :
   List& toList() = delete;
   Map& toMap() = delete;
   MultiMap& toMultiMap() = delete;
+  Table& toTable() = delete;
 
   operator const BitArray& () const = delete;
   operator const BufferArray& () const = delete;
@@ -34,6 +36,7 @@ class Number :
   operator const List& () const = delete;
   operator const Map& () const = delete;
   operator const MultiMap& () const = delete;
+  operator const Table& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -42,6 +45,7 @@ class Number :
   const List& toList() const = delete;
   const Map& toMap() const = delete;
   const MultiMap& toMultiMap() const = delete;
+  const Table& toTable() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;
@@ -91,6 +95,8 @@ public:
   const Number move() const noexcept;
 
   using arithmetic::ArithmeticTypeBase<Number>::operator=;
+  using binom::Variable::operator=;
+
   Number& changeLink(const Number& other);
   Number& changeLink(Number&& other);
 };

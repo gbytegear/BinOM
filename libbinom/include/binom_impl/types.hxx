@@ -115,7 +115,7 @@ struct TableRowLiteral {
 
 struct TableLiteral {
   std::initializer_list<std::pair<KeyValue, IndexType>> header;
-  std::initializer_list<TableRowLiteral> row_list;
+  std::initializer_list<TableRowLiteral> row_list = {};
   std::initializer_list<binom::conditions::ConditionQuery> constrait_list = {};
 };
 

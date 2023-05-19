@@ -164,7 +164,7 @@ const BitArray::ReverseIterator BitArray::crend() const {
 }
 
 BitArray& BitArray::operator=(const BitArray& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);
@@ -172,7 +172,7 @@ BitArray& BitArray::operator=(const BitArray& other) {
 }
 
 BitArray& BitArray::operator=(BitArray&& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);

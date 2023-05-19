@@ -129,7 +129,7 @@ Array::ConstReverseIterator Array::crbegin() const {return getData()->crbegin();
 Array::ConstReverseIterator Array::crend() const {return getData()->crend();}
 
 Array& Array::operator=(const Array& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);
@@ -137,7 +137,7 @@ Array& Array::operator=(const Array& other) {
 }
 
 Array& Array::operator=(Array&& other) {
-  if(this == &other) return self;
+  if(resource_link == other.resource_link) return self;
   auto lk = getLock(MtxLockType::unique_locked);
   if(!lk) return self;
   resource_link.overwriteWithResourceCopy(**other.resource_link);

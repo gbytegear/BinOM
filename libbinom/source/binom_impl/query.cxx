@@ -48,6 +48,9 @@ ConditionExpression::Data::~Data() {}
 ConditionExpression::ConditionExpression(KeyValue column_name, Operator op, KeyValue value, Relation next_relation)
   : op(op), rel(next_relation), data(std::move(column_name), std::move(value)) {}
 
+ConditionExpression::ConditionExpression(KeyValue column_name, Relation next_relation)
+  : op(Operator::contains), rel(next_relation), data(std::move(column_name), KeyValue(nullptr)) {}
+
 ConditionExpression::ConditionExpression(std::initializer_list<ConditionExpression> subexprs, Relation next_relation)
   : op(Operator::subexpression), rel(next_relation), data(subexprs) {}
 
@@ -191,3 +194,4 @@ ConditionQuery::ConstReverseIterator ConditionQuery::rend() const { return expre
 ConditionQuery::ConstReverseIterator ConditionQuery::crbegin() const { return expressions.crbegin(); }
 
 ConditionQuery::ConstReverseIterator ConditionQuery::crend() const { return expressions.crend(); }
+

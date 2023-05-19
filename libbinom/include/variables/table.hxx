@@ -51,7 +51,17 @@ class Table : public Variable {
   friend class Variable;
   Table(priv::Link&& link);
 
+  Table(priv::TableImplementation&& tbl_impl);
+
 public:
+  using Column = priv::TableImplementation::Column;
+  using ColumnSet = priv::TableImplementation::ColumnSet;
+  using Iterator = priv::TableImplementation::ColumnSet::iterator;
+  using ConstIterator = priv::TableImplementation::ColumnSet::const_iterator;
+  using ReverseIterator = priv::TableImplementation::ColumnSet::reverse_iterator;
+  using ConstReverseIterator = priv::TableImplementation::ColumnSet::const_reverse_iterator;
+
+  Table();
   Table(const binom::literals::table table_descriptor);
   Table(const Table& other);
   Table(Table&& other);
@@ -59,7 +69,7 @@ public:
   Table move() noexcept;
   const Table move() const noexcept;
 
-//  TODO: void clear();
+  void clear();
   bool isEmpty() const noexcept;
   size_t getElementCount() const noexcept;
 //  TODO: bool contains(conditions::ConditionQuery query) const noexcept;
@@ -79,20 +89,43 @@ public:
   void changeWhere(conditions::ConditionQuery query, F callback) {
     auto lk = getLock(MtxLockType::unique_locked);
     if(!lk) return;
-    if constexpr (movable<F>) return getData()->changeWhere(std::move(query), std::move(callback));
-    else return getData()->changeWhere(std::move(query), callback)
+    if constexpr (std::movable<F>) return getData()->changeWhere(std::move(query), std::move(callback));
+    else return getData()->changeWhere(std::move(query), callback);
   }
 
   Variable getRow(KeyValue column_name, KeyValue value);
   Variable getRow(KeyValue column_name, KeyValue value) const;
 
   Table find(conditions::ConditionQuery query) const;
-  Table findAndMove(conditions::ConditionQuery query);
+  Table findAndMove(conditions::ConditionQuery query) const;
 
   size_t merge(Table other_table);
   size_t moveMerge(Table other_table);
 
+  Iterator begin();
+  Iterator end();
+  ConstIterator begin() const;
+  ConstIterator end() const;
+  ConstIterator cbegin() const;
+  ConstIterator cend() const;
+  ReverseIterator rbegin();
+  ReverseIterator rend();
+  ConstReverseIterator rbegin() const;
+  ConstReverseIterator rend() const;
+  ConstReverseIterator crbegin() const;
+  ConstReverseIterator crend() const;
+
+  Table& operator += (Table other);
+  Table operator + (Table other);
+
   err::ProgressReport<Column> operator[](KeyValue column_name);
+
+  Table& operator=(const Table& other);
+  Table& operator=(Table&& other);
+
+  Table& changeLink(const Table& other);
+  Table& changeLink(Table&& other);
+
 
 };
 

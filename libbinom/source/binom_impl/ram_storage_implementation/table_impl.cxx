@@ -10,6 +10,8 @@ using namespace binom::conditions;
 
 TableImplementation TableImplementation::cloneTableHeader() const {
   TableImplementation new_table;
+  new_table.constraits.~list();
+  new(&new_table.constraits) ConstraitList(constraits);
   for(const auto& index : indexes) {
     new_table.indexes.emplace(index.getType(), index.getKey());
   }
@@ -51,12 +53,13 @@ TableImplementation::TableImplementation(const TableImplementation& other) {
 }
 
 TableImplementation::TableImplementation(TableImplementation&& other)
-  : rows{std::move(other.rows)}, indexes{std::move(other.indexes)} {
-  other.indexes.clear();
-  other.rows.clear();
-}
+  : rows{std::move(other.rows)}, indexes{std::move(other.indexes)} {}
 
 binom::priv::TableImplementation::~TableImplementation() {}
+
+bool TableImplementation::contains(ConditionQuery query) const {
+
+}
 
 template Error TableImplementation::insert<binom::Map>(binom::Map);
 template Error TableImplementation::insert<binom::MultiMap>(binom::MultiMap);
@@ -110,10 +113,8 @@ Error TableImplementation::insert(T row) {
       } else continue;
     }
 
-    if(is_indexed) {
-      rows.emplace(std::move(row.upcast()));
-      return ErrorType::no_error;
-    } else return ErrorType::binom_row_has_no_fields_for_indexing;
+    rows.emplace(std::move(row.upcast()));
+    return ErrorType::no_error;
   }
 }
 
@@ -170,6 +171,12 @@ Error TableImplementation::remove(conditions::ConditionQuery query) {
     remove(row.move());
 
   return ErrorType::no_error;
+}
+
+void TableImplementation::clear() {
+  for(ColumnSet::iterator it = indexes.begin(), end = indexes.end(); it != end; ++it)
+    (const_cast<Column&>(*it)).clear();
+  rows.clear();
 }
 
 template Error TableImplementation::remove<binom::Map>(binom::Map);
@@ -282,6 +289,15 @@ bool TableImplementation::test(Variable row, conditions::ConditionExpression &ex
       return false;
     }
   break;
+  case binom::conditions::Operator::contains:
+    switch (row.getType()) {
+    case VarType::map:
+      return row.toMap().contains(expression.getColumnName());
+    break;
+    case VarType::multimap:
+      return row.toMultiMap().contains(expression.getColumnName());
+    break;
+    }
   }
   return false;
 }
@@ -401,6 +417,7 @@ void TableImplementation::filterByConjunctionBlock(F callback,
       case Operator::higher_or_equal: current_index_score += 250; break;
       case Operator::lower: current_index_score += 500; break;
       case Operator::lower_or_equal: current_index_score += 250; break;
+      case Operator::contains: current_index_score += 10; break;
       case Operator::not_equal: current_index_score += 125; break;
       default: break;
       }
@@ -493,6 +510,9 @@ void TableImplementation::filterByConjunctionBlock(F callback,
   return;
   case binom::conditions::Operator::higher_or_equal:
     iterateRange(search_index->getHigherEqualRange(expression_for_index_search->getValue()));
+  return;
+  case binom::conditions::Operator::contains:
+    iterateRange(std::pair<index::Index::ConstIterator, index::Index::ConstIterator>(search_index->cbegin(), search_index->cend()));
   return;
   default: return;
   }

@@ -140,3 +140,32 @@ List::ConstReverseIterator List::crend() const {
     return getData()->crend();
   else return ConstReverseIterator(Iterator(nullptr));
 }
+
+List& List::operator=(const List& other) {
+  if(resource_link == other.resource_link) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+List& List::operator=(List&& other) {
+  if(resource_link == other.resource_link) return self;
+  auto lk = getLock(MtxLockType::unique_locked);
+  if(!lk) return self;
+  resource_link.overwriteWithResourceCopy(**other.resource_link);
+  return self;
+}
+
+List& List::changeLink(const List& other) {
+  if(this == &other) return self;
+  this->~List();
+  return *new(this) List(other);
+}
+
+List& List::changeLink(List&& other) {
+  if(this == &other) return self;
+  this->~List();
+  return *new(this) List(std::move(other));
+}
+

@@ -12,6 +12,7 @@ class MultiMap : public Variable {
   operator Array& () = delete;
   operator List& () = delete;
   operator Map& () = delete;
+  operator Table& () = delete;
 
   Number& toNumber() = delete;
   BitArray& toBitArray() = delete;
@@ -19,6 +20,7 @@ class MultiMap : public Variable {
   Array& toArray() = delete;
   List& toList() = delete;
   Map& toMap() = delete;
+  Table& toTable() = delete;
 
   operator const Number& () const = delete;
   operator const BitArray& () const = delete;
@@ -26,6 +28,7 @@ class MultiMap : public Variable {
   operator const Array& () const = delete;
   operator const List& () const = delete;
   operator const Map& () const = delete;
+  operator const Table& () const = delete;
 
   const Number& toNumber() const = delete;
   const BitArray& toBitArray() const = delete;
@@ -33,6 +36,7 @@ class MultiMap : public Variable {
   const Array& toArray() const = delete;
   const List& toList() const = delete;
   const Map& toMap() const = delete;
+  const Table& toTable() const = delete;
 
   Variable& operator=(const Variable& other) = delete;
   Variable& operator=(Variable&& other) = delete;

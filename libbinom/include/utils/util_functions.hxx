@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <climits>
 #include <algorithm>
+#include <cstring>
 
 #include "type_aliases.hxx"
 

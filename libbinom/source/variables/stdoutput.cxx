@@ -57,12 +57,17 @@ std::ostream& operator << (std::ostream& os, binom::Variable value) {
   case binom::VarTypeClass::multimap:
     return os << std::move(value.toMultiMap());
   case binom::VarTypeClass::table:
-//    return os << std::move(value.toTable()); // TODO
+    return os << std::move(value.toTable());
 
   default:
   case binom::VarTypeClass::invalid_type:
     return os << "TINVAL!";
   }
+}
+
+
+std::ostream& operator << (std::ostream& os, binom::KeyValue value) {
+  return os << Variable(value);
 }
 
 std::ostream& operator << (std::ostream& os, binom::Number value) {
@@ -94,7 +99,7 @@ std::ostream& operator << (std::ostream& os, binom::BitArray value) {
 
 std::ostream& operator << (std::ostream& os, binom::BufferArray value) {
   os << getTypeString(value.getType());
-  if(value.isPrintable()) return os << ' ' << std::string(value);
+  if(value.isPrintable()) return os << std::string(value);
   os << "[";
   bool is_first = true;
   switch (value.getValType()) {
@@ -165,5 +170,15 @@ std::ostream& operator << (std::ostream& os, binom::MultiMap value) {
 }
 
 std::ostream& operator << (std::ostream& os, binom::Table value) {
-  return os; // TODO
+  os << getTypeString(VarType::table) << "{";
+  os << "Header: [";
+  for(const binom::Table::Column& column : value) {
+    os << ((column.getType() == IndexType::unique_index) ? "Unique " : "Multi ") << column.getKey() << "; ";
+  }
+  os << "]; Rows: [";
+  for(Variable row : *value.begin()) {
+    os << std::move(row);
+  }
+  os << "]";
+  return os << '}';
 }
